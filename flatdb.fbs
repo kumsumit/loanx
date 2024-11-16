@@ -1,0 +1,16 @@
+table FlatDB {
+  is_table_created: bool;
+  theme_mode: int8;
+  font_size: float;
+  app_color: string;
+  holding_period:int8;
+  interest_type:int8;
+  compounding_frequency:int8;
+  scheduled_back_up_time_hour: int8;
+  scheduled_back_up_time_minute: int8;
+  drive_id_token: string;
+  drive_access_token: string;
+  drive_folder_id: string;
+  drive_file_id: string;
+  drive_user: int8;
+}

@@ -1,0 +1,103 @@
+name: mortgage
+description: "Demonstrates how to use the storage plugin."
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  intl: ^0.19.0
+  sqflite_sqlcipher:
+    git: https://github.com/kumsumit/sqflite_sqlcipher.git
+  flutter_secure_storage:
+    git: https://github.com/kumsumit/flutter_secure_storage.git  
+  encrypt: ^5.0.3
+  archive: ^3.6.1
+  faker: ^2.2.0
+  path: ^1.9.0
+  path_provider:
+    git: https://github.com/kumsumit/path_provider.git
+  package_info_plus:
+    git: https://github.com/kumsumit/package_info_plus.git
+  cupertino_icons: ^1.0.8
+  flutter_native_splash: ^2.4.2
+  flutter_screenutil:
+    git: https://github.com/sumitsharansatsangi/flutter_screenutil.git
+  flutter_typeahead: 
+    git: https://github.com/sumitsharansatsangi/flutter_typeahead.git
+  # firebase_auth: ^5.3.3
+  # firebase_core: ^3.8.0
+  # flutter_exif_rotation: ^0.5.2
+  google_sign_in: ^6.2.1
+  googleapis: ^13.2.0
+  googleapis_auth: ^1.6.0
+  http: ^1.2.2
+  riverpod: ^2.6.1
+  hooks_riverpod: ^2.6.1
+  flutter_hooks: ^0.20.5
+  fuzzywuzzy: ^1.2.0
+  riverpod_annotation: ^2.5.3
+  # extension_google_sign_in_as_googleapis_auth: ^2.0.12
+  # flex_color_picker: ^3.6.0
+  flutter_color_picker_plus:
+    git: https://github.com/sumitsharansatsangi/flutter_color_picker_plus.git
+  image_picker:
+    git: https://github.com/kumsumit/image_picker.git
+  local_auth:
+    git: https://github.com/kumsumit/local_auth.git  
+  workmanager:
+    git: https://github.com/sumitsharansatsangi/workmanager.git
+  device_preview:
+    git: https://github.com/sumitsharansatsangi/device_preview.git
+
+  # background_fetch:
+  #   git: https://github.com/sumitsharansatsangi/flutter_background_fetch.git  
+
+dev_dependencies:
+  # integration_test:
+  #   sdk: flutter
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.6.2
+  riverpod_lint: ^2.6.2
+  custom_lint: ^0.7.0
+  
+
+dependency_overrides: 
+  path_provider:
+    git: https://github.com/kumsumit/path_provider.git
+  plugin_platform_interface:
+    git: https://github.com/kumsumit/plugin_platform_interface.git  
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.webp
+
+flutter_native_splash: 
+  color: '#FFFAD1'
+  color_dark: '#423301'
+  android: true
+  ios: true
+  image_android: 'logo.png'
+  image_dark_android: 'logo.png'
+  image_ios: 'logo.png'
+  image_dark_ios: 'logo.png'
+  android_gravity: center
+  ios_content_mode: center
+  android_12: 
+    image: 'logo.png'
+    image_dark: 'logo.png'
+    color: '#FFFAD1'
+    color_dark: '#423301'
+
+objectbox:
+  output_dir: objectbox
+
+# global_options:
+#   objectbox_generator:generator:
+#     runs_before:
+#       - source_gen:combining_builder
