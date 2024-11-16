@@ -22,14 +22,17 @@ dependencies:
     git: https://github.com/kumsumit/package_info_plus.git
   cupertino_icons: ^1.0.8
   flutter_native_splash: ^2.4.2
-  flutter_screenutil:
-    git: https://github.com/sumitsharansatsangi/flutter_screenutil.git
+  url_launcher:
+    git: https://github.com/kumsumit/url_launcher.git
+  # flutter_screenutil:
+  #   git: https://github.com/sumitsharansatsangi/flutter_screenutil.git
   flutter_typeahead: 
     git: https://github.com/sumitsharansatsangi/flutter_typeahead.git
   # firebase_auth: ^5.3.3
   # firebase_core: ^3.8.0
   # flutter_exif_rotation: ^0.5.2
-  google_sign_in: ^6.2.1
+  google_sign_in:
+    git: https://github.com/kumsumit/google_sign_in.git
   googleapis: ^13.2.0
   googleapis_auth: ^1.6.0
   http: ^1.2.2

@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:mortgage/algo/damerau_lavenstien.dart';
 import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/service/database_helper.dart';
@@ -16,7 +18,38 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 part 'provider.g.dart';
 
-final authProvider = StateProvider<bool>((ref) => false);
+
+@Riverpod(keepAlive: true)
+ Future<bool> authenticate(Ref ref) async {
+   final LocalAuthentication localAuthentication = LocalAuthentication();
+    try {
+      final bool canAuthenticateWithBiometrics =
+          await localAuthentication.canCheckBiometrics;
+      if (canAuthenticateWithBiometrics) {
+         return await localAuthentication.authenticate(
+          localizedReason: 'Please authenticate to access the app',
+          options: const AuthenticationOptions(
+            useErrorDialogs: true,
+            stickyAuth: true,
+            // biometricOnly: true,
+          ),
+        );
+      } else if (await localAuthentication.isDeviceSupported()) {
+        return await localAuthentication.authenticate(
+          localizedReason: 'Please authenticate to access the app',
+          options: const AuthenticationOptions(
+            useErrorDialogs: true,
+            stickyAuth: false,
+          ),
+        );
+      }
+    } on PlatformException catch (e) {
+      debugPrint(e.toString());
+      return false;
+    }
+    return false;
+  }
+
 
 @Riverpod(keepAlive: true)
 class ThemeModeManager extends _$ThemeModeManager {

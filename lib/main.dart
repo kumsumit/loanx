@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mortgage/screens/error.dart';
+import 'package:mortgage/screens/unauthorized.dart';
 import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/service/database_helper.dart';
 import 'package:mortgage/provider/provider.dart';
@@ -61,7 +63,7 @@ class MyApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeManagerProvider);
     final fontSize = ref.watch(fontSizeProvider);
     final appColor = ref.watch(appColorProvider);
-    final isAuthenticated = ref.watch(authProvider);
+    final isAuthenticated = ref.watch(authenticateProvider);
     return MaterialApp(
         useInheritedMediaQuery: true,
         locale: DevicePreview.locale(context),
@@ -79,6 +81,10 @@ class MyApp extends ConsumerWidget {
           textTheme: TextTheme(bodyMedium: TextStyle(fontSize: fontSize)),
         ),
         debugShowCheckedModeBanner: false,
-        home: isAuthenticated ? DashBoard() : AuthScreen());
-  }
+        home: isAuthenticated.when(data:(data){
+          return data ?  DashBoard(): AuthFailurePage();
+        }, error: (err,obj)=>ErrorPage(), loading:()=> AuthScreen()));
+  // errorMessage: err.toString() + obj.toString(),
 }
+}
+// isAuthenticated ? DashBoard() : AuthScreen()

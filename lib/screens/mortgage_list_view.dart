@@ -539,65 +539,68 @@ showDescriptionDialog( BuildContext context, Mortgage mortgage, Item item, Famil
               builder: (context) => AlertDialog(
                     title: Text('Mortgage Details'),
                     content: SingleChildScrollView(
-                      child: DataTable(
-                        columns: [
-                          DataColumn(label: SizedBox()),
-                          DataColumn(label: SizedBox()),
-                        ],
-                        rows: [
-                          DataRow(cells: [
-                            DataCell(Text('Calculated Interest')),
-                            DataCell(Text(interest.toString()))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Depositor Name')),
-                            DataCell(Text(mortgage.depositorName))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Relative Name')),
-                            DataCell(Text(mortgage.relativeName))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Address')),
-                            DataCell(Text(mortgage.address))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Loan Amount')),
-                            DataCell(Text(mortgage.loanAmount.toString()))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Interest Rate')),
-                            DataCell(Text(mortgage.interestRate.toString()))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Interest Type')),
-                            DataCell(Text(mortgage.interestType.toString()))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Compounding Frequency')),
-                            DataCell(Text(mortgage.compoundingFrequency.toString()))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Weight')),
-                            DataCell(Text(mortgage.weight.toString()))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Additional Details')),
-                            DataCell(Text(mortgage.additionalDetails))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Item')),
-                            DataCell(Text(item.name))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Family Relation')),
-                            DataCell(Text(familyRelation.name))
-                          ]),
-                          DataRow(cells: [
-                            DataCell(Text('Mortgage Material')),
-                            DataCell(Text(mortgageMaterial.name))
-                          ]),
-                        ],
+                      scrollDirection: Axis.horizontal,
+                      child: SingleChildScrollView(
+                        child: DataTable(
+                          columns: [
+                            DataColumn(label: SizedBox()),
+                            DataColumn(label: SizedBox()),
+                          ],
+                          rows: [
+                            DataRow(cells: [
+                              DataCell(Text('Calculated Interest')),
+                              DataCell(Text(interest.toString()))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Depositor Name')),
+                              DataCell(Text(mortgage.depositorName))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Relative Name')),
+                              DataCell(Text(mortgage.relativeName))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Address')),
+                              DataCell(Text(mortgage.address))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Loan Amount')),
+                              DataCell(Text(mortgage.loanAmount.toString()))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Interest Rate')),
+                              DataCell(Text(mortgage.interestRate.toString()))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Interest Type')),
+                              DataCell(Text(mortgage.interestType.toString()))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Compounding Frequency')),
+                              DataCell(Text(mortgage.compoundingFrequency.toString()))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Weight')),
+                              DataCell(Text(mortgage.weight.toString()))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Additional Details')),
+                              DataCell(Text(mortgage.additionalDetails))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Item')),
+                              DataCell(Text(item.name))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Family Relation')),
+                              DataCell(Text(familyRelation.name))
+                            ]),
+                            DataRow(cells: [
+                              DataCell(Text('Mortgage Material')),
+                              DataCell(Text(mortgageMaterial.name))
+                            ]),
+                          ],
+                        ),
                       ),
                     ),
                     actions: [

@@ -1,38 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/service/auth_service.dart';
+import 'package:mortgage/service/eye_rolling.dart';
 
-class AuthScreen extends ConsumerWidget {
+class AuthScreen extends HookConsumerWidget {
   const AuthScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authService = AuthService();
+    final controller = useAnimationController(
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
 
-    void authenticate() async {
-      ref.read(authProvider.notifier).state = false;
-      final isAuthenticated = await authService.authenticate();
-      ref.read(authProvider.notifier).state = isAuthenticated;
-    }
+    final animation = CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeInOut,
+    );
 
-    authenticate(); // Trigger authentication on app start
     final appColor = ref.watch(appColorProvider);
     return Scaffold(
       backgroundColor:
           Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
       body: Center(
         child: Column(
-          mainAxisAlignment : MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Row(mainAxisAlignment: MainAxisAlignment.center,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CircularProgressIndicator(),
-                SizedBox(width: 10),
-                Text('Authenticating...',style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 20)),
+                EyeRollingIcon(animation: animation),
+                SizedBox(width: 20),
+                EyeRollingIcon(animation: animation),
               ],
             ),
-            Image.asset("assets/logo.webp"),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                      image: AssetImage("assets/logo.webp"),
+                      fit: BoxFit.cover)),
+              child: SizedBox(width: 250, height: 250,
+                child: FadeTransition(
+                  opacity: animation,
+                  child: Icon(
+                    Icons.lock_outline,
+                    color: Colors.red,
+                    size: 100,
+                  ),
+                ),
+              ),
+            ),
+            // Image.asset("assets/logo.webp"),
           ],
         ),
       ),

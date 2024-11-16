@@ -6,6 +6,22 @@ part of 'provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$authenticateHash() => r'86538e8fd6595b5a11cabc8f3e13aee8e041fd32';
+
+/// See also [authenticate].
+@ProviderFor(authenticate)
+final authenticateProvider = FutureProvider<bool>.internal(
+  authenticate,
+  name: r'authenticateProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$authenticateHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AuthenticateRef = FutureProviderRef<bool>;
 String _$appVersionHash() => r'4304956db232227fd516e60af9cef7bca0cd836e';
 
 /// See also [appVersion].
@@ -166,7 +182,7 @@ final searchBarStatusProvider =
 );
 
 typedef _$SearchBarStatus = AutoDisposeNotifier<bool>;
-String _$appColorHash() => r'adbdb43dcbfa5f983e15fd1059e2587d6babb481';
+String _$appColorHash() => r'cd0567a983346fc7ff789b652a08b110ed2df2c1';
 
 /// See also [AppColor].
 @ProviderFor(AppColor)
@@ -243,7 +259,7 @@ final itemListProvider = NotifierProvider<ItemList, List<Item>>.internal(
 );
 
 typedef _$ItemList = Notifier<List<Item>>;
-String _$mortgageListHash() => r'1f1c4e6d614e0db3b0a22a71584c9d1be6f84def';
+String _$mortgageListHash() => r'f825764d2c6e6b6210297daec90f5d7b27df17e3';
 
 /// See also [MortgageList].
 @ProviderFor(MortgageList)

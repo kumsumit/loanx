@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
 import 'package:mortgage/model/loan.dart';
@@ -11,7 +12,7 @@ import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/widget/styled_dropdown.dart';
 import 'package:mortgage/widget/styled_text_widget.dart';
 
-import '../algo/damerau_lavenstien.dart';
+// import '../algo/damerau_lavenstien.dart';
 
 /// Interface to add a new or update an existing mortgage.
 ///
@@ -47,8 +48,12 @@ class MortgageInput extends HookConsumerWidget {
     final currentItem = useState<Item?>(null);
     final currentFamilyRelation = useState<FamilyRelation?>(null);
     final currentMortgageMaterial = useState<MortgageMaterial?>(null);
-    final interestType = useState<InterestType>( mortgage == null ? InterestType.simple : InterestType.values[mortgage!.interestType]);
-    final compoundingFrequency = useState<CompoundingFrequency>(mortgage == null ? CompoundingFrequency.yearly : CompoundingFrequency.values[mortgage!.compoundingFrequency]);
+    final interestType = useState<InterestType>(InterestType.values[
+        mortgage == null ? FastDB.getInterestType() : mortgage!.interestType]);
+    final compoundingFrequency = useState<CompoundingFrequency>(
+        CompoundingFrequency.values[mortgage == null
+            ? FastDB.getCompoundingFrequency()
+            : mortgage!.compoundingFrequency]);
     final depositorController =
         useTextEditingController(text: mortgage?.depositorName ?? '');
     final addressController =
@@ -118,25 +123,19 @@ class MortgageInput extends HookConsumerWidget {
       appBar: AppBar(
         title: Text(appBarTitle),
         foregroundColor: Theme.of(context).colorScheme.primary,
-        actions: [
-          IconButton(
-              onPressed: () {
-                debugPrint(
-                    damerauLevenshteinDistance("kitten", "sitting").toString());
-                debugPrint(damerauLevenshteinDistance("Anastsia", "Anastasia")
-                    .toString());
-              },
-              icon: Icon(Icons.search))
-        ],
+        // actions: [
+        //   IconButton(
+        //       onPressed: () {
+        //         debugPrint(
+        //             damerauLevenshteinDistance("kitten", "sitting").toString());
+        //         debugPrint(damerauLevenshteinDistance("Anastsia", "Anastasia")
+        //             .toString());
+        //       },
+        //       icon: Icon(Icons.search))
+        // ],
       ),
       body: Padding(
-          padding: EdgeInsets.only(
-              // bottom: isDialogOpen.value
-              //     ? 20
-              //     : MediaQuery.of(context).viewInsets.bottom,
-
-              left: 20,
-              right: 20),
+          padding: EdgeInsets.only(left: 20, right: 20),
           child: ListView(controller: scrollController, children: <Widget>[
             SizedBox(
               height: 10,
@@ -268,24 +267,52 @@ class MortgageInput extends HookConsumerWidget {
               },
             ),
             DropdownButtonFormField<InterestType>(
-              value: interestType.value,
-              decoration: InputDecoration( labelText: 'Interest Type', ),
-              items: [ 
-                DropdownMenuItem( value: InterestType.simple, child: Text('Simple Interest'), ),
-                DropdownMenuItem( value: InterestType.compound, child: Text('Compound Interest'), ),
-                 ], onChanged: (value) { 
-                     interestType.value = value ?? InterestType.simple;
-                  } ), 
+                value: interestType.value,
+                decoration: InputDecoration(
+                  labelText: 'Interest Type',
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: InterestType.simple,
+                    child: Text('Simple Interest'),
+                  ),
+                  DropdownMenuItem(
+                    value: InterestType.compound,
+                    child: Text('Compound Interest'),
+                  ),
+                ],
+                onChanged: (value) {
+                  interestType.value = value ?? InterestType.simple;
+                }),
             if (interestType.value == InterestType.compound)
-             DropdownButtonFormField<CompoundingFrequency>(
-               value: compoundingFrequency.value,
-               decoration: InputDecoration( labelText: 'Compounding Frequency',
-                ), items: [
-                   DropdownMenuItem( value: CompoundingFrequency.yearly, child: Text('Yearly'), ), 
-                   DropdownMenuItem( value: CompoundingFrequency.halfYearly, child: Text('Half-Yearly'), ),
-                    DropdownMenuItem( value: CompoundingFrequency.quarterly, child: Text('Quarterly'), ),
-                     DropdownMenuItem( value: CompoundingFrequency.monthly, child: Text('Monthly'), ), ],
-                      onChanged: (value) {  compoundingFrequency.value = value ?? CompoundingFrequency.yearly;  }, ),
+              DropdownButtonFormField<CompoundingFrequency>(
+                value: compoundingFrequency.value,
+                decoration: InputDecoration(
+                  labelText: 'Compounding Frequency',
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: CompoundingFrequency.yearly,
+                    child: Text('Yearly'),
+                  ),
+                  DropdownMenuItem(
+                    value: CompoundingFrequency.halfYearly,
+                    child: Text('Half-Yearly'),
+                  ),
+                  DropdownMenuItem(
+                    value: CompoundingFrequency.quarterly,
+                    child: Text('Quarterly'),
+                  ),
+                  DropdownMenuItem(
+                    value: CompoundingFrequency.monthly,
+                    child: Text('Monthly'),
+                  ),
+                ],
+                onChanged: (value) {
+                  compoundingFrequency.value =
+                      value ?? CompoundingFrequency.yearly;
+                },
+              ),
             familyRelations.isEmpty
                 ? SizedBox()
                 : StyledDropdown<FamilyRelation>(

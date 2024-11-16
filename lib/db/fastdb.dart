@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:mortgage/model/loan.dart';
 import 'package:path_provider/path_provider.dart';
 import 'flatdb_generated.dart' as db;
 // import 'dart:isolate';
@@ -113,11 +114,11 @@ class FastDB {
   }
 
   static int getInterestType() {
-    return flatDbBuilder.interestType ?? 0;
+    return flatDbBuilder.interestType ?? InterestType.simple.index;
   }
 
   static int getCompoundingFrequency() {
-    return flatDbBuilder.compoundingFrequency ?? 0;
+    return flatDbBuilder.compoundingFrequency ?? CompoundingFrequency.yearly.index;
   }
 
   static int getScheduledBackUpTimeHour() {

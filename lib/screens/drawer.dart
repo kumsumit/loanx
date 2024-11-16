@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
@@ -29,17 +30,18 @@ class MyDrawer extends StatelessWidget {
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: Consumer(
-                    builder: (context, ref, child) {
-                      return IconButton(
-                        onPressed: ()async {
-                         await ref.read(themeModeManagerProvider.notifier).set();
-                        },
-                        icon: ref.watch(themeModeManagerProvider).index == 2 ?  Icon( Icons.light_mode,color: Theme.of(context).colorScheme.onSecondary)  : 
-                        Icon( Icons.dark_mode, color: Theme.of(context).colorScheme.onSecondary),
-                      );
-                    }
-                  ),
+                  child: Consumer(builder: (context, ref, child) {
+                    return IconButton(
+                      onPressed: () async {
+                        await ref.read(themeModeManagerProvider.notifier).set();
+                      },
+                      icon: ref.watch(themeModeManagerProvider).index == 2
+                          ? Icon(Icons.light_mode,
+                              color: Theme.of(context).colorScheme.onSecondary)
+                          : Icon(Icons.dark_mode,
+                              color: Theme.of(context).colorScheme.onSecondary),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -302,19 +304,26 @@ class MyDrawer extends StatelessWidget {
                   }
                 });
           }),
-          Consumer(
-            builder: (context, ref, child) {
-              return ListTile(leading: Icon(Icons.backup), title: Text("Back up now"),
-              subtitle: ref.watch(backupStatusProvider) ? Text("Backup in progress", style: TextStyle(fontSize: 15, color:Colors.red),) : null,
-              onTap:ref.watch(backupStatusProvider) ? null : () async{
-                final BackupService backupService = BackupService();
-                ref.read(backupStatusProvider.notifier).set(true);
-                await backupService.performBackup();
-                ref.read(backupStatusProvider.notifier).set(false);
-              },
-              );
-            }
-          ),
+          Consumer(builder: (context, ref, child) {
+            return ListTile(
+              leading: Icon(Icons.backup),
+              title: Text("Back up now"),
+              subtitle: ref.watch(backupStatusProvider)
+                  ? Text(
+                      "Backup in progress",
+                      style: TextStyle(fontSize: 15, color: Colors.red),
+                    )
+                  : null,
+              onTap: ref.watch(backupStatusProvider)
+                  ? null
+                  : () async {
+                      final BackupService backupService = BackupService();
+                      ref.read(backupStatusProvider.notifier).set(true);
+                      await backupService.performBackup();
+                      ref.read(backupStatusProvider.notifier).set(false);
+                    },
+            );
+          }),
           ListTile(
             leading: Icon(Icons.info_outline),
             title: Consumer(builder: (context, ref, child) {
@@ -328,8 +337,28 @@ class MyDrawer extends StatelessWidget {
                   loading: () => Text("..."));
             }),
           ),
+          ListTile(
+            leading: Icon(Icons.policy),
+            title: Text('Privacy Policy'),
+            onTap: () {
+              _launchURL('https://kumpali.com/privacy');
+            },
+          ),
         ],
       ),
     );
+  }
+
+  void _launchURL(String url) async {
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url),
+      mode: LaunchMode.inAppWebView,
+      browserConfiguration: BrowserConfiguration(
+       showTitle: true,
+      ),
+      );
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }

@@ -16,7 +16,8 @@ class ItemView extends StatelessWidget {
             final item = items[index];
             return ListTile(
               title: Text(item.name),
-              onTap: () async => await itemDialog(context, item),
+              onTap:item.isAddedByUser == 1
+                  ?  () async => await itemDialog(context, item): null,
               onLongPress: item.isAddedByUser == 1
                   ? () async => await itemDeleteDialog(context, ref, item)
                   : null,

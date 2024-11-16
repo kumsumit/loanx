@@ -1,5 +1,6 @@
 import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
+import 'package:mortgage/model/loan.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/model/mortgage_material.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -998,7 +999,8 @@ class DatabaseHelper {
         'CREATE TABLE IF NOT EXISTS familyRelations(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
     batch.execute(
         '''CREATE TABLE IF NOT EXISTS mortgages(id INTEGER PRIMARY KEY, depositorName TEXT,
-           relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, additionalDetails TEXT,
+           relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, interestType INTEGER,
+           compoundingFrequency INTEGER, additionalDetails TEXT,
            dateCreated TEXT, dateFinished TEXT, itemId INTEGER, familyRelationId INTEGER, mortgageMaterialId INTEGER,
            FOREIGN KEY (itemId) REFERENCES items (id),
            FOREIGN KEY (familyRelationId) REFERENCES familyRelations (id),
@@ -1032,6 +1034,8 @@ class DatabaseHelper {
         MortgageFields.loanAmount: 100 * random.decimal(min: 100, scale: 10),
         MortgageFields.interestRate: random.decimal(min: 1),
         MortgageFields.weight: random.decimal(),
+        MortgageFields.interestType: random.element(InterestType.values).index,
+        MortgageFields.compoundingFrequency: random.element(CompoundingFrequency.values).index,
         MortgageFields.additionalDetails: faker.company.name(),
         MortgageFields.dateCreated: DateTime.now().toString(),
         MortgageFields.itemId: random.element(itemIds),
