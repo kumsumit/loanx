@@ -33,7 +33,8 @@ class Loan {
         default:
           n = 1;
       }
-      return principal * pow((1 + (interestRate / 100) / n), n * duration) - principal;
+      return principal * pow((1 + (interestRate / 100) / n), n * duration) -
+          principal;
     }
     return 0.0;
   }

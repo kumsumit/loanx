@@ -7,134 +7,19 @@ import 'package:http/http.dart' as http;
 import 'package:mortgage/db/fastdb.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-
-// void main() {
-//   runApp(MyApp());
-//   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
-// }
-
-// void callbackDispatcher() {
-//   Workmanager().executeTask((task, inputData) async {
-//     if (task == "dailyBackup") {
-//       await BackupService().performBackup();
-//     }
-//     return Future.value(true);
-//   });
-// }
-
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Backup App',
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       home: BackupScreen(),
-//     );
-//   }
-// }
-
-// class BackupScreen extends StatelessWidget {
-//   final BackupService _backupService = BackupService();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Backup to Google Drive'),
-//       ),
-//       body: Center(
-//         child: ElevatedButton(
-//           onPressed: () async {
-//             await _backupService.performBackup();
-//           },
-//           child: Text('Backup Now'),
-//         ),
-//       ),
-//     );
-//   }
-// }
+import 'package:workmanager/workmanager.dart';
 
 class BackupService {
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [drive.DriveApi.driveFileScope],
-  );
-
-  Future<bool> createAppFolder(drive.DriveApi driveApi) async {
-    var folder = drive.File();
-    folder.name = "Mortgage";
-    folder.parents = ['appDataFolder'];
-    folder.mimeType = 'application/vnd.google-apps.folder';
-    var folderCreation = await driveApi.files.create(folder);
-    debugPrint('Created folder ID: ${folderCreation.id}');
-    if (folderCreation.id != null) {
-      FastDB.putDriveFolderId(folderCreation.id!);
-      await FastDB.flush();
-      return true;
-    }
-    return false;
-  }
-
   Future<bool> performBackup() async {
-    try{
-    debugPrint('performBackup');
-    debugPrint('driveAccessToken: ${FastDB.getDriveAccessToken()}');
-    debugPrint('driveIdToken: ${FastDB.getDriveIdToken()}');
-    debugPrint('driveUser: ${FastDB.getDriveUser()}');
-    debugPrint('driveFolderId: ${FastDB.getDriveFolderId()}');
-    debugPrint('driveFileId: ${FastDB.getDriveFileId()}');
-    if (FastDB.getDriveAccessToken().isEmpty) {
-      final account = await _googleSignIn.signIn();
-      if (account == null) return false;
-      final GoogleSignInAuthentication googleSignInAuthentication =
-          await account.authentication;
-      FastDB.putDriveAccessToken(googleSignInAuthentication.accessToken ?? "");
-      FastDB.putDriveIdToken(googleSignInAuthentication.idToken ?? "");
-      final headers = await account.authHeaders;
-      if (headers["X-Goog-AuthUser"] != null) {
-        FastDB.putDriveUser(
-            int.tryParse(headers["X-Goog-AuthUser"] ?? "") ?? 0);
-      }
-      await FastDB.flush();
-    }
-    // final account = await _googleSignIn.signIn();
-
-    final authHeaders = {
-      "Authorization": "Bearer ${FastDB.getDriveAccessToken()}",
-      "X-Goog-AuthUser": "${FastDB.getDriveUser()}"
-    };
-    final authenticateClient = GoogleAuthClient(authHeaders);
-    final driveApi = drive.DriveApi(authenticateClient);
-    if (FastDB.getDriveFolderId().isEmpty) {
-      // final files = (await driveApi.files.list(spaces: 'appDataFolder')).files;
-      // if (files == null || files.isEmpty) {
-      if (await createAppFolder(driveApi)) {
+    try {
+      final driveApi = await getDriveApi();
+      if (driveApi != null) {
         return await createFile(driveApi);
       }
-      // }
-      // for (var file in files) {
-      //   if (file.name != 'Mortgage') {
-      //     await driveApi.files.delete(file.id!);
-      //   }
-      // }
-      // var response = await driveApi.files.list(
-      //   spaces: 'appDataFolder',
-      //   q: "name = 'Mortgage' and mimeType = 'application/vnd.google-apps.folder'",
-      // );
-      // if (response.files != null && response.files!.isNotEmpty) {
-      // FastDB.putDriveFolderId(response.files!.first.id!);
-      // debugPrint('Drive folder ID: ${FastDB.getDriveFolderId()}');
-      // await FastDB.flush();
-      // return await createFile(driveApi);
-    } else {
-      // if( await createAppFolder(driveApi)){
-      return await createFile(driveApi);
-      // }
-    }
-    return false;
-    }catch(e){
+      return false;
+    } catch (e) {
       FastDB.putDriveAccessToken("");
+      await FastDB.flush();
       return await performBackup();
     }
   }
@@ -142,7 +27,7 @@ class BackupService {
   Future<bool> createFile(drive.DriveApi driveApi) async {
     final driveFile = drive.File();
     driveFile.name = "backup-${DateTime.now().toIso8601String()}.db";
-    driveFile.parents = [FastDB.getDriveFolderId()];
+    driveFile.parents = ["appDataFolder"];
     File file = File(join(await getDatabasesPath(), 'mortgage.db'));
     debugPrint(file.path);
     if (file.existsSync()) {
@@ -164,6 +49,77 @@ class BackupService {
     }
     return false;
   }
+
+  Future<void> downloadFileToDevice() async {
+    final driveApi = await getDriveApi();
+    File saveFile = File(join(await getDatabasesPath(), 'mortgage.db'));
+    if (driveApi != null) {
+      final fileList =
+          (await driveApi.files.list(spaces: 'appDataFolder')).files;
+      if (fileList != null &&
+          fileList.isNotEmpty &&
+          fileList.first.id != null) {
+        final driveBackupDate = DateTime.tryParse(fileList.first.name!
+            .replaceAll('backup-', '')
+            .replaceAll('.db', ''));
+        if (driveBackupDate != null) {
+          final fileBackupDate =
+              DateTime.fromMillisecondsSinceEpoch(FastDB.getDbUpdateTime());
+          if (fileBackupDate.isBefore(driveBackupDate)) {
+            drive.Media? file = (await driveApi.files.get(fileList.first.id!,
+                    downloadOptions: drive.DownloadOptions.fullMedia))
+                as drive.Media?;
+            if (file != null) {
+              final first = await file.stream.first;
+              await saveFile.writeAsBytes(first, flush: true);
+            }
+            if (fileList.length > 1) {
+              for (final file in fileList.sublist(1)) {
+                if (file.id != null) {
+                  await driveApi.files.delete(file.id!);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  Future<drive.DriveApi?> getDriveApi() async {
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      scopes: [drive.DriveApi.driveAppdataScope],
+    );
+    GoogleSignInAccount? account;
+    if (FastDB.getDriveAccessToken().isEmpty) {
+      account = await googleSignIn.signIn();
+      if (account == null) return null;
+    } else if (DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
+        FastDB.getDriveAccessTokenExpires()))) {
+      account = await googleSignIn.signInSilently();
+      if (account == null) return null;
+    }
+    if (account != null) {
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await account.authentication;
+      FastDB.putDriveAccessTokenExpires(DateTime.now().millisecondsSinceEpoch);
+      FastDB.putDriveAccessToken(googleSignInAuthentication.accessToken ?? "");
+      final headers = await account.authHeaders;
+      if (headers["X-Goog-AuthUser"] != null) {
+        FastDB.putDriveUser(
+            int.tryParse(headers["X-Goog-AuthUser"] ?? "") ?? 0);
+      }
+      await FastDB.flush();
+
+      final authHeaders = {
+        "Authorization": "Bearer ${FastDB.getDriveAccessToken()}",
+        "X-Goog-AuthUser": "${FastDB.getDriveUser()}"
+      };
+      final authenticateClient = GoogleAuthClient(authHeaders);
+      return drive.DriveApi(authenticateClient);
+    }
+    return null;
+  }
 }
 
 class GoogleAuthClient extends http.BaseClient {
@@ -176,4 +132,27 @@ class GoogleAuthClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     return _client.send(request..headers.addAll(_headers));
   }
+}
+
+Future<void> registerBackUp() async{
+  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  Workmanager().registerPeriodicTask(
+    "MortgageBackupTaskgfcgfdfgdfgcscdfs65",
+    "dailyBackup",
+    initialDelay: Duration(
+        hours: FastDB.getScheduledBackUpTimeHour(),
+        minutes: FastDB.getScheduledBackUpTimeMinute()),
+    frequency: Duration(days: 1),
+  );
+  FastDB.putIsBackUpRegistered(true);
+  await FastDB.flush();
+}
+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    if (task == "dailyBackup") {
+      await BackupService().performBackup();
+    }
+    return Future.value(true);
+  });
 }

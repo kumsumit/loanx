@@ -286,24 +286,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.7"
-  device_frame:
-    dependency: transitive
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "25c52262cde7fcd13a46ac60454fa908141e4902"
-      url: "https://github.com/sumitsharansatsangi/device_frame.git"
-    source: git
-    version: "1.2.0"
-  device_preview:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: a7d6c7e716bbe5dbc78ccadd549b4820d0a0de7c
-      url: "https://github.com/sumitsharansatsangi/device_preview.git"
-    source: git
-    version: "1.2.0"
   encrypt:
     dependency: "direct main"
     description:
@@ -320,14 +302,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.1"
-  faker:
-    dependency: "direct main"
-    description:
-      name: faker
-      sha256: "544c34e9e1d322824156d5a8d451bc1bb778263b892aded24ec7ba77b0706624"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   ffi:
     dependency: transitive
     description:
@@ -472,19 +446,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.0"
-  flutter_localizations:
-    dependency: transitive
-    description: flutter
-    source: sdk
-    version: "0.0.0"
   flutter_native_splash:
     dependency: "direct main"
     description:
       name: flutter_native_splash
-      sha256: ee5c9bd2b74ea8676442fd4ab876b5d41681df49276488854d6c81a5377c0ef1
+      sha256: "1152ab0067ca5a2ebeb862fe0a762057202cceb22b7e62692dcbabf6483891bb"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.2"
+    version: "2.4.3"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -618,42 +587,47 @@ packages:
   google_sign_in:
     dependency: "direct main"
     description:
-      name: google_sign_in
-      sha256: fad6ddc80c427b0bba705f2116204ce1173e09cf299f85e053d57a55e5b2dd56
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: e0b131e2f17a58cb58c016b5e1a8fe6ba8b1ed14
+      url: "https://github.com/kumsumit/google_sign_in.git"
+    source: git
     version: "6.2.2"
   google_sign_in_android:
     dependency: transitive
     description:
-      name: google_sign_in_android
-      sha256: "0928059d2f0840f63c7b07a30cf73b593ae872cdd0dbd46d1b9ba878d2599c01"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: c82d9002b43acb4cd05906a2da92dac4abd20653
+      url: "https://github.com/kumsumit/google_sign_in_android.git"
+    source: git
     version: "6.1.33"
   google_sign_in_ios:
     dependency: transitive
     description:
-      name: google_sign_in_ios
-      sha256: "83f015169102df1ab2905cf8abd8934e28f87db9ace7a5fa676998842fed228a"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "7022207ecc1cf47bd83454e87e3a4735c0cdb82d"
+      url: "https://github.com/kumsumit/google_sign_in_ios.git"
+    source: git
     version: "5.7.8"
   google_sign_in_platform_interface:
     dependency: transitive
     description:
-      name: google_sign_in_platform_interface
-      sha256: "1f6e5787d7a120cc0359ddf315c92309069171306242e181c09472d1b00a2971"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "93ee5f92e6e894a4f602091fc6365099e479b745"
+      url: "https://github.com/kumsumit/google_sign_in_platform_interface.git"
+    source: git
     version: "2.4.5"
   google_sign_in_web:
     dependency: transitive
     description:
-      name: google_sign_in_web
-      sha256: ada595df6c30cead48e66b1f3a050edf0c5cf2ba60c185d69690e08adcc6281b
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "247fada2a8c89126c7283609fac4832dbddd0205"
+      url: "https://github.com/kumsumit/google_sign_in_web.git"
+    source: git
     version: "0.12.4+3"
   googleapis:
     dependency: "direct main"
@@ -964,14 +938,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  nested:
-    dependency: transitive
-    description:
-      name: nested
-      sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   package_config:
     dependency: transitive
     description:
@@ -980,24 +946,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
-  package_info_plus:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: c911183881f4faca3c432d74f6bb1c0c19041585
-      url: "https://github.com/kumsumit/package_info_plus.git"
-    source: git
-    version: "8.1.1"
-  package_info_plus_platform_interface:
-    dependency: transitive
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: b3cae67c1430b6f5c71b74f3c7e0c24ba5421fda
-      url: "https://github.com/kumsumit/package_info_plus_platform_interface.git"
-    source: git
-    version: "3.0.1"
   path:
     dependency: "direct main"
     description:
@@ -1109,14 +1057,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1"
-  provider:
-    dependency: transitive
-    description:
-      name: provider
-      sha256: c8a055ee5ce3fd98d6fc872478b03823ffdb448699c6ebdbbc71d59b596fd48c
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.2"
   pub_semver:
     dependency: transitive
     description:
@@ -1133,6 +1073,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      sha256: ea0b925899e64ecdfbf9c7becb60d5b50e706ade44a85b2363be2a22d88117d2
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.2"
   riverpod:
     dependency: "direct main"
     description:
@@ -1145,10 +1093,10 @@ packages:
     dependency: transitive
     description:
       name: riverpod_analyzer_utils
-      sha256: dc53a659cb543b203cdc35cd4e942ed08ea893eb6ef12029301323bdf18c5d95
+      sha256: c6b8222b2b483cb87ae77ad147d6408f400c64f060df7a225b127f4afef4f8c8
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.7"
+    version: "0.5.8"
   riverpod_annotation:
     dependency: "direct main"
     description:
@@ -1161,18 +1109,18 @@ packages:
     dependency: "direct dev"
     description:
       name: riverpod_generator
-      sha256: "54458dac2fea976990dc9ed379060db6ae5c8790143f1963fedd0fb99980a326"
+      sha256: "63546d70952015f0981361636bf8f356d9cfd9d7f6f0815e3c07789a41233188"
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.2"
+    version: "2.6.3"
   riverpod_lint:
     dependency: "direct dev"
     description:
       name: riverpod_lint
-      sha256: "326efc199b87f21053b9a2afbf2aea26c41b3bf6f8ba346ce69126ee17d16ebd"
+      sha256: "83e4caa337a9840469b7b9bd8c2351ce85abad80f570d84146911b32086fbd99"
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.2"
+    version: "2.6.3"
   rxdart:
     dependency: transitive
     description:

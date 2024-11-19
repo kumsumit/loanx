@@ -1,25 +1,32 @@
 import 'package:flutter/material.dart';
 
 class StyledTextField extends StatelessWidget {
-  const StyledTextField({
-    super.key,
-    required this.textEditingController,
-    required this.hintText,
-    required this.labelText,
-    this.keyboardType = TextInputType.text,
-    required this.onTap,
-  });
+  const StyledTextField(
+      {super.key,
+      required this.textEditingController,
+      required this.hintText,
+      required this.labelText,
+      this.keyboardType = TextInputType.text,
+      required this.onTap,
+      required this.failedValidationMessage});
   final TextEditingController textEditingController;
   final String hintText;
   final String labelText;
   final TextInputType keyboardType;
   final VoidCallback onTap;
+  final String failedValidationMessage;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child: TextField(
+      child: TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty || value.trim().isEmpty) {
+            return failedValidationMessage;
+          }
+          return null;
+        },
         controller: textEditingController,
         decoration: InputDecoration(
           hintText: hintText,

@@ -133,6 +133,23 @@ final backupStatusProvider =
 );
 
 typedef _$BackupStatus = AutoDisposeNotifier<bool>;
+String _$backupDownloadStatusHash() =>
+    r'bee60c23b5f51f1fbc7360209659cd9fa64b2e13';
+
+/// See also [BackupDownloadStatus].
+@ProviderFor(BackupDownloadStatus)
+final backupDownloadStatusProvider =
+    AutoDisposeNotifierProvider<BackupDownloadStatus, bool>.internal(
+  BackupDownloadStatus.new,
+  name: r'backupDownloadStatusProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$backupDownloadStatusHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$BackupDownloadStatus = AutoDisposeNotifier<bool>;
 String _$sliderFontSizeHash() => r'f3d7bfb4f59e6896716d4bef20f61418ee6df8a8';
 
 /// See also [SliderFontSize].
@@ -212,7 +229,7 @@ final pickerColorProvider =
 
 typedef _$PickerColor = AutoDisposeNotifier<String>;
 String _$familyRelationListHash() =>
-    r'17e3eb6f7dbb003597609d25eb20697274d95316';
+    r'e0715b1a57a5628051a3ed0cc5896dd125b81472';
 
 /// See also [FamilyRelationList].
 @ProviderFor(FamilyRelationList)
@@ -229,7 +246,7 @@ final familyRelationListProvider =
 
 typedef _$FamilyRelationList = Notifier<List<FamilyRelation>>;
 String _$mortgageMaterialListHash() =>
-    r'61c106a36327b2889654ba41531acbfc5d61b4e0';
+    r'a84c8f5ba84feebb3e3e83f0f8af6eb7ea8db3ab';
 
 /// See also [MortgageMaterialList].
 @ProviderFor(MortgageMaterialList)
@@ -245,7 +262,7 @@ final mortgageMaterialListProvider =
 );
 
 typedef _$MortgageMaterialList = Notifier<List<MortgageMaterial>>;
-String _$itemListHash() => r'dbf34ee1e2c5976e7ee3c109732dcee978886ee9';
+String _$itemListHash() => r'1ab1af5689eebf7ec9169cf5acc5e1260bbb808b';
 
 /// See also [ItemList].
 @ProviderFor(ItemList)
@@ -259,7 +276,7 @@ final itemListProvider = NotifierProvider<ItemList, List<Item>>.internal(
 );
 
 typedef _$ItemList = Notifier<List<Item>>;
-String _$mortgageListHash() => r'f825764d2c6e6b6210297daec90f5d7b27df17e3';
+String _$mortgageListHash() => r'60ce3c95830cc2e74cc3bf68ef91fc13f41524d9';
 
 /// See also [MortgageList].
 @ProviderFor(MortgageList)

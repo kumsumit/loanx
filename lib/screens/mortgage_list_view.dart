@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
+// import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+// import 'package:mortgage/extension/string.dart';
 import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
-import 'package:mortgage/model/loan.dart';
+// import 'package:mortgage/model/loan.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/model/mortgage_material.dart';
 import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/screens/mortgage_details.dart';
 
 class MortgageListView extends StatelessWidget {
   const MortgageListView({super.key});
@@ -23,13 +25,11 @@ class MortgageListView extends StatelessWidget {
       final item = items.firstWhere((item) => item.id == mortgage.itemId);
       return GestureDetector(
         onDoubleTap: () {
-          final familyRelation = familyRelations.firstWhere((familyRelation) =>
-              familyRelation.id == mortgage.familyRelationId);
-          final mortgageMaterial = mortgageMaterials.firstWhere(
-              (mortgageMaterial) =>
-                  mortgageMaterial.id == mortgage.mortgageMaterialId);
-
-          showDescriptionDialog(context, mortgage, item, familyRelation, mortgageMaterial);
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      MortgageDetails(mortgage: mortgage, item: item)));
         },
         onLongPress: () {
           if (ref.read(mortgageSelectionListProvider).contains(mortgage.id)) {
@@ -106,7 +106,9 @@ class MortgageListView extends StatelessWidget {
       if (mortgages.isEmpty ||
           items.isEmpty ||
           mortgageMaterials.isEmpty ||
-          familyRelations.isEmpty) return Center(child: CircularProgressIndicator());
+          familyRelations.isEmpty) {
+        return Center(child: CircularProgressIndicator());
+      }
       return ListView.builder(
           shrinkWrap: true,
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -126,21 +128,20 @@ class ColorCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            SizedBox(
-              height: 40,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(20),
-                )
-              ),
-            ),
-             Text(text,textAlign: TextAlign.center, style: TextStyle( fontSize: 12)),
-          ],
-        );
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: 40,
+          child: DecoratedBox(
+              decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(20),
+          )),
+        ),
+        Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 12)),
+      ],
+    );
   }
 }
 
@@ -183,19 +184,21 @@ class SearchAppBar extends HookWidget {
                 );
               },
               onSelected: (mortgage) {
-                      final item = ref.watch(itemListProvider).firstWhere((item) => item.id == mortgage.itemId);
-                      final familyRelation = ref.watch(familyRelationListProvider).firstWhere((familyRelation) => familyRelation.id == mortgage.familyRelationId);
-                      final mortgageMaterial = ref.watch(mortgageMaterialListProvider).firstWhere((mortgageMaterial) => mortgageMaterial.id == mortgage.mortgageMaterialId);
-              showDescriptionDialog(context, mortgage, item, familyRelation, mortgageMaterial);
+                final item = ref
+                    .read(itemListProvider)
+                    .firstWhere((item) => item.id == mortgage.itemId);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            MortgageDetails(mortgage: mortgage, item: item)));
               },
             );
           })),
           Consumer(builder: (context, ref, child) {
             return PopupMenuButton<int>(
               icon: Icon(Icons.filter_alt_outlined,
-                  color: ref.read(themeModeManagerProvider).index== 1
-                      ? Theme.of(context).colorScheme.secondaryFixed
-                      : Theme.of(context).colorScheme.primary),
+                  color: Theme.of(context).colorScheme.secondary),
               onSelected: (value) async {
                 if (value == 3) {
                   final date = await showDateSelectorDialog(context);
@@ -253,11 +256,11 @@ class SearchAppBar extends HookWidget {
               },
             );
           }),
-          IconButton(
-              icon: Icon(Icons.color_lens),
-              onPressed: () {
-                _showDialog(context);
-              })
+          // IconButton(
+          //     icon: Icon(Icons.color_lens),
+          //     onPressed: () {
+          //       _showDialog(context);
+          //     })
           // IconButton(
           //     onPressed: () async => await uploadToGoogleDrive(context),
           //     icon: Icon(Icons.upload)),
@@ -275,168 +278,168 @@ class SearchAppBar extends HookWidget {
     );
   }
 
-  void _showDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-        title: Row(
-          children: [
-            const Text('Pick a color!'),
-            Consumer(builder: (context, ref, child) {
-              return IconButton(
-                icon: Icon(Icons.light_mode),
-                onPressed: ref.read(themeModeManagerProvider.notifier).set,
-              );
-            }),
-          ],
-        ),
-        content: Consumer(builder: (context, ref, child) {
-          final color = ref.watch(pickerColorProvider);
-          return ColorPicker(
-              pickerColor:
-                  Color(int.parse('FF${color.substring(1)}', radix: 16)),
-              onColorChanged: (color) async {
-                ref.read(pickerColorProvider.notifier).set(color);
-                await ref.read(appColorProvider.notifier).set();
-              });
-        }),
-        actions: <Widget>[
-          ElevatedButton(
-            child: const Text('Got it'),
-            onPressed: () {
-              // Navigator.of(context).pop();
-              _showBottomSheet(context);
-            },
-          )
-        ],
-      ),
-    );
-  }
+  // void _showDialog(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+  //       title: Row(
+  //         children: [
+  //           const Text('Pick a color!'),
+  //           Consumer(builder: (context, ref, child) {
+  //             return IconButton(
+  //               icon: Icon(Icons.light_mode),
+  //               onPressed: ref.read(themeModeManagerProvider.notifier).set,
+  //             );
+  //           }),
+  //         ],
+  //       ),
+  //       content: Consumer(builder: (context, ref, child) {
+  //         final color = ref.watch(pickerColorProvider);
+  //         return ColorPicker(
+  //             pickerColor:
+  //                 Color(int.parse('FF${color.substring(1)}', radix: 16)),
+  //             onColorChanged: (color) async {
+  //               ref.read(pickerColorProvider.notifier).set(color);
+  //               await ref.read(appColorProvider.notifier).set();
+  //             });
+  //       }),
+  //       actions: <Widget>[
+  //         ElevatedButton(
+  //           child: const Text('Got it'),
+  //           onPressed: () {
+  //             // Navigator.of(context).pop();
+  //             _showBottomSheet(context);
+  //           },
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  void _showBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return GridView(
-            shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // Number of columns in the grid
-              crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 2.5,
-            ),
-            children: [
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.primary,
-                  text: "Primary"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  text: "onPrimary"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  text: "primaryContainer"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  text: "onPrimaryContainer"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.primaryFixed,
-                  text: "PrimaryFixed"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onPrimaryFixed,
-                  text: "onPrimaryFixed"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.primaryFixedDim,
-                  text: "primaryFixedDim"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onPrimaryFixedVariant,
-                  text: "onPrimaryFixedVariant"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.secondary,
-                  text: "secondary"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onSecondary,
-                  text: "onSecondary"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.secondaryContainer,
-                  text: "secondaryContainer"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onSecondaryContainer,
-                  text: "onSecondaryContainer"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.secondaryFixed,
-                  text: "secondaryFixed"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onSecondaryFixed,
-                  text: "onSecondaryFixed"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.secondaryFixedDim,
-                  text: "secondaryFixedDim"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onSecondaryFixedVariant,
-                  text: "onSecondaryFixedVariant"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.tertiary,
-                  text: "tertiary"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onTertiary,
-                  text: "onTertiary"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.tertiaryContainer,
-                  text: "tertiaryContainer"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onTertiaryContainer,
-                  text: "onTertiaryContainer"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.tertiaryFixed,
-                  text: "tertiaryFixed"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onTertiaryFixed,
-                  text: "onTertiaryFixed"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.tertiaryFixedDim,
-                  text: "tertiaryFixedDim"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onTertiaryFixedVariant,
-                  text: "onTertiaryFixedVariant"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  text: "onSurface"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  text: "onSurfaceVariant"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  text: "inversePrimary"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.inverseSurface,
-                  text: "inverseSurface"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.outline,
-                  text: "outline"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  text: "outlineVariant"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onError,
-                  text: "onError"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                  text: "onErrorContainer"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.error, text: "error"),
-              ColorCircle(
-                  color: Theme.of(context).colorScheme.errorContainer,
-                  text: "errorContainer"),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // Dismiss the bottom sheet
-                },
-                child: Text('Close'),
-              ),
-            ]);
-      },
-    );
-  }
+  // void _showBottomSheet(BuildContext context) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return GridView(
+  //           shrinkWrap: true,
+  //           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+  //             crossAxisCount: 2, // Number of columns in the grid
+  //             crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 2.5,
+  //           ),
+  //           children: [
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.primary,
+  //                 text: "Primary"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onPrimary,
+  //                 text: "onPrimary"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.primaryContainer,
+  //                 text: "primaryContainer"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onPrimaryContainer,
+  //                 text: "onPrimaryContainer"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.primaryFixed,
+  //                 text: "PrimaryFixed"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onPrimaryFixed,
+  //                 text: "onPrimaryFixed"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.primaryFixedDim,
+  //                 text: "primaryFixedDim"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onPrimaryFixedVariant,
+  //                 text: "onPrimaryFixedVariant"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.secondary,
+  //                 text: "secondary"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onSecondary,
+  //                 text: "onSecondary"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.secondaryContainer,
+  //                 text: "secondaryContainer"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onSecondaryContainer,
+  //                 text: "onSecondaryContainer"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.secondaryFixed,
+  //                 text: "secondaryFixed"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onSecondaryFixed,
+  //                 text: "onSecondaryFixed"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.secondaryFixedDim,
+  //                 text: "secondaryFixedDim"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onSecondaryFixedVariant,
+  //                 text: "onSecondaryFixedVariant"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.tertiary,
+  //                 text: "tertiary"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onTertiary,
+  //                 text: "onTertiary"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.tertiaryContainer,
+  //                 text: "tertiaryContainer"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onTertiaryContainer,
+  //                 text: "onTertiaryContainer"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.tertiaryFixed,
+  //                 text: "tertiaryFixed"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onTertiaryFixed,
+  //                 text: "onTertiaryFixed"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.tertiaryFixedDim,
+  //                 text: "tertiaryFixedDim"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onTertiaryFixedVariant,
+  //                 text: "onTertiaryFixedVariant"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onSurface,
+  //                 text: "onSurface"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onSurfaceVariant,
+  //                 text: "onSurfaceVariant"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.inversePrimary,
+  //                 text: "inversePrimary"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.inverseSurface,
+  //                 text: "inverseSurface"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.outline,
+  //                 text: "outline"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.outlineVariant,
+  //                 text: "outlineVariant"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onError,
+  //                 text: "onError"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.onErrorContainer,
+  //                 text: "onErrorContainer"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.error, text: "error"),
+  //             ColorCircle(
+  //                 color: Theme.of(context).colorScheme.errorContainer,
+  //                 text: "errorContainer"),
+  //             SizedBox(height: 10),
+  //             ElevatedButton(
+  //               onPressed: () {
+  //                 Navigator.pop(context); // Dismiss the bottom sheet
+  //               },
+  //               child: Text('Close'),
+  //             ),
+  //           ]);
+  //     },
+  //   );
+  // }
 
   Future<DateTime?> showDateSelectorDialog(BuildContext context) async {
     return await showDatePicker(
@@ -530,86 +533,77 @@ class SearchAppBar extends HookWidget {
   }
 }
 
-showDescriptionDialog( BuildContext context, Mortgage mortgage, Item item, FamilyRelation familyRelation, MortgageMaterial mortgageMaterial) {
-  final loan = Loan(principal: mortgage.loanAmount, interestRate: mortgage.interestRate, duration: DateTime.now().difference(mortgage.dateCreated).inDays, interestType: InterestType.simple, compoundingFrequency: CompoundingFrequency.monthly);
-  final double interest = loan.calculateInterest();
-  debugPrint(interest.toString());
-  showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                    title: Text('Mortgage Details'),
-                    content: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SingleChildScrollView(
-                        child: DataTable(
-                          columns: [
-                            DataColumn(label: SizedBox()),
-                            DataColumn(label: SizedBox()),
-                          ],
-                          rows: [
-                            DataRow(cells: [
-                              DataCell(Text('Calculated Interest')),
-                              DataCell(Text(interest.toString()))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Depositor Name')),
-                              DataCell(Text(mortgage.depositorName))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Relative Name')),
-                              DataCell(Text(mortgage.relativeName))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Address')),
-                              DataCell(Text(mortgage.address))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Loan Amount')),
-                              DataCell(Text(mortgage.loanAmount.toString()))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Interest Rate')),
-                              DataCell(Text(mortgage.interestRate.toString()))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Interest Type')),
-                              DataCell(Text(mortgage.interestType.toString()))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Compounding Frequency')),
-                              DataCell(Text(mortgage.compoundingFrequency.toString()))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Weight')),
-                              DataCell(Text(mortgage.weight.toString()))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Additional Details')),
-                              DataCell(Text(mortgage.additionalDetails))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Item')),
-                              DataCell(Text(item.name))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Family Relation')),
-                              DataCell(Text(familyRelation.name))
-                            ]),
-                            DataRow(cells: [
-                              DataCell(Text('Mortgage Material')),
-                              DataCell(Text(mortgageMaterial.name))
-                            ]),
-                          ],
-                        ),
-                      ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Close'),
-                      ),
-                    ],
-                  ));
-}
+// showDescriptionDialog(BuildContext context, Mortgage mortgage, Item item,
+//     FamilyRelation familyRelation, MortgageMaterial mortgageMaterial) {
+//   final loan = Loan(
+//       principal: mortgage.loanAmount,
+//       interestRate: mortgage.interestRate,
+//       duration: DateTime.now().difference(mortgage.dateCreated).inDays,
+//       interestType: InterestType.simple,
+//       compoundingFrequency: CompoundingFrequency.monthly);
+//   final double interest = loan.calculateInterest();
+//   showDialog(
+//       context: context,
+//       builder: (context) => AlertDialog(
+//             title: Text('Mortgage Details'),
+//             content: SingleChildScrollView(
+//               scrollDirection: Axis.horizontal,
+//               child: SingleChildScrollView(
+//                 scrollDirection: Axis.vertical,
+//                 child: DataTable(
+//                   columns: [
+//                     DataColumn(label: SizedBox()),
+//                     DataColumn(label: SizedBox()),
+//                   ],
+//                   rows: [
+//                     buildDataRow(
+//                         context, 'Depositor Name', mortgage.depositorName),
+//                     buildDataRow(
+//                         context, 'Relative Name', mortgage.relativeName),
+//                     buildDataRow(context, 'Address', mortgage.address),
+//                     buildDataRow(
+//                         context, 'Loan Amount', mortgage.loanAmount.toStringAsFixed(2)),
+//                      buildDataRow(
+//                         context, 'Calculated Interest', interest.toStringAsFixed(2)),
+//                     buildDataRow(context, 'Interest Rate',
+//                         mortgage.interestRate.toString()),
+//                     buildDataRow(context, 'Interest Type',
+//                        InterestType.values[mortgage.interestType].name.toSentenceCase()),
+//                     if (InterestType.values[mortgage.interestType] == InterestType.compound)
+//                       buildDataRow(context, 'Compounding Frequency',
+//                           CompoundingFrequency.values[mortgage.compoundingFrequency].name.toSentenceCase()),
+//                     buildDataRow(context, 'Weight', mortgage.weight.toString()),
+//                     buildDataRow(context, 'Additional Details',
+//                         mortgage.additionalDetails),
+//                     buildDataRow(context, 'Item', item.name),
+//                     buildDataRow(
+//                         context, 'Family Relation', familyRelation.name),
+//                     buildDataRow(
+//                         context, 'Mortgage Material', mortgageMaterial.name),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//             actions: [
+//               TextButton(
+//                 onPressed: () {
+//                   Navigator.of(context).pop();
+//                 },
+//                 child: const Text('Close'),
+//               ),
+//             ],
+//           ));
+// }
+
+// DataRow buildDataRow(BuildContext context, String title, String value) {
+//   return DataRow(
+//     cells: [
+//       DataCell(Text(title,
+//           style: TextStyle(
+//               fontSize: 15, color: Theme.of(context).colorScheme.primary))),
+//       DataCell(Text(value,
+//           style: TextStyle(
+//               fontSize: 15, color: Theme.of(context).colorScheme.secondary))),
+//     ],
+//   );
+// }

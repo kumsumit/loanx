@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/widget/snackbar.dart';
 
 class FamilyRelationView extends StatelessWidget {
   const FamilyRelationView({super.key});
@@ -14,25 +15,23 @@ class FamilyRelationView extends StatelessWidget {
         return ListView.builder(
           itemCount: familyRelations.length,
           itemBuilder: (context, index) => ListTile(
-            onTap: () async =>
-                await familyDialog(context, familyRelations[index]),
+            onTap: () => familyDialog(context, familyRelations[index]),
             onLongPress: familyRelations[index].isAddedByUser == 1
-                ? () async => await familyDeleteDialog(
-                    context, ref, familyRelations[index])
+                ? () => familyDeleteDialog(context, ref, familyRelations[index])
                 : null,
             title: Text(familyRelations[index].name),
           ),
         );
       }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async => await familyDialog(context, null),
+        onPressed: () => familyDialog(context, null),
         child: Icon(Icons.add),
       ),
     );
   }
 
-  Future<void> familyDeleteDialog(BuildContext context, WidgetRef ref,
-      FamilyRelation familyRelation) async {
+  void familyDeleteDialog(
+      BuildContext context, WidgetRef ref, FamilyRelation familyRelation) {
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -51,7 +50,11 @@ class FamilyRelationView extends StatelessWidget {
                     await ref
                         .read(familyRelationListProvider.notifier)
                         .delete(familyRelation.id!);
-                    if (context.mounted) Navigator.of(context).pop();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      showSnackBar(
+                          context, 'Family Relation Deleted Successfully');
+                    }
                   },
                   child: const Text('Delete'),
                 ),
@@ -59,45 +62,56 @@ class FamilyRelationView extends StatelessWidget {
             ));
   }
 
-  Future<void> familyDialog(
-      BuildContext context, FamilyRelation? familyRelation) async {
-    final familyInputController =
-        TextEditingController(text: familyRelation?.name);
-    final dialog = await showDialog(
+  void familyDialog(BuildContext context, FamilyRelation? familyRelation) {
+    showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text('Add Family Relation'),
-        content: TextField(
-          autofocus: true,
-          decoration:
-              const InputDecoration(hintText: 'Enter the Family Relation'),
-          controller: familyInputController,
-        ),
-        actions: [
-          Consumer(builder: (context, ref, child) {
-            return TextButton(
-              child: const Text('Submit'),
-              onPressed: () async {
-                final status = await ref
-                    .read(familyRelationListProvider.notifier)
-                    .add(familyInputController.text);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  if (status > 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Family Relation added successfully')));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Family Relation already exists')));
-                  }
+      builder: (BuildContext context) {
+        final familyInputController =
+            TextEditingController(text: familyRelation?.name);
+        final formKey = GlobalKey<FormState>();
+        return AlertDialog(
+          title: Text('Add Family Relation'),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty || value.trim().isEmpty) {
+                  return 'Family Relation cannot be empty';
                 }
+                return null;
               },
-            );
-          }),
-        ],
-      ),
+              autofocus: true,
+              decoration:
+                  const InputDecoration(hintText: 'Enter the Family Relation'),
+              controller: familyInputController,
+            ),
+          ),
+          actions: [
+            Consumer(builder: (context, ref, child) {
+              return TextButton(
+                child: const Text('Submit'),
+                onPressed: () async {
+                  if (formKey.currentState != null &&
+                      formKey.currentState!.validate()) {
+                    final status = await ref
+                        .read(familyRelationListProvider.notifier)
+                        .add(familyInputController.text);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      if (status > 0) {
+                        showSnackBar(
+                            context, "Family Relation added successfully");
+                      } else {
+                        showSnackBar(context, 'Family Relation already exists');
+                      }
+                    }
+                  }
+                },
+              );
+            }),
+          ],
+        );
+      },
     );
-    familyInputController.clear();
-    return dialog;
   }
 }

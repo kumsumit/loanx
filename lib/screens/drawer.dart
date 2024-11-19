@@ -4,6 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/widget/bullet.dart';
+import 'package:mortgage/widget/snackbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MyDrawer extends StatelessWidget {
@@ -62,9 +64,18 @@ class MyDrawer extends StatelessWidget {
                     title: Text(
                       'About',
                     ),
-                    content: Text(
-                      'This is a sample app demonstrating a Flutter Drawer with persistent storage for font size and displaying app version.',
-                    ),
+                    content: Column(mainAxisSize: MainAxisSize.min, children: [
+                      BulletPoint(
+                        'A revolutionary app to keep records of loans provided by the unorganized sector in India without any paperwork.\n',
+                      ),
+                      BulletPoint(
+                        'Mortgage is a simple and easy to use app that allows you to track your mortgage loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their mortgage records. With Mortgage, you can easily create, update, and delete mortgage loans, as well as view your loan history. The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. Mortgage is available on both Android and iOS platforms, making it accessible to a wide range of users. Whether you\'re a seasoned mortgage professional or just starting out, Mortgage is the perfect app to help you manage your mortgage loans efficiently and efficiently.',
+                      ),
+                      BulletPoint(
+                        'Traditionally practiced, now technologically advanced',
+                        italic: true,
+                      )
+                    ]),
                     contentTextStyle: TextStyle(
                         color: Theme.of(context).colorScheme.inverseSurface),
                     actions: [
@@ -300,29 +311,48 @@ class MyDrawer extends StatelessWidget {
                         .set(picked.minute);
                     if (context.mounted) {
                       Navigator.pop(context);
+                      showSnackBar(context,
+                          'Backup Time Updated to Time ${picked.format(context)}');
                     }
                   }
                 });
           }),
           Consumer(builder: (context, ref, child) {
-            return ListTile(
-              leading: Icon(Icons.backup),
-              title: Text("Back up now"),
-              subtitle: ref.watch(backupStatusProvider)
-                  ? Text(
-                      "Backup in progress",
-                      style: TextStyle(fontSize: 15, color: Colors.red),
-                    )
-                  : null,
-              onTap: ref.watch(backupStatusProvider)
-                  ? null
-                  : () async {
+            return ref.watch(backupDownloadStatusProvider)
+                ? SizedBox()
+                : ListTile(
+                    leading: Icon(Icons.backup),
+                    title: Text("Back up now"),
+                    subtitle: ref.watch(backupStatusProvider)
+                        ? Text(
+                            "Backup in progress",
+                            style: TextStyle(fontSize: 15, color: Colors.red),
+                          )
+                        : null,
+                    onTap: ref.watch(backupStatusProvider)
+                        ? null
+                        : () async {
+                            if (!FastDB.getIsBackUpRegistered()) {
+                              await registerBackUp();
+                            }
+                            final BackupService backupService = BackupService();
+                            ref.read(backupStatusProvider.notifier).set(true);
+                            await backupService.performBackup();
+                            ref.read(backupStatusProvider.notifier).set(false);
+                          },
+                  );
+          }),
+          Consumer(builder: (context, ref, child) {
+            return ref.watch(backupStatusProvider)
+                ? SizedBox()
+                : ListTile(
+                    leading: Icon(Icons.download),
+                    title: Text('Download Backup'),
+                    onTap: () async {
                       final BackupService backupService = BackupService();
-                      ref.read(backupStatusProvider.notifier).set(true);
-                      await backupService.performBackup();
-                      ref.read(backupStatusProvider.notifier).set(false);
+                      await backupService.downloadFileToDevice();
                     },
-            );
+                  );
           }),
           ListTile(
             leading: Icon(Icons.info_outline),
@@ -341,7 +371,7 @@ class MyDrawer extends StatelessWidget {
             leading: Icon(Icons.policy),
             title: Text('Privacy Policy'),
             onTap: () {
-              _launchURL('https://kumpali.com/privacy');
+              _launchURL('https://mortgage.kumpali.com/privacy');
             },
           ),
         ],
@@ -351,11 +381,12 @@ class MyDrawer extends StatelessWidget {
 
   void _launchURL(String url) async {
     if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url),
-      mode: LaunchMode.inAppWebView,
-      browserConfiguration: BrowserConfiguration(
-       showTitle: true,
-      ),
+      await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.inAppWebView,
+        browserConfiguration: BrowserConfiguration(
+          showTitle: true,
+        ),
       );
     } else {
       throw 'Could not launch $url';

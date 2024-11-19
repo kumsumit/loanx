@@ -76,13 +76,16 @@ class FastDB {
           fontSize: flatDb.fontSize,
           appColor: flatDb.appColor,
           holdingPeriod: flatDb.holdingPeriod,
+          interestType: flatDb.interestType,
+          compoundingFrequency: flatDb.compoundingFrequency,
           scheduledBackUpTimeHour: flatDb.scheduledBackUpTimeHour,
           scheduledBackUpTimeMinute: flatDb.scheduledBackUpTimeMinute,
           driveAccessToken: flatDb.driveAccessToken,
-          driveIdToken: flatDb.driveIdToken,
-          driveUser: flatDb.driveUser,
-          driveFolderId: flatDb.driveFolderId,
+          driveAccessTokenExpires: flatDb.driveAccessTokenExpires,
           driveFileId: flatDb.driveFileId,
+          driveUser: flatDb.driveUser,
+          isBackUpRegistered: flatDb.isBackUpRegistered,
+          dbUpdateTime: flatDb.dbUpdateTime,
         );
       } else {
         flatDbBuilder = db.FlatDbObjectBuilder();
@@ -118,7 +121,8 @@ class FastDB {
   }
 
   static int getCompoundingFrequency() {
-    return flatDbBuilder.compoundingFrequency ?? CompoundingFrequency.yearly.index;
+    return flatDbBuilder.compoundingFrequency ??
+        CompoundingFrequency.yearly.index;
   }
 
   static int getScheduledBackUpTimeHour() {
@@ -133,12 +137,8 @@ class FastDB {
     return flatDbBuilder.driveAccessToken ?? "";
   }
 
-  static String getDriveIdToken() {
-    return flatDbBuilder.driveIdToken ?? "";
-  }
-
-  static String getDriveFolderId() {
-    return flatDbBuilder.driveFolderId ?? "";
+  static int getDriveAccessTokenExpires() {
+    return flatDbBuilder.driveAccessTokenExpires ?? 0;
   }
 
   static String getDriveFileId() {
@@ -147,6 +147,14 @@ class FastDB {
 
   static int getDriveUser() {
     return flatDbBuilder.driveUser ?? 0;
+  }
+
+  static bool getIsBackUpRegistered() {
+    return flatDbBuilder.isBackUpRegistered ?? false;
+  }
+
+  static int getDbUpdateTime() {
+    return flatDbBuilder.dbUpdateTime ?? 0;
   }
 
   static void putThemeMode(int themeMode) {
@@ -189,13 +197,9 @@ class FastDB {
     flatDbBuilder.driveAccessToken = driveAccessToken;
   }
 
-  static void putDriveIdToken(String driveIdToken) {
-    flatDbBuilder.driveIdToken = driveIdToken;
+  static void putDriveAccessTokenExpires(int driveAccessTokenExpires) {
+    flatDbBuilder.driveAccessTokenExpires = driveAccessTokenExpires;
   }
-
-  static void putDriveFolderId(String driveFolderId) {
-    flatDbBuilder.driveFolderId = driveFolderId;
-  } 
 
   static void putDriveFileId(String driveFileId) {
     flatDbBuilder.driveFileId = driveFileId;
@@ -203,7 +207,15 @@ class FastDB {
 
   static void putDriveUser(int driveUser) {
     flatDbBuilder.driveUser = driveUser;
-  } 
+  }
+
+  static void putIsBackUpRegistered(bool isBackUpRegistered) {
+    flatDbBuilder.isBackUpRegistered = isBackUpRegistered;
+  }
+
+  static void putDbUpdateTime(int dbUpdateTime) {
+    flatDbBuilder.dbUpdateTime = dbUpdateTime;
+  }
 
   static Future<void> flush() async {
     final originalBytes = flatDbBuilder.toBytes();

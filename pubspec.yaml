@@ -14,12 +14,10 @@ dependencies:
     git: https://github.com/kumsumit/flutter_secure_storage.git  
   encrypt: ^5.0.3
   archive: ^3.6.1
-  faker: ^2.2.0
+  # faker: ^2.2.0
   path: ^1.9.0
   path_provider:
     git: https://github.com/kumsumit/path_provider.git
-  package_info_plus:
-    git: https://github.com/kumsumit/package_info_plus.git
   cupertino_icons: ^1.0.8
   flutter_native_splash: ^2.4.2
   url_launcher:
@@ -51,8 +49,8 @@ dependencies:
     git: https://github.com/kumsumit/local_auth.git  
   workmanager:
     git: https://github.com/sumitsharansatsangi/workmanager.git
-  device_preview:
-    git: https://github.com/sumitsharansatsangi/device_preview.git
+  # device_preview:
+  #   git: https://github.com/sumitsharansatsangi/device_preview.git
 
   # background_fetch:
   #   git: https://github.com/sumitsharansatsangi/flutter_background_fetch.git  
@@ -64,7 +62,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   build_runner: ^2.4.13
-  riverpod_generator: ^2.6.2
+  riverpod_generator: ^2.6.3
   riverpod_lint: ^2.6.2
   custom_lint: ^0.7.0
   

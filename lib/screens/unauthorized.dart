@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import to use SystemNavigator.pop
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/screens/dashboard.dart';
 
 class AuthFailurePage extends HookWidget {
   const AuthFailurePage({super.key});
@@ -15,10 +18,9 @@ class AuthFailurePage extends HookWidget {
       curve: Curves.easeInOut,
     );
 
+    final retryState = useState<String>('Retry');
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Authentication Failed'),
-      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -71,23 +73,36 @@ class AuthFailurePage extends HookWidget {
                 ),
               ),
               SizedBox(height: 10),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Implement the logic to retry authentication or navigate to the login page
-                },
-                icon: Icon(Icons.replay),
-                label: Text('Retry'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber, // Updated backgroundColor
-                  foregroundColor: Colors.white, // Updated foregroundColor
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  textStyle: TextStyle(
-                    fontSize: 18,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
+              Consumer(
+                builder: (context,ref,child) {
+                  return ElevatedButton.icon(
+                    onPressed: () {
+                    ref.read(authenticateProvider).when(data:(data){
+                     if(data){
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashBoard()));
+                     }
+                    }, error: (_,i){retryState.value = "An Error occurred, Please reopen.application";
+                    SystemNavigator.pop();
+                    }, loading: (){
+                      retryState.value = 'Retrying...';
+                    });
+                      // Implement the logic to retry authentication or navigate to the login page
+                    },
+                    icon: Icon(Icons.replay),
+                    label: Text(retryState.value),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber, // Updated backgroundColor
+                      foregroundColor: Colors.white, // Updated foregroundColor
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      textStyle: TextStyle(
+                        fontSize: 18,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                  );
+                }
               ),
             ],
           ),

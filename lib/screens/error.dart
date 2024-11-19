@@ -60,7 +60,8 @@ class ErrorPage extends HookWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red, // Updated backgroundColor
                       foregroundColor: Colors.white, // Updated foregroundColor
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                       textStyle: TextStyle(
                         fontSize: 18,
                       ),
@@ -79,7 +80,6 @@ class ErrorPage extends HookWidget {
     );
   }
 }
-
 
 class ShapesPainter extends CustomPainter {
   @override
@@ -107,7 +107,8 @@ class ShapesPainter extends CustomPainter {
       ..color = Colors.white.withOpacity(0.5)
       ..style = PaintingStyle.fill;
 
-    canvas.drawRect(Rect.fromLTWH(size.width * 0.4, size.height * 0.6, 100, 50), rectPaint);
+    canvas.drawRect(
+        Rect.fromLTWH(size.width * 0.4, size.height * 0.6, 100, 50), rectPaint);
   }
 
   @override

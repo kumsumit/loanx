@@ -1,19 +1,17 @@
 // import 'package:firebase_core/firebase_core.dart';
-import 'package:device_preview/device_preview.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:device_preview/device_preview.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mortgage/screens/error.dart';
 import 'package:mortgage/screens/unauthorized.dart';
-import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/service/database_helper.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/auth_screen.dart';
 import 'package:mortgage/screens/dashboard.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:workmanager/workmanager.dart';
+// import 'package:path/path.dart';
+// import 'package:path_provider/path_provider.dart';
 
 import 'db/fastdb.dart';
 
@@ -26,33 +24,19 @@ void main() async {
     await DatabaseHelper.instance.onCreate(database, 1);
   }
   // await Firebase.initializeApp();
-  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
-  Workmanager().registerPeriodicTask(
-    "MortgageBackupTaskgfcgfdfgdfgcscdfs65",
-    "dailyBackup",
-    initialDelay: Duration(
-        hours: FastDB.getScheduledBackUpTimeHour(),
-        minutes: FastDB.getScheduledBackUpTimeMinute()),
-    frequency: Duration(days: 1),
-  );
-  final directory = await getApplicationSupportDirectory();
-  FlutterNativeSplash.remove();
-  runApp(DevicePreview(
-      storage: FileDevicePreviewStorage(
-          filePath: join(directory.path, 'device_preview.json')),
-      enabled: !kReleaseMode,
-      builder: (context) => ProviderScope(
-          overrides: [databaseProvider.overrideWithValue(database)],
-          child: const MyApp())));
-}
 
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    if (task == "dailyBackup") {
-      await BackupService().performBackup();
-    }
-    return Future.value(true);
-  });
+  // final directory = await getApplicationSupportDirectory();
+  FlutterNativeSplash.remove();
+  runApp(ProviderScope(
+      overrides: [databaseProvider.overrideWithValue(database)],
+      child: const MyApp()));
+  // runApp(DevicePreview(
+  //     storage: FileDevicePreviewStorage(
+  //         filePath: join(directory.path, 'device_preview.json')),
+  //     enabled: !kReleaseMode,
+  //     builder: (context) => ProviderScope(
+  //         overrides: [databaseProvider.overrideWithValue(database)],
+  //         child: const MyApp())));
 }
 
 class MyApp extends ConsumerWidget {
@@ -63,11 +47,11 @@ class MyApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeManagerProvider);
     final fontSize = ref.watch(fontSizeProvider);
     final appColor = ref.watch(appColorProvider);
-    final isAuthenticated = ref.watch(authenticateProvider);
+    final authenticate = ref.watch(authenticateProvider);
     return MaterialApp(
-        useInheritedMediaQuery: true,
-        locale: DevicePreview.locale(context),
-        builder: DevicePreview.appBuilder,
+        // useInheritedMediaQuery: true,
+        // locale: DevicePreview.locale(context),
+        // builder: DevicePreview.appBuilder,
         themeMode: themeMode,
         theme: ThemeData(
           colorSchemeSeed:
@@ -81,10 +65,13 @@ class MyApp extends ConsumerWidget {
           textTheme: TextTheme(bodyMedium: TextStyle(fontSize: fontSize)),
         ),
         debugShowCheckedModeBanner: false,
-        home: isAuthenticated.when(data:(data){
-          return data ?  DashBoard(): AuthFailurePage();
-        }, error: (err,obj)=>ErrorPage(), loading:()=> AuthScreen()));
-  // errorMessage: err.toString() + obj.toString(),
-}
+        home: authenticate.when(
+            data: (data) {
+              return data ? DashBoard() : AuthFailurePage();
+            },
+            error: (err, obj) => ErrorPage(),
+            loading: () => AuthScreen()));
+    // errorMessage: err.toString() + obj.toString(),
+  }
 }
 // isAuthenticated ? DashBoard() : AuthScreen()

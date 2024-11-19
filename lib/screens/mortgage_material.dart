@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mortgage/model/mortgage_material.dart';
 import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/widget/snackbar.dart';
 
 class MortgageMaterialView extends StatelessWidget {
   const MortgageMaterialView({super.key});
@@ -14,25 +15,24 @@ class MortgageMaterialView extends StatelessWidget {
         return ListView.builder(
           itemCount: mortgageMaterials.length,
           itemBuilder: (context, index) => ListTile(
-            onTap: () async =>
-                await mortgageDialog(context, mortgageMaterials[index]),
+            onTap: () => mortgageDialog(context, mortgageMaterials[index]),
             onLongPress: mortgageMaterials[index].isAddedByUser == 1
-                ? () async => await mortgageDeleteDialog(
-                    context, ref, mortgageMaterials[index])
+                ? () =>
+                    mortgageDeleteDialog(context, ref, mortgageMaterials[index])
                 : null,
             title: Text(mortgageMaterials[index].name),
           ),
         );
       }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async => await mortgageDialog(context, null),
+        onPressed: () => mortgageDialog(context, null),
         child: Icon(Icons.add),
       ),
     );
   }
 
-  Future<void> mortgageDeleteDialog(BuildContext context, WidgetRef ref,
-      MortgageMaterial mortgageMaterial) async {
+  void mortgageDeleteDialog(
+      BuildContext context, WidgetRef ref, MortgageMaterial mortgageMaterial) {
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -51,7 +51,11 @@ class MortgageMaterialView extends StatelessWidget {
                     await ref
                         .read(mortgageMaterialListProvider.notifier)
                         .delete(mortgageMaterial.id!);
-                    if (context.mounted) Navigator.of(context).pop();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      showSnackBar(
+                          context, 'Mortgage Material deleted successfully');
+                    }
                   },
                   child: const Text('Delete'),
                 ),
@@ -59,45 +63,58 @@ class MortgageMaterialView extends StatelessWidget {
             ));
   }
 
-  Future<void> mortgageDialog(
-      BuildContext context, MortgageMaterial? mortgageMaterial) async {
-    final mortgageMaterialInputController =
-        TextEditingController(text: mortgageMaterial?.name);
-    final dialog = await showDialog(
+  void mortgageDialog(
+      BuildContext context, MortgageMaterial? mortgageMaterial) {
+    showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text('Add Mortgage Material'),
-        content: TextField(
-          autofocus: true,
-          decoration:
-              const InputDecoration(hintText: 'Enter the Mortgage Material'),
-          controller: mortgageMaterialInputController,
-        ),
-        actions: [
-          Consumer(builder: (context, ref, child) {
-            return TextButton(
-              child: const Text('Submit'),
-              onPressed: () async {
-                final status = await ref
-                    .read(mortgageMaterialListProvider.notifier)
-                    .add(mortgageMaterialInputController.text);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  if (status > 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Mortgage Material added successfully')));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Mortgage Material already exists')));
-                  }
+      builder: (BuildContext context) {
+        final mortgageMaterialInputController =
+            TextEditingController(text: mortgageMaterial?.name);
+        final formKey = GlobalKey<FormState>();
+        return AlertDialog(
+          title: Text('Add Mortgage Material'),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty || value.trim().isEmpty) {
+                  return 'Mortgage Material cannot be empty';
                 }
+                return null;
               },
-            );
-          }),
-        ],
-      ),
+              autofocus: true,
+              decoration: const InputDecoration(
+                  hintText: 'Enter the Mortgage Material'),
+              controller: mortgageMaterialInputController,
+            ),
+          ),
+          actions: [
+            Consumer(builder: (context, ref, child) {
+              return TextButton(
+                child: const Text('Submit'),
+                onPressed: () async {
+                  if (formKey.currentState != null &&
+                      formKey.currentState!.validate()) {
+                    final status = await ref
+                        .read(mortgageMaterialListProvider.notifier)
+                        .add(mortgageMaterialInputController.text);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      if (status > 0) {
+                        showSnackBar(
+                            context, 'Mortgage Material added successfully');
+                      } else {
+                        showSnackBar(
+                            context, 'Mortgage Material already exists');
+                      }
+                    }
+                  }
+                },
+              );
+            }),
+          ],
+        );
+      },
     );
-    mortgageMaterialInputController.clear();
-    return dialog;
   }
 }

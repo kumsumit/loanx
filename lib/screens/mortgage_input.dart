@@ -8,6 +8,7 @@ import 'package:mortgage/model/loan.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/model/mortgage_material.dart';
 import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/widget/snackbar.dart';
 // import 'package:mortgage/widget/notched_dropdown.dart';
 import 'package:mortgage/widget/styled_dropdown.dart';
 import 'package:mortgage/widget/styled_text_widget.dart';
@@ -40,6 +41,7 @@ class MortgageInput extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final formKey = useMemoized(() => GlobalKey<FormState>());
     final appBarTitle = mortgage == null ? "Add Mortgage" : "Edit Mortgage";
     final isDialogOpen = useState<bool>(false);
     final items = ref.watch(itemListProvider);
@@ -136,249 +138,285 @@ class MortgageInput extends HookConsumerWidget {
       ),
       body: Padding(
           padding: EdgeInsets.only(left: 20, right: 20),
-          child: ListView(controller: scrollController, children: <Widget>[
-            SizedBox(
-              height: 10,
-            ),
-            items.isEmpty
-                ? SizedBox()
-                : StyledDropdown<Item>(
-                    selectedValue: currentItem.value,
-                    items: buildMenuItems(items, context),
-                    onChanged: (value) {
-                      if (value != null) {
-                        currentItem.value = value;
-                        debugPrint(
-                            "item updated to ${currentItem.value!.name}");
-                      }
-                    },
-                    onTap: () {
-                      scrollController.animateTo(
-                        scrollController.position.maxScrollExtent,
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    hintText: "Item Name",
-                    labelText: "Item Name",
-                    onAddPressed: () {
-                      isDialogOpen.value = true;
-                      showAddDialog(
-                          context,
-                          ref,
-                          'Add item',
-                          'Enter the item name',
-                          ref.read(itemListProvider.notifier).add);
-                    },
-                  ),
-            // SearchableDropdown(),
-            mortgageMaterials.isEmpty
-                ? SizedBox()
-                : StyledDropdown<MortgageMaterial>(
-                    selectedValue: currentMortgageMaterial.value,
-                    items:
-                        buildMenuMortgageMaterials(mortgageMaterials, context),
-                    onChanged: (value) {
-                      if (value != null) {
-                        currentMortgageMaterial.value = value;
-                        debugPrint(
-                            "item updated to ${currentItem.value!.name}");
-                      }
-                    },
-                    onTap: () {
-                      scrollController.animateTo(
-                        scrollController.position.maxScrollExtent,
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    hintText: "Mortgage Material",
-                    labelText: "Mortgage Material",
-                    onAddPressed: () {
-                      isDialogOpen.value = true;
-                      showAddDialog(
-                          context,
-                          ref,
-                          'Add Mortgage Material',
-                          'Enter the mortgage material',
-                          ref.read(mortgageMaterialListProvider.notifier).add);
-                    },
-                  ),
-            StyledTextField(
-              textEditingController: depositorController,
-              hintText: "Depositor Name",
-              labelText: "Depositor Name",
-              onTap: () {
-                scrollController.animateTo(
-                  scrollController.position.maxScrollExtent,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-            ),
-            StyledTextField(
-              textEditingController: addressController,
-              hintText: "Address",
-              labelText: "Address",
-              onTap: () {
-                scrollController.animateTo(
-                  scrollController.position.maxScrollExtent,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-            ),
-            StyledTextField(
-              textEditingController: relativeNameController,
-              hintText: "Relative Name",
-              labelText: "Relative Name",
-              onTap: () {
-                scrollController.animateTo(
-                  scrollController.position.maxScrollExtent,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-            ),
-            StyledTextField(
-              textEditingController: loanAmountController,
-              hintText: "Loan Amount",
-              labelText: "Loan Amount",
-              keyboardType: TextInputType.number,
-              onTap: () {
-                scrollController.animateTo(
-                  scrollController.position.maxScrollExtent,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-            ),
-            StyledTextField(
-              textEditingController: interestRateController,
-              hintText: "Interest Rate",
-              labelText: "Interest Rate",
-              keyboardType: TextInputType.number,
-              onTap: () {
-                scrollController.animateTo(
-                  scrollController.position.maxScrollExtent,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-            ),
-            DropdownButtonFormField<InterestType>(
-                value: interestType.value,
-                decoration: InputDecoration(
-                  labelText: 'Interest Type',
-                ),
-                items: [
-                  DropdownMenuItem(
-                    value: InterestType.simple,
-                    child: Text('Simple Interest'),
-                  ),
-                  DropdownMenuItem(
-                    value: InterestType.compound,
-                    child: Text('Compound Interest'),
-                  ),
-                ],
-                onChanged: (value) {
-                  interestType.value = value ?? InterestType.simple;
-                }),
-            if (interestType.value == InterestType.compound)
-              DropdownButtonFormField<CompoundingFrequency>(
-                value: compoundingFrequency.value,
-                decoration: InputDecoration(
-                  labelText: 'Compounding Frequency',
-                ),
-                items: [
-                  DropdownMenuItem(
-                    value: CompoundingFrequency.yearly,
-                    child: Text('Yearly'),
-                  ),
-                  DropdownMenuItem(
-                    value: CompoundingFrequency.halfYearly,
-                    child: Text('Half-Yearly'),
-                  ),
-                  DropdownMenuItem(
-                    value: CompoundingFrequency.quarterly,
-                    child: Text('Quarterly'),
-                  ),
-                  DropdownMenuItem(
-                    value: CompoundingFrequency.monthly,
-                    child: Text('Monthly'),
-                  ),
-                ],
-                onChanged: (value) {
-                  compoundingFrequency.value =
-                      value ?? CompoundingFrequency.yearly;
+          child: Form(
+            key: formKey,
+            child: ListView(controller: scrollController, children: <Widget>[
+              SizedBox(
+                height: 10,
+              ),
+              items.isEmpty
+                  ? SizedBox()
+                  : StyledDropdown<Item>(
+                      selectedValue: currentItem.value,
+                      items: buildMenuItems(items, context),
+                      onChanged: (value) {
+                        if (value != null) {
+                          currentItem.value = value;
+                        }
+                      },
+                      onTap: () {
+                        scrollController.animateTo(
+                          scrollController.position.maxScrollExtent,
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      hintText: "Item Name",
+                      labelText: "Item Name",
+                      onAddPressed: () {
+                        isDialogOpen.value = true;
+                        showAddDialog(
+                            context,
+                            ref,
+                            'Add item',
+                            'Enter the item name',
+                            ref.read(itemListProvider.notifier).add);
+                      },
+                    ),
+              // SearchableDropdown(),
+              mortgageMaterials.isEmpty
+                  ? SizedBox()
+                  : StyledDropdown<MortgageMaterial>(
+                      selectedValue: currentMortgageMaterial.value,
+                      items: buildMenuMortgageMaterials(
+                          mortgageMaterials, context),
+                      onChanged: (value) {
+                        if (value != null) {
+                          currentMortgageMaterial.value = value;
+                        }
+                      },
+                      onTap: () {
+                        scrollController.animateTo(
+                          scrollController.position.maxScrollExtent,
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      hintText: "Mortgage Material",
+                      labelText: "Mortgage Material",
+                      onAddPressed: () {
+                        isDialogOpen.value = true;
+                        showAddDialog(
+                            context,
+                            ref,
+                            'Add Mortgage Material',
+                            'Enter the mortgage material',
+                            ref
+                                .read(mortgageMaterialListProvider.notifier)
+                                .add);
+                      },
+                    ),
+              StyledTextField(
+                failedValidationMessage: "Depositor Name can't be empty",
+                textEditingController: depositorController,
+                hintText: "Depositor Name",
+                labelText: "Depositor Name",
+                onTap: () {
+                  scrollController.animateTo(
+                    scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
                 },
               ),
-            familyRelations.isEmpty
-                ? SizedBox()
-                : StyledDropdown<FamilyRelation>(
-                    selectedValue: currentFamilyRelation.value,
-                    items: buildMenuRelationTypes(familyRelations, context),
-                    onChanged: (value) {
-                      if (value != null) {
-                        currentFamilyRelation.value = value;
-                        debugPrint(
-                            "item updated to ${currentFamilyRelation.value!.name}");
+              StyledTextField(
+                failedValidationMessage: "Address can't be empty",
+                textEditingController: addressController,
+                hintText: "Address",
+                labelText: "Address",
+                onTap: () {
+                  scrollController.animateTo(
+                    scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
+              StyledTextField(
+                failedValidationMessage: "Relative Name can't be empty",
+                textEditingController: relativeNameController,
+                hintText: "Relative Name",
+                labelText: "Relative Name",
+                onTap: () {
+                  scrollController.animateTo(
+                    scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
+              StyledTextField(
+                failedValidationMessage: "Loan Amount can't be empty",
+                textEditingController: loanAmountController,
+                hintText: "Loan Amount",
+                labelText: "Loan Amount",
+                keyboardType: TextInputType.number,
+                onTap: () {
+                  scrollController.animateTo(
+                    scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
+              StyledTextField(
+                failedValidationMessage: "Interest Rate can't be empty",
+                textEditingController: interestRateController,
+                hintText: "Interest Rate",
+                labelText: "Interest Rate",
+                keyboardType: TextInputType.number,
+                onTap: () {
+                  scrollController.animateTo(
+                    scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
+              StyledDropdown<InterestType>(
+                  selectedValue: interestType.value,
+                  labelText: 'Interest Type',
+                  hintText: 'Interest Type',
+                  onTap: () {
+                    scrollController.animateTo(
+                      scrollController.position.maxScrollExtent,
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  items: [
+                    DropdownMenuItem(
+                      value: InterestType.simple,
+                      child: Text('Simple Interest',
+                          style: TextStyle(
+                              fontSize: 15.0,
+                              color: Theme.of(context).colorScheme.secondary)),
+                    ),
+                    DropdownMenuItem(
+                      value: InterestType.compound,
+                      child: Text('Compound Interest',
+                          style: TextStyle(
+                              fontSize: 15.0,
+                              color: Theme.of(context).colorScheme.secondary)),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    interestType.value = value ?? InterestType.simple;
+                  }),
+              if (interestType.value == InterestType.compound)
+                StyledDropdown<CompoundingFrequency>(
+                  onTap: () {
+                    scrollController.animateTo(
+                      scrollController.position.maxScrollExtent,
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  hintText: "Compounding Frequency",
+                  labelText: "Compounding Frequency",
+                  selectedValue: compoundingFrequency.value,
+                  items: [
+                    DropdownMenuItem(
+                      value: CompoundingFrequency.yearly,
+                      child: Text('Yearly',
+                          style: TextStyle(
+                              fontSize: 15.0,
+                              color: Theme.of(context).colorScheme.secondary)),
+                    ),
+                    DropdownMenuItem(
+                      value: CompoundingFrequency.halfYearly,
+                      child: Text('Half-Yearly',
+                          style: TextStyle(
+                              fontSize: 15.0,
+                              color: Theme.of(context).colorScheme.secondary)),
+                    ),
+                    DropdownMenuItem(
+                      value: CompoundingFrequency.quarterly,
+                      child: Text('Quarterly',
+                          style: TextStyle(
+                              fontSize: 15.0,
+                              color: Theme.of(context).colorScheme.secondary)),
+                    ),
+                    DropdownMenuItem(
+                      value: CompoundingFrequency.monthly,
+                      child: Text('Monthly',
+                          style: TextStyle(
+                              fontSize: 15.0,
+                              color: Theme.of(context).colorScheme.secondary)),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    compoundingFrequency.value =
+                        value ?? CompoundingFrequency.yearly;
+                  },
+                ),
+              familyRelations.isEmpty
+                  ? SizedBox()
+                  : StyledDropdown<FamilyRelation>(
+                      selectedValue: currentFamilyRelation.value,
+                      items: buildMenuRelationTypes(familyRelations, context),
+                      onChanged: (value) {
+                        if (value != null) {
+                          currentFamilyRelation.value = value;
+                        }
+                      },
+                      onTap: () {
+                        scrollController.animateTo(
+                          scrollController.position.maxScrollExtent,
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      hintText: "Family Relation",
+                      labelText: "Family Relation",
+                      onAddPressed: () {
+                        isDialogOpen.value = true;
+                        showAddDialog(
+                            context,
+                            ref,
+                            'Add Family Relation',
+                            'Enter the family relation',
+                            ref.read(familyRelationListProvider.notifier).add);
+                      },
+                    ),
+              Consumer(builder: (context, ref, child) {
+                return Center(
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      if (formKey.currentState != null &&
+                          formKey.currentState!.validate()) {
+                        await ref.read(mortgageListProvider.notifier).add(
+                            depositorController.text,
+                            relativeNameController.text,
+                            addressController.text,
+                            _parseDouble(loanAmountController.text),
+                            _parseDouble(interestRateController.text),
+                            _parseDouble(weightController.text),
+                            interestType.value.index,
+                            compoundingFrequency.value.index,
+                            additionalDetailsController.text,
+                            currentItem.value!.id!,
+                            currentFamilyRelation.value!.id!,
+                            currentMortgageMaterial.value!.id!);
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          showSnackBar(context, "Mortgage Added Successfully");
+                        }
                       }
                     },
-                    onTap: () {
-                      scrollController.animateTo(
-                        scrollController.position.maxScrollExtent,
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    hintText: "Family Relation",
-                    labelText: "Family Relation",
-                    onAddPressed: () {
-                      isDialogOpen.value = true;
-                      showAddDialog(
-                          context,
-                          ref,
-                          'Add Family Relation',
-                          'Enter the family relation',
-                          ref.read(familyRelationListProvider.notifier).add);
-                    },
+                    // style: OutlinedButton.styleFrom(
+                    //   // foregroundColor: Colors.white, // Text color
+                    //   // backgroundColor: color, // Button color
+                    //   padding:
+                    //       EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    //   // textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    // ),
+                    child: const Text('Save'),
                   ),
-
-            Consumer(builder: (context, ref, child) {
-              return Center(
-                child: OutlinedButton(
-                  onPressed: () async {
-                    await ref.read(mortgageListProvider.notifier).add(
-                        depositorController.text,
-                        relativeNameController.text,
-                        addressController.text,
-                        _parseDouble(loanAmountController.text),
-                        _parseDouble(interestRateController.text),
-                        _parseDouble(weightController.text),
-                        interestType.value.index,
-                        compoundingFrequency.value.index,
-                        additionalDetailsController.text,
-                        currentItem.value!.id!,
-                        currentFamilyRelation.value!.id!,
-                        currentMortgageMaterial.value!.id!);
-                    // Screen is left afterwards, no need to clear or update UI.
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                    }
-                  },
-                  // style: OutlinedButton.styleFrom(
-                  //   // foregroundColor: Colors.white, // Text color
-                  //   // backgroundColor: color, // Button color
-                  //   padding:
-                  //       EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  //   // textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  // ),
-                  child: const Text('Save'),
-                ),
-              );
-            }),
-          ])),
+                );
+              }),
+            ]),
+          )),
       // resizeToAvoidBottomInset: true,
     );
   }

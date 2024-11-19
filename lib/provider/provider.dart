@@ -12,44 +12,41 @@ import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/model/mortgage_material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
 part 'provider.g.dart';
 
-
 @Riverpod(keepAlive: true)
- Future<bool> authenticate(Ref ref) async {
-   final LocalAuthentication localAuthentication = LocalAuthentication();
-    try {
-      final bool canAuthenticateWithBiometrics =
-          await localAuthentication.canCheckBiometrics;
-      if (canAuthenticateWithBiometrics) {
-         return await localAuthentication.authenticate(
-          localizedReason: 'Please authenticate to access the app',
-          options: const AuthenticationOptions(
-            useErrorDialogs: true,
-            stickyAuth: true,
-            // biometricOnly: true,
-          ),
-        );
-      } else if (await localAuthentication.isDeviceSupported()) {
-        return await localAuthentication.authenticate(
-          localizedReason: 'Please authenticate to access the app',
-          options: const AuthenticationOptions(
-            useErrorDialogs: true,
-            stickyAuth: false,
-          ),
-        );
-      }
-    } on PlatformException catch (e) {
-      debugPrint(e.toString());
-      return false;
+Future<bool> authenticate(Ref ref) async {
+  final LocalAuthentication localAuthentication = LocalAuthentication();
+  try {
+    final bool canAuthenticateWithBiometrics =
+        await localAuthentication.canCheckBiometrics;
+    if (canAuthenticateWithBiometrics) {
+      return await localAuthentication.authenticate(
+        localizedReason: 'Please authenticate to access the app',
+        options: const AuthenticationOptions(
+          useErrorDialogs: true,
+          stickyAuth: true,
+          // biometricOnly: true,
+        ),
+      );
+    } else if (await localAuthentication.isDeviceSupported()) {
+      return await localAuthentication.authenticate(
+        localizedReason: 'Please authenticate to access the app',
+        options: const AuthenticationOptions(
+          useErrorDialogs: true,
+          stickyAuth: false,
+        ),
+      );
     }
+  } on PlatformException catch (e) {
+    debugPrint(e.toString());
     return false;
   }
-
+  return false;
+}
 
 @Riverpod(keepAlive: true)
 class ThemeModeManager extends _$ThemeModeManager {
@@ -93,7 +90,6 @@ class HoldingPeriod extends _$HoldingPeriod {
   }
 }
 
-
 @riverpod
 class ScheduledBackUpTimeHour extends _$ScheduledBackUpTimeHour {
   @override
@@ -101,7 +97,7 @@ class ScheduledBackUpTimeHour extends _$ScheduledBackUpTimeHour {
     return FastDB.getScheduledBackUpTimeHour();
   }
 
-  void set(int scheduledBackUpTimeHour){
+  void set(int scheduledBackUpTimeHour) {
     state = scheduledBackUpTimeHour;
     FastDB.putScheduledBackUpTimeHour(scheduledBackUpTimeHour);
   }
@@ -114,7 +110,7 @@ class ScheduledBackUpTimeMinute extends _$ScheduledBackUpTimeMinute {
     return FastDB.getScheduledBackUpTimeMinute();
   }
 
-  void set(int scheduledBackUpTimeMinute){
+  void set(int scheduledBackUpTimeMinute) {
     state = scheduledBackUpTimeMinute;
     FastDB.putScheduledBackUpTimeMinute(scheduledBackUpTimeMinute);
   }
@@ -127,7 +123,19 @@ class BackupStatus extends _$BackupStatus {
     return false;
   }
 
-  void set(bool backupStatus){
+  void set(bool backupStatus) {
+    state = backupStatus;
+  }
+}
+
+@riverpod
+class BackupDownloadStatus extends _$BackupDownloadStatus {
+  @override
+  bool build() {
+    return false;
+  }
+
+  void set(bool backupStatus) {
     state = backupStatus;
   }
 }
@@ -221,7 +229,8 @@ class PickerColor extends _$PickerColor {
 
 @riverpod
 Future<String> appVersion(Ref ref) async {
-  return (await PackageInfo.fromPlatform()).version;
+  const mortgage = MethodChannel('mortgage');
+  return await mortgage.invokeMethod('versionName') + '.' +(await mortgage.invokeMethod('versionCode')).toString();
 }
 
 final databaseProvider =
@@ -270,7 +279,8 @@ class FamilyRelationList extends _$FamilyRelationList {
         await db.insert(FamilyRelation.tableName, familyRelation.toJson());
     if (id > 0) {
       familyRelation = familyRelation.copy(id: id);
-      state = [...state, familyRelation];
+      await updateDBTime();
+      state = [familyRelation, ...state];
       return id;
     }
     return -1;
@@ -283,6 +293,7 @@ class FamilyRelationList extends _$FamilyRelationList {
       whereArgs: [id],
     );
     if (rid > 0) {
+      await updateDBTime();
       state = state.where((familyRelation) => familyRelation.id != id).toList();
     }
   }
@@ -297,6 +308,7 @@ class FamilyRelationList extends _$FamilyRelationList {
       );
     }
     final results = await batch.commit();
+    await updateDBTime();
     state = state
         .where((familyRelation) => !results.contains(familyRelation.id))
         .toList();
@@ -310,6 +322,7 @@ class FamilyRelationList extends _$FamilyRelationList {
       whereArgs: [familyRelation.id],
     );
     if (id > 0) {
+      await updateDBTime();
       state = [
         for (final s in state)
           if (s.id == familyRelation.id) familyRelation else s
@@ -360,8 +373,9 @@ class MortgageMaterialList extends _$MortgageMaterialList {
     final id =
         await db.insert(MortgageMaterial.tableName, mortgageMaterial.toJson());
     if (id > 0) {
+      await updateDBTime();
       mortgageMaterial = mortgageMaterial.copy(id: id);
-      state = [...state, mortgageMaterial];
+      state = [mortgageMaterial, ...state];
       return id;
     }
     return -1;
@@ -374,6 +388,7 @@ class MortgageMaterialList extends _$MortgageMaterialList {
       whereArgs: [id],
     );
     if (rid > 0) {
+      await updateDBTime();
       state =
           state.where((mortgageMaterial) => mortgageMaterial.id != id).toList();
     }
@@ -389,6 +404,7 @@ class MortgageMaterialList extends _$MortgageMaterialList {
       );
     }
     final results = await batch.commit();
+    await updateDBTime();
     state = state.where((item) => !results.contains(item.id)).toList();
   }
 
@@ -400,6 +416,7 @@ class MortgageMaterialList extends _$MortgageMaterialList {
       whereArgs: [mortgageMaterial.id],
     );
     if (id > 0) {
+      await updateDBTime();
       state = [
         for (final s in state)
           if (s.id == mortgageMaterial.id) mortgageMaterial else s
@@ -448,8 +465,9 @@ class ItemList extends _$ItemList {
     Item item = Item(name: name, isAddedByUser: 1);
     final id = await db.insert(Item.tableName, item.toJson());
     if (id > 0) {
+      await updateDBTime();
       item = item.copy(id: id);
-      state = [...state, item];
+      state = [item, ...state];
       return id;
     }
     return -1;
@@ -465,6 +483,7 @@ class ItemList extends _$ItemList {
       );
     }
     final results = await batch.commit();
+    await updateDBTime();
     state = state.where((item) => !results.contains(item.id)).toList();
   }
 
@@ -476,6 +495,7 @@ class ItemList extends _$ItemList {
       whereArgs: [item.id],
     );
     if (id > 0) {
+      await updateDBTime();
       state = [
         for (final s in state)
           if (s.id == item.id) item else s
@@ -490,6 +510,7 @@ class ItemList extends _$ItemList {
       whereArgs: [id],
     );
     if (rid > 0) {
+      await updateDBTime();
       state = state.where((item) => item.id != id).toList();
     }
   }
@@ -673,7 +694,7 @@ class MortgageList extends _$MortgageList {
       address: address,
       loanAmount: loanAmount,
       weight: weight,
-      interestType: interestType, 
+      interestType: interestType,
       compoundingFrequency: compoundingFrequency,
       additionalDetails: additionalDetails,
       interestRate: interestRate,
@@ -683,8 +704,9 @@ class MortgageList extends _$MortgageList {
     );
     final id = await db.insert(Mortgage.tableName, mortgage.toJson());
     if (id > 0) {
+      await updateDBTime();
       mortgage = mortgage.copy(id: id);
-      state = [...state, mortgage];
+      state = [mortgage, ...state];
       return id;
     }
     return -1;
@@ -697,6 +719,7 @@ class MortgageList extends _$MortgageList {
       where: '${MortgageFields.id} = ?',
       whereArgs: [mortgage.id],
     );
+    await updateDBTime();
     if (id > 0) {
       state = [
         for (final s in state)
@@ -712,6 +735,7 @@ class MortgageList extends _$MortgageList {
       whereArgs: [id],
     );
     if (rid > 0) {
+      await updateDBTime();
       state = state.where((mortgage) => mortgage.id != id).toList();
     }
   }
@@ -726,6 +750,12 @@ class MortgageList extends _$MortgageList {
       );
     }
     await batch.commit(continueOnError: true);
+    await updateDBTime();
     state = state.where((mortgage) => !ids.contains(mortgage.id)).toList();
   }
+}
+
+Future<void> updateDBTime() async {
+  FastDB.putDbUpdateTime(DateTime.now().millisecondsSinceEpoch);
+  await FastDB.flush();
 }

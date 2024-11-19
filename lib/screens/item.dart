@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mortgage/model/item.dart';
 import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/widget/snackbar.dart';
 
 class ItemView extends StatelessWidget {
   const ItemView({super.key});
@@ -16,8 +17,9 @@ class ItemView extends StatelessWidget {
             final item = items[index];
             return ListTile(
               title: Text(item.name),
-              onTap:item.isAddedByUser == 1
-                  ?  () async => await itemDialog(context, item): null,
+              onTap: item.isAddedByUser == 1
+                  ? () => itemDialog(context, item)
+                  : null,
               onLongPress: item.isAddedByUser == 1
                   ? () async => await itemDeleteDialog(context, ref, item)
                   : null,
@@ -26,8 +28,8 @@ class ItemView extends StatelessWidget {
         );
       }),
       floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            await itemDialog(context, null);
+          onPressed: () {
+            itemDialog(context, null);
           },
           child: Icon(Icons.add)),
     );
@@ -50,7 +52,10 @@ class ItemView extends StatelessWidget {
                 TextButton(
                   onPressed: () async {
                     await ref.read(itemListProvider.notifier).delete(item.id!);
-                    if (context.mounted) Navigator.of(context).pop();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      showSnackBar(context, 'Item deleted successfully');
+                    }
                   },
                   child: const Text('Delete'),
                 ),
@@ -58,42 +63,59 @@ class ItemView extends StatelessWidget {
             ));
   }
 
-  Future<void> itemDialog(BuildContext context, Item? item) async {
-    final itemInputController = TextEditingController(text: item?.name);
-    final dialog = await showDialog(
+  void itemDialog(BuildContext context, Item? item) {
+    showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text(item == null ? 'Add item' : 'Edit item'),
-        content: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Enter the item name'),
-          controller: itemInputController,
-        ),
-        actions: [
-          Consumer(builder: (context, ref, child) {
-            return TextButton(
-              child: const Text('Submit'),
-              onPressed: () async {
-                final status = await ref
-                    .read(itemListProvider.notifier)
-                    .add(itemInputController.text);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  if (status > 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Item added successfully')));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Item already exists')));
-                  }
+      builder: (BuildContext context) {
+        final itemInputController = TextEditingController(text: item?.name);
+        final formKey = GlobalKey<FormState>();
+        return AlertDialog(
+          title: Text(item == null ? 'Add item' : 'Edit item'),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty || value.trim().isEmpty) {
+                  return 'Item name cannot be empty';
                 }
+                return null;
               },
-            );
-          }),
-        ],
-      ),
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'Enter the item name',
+                errorStyle: TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 16.0,
+                ),
+              ),
+              controller: itemInputController,
+            ),
+          ),
+          actions: [
+            Consumer(builder: (context, ref, child) {
+              return TextButton(
+                child: const Text('Submit'),
+                onPressed: () async {
+                  if (formKey.currentState != null &&
+                      formKey.currentState!.validate()) {
+                    final status = await ref
+                        .read(itemListProvider.notifier)
+                        .add(itemInputController.text);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      if (status > 0) {
+                        showSnackBar(context, 'Item added successfully');
+                      } else {
+                        showSnackBar(context, 'Item already exists');
+                      }
+                    }
+                  }
+                },
+              );
+            }),
+          ],
+        );
+      },
     );
-    itemInputController.clear();
-    return dialog;
   }
 }

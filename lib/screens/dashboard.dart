@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/home.dart';
 import 'package:mortgage/screens/manage.dart';
 import 'package:mortgage/screens/mortgage_input.dart';
+import 'package:mortgage/service/backup_service.dart';
 
 import 'drawer.dart';
 
@@ -20,7 +22,14 @@ class DashBoard extends HookWidget {
   Widget build(BuildContext context) {
     final currentIndex = useState<int>(0);
     final title = useState<String>("Mortgage");
-    // uploadGoogleDrive(context);
+    if (!FastDB.getIsBackUpRegistered()) {
+      useEffect(() {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showBackUpDialog(context);
+        });
+        return null;
+      }, []);
+    }
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -116,5 +125,35 @@ class DashBoard extends HookWidget {
         ],
       ),
     );
+  }
+
+  showBackUpDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text('Backup'),
+              content: Text(
+                'Do you want to backup your mortgage data?',
+                style: TextStyle(
+                    fontSize: 18, color: Theme.of(context).colorScheme.primary),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('No'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await registerBackUp();
+                    final BackupService backupService = BackupService();
+                    await backupService.downloadFileToDevice();
+                  },
+                  child: const Text('Yes'),
+                ),
+              ],
+            ));
   }
 }

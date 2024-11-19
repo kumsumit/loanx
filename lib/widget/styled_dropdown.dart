@@ -6,7 +6,7 @@ class StyledDropdown<T> extends StatelessWidget {
   final List<DropdownMenuItem<T>> items;
   final String hintText;
   final String labelText;
-  final VoidCallback onAddPressed;
+  final VoidCallback? onAddPressed;
   final VoidCallback onTap;
   const StyledDropdown(
       {super.key,
@@ -15,7 +15,7 @@ class StyledDropdown<T> extends StatelessWidget {
       required this.items,
       required this.hintText,
       required this.labelText,
-      required this.onAddPressed,
+      this.onAddPressed,
       required this.onTap});
 
   @override
@@ -23,6 +23,12 @@ class StyledDropdown<T> extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: DropdownButtonFormField<T>(
+        validator: (value) {
+          if (value == null) {
+            return 'Please select an option';
+          }
+          return null;
+        },
         value: selectedValue,
         hint: Text(hintText),
         onTap: onTap,

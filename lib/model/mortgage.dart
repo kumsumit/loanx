@@ -111,7 +111,8 @@ class Mortgage {
           interestRate: interestRate ?? this.interestRate,
           weight: weight ?? this.weight,
           interestType: interestType ?? this.interestType,
-          compoundingFrequency: compoundingFrequency ?? this.compoundingFrequency,
+          compoundingFrequency:
+              compoundingFrequency ?? this.compoundingFrequency,
           additionalDetails: additionalDetails ?? this.additionalDetails,
           dateCreated: dateCreated ?? this.dateCreated,
           itemId: itemId ?? this.itemId,
