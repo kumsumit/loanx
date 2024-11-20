@@ -49,8 +49,6 @@ dependencies:
     git: https://github.com/kumsumit/local_auth.git  
   workmanager:
     git: https://github.com/sumitsharansatsangi/workmanager.git
-  camera:
-    git: https://github.com/kumsumit/camera.git
   # device_preview:
   #   git: https://github.com/sumitsharansatsangi/device_preview.git
 
