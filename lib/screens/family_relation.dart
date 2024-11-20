@@ -12,16 +12,26 @@ class FamilyRelationView extends StatelessWidget {
     return Scaffold(
       body: Consumer(builder: (context, ref, child) {
         final familyRelations = ref.watch(familyRelationListProvider);
-        return ListView.builder(
-          itemCount: familyRelations.length,
-          itemBuilder: (context, index) => ListTile(
-            onTap: () => familyDialog(context, familyRelations[index]),
-            onLongPress: familyRelations[index].isAddedByUser == 1
-                ? () => familyDeleteDialog(context, ref, familyRelations[index])
-                : null,
-            title: Text(familyRelations[index].name),
-          ),
-        );
+        return familyRelations.when(
+            data: (data) {
+              return data.isEmpty
+                  ? Center(child: Text('No family relation found'))
+                  : ListView.builder(
+                      itemCount: data.length,
+                      itemBuilder: (context, index) => ListTile(
+                        onTap: () => familyDialog(context, data[index]),
+                        onLongPress: data[index].isAddedByUser == 1
+                            ? () =>
+                                familyDeleteDialog(context, ref, data[index])
+                            : null,
+                        title: Text(data[index].name),
+                      ),
+                    );
+            },
+            error: (_, __) {
+              return Center(child: Text("An error occurred"));
+            },
+            loading: () => Center(child: CircularProgressIndicator()));
       }),
       floatingActionButton: FloatingActionButton(
         onPressed: () => familyDialog(context, null),

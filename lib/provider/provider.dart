@@ -7,11 +7,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:mortgage/algo/damerau_lavenstien.dart';
 import 'package:mortgage/db/fastdb.dart';
-import 'package:mortgage/service/database_helper.dart';
 import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/model/mortgage_material.dart';
+import 'package:mortgage/service/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 import 'package:sqflite_sqlcipher/sqlite_api.dart';
@@ -230,27 +230,33 @@ class PickerColor extends _$PickerColor {
 @riverpod
 Future<String> appVersion(Ref ref) async {
   const mortgage = MethodChannel('mortgage');
-  return await mortgage.invokeMethod('versionName') + '.' +(await mortgage.invokeMethod('versionCode')).toString();
+  return await mortgage.invokeMethod('versionName') +
+      '.' +
+      (await mortgage.invokeMethod('versionCode')).toString();
 }
 
-final databaseProvider =
-    Provider<Database>((ref) => throw UnimplementedError());
+@Riverpod(keepAlive: true)
+class DB extends _$DB {
+  @override
+  Future<Database> build()async {
+    return await DatabaseHelper.instance.database;
+  }
+}
 
 @Riverpod(keepAlive: true)
 class FamilyRelationList extends _$FamilyRelationList {
   late Database db;
 
   @override
-  List<FamilyRelation> build() {
-    readAllFamilyRelations();
-    return [];
+  Future<List<FamilyRelation>> build() async {
+    return await readAllFamilyRelations();
   }
 
-  Future<void> readAllFamilyRelations() async {
-    db = await DatabaseHelper.instance.database;
+  Future<List<FamilyRelation>> readAllFamilyRelations() async {
+    db = ref.watch(dBProvider).value!;
     final orderBy = '${FamilyRelationFields.id} ASC';
     final result = await db.query(FamilyRelation.tableName, orderBy: orderBy);
-    state = result.map((json) => FamilyRelation.fromJson(json)).toList();
+    return result.map((json) => FamilyRelation.fromJson(json)).toList();
   }
 
   Future<FamilyRelation> readFamilyRelation(int id) async {
@@ -269,19 +275,31 @@ class FamilyRelationList extends _$FamilyRelationList {
   }
 
   Future<int> add(String name) async {
-    if (state
+    if (state.value == null || state.value!.isEmpty) {
+      FamilyRelation familyRelation =
+          FamilyRelation(name: name, isAddedByUser: 1);
+      final id =
+          await db.insert(FamilyRelation.tableName, familyRelation.toJson());
+      if (id > 0) {
+        familyRelation = familyRelation.copy(id: id);
+        await updateDBTime();
+        state = AsyncData([familyRelation]);
+        return id;
+      }
+    } else if (state.value!
         .any((element) => element.name.toLowerCase() == name.toLowerCase())) {
       return -1;
-    }
-    FamilyRelation familyRelation =
-        FamilyRelation(name: name, isAddedByUser: 1);
-    final id =
-        await db.insert(FamilyRelation.tableName, familyRelation.toJson());
-    if (id > 0) {
-      familyRelation = familyRelation.copy(id: id);
-      await updateDBTime();
-      state = [familyRelation, ...state];
-      return id;
+    } else {
+      FamilyRelation familyRelation =
+          FamilyRelation(name: name, isAddedByUser: 1);
+      final id =
+          await db.insert(FamilyRelation.tableName, familyRelation.toJson());
+      if (id > 0) {
+        familyRelation = familyRelation.copy(id: id);
+        await updateDBTime();
+        state = AsyncData([familyRelation, ...state.value!]);
+        return id;
+      }
     }
     return -1;
   }
@@ -294,7 +312,11 @@ class FamilyRelationList extends _$FamilyRelationList {
     );
     if (rid > 0) {
       await updateDBTime();
-      state = state.where((familyRelation) => familyRelation.id != id).toList();
+      if (state.value != null) {
+        state = AsyncData(state.value!
+            .where((familyRelation) => familyRelation.id != id)
+            .toList());
+      }
     }
   }
 
@@ -309,12 +331,14 @@ class FamilyRelationList extends _$FamilyRelationList {
     }
     final results = await batch.commit();
     await updateDBTime();
-    state = state
-        .where((familyRelation) => !results.contains(familyRelation.id))
-        .toList();
+    if (state.value != null) {
+      state = AsyncData(state.value!
+          .where((familyRelation) => !results.contains(familyRelation.id))
+          .toList());
+    }
   }
 
-  Future<void> update(FamilyRelation familyRelation) async {
+  Future<void> updateData(FamilyRelation familyRelation) async {
     final id = await db.update(
       FamilyRelation.tableName,
       familyRelation.toJson(),
@@ -323,10 +347,10 @@ class FamilyRelationList extends _$FamilyRelationList {
     );
     if (id > 0) {
       await updateDBTime();
-      state = [
-        for (final s in state)
+      state = AsyncData([
+        for (final s in state.value!)
           if (s.id == familyRelation.id) familyRelation else s
-      ];
+      ]);
     }
   }
 }
@@ -336,16 +360,15 @@ class MortgageMaterialList extends _$MortgageMaterialList {
   late Database db;
 
   @override
-  List<MortgageMaterial> build() {
-    readAllMortgageMaterials();
-    return [];
+  Future<List<MortgageMaterial>> build() async {
+    return await readAllMortgageMaterials();
   }
 
-  Future<void> readAllMortgageMaterials() async {
-    db = await DatabaseHelper.instance.database;
+  Future<List<MortgageMaterial>> readAllMortgageMaterials() async {
+   db = ref.watch(dBProvider).value!;
     final orderBy = '${MortgageMaterialFields.id} ASC';
     final result = await db.query(MortgageMaterial.tableName, orderBy: orderBy);
-    state = result.map((json) => MortgageMaterial.fromJson(json)).toList();
+    return result.map((json) => MortgageMaterial.fromJson(json)).toList();
   }
 
   Future<MortgageMaterial> readMortgageMaterial(int id) async {
@@ -364,19 +387,31 @@ class MortgageMaterialList extends _$MortgageMaterialList {
   }
 
   Future<int> add(String name) async {
-    if (state
+    if (state.value == null || state.value!.isEmpty) {
+      MortgageMaterial mortgageMaterial =
+          MortgageMaterial(name: name, isAddedByUser: 1);
+      final id = await db.insert(
+          MortgageMaterial.tableName, mortgageMaterial.toJson());
+      if (id > 0) {
+        mortgageMaterial = mortgageMaterial.copy(id: id);
+        await updateDBTime();
+        state = AsyncData([mortgageMaterial]);
+        return id;
+      }
+    } else if (state.value!
         .any((element) => element.name.toLowerCase() == name.toLowerCase())) {
       return -1;
-    }
-    MortgageMaterial mortgageMaterial =
-        MortgageMaterial(name: name, isAddedByUser: 1);
-    final id =
-        await db.insert(MortgageMaterial.tableName, mortgageMaterial.toJson());
-    if (id > 0) {
-      await updateDBTime();
-      mortgageMaterial = mortgageMaterial.copy(id: id);
-      state = [mortgageMaterial, ...state];
-      return id;
+    } else if (state.value != null && state.value!.isNotEmpty) {
+      MortgageMaterial mortgageMaterial =
+          MortgageMaterial(name: name, isAddedByUser: 1);
+      final id = await db.insert(
+          MortgageMaterial.tableName, mortgageMaterial.toJson());
+      if (id > 0) {
+        await updateDBTime();
+        mortgageMaterial = mortgageMaterial.copy(id: id);
+        state = AsyncData([mortgageMaterial, ...state.value!]);
+        return id;
+      }
     }
     return -1;
   }
@@ -389,8 +424,9 @@ class MortgageMaterialList extends _$MortgageMaterialList {
     );
     if (rid > 0) {
       await updateDBTime();
-      state =
-          state.where((mortgageMaterial) => mortgageMaterial.id != id).toList();
+      state = AsyncData(state.value!
+          .where((mortgageMaterial) => mortgageMaterial.id != id)
+          .toList());
     }
   }
 
@@ -405,10 +441,12 @@ class MortgageMaterialList extends _$MortgageMaterialList {
     }
     final results = await batch.commit();
     await updateDBTime();
-    state = state.where((item) => !results.contains(item.id)).toList();
+    state = AsyncData(
+        state.value!.where((item) => !results.contains(item.id)).toList());
   }
 
-  Future<void> update(MortgageMaterial mortgageMaterial) async {
+  Future<void> updateMortagageMaterial(
+      MortgageMaterial mortgageMaterial) async {
     final id = await db.update(
       MortgageMaterial.tableName,
       mortgageMaterial.toJson(),
@@ -417,10 +455,10 @@ class MortgageMaterialList extends _$MortgageMaterialList {
     );
     if (id > 0) {
       await updateDBTime();
-      state = [
-        for (final s in state)
+      state = AsyncData([
+        for (final s in state.value!)
           if (s.id == mortgageMaterial.id) mortgageMaterial else s
-      ];
+      ]);
     }
   }
 }
@@ -430,16 +468,15 @@ class ItemList extends _$ItemList {
   late Database db;
 
   @override
-  List<Item> build() {
-    readAllItems();
-    return [];
+ Future< List<Item>> build() async{
+    return await readAllItems();
   }
 
-  Future<void> readAllItems() async {
-    db = await DatabaseHelper.instance.database;
+  Future<List<Item>> readAllItems() async {
+  db = ref.watch(dBProvider).value!;
     final orderBy = '${ItemFields.id} ASC';
     final result = await db.query(Item.tableName, orderBy: orderBy);
-    state = result.map((json) => Item.fromJson(json)).toList();
+    return result.map((json) => Item.fromJson(json)).toList();
   }
 
   Future<Item> readItem(int id) async {
@@ -458,7 +495,17 @@ class ItemList extends _$ItemList {
   }
 
   Future<int> add(String name) async {
-    if (state
+    if(state.value == null || state.value!.isEmpty){
+       Item item = Item(name: name, isAddedByUser: 1);
+         final id = await db.insert(Item.tableName, item.toJson());
+          if (id > 0) {
+      await updateDBTime();
+      item = item.copy(id: id);
+      state = AsyncData([item]);
+      return id;
+    }
+    }
+    if (state.value!
         .any((element) => element.name.toLowerCase() == name.toLowerCase())) {
       return -1;
     }
@@ -467,7 +514,7 @@ class ItemList extends _$ItemList {
     if (id > 0) {
       await updateDBTime();
       item = item.copy(id: id);
-      state = [item, ...state];
+      state = AsyncData([item, ...state.value!]);
       return id;
     }
     return -1;
@@ -484,10 +531,10 @@ class ItemList extends _$ItemList {
     }
     final results = await batch.commit();
     await updateDBTime();
-    state = state.where((item) => !results.contains(item.id)).toList();
+    state = AsyncData(state.value!.where((item) => !results.contains(item.id)).toList());
   }
 
-  Future<void> update(Item item) async {
+  Future<void> updateItem(Item item) async {
     final id = await db.update(
       Item.tableName,
       item.toJson(),
@@ -496,10 +543,10 @@ class ItemList extends _$ItemList {
     );
     if (id > 0) {
       await updateDBTime();
-      state = [
-        for (final s in state)
+      state = AsyncData([
+        for (final s in state.value!)
           if (s.id == item.id) item else s
-      ];
+      ]);
     }
   }
 
@@ -511,7 +558,7 @@ class ItemList extends _$ItemList {
     );
     if (rid > 0) {
       await updateDBTime();
-      state = state.where((item) => item.id != id).toList();
+      state = AsyncData(state.value!.where((item) => item.id != id).toList());
     }
   }
 }
@@ -521,30 +568,32 @@ class MortgageList extends _$MortgageList {
   late Database db;
 
   @override
-  List<Mortgage> build() {
-    readAllMortgages();
-    return [];
+  Future<List<Mortgage>> build() async {
+    return await readAllMortgages();
   }
 
-  Future<void> readAllMortgages() async {
-    db = await DatabaseHelper.instance.database;
+  Future<List<Mortgage>> readAllMortgages() async {
+  db = ref.watch(dBProvider).value!;
     final orderBy = '${MortgageFields.id} ASC';
     final result = await db.query(Mortgage.tableName, orderBy: orderBy);
-    state = result.map((json) => Mortgage.fromJson(json)).toList();
+    return result.map((json) => Mortgage.fromJson(json)).toList();
   }
 
   List<Mortgage> searchMortgagesByItemId(int itemId) {
-    return state.where((item) => item.itemId == itemId).toList();
+    if (state.value == null) return [];
+    return state.value!.where((item) => item.itemId == itemId).toList();
   }
 
   List<Mortgage> searchMortgagesByMortgageMaterialId(int mortgageMaterialId) {
-    return state
+    if (state.value == null) return [];
+    return state.value!
         .where((item) => item.mortgageMaterialId == mortgageMaterialId)
         .toList();
   }
 
   List<Mortgage> searchMortgagesByDateCreated(DateTime dateCreated) {
-    return state
+    if (state.value == null) return [];
+    return state.value!
         .where((item) =>
             item.dateCreated.year == dateCreated.year &&
             item.dateCreated.month == dateCreated.month &&
@@ -553,33 +602,35 @@ class MortgageList extends _$MortgageList {
   }
 
   List<Mortgage> searchMortgagesByDateRange(DateTimeRange dateTimeRange) {
-    return state
+    if (state.value == null) return [];
+    return state.value!
         .where((item) =>
             item.dateCreated.isAfter(dateTimeRange.start) &&
             item.dateCreated.isBefore(dateTimeRange.end))
         .toList();
   }
 
-  Future<void> searchMortgagesByItemIdDB(int itemId) async {
+  Future<List<Mortgage>> searchMortgagesByItemIdDB(int itemId) async {
     final orderBy = '${MortgageFields.id} ASC';
     final result = await db.query(Mortgage.tableName,
         where: '${MortgageFields.itemId} = ?',
         whereArgs: [itemId],
         orderBy: orderBy);
-    state = result.map((json) => Mortgage.fromJson(json)).toList();
+    return result.map((json) => Mortgage.fromJson(json)).toList();
   }
 
-  Future<void> readAllMortgagesByMortgageMaterialId(
+  Future<List<Mortgage>> readAllMortgagesByMortgageMaterialId(
       int mortgageMaterialId) async {
     final orderBy = '${MortgageFields.id} ASC';
     final result = await db.query(Mortgage.tableName,
         where: '${MortgageFields.mortgageMaterialId} = ?',
         whereArgs: [mortgageMaterialId],
         orderBy: orderBy);
-    state = result.map((json) => Mortgage.fromJson(json)).toList();
+    return result.map((json) => Mortgage.fromJson(json)).toList();
   }
 
   List<Mortgage> searchMortgagesByDepositorName(String searchTerm) {
+    if (state.value == null) return [];
     String lowerKeyword = searchTerm.toLowerCase();
 
     // Perform the search
@@ -587,7 +638,7 @@ class MortgageList extends _$MortgageList {
     List<Mortgage> partialMatches = [];
     List<Mortgage> fuzzyMatches = [];
 
-    for (Mortgage book in state) {
+    for (Mortgage book in state.value!) {
       String title = book.depositorName.toLowerCase();
 
       // Exact match
@@ -621,6 +672,7 @@ class MortgageList extends _$MortgageList {
   }
 
   List<Mortgage> searchMortgagesByRelativeName(String searchTerm) {
+    if (state.value == null) return [];
     String lowerKeyword = searchTerm.toLowerCase();
 
     // Perform the search
@@ -628,7 +680,7 @@ class MortgageList extends _$MortgageList {
     List<Mortgage> partialMatches = [];
     List<Mortgage> fuzzyMatches = [];
 
-    for (Mortgage book in state) {
+    for (Mortgage book in state.value!) {
       String title = book.relativeName.toLowerCase();
 
       // Exact match
@@ -656,22 +708,24 @@ class MortgageList extends _$MortgageList {
     return [...exactMatches, ...partialMatches, ...fuzzyMatches];
   }
 
-  Future<void> searchMortgagesByDepositorNameDB(String searchTerm) async {
+  Future<List<Mortgage>> searchMortgagesByDepositorNameDB(
+      String searchTerm) async {
     final orderBy = '${MortgageFields.id} ASC';
     final result = await db.query(Mortgage.tableName,
         where: '${MortgageFields.depositorName} LIKE ?',
         whereArgs: ['%$searchTerm%'],
         orderBy: orderBy);
-    state = result.map((json) => Mortgage.fromJson(json)).toList();
+    return result.map((json) => Mortgage.fromJson(json)).toList();
   }
 
-  Future<void> searchMortgagesByRelativeNameDB(String searchTerm) async {
+  Future<List<Mortgage>> searchMortgagesByRelativeNameDB(
+      String searchTerm) async {
     final orderBy = '${MortgageFields.id} ASC';
     final result = await db.query(Mortgage.tableName,
         where: '${MortgageFields.relativeName} LIKE ?',
         whereArgs: ['%$searchTerm%'],
         orderBy: orderBy);
-    state = result.map((json) => Mortgage.fromJson(json)).toList();
+    return result.map((json) => Mortgage.fromJson(json)).toList();
   }
 
   Future<int> add(
@@ -706,13 +760,18 @@ class MortgageList extends _$MortgageList {
     if (id > 0) {
       await updateDBTime();
       mortgage = mortgage.copy(id: id);
-      state = [mortgage, ...state];
+      if (state.value == null) {
+        state = AsyncData([mortgage]);
+      } else {
+        state = AsyncData([mortgage, ...state.value!]);
+      }
       return id;
     }
     return -1;
   }
 
-  Future<void> update(Mortgage mortgage) async {
+  Future<void> updateMortgage(Mortgage mortgage) async {
+    if (state.value == null) return;
     final id = await db.update(
       Mortgage.tableName,
       mortgage.toJson(),
@@ -721,14 +780,15 @@ class MortgageList extends _$MortgageList {
     );
     await updateDBTime();
     if (id > 0) {
-      state = [
-        for (final s in state)
+      state = AsyncData([
+        for (final s in state.value!)
           if (s.id == mortgage.id) mortgage else s
-      ];
+      ]);
     }
   }
 
   Future<void> delete(int id) async {
+    if (state.value == null) return;
     final rid = await db.delete(
       Mortgage.tableName,
       where: '${MortgageFields.id} = ?',
@@ -736,11 +796,13 @@ class MortgageList extends _$MortgageList {
     );
     if (rid > 0) {
       await updateDBTime();
-      state = state.where((mortgage) => mortgage.id != id).toList();
+      state = AsyncData(
+          state.value!.where((mortgage) => mortgage.id != id).toList());
     }
   }
 
   Future<void> bulkDelete(List<int> ids) async {
+    if (state.value == null) return;
     final batch = db.batch();
     for (int id in ids) {
       batch.delete(
@@ -751,7 +813,8 @@ class MortgageList extends _$MortgageList {
     }
     await batch.commit(continueOnError: true);
     await updateDBTime();
-    state = state.where((mortgage) => !ids.contains(mortgage.id)).toList();
+    state = AsyncData(
+        state.value!.where((mortgage) => !ids.contains(mortgage.id)).toList());
   }
 }
 

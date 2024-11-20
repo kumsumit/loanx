@@ -11,21 +11,31 @@ class ItemView extends StatelessWidget {
     return Scaffold(
       body: Consumer(builder: (context, ref, child) {
         final items = ref.watch(itemListProvider);
-        return ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return ListTile(
-              title: Text(item.name),
-              onTap: item.isAddedByUser == 1
-                  ? () => itemDialog(context, item)
-                  : null,
-              onLongPress: item.isAddedByUser == 1
-                  ? () async => await itemDeleteDialog(context, ref, item)
-                  : null,
-            );
-          },
-        );
+        return items.when(
+            data: (data) {
+              if (data.isEmpty) {
+                return Center(child: Text("No data found"));
+              }
+              return ListView.builder(
+                itemCount: data.length,
+                itemBuilder: (context, index) {
+                  final item = data[index];
+                  return ListTile(
+                    title: Text(item.name),
+                    onTap: item.isAddedByUser == 1
+                        ? () => itemDialog(context, item)
+                        : null,
+                    onLongPress: item.isAddedByUser == 1
+                        ? () async => await itemDeleteDialog(context, ref, item)
+                        : null,
+                  );
+                },
+              );
+            },
+            error: (_, p) {
+              return Center(child: Text("An Error Occurred"));
+            },
+            loading: () => Center(child: CircularProgressIndicator()));
       }),
       floatingActionButton: FloatingActionButton(
           onPressed: () {

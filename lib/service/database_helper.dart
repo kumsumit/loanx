@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
 // import 'package:mortgage/model/loan.dart';
@@ -23,6 +25,12 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'mortgage.db');
+    if(await File(path).exists()){
+      return await openDatabase(path,
+          version: 1,
+          // onCreate: onCreate,
+          password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf');
+    }
     return await openDatabase(path,
         version: 1,
         onCreate: onCreate,

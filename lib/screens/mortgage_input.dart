@@ -74,24 +74,24 @@ class MortgageInput extends HookConsumerWidget {
     final focusNodes =
         useMemoized(() => List.generate(7, (_) => FocusNode()), []);
     useEffect(() {
-      if (items.isNotEmpty) {
-        currentItem.value = mortgage == null
-            ? items.first
-            : items.firstWhere((element) => element.id == mortgage!.itemId);
-      }
-      if (familyRelations.isNotEmpty) {
-        currentFamilyRelation.value = mortgage == null
-            ? familyRelations.first
-            : familyRelations.firstWhere(
-                (element) => element.id == mortgage!.familyRelationId);
-      }
+      // if (items.isNotEmpty) {
+      //   currentItem.value = mortgage == null
+      //       ? items.first
+      //       : items.firstWhere((element) => element.id == mortgage!.itemId);
+      // }
+      // if (familyRelations.isNotEmpty) {
+      //   currentFamilyRelation.value = mortgage == null
+      //       ? familyRelations.first
+      //       : familyRelations.firstWhere(
+      //           (element) => element.id == mortgage!.familyRelationId);
+      // }
 
-      if (mortgageMaterials.isNotEmpty) {
-        currentMortgageMaterial.value = mortgage == null
-            ? mortgageMaterials.first
-            : mortgageMaterials.firstWhere(
-                (element) => element.id == mortgage!.mortgageMaterialId);
-      }
+      // if (mortgageMaterials.isNotEmpty) {
+      //   currentMortgageMaterial.value = mortgage == null
+      //       ? mortgageMaterials.first
+      //       : mortgageMaterials.firstWhere(
+      //           (element) => element.id == mortgage!.mortgageMaterialId);
+      // }
       void scrollToFocusedTextField() {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           for (final focusNode in focusNodes) {
@@ -144,11 +144,14 @@ class MortgageInput extends HookConsumerWidget {
               SizedBox(
                 height: 10,
               ),
-              items.isEmpty
-                  ? SizedBox()
-                  : StyledDropdown<Item>(
+              items.when(
+                  data: (data) {
+                    if (data.isEmpty) {
+                      return SizedBox();
+                    }
+                    return StyledDropdown<Item>(
                       selectedValue: currentItem.value,
-                      items: buildMenuItems(items, context),
+                      items: buildMenuItems(data, context),
                       onChanged: (value) {
                         if (value != null) {
                           currentItem.value = value;
@@ -172,40 +175,50 @@ class MortgageInput extends HookConsumerWidget {
                             'Enter the item name',
                             ref.read(itemListProvider.notifier).add);
                       },
-                    ),
-              // SearchableDropdown(),
-              mortgageMaterials.isEmpty
-                  ? SizedBox()
-                  : StyledDropdown<MortgageMaterial>(
-                      selectedValue: currentMortgageMaterial.value,
-                      items: buildMenuMortgageMaterials(
-                          mortgageMaterials, context),
-                      onChanged: (value) {
-                        if (value != null) {
-                          currentMortgageMaterial.value = value;
-                        }
-                      },
-                      onTap: () {
-                        scrollController.animateTo(
-                          scrollController.position.maxScrollExtent,
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                      hintText: "Mortgage Material",
-                      labelText: "Mortgage Material",
-                      onAddPressed: () {
-                        isDialogOpen.value = true;
-                        showAddDialog(
-                            context,
-                            ref,
-                            'Add Mortgage Material',
-                            'Enter the mortgage material',
-                            ref
-                                .read(mortgageMaterialListProvider.notifier)
-                                .add);
-                      },
-                    ),
+                    );
+                  },
+                  error: (_, __) => Center(
+                        child: Text("An Error occured"),
+                      ),
+                  loading: () => Center(child: CircularProgressIndicator())),
+
+              // SearchableDropdown(),air2255
+
+              mortgageMaterials.when(
+                data: (data) {
+                  return StyledDropdown<MortgageMaterial>(
+                    selectedValue: currentMortgageMaterial.value,
+                    items: buildMenuMortgageMaterials(data, context),
+                    onChanged: (value) {
+                      if (value != null) {
+                        currentMortgageMaterial.value = value;
+                      }
+                    },
+                    onTap: () {
+                      scrollController.animateTo(
+                        scrollController.position.maxScrollExtent,
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    hintText: "Mortgage Material",
+                    labelText: "Mortgage Material",
+                    onAddPressed: () {
+                      isDialogOpen.value = true;
+                      showAddDialog(
+                          context,
+                          ref,
+                          'Add Mortgage Material',
+                          'Enter the mortgage material',
+                          ref.read(mortgageMaterialListProvider.notifier).add);
+                    },
+                  );
+                },
+                error: (_, __) {
+                  return const SizedBox();
+                },
+                loading: () => const SizedBox(),
+              ),
               StyledTextField(
                 failedValidationMessage: "Depositor Name can't be empty",
                 textEditingController: depositorController,
@@ -350,35 +363,52 @@ class MortgageInput extends HookConsumerWidget {
                         value ?? CompoundingFrequency.yearly;
                   },
                 ),
-              familyRelations.isEmpty
-                  ? SizedBox()
-                  : StyledDropdown<FamilyRelation>(
-                      selectedValue: currentFamilyRelation.value,
-                      items: buildMenuRelationTypes(familyRelations, context),
-                      onChanged: (value) {
-                        if (value != null) {
-                          currentFamilyRelation.value = value;
-                        }
-                      },
-                      onTap: () {
-                        scrollController.animateTo(
-                          scrollController.position.maxScrollExtent,
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                      hintText: "Family Relation",
-                      labelText: "Family Relation",
-                      onAddPressed: () {
-                        isDialogOpen.value = true;
-                        showAddDialog(
-                            context,
-                            ref,
-                            'Add Family Relation',
-                            'Enter the family relation',
-                            ref.read(familyRelationListProvider.notifier).add);
-                      },
-                    ),
+              familyRelations.when(
+                data: (data) {
+                  return StyledDropdown<FamilyRelation>(
+                    selectedValue: currentFamilyRelation.value,
+                    items: buildMenuRelationTypes(data, context),
+                    onChanged: (value) {
+                      if (value != null) {
+                        currentFamilyRelation.value = value;
+                      }
+                    },
+                    onTap: () {
+                      scrollController.animateTo(
+                        scrollController.position.maxScrollExtent,
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    hintText: "Family Relation",
+                    labelText: "Family Relation",
+                    onAddPressed: () {
+                      isDialogOpen.value = true;
+                      showAddDialog(
+                          context,
+                          ref,
+                          'Add Family Relation',
+                          'Enter the family relation',
+                          ref.read(familyRelationListProvider.notifier).add);
+                    },
+                  );
+                },
+                error: (_, __) {
+                  return const SizedBox();
+                },
+                loading: () => const SizedBox(),
+              ),
+
+              // StyledDropdown<FamilyRelation>(
+              //         selectedValue: currentFamilyRelation.value,
+              //         items: buildMenuRelationTypes(familyRelations, context),
+              //         onChanged: (value) {
+              //           if (value != null) {
+              //             currentFamilyRelation.value = value;
+              //           }
+              //         },
+
+              //       ),
               Consumer(builder: (context, ref, child) {
                 return Center(
                   child: OutlinedButton(

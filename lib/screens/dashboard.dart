@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/db/fastdb.dart';
+// import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/home.dart';
 import 'package:mortgage/screens/manage.dart';
 import 'package:mortgage/screens/mortgage_input.dart';
-import 'package:mortgage/service/backup_service.dart';
+// import 'package:mortgage/service/backup_service.dart';
+// import 'package:mortgage/service/database_helper.dart';
+// import 'package:mortgage/widget/snackbar.dart';
 
 import 'drawer.dart';
 
@@ -22,14 +24,14 @@ class DashBoard extends HookWidget {
   Widget build(BuildContext context) {
     final currentIndex = useState<int>(0);
     final title = useState<String>("Mortgage");
-    if (!FastDB.getIsBackUpRegistered()) {
-      useEffect(() {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          showBackUpDialog(context);
-        });
-        return null;
-      }, []);
-    }
+    // if (!FastDB.getIsBackUpRegistered()) {
+    //   useEffect(() {
+    //     WidgetsBinding.instance.addPostFrameCallback((_) {
+    //       showBackUpDialog(context);
+    //     });
+    //     return null;
+    //   }, []);
+    // }
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -54,8 +56,9 @@ class DashBoard extends HookWidget {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => MortgageInput(
-                                    mortgage: ref.read(mortgageListProvider)[
-                                        mortgageSelectionList.first])));
+                                    mortgage: ref
+                                        .read(mortgageListProvider)
+                                        .value![mortgageSelectionList.first])));
                       },
                     ),
                   if (mortgageSelectionList.isNotEmpty)
@@ -106,7 +109,7 @@ class DashBoard extends HookWidget {
         ),
       ),
       drawer: MyDrawer(),
-      body: _pages[currentIndex.value],
+      body:   _pages[currentIndex.value],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex.value,
         onTap: (index) {
@@ -127,33 +130,68 @@ class DashBoard extends HookWidget {
     );
   }
 
-  showBackUpDialog(BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: Text('Backup'),
-              content: Text(
-                'Do you want to backup your mortgage data?',
-                style: TextStyle(
-                    fontSize: 18, color: Theme.of(context).colorScheme.primary),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('No'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    await registerBackUp();
-                    final BackupService backupService = BackupService();
-                    await backupService.downloadFileToDevice();
-                  },
-                  child: const Text('Yes'),
-                ),
-              ],
-            ));
-  }
+//   showBackUpDialog(BuildContext context) {
+//     showDialog(
+//         context: context,
+//         builder: (context) => AlertDialog(
+//               title: Text('Backup'),
+//               content: Text(
+//                 'Do you want to backup your mortgage data?',
+//                 style: TextStyle(
+//                     fontSize: 18, color: Theme.of(context).colorScheme.primary),
+//               ),
+//               actions: [
+//                 Consumer(builder: (context, ref, child) {
+//                   return TextButton(
+//                     onPressed: () async {
+//                       if (!FastDB.getIsTableCreated()) {
+//                         ref.read(dBProvider).when(
+//                             data: (data) async {
+//                               await DatabaseHelper.instance.onCreate(data, 1);
+//                             },
+//                             error: (_, __) {
+//                               showSnackBar(context,
+//                                   "An Error occured, Please try again later");
+//                             },
+//                             loading: () {});
+//                       }
+//                       Navigator.of(context).pop();
+//                     },
+//                     child: const Text('No'),
+//                   );
+//                 }),
+//                 Consumer(builder: (context, ref, child) {
+//                   return TextButton(
+//                     onPressed: () async {
+//                       await registerBackUp();
+//                       final BackupService backupService = BackupService();
+//                       await backupService.downloadFileToDevice();
+//                       ref.read(dBProvider).when(
+//                           data: (data) async {
+//                             ref.read(itemListProvider);
+//                             ref
+//                                 .read(mortgageMaterialListProvider.notifier)
+//                                 .readAllMortgageMaterials();
+//                             ref
+//                                 .read(familyRelationListProvider.notifier)
+//                                 .readAllFamilyRelations();
+//                             ref
+//                                 .read(mortgageListProvider.notifier)
+//                                 .readAllMortgages();
+//                           },
+//                           error: (_, __) {
+//                             showSnackBar(context,
+//                                 "An Error occured, Please try again later");
+//                           },
+//                           loading: () {});
+//                           if(context.mounted){
+//                             Navigator.of(context).pop();
+//                           }
+//                     },
+//                     child: const Text('Yes'),
+//                   );
+//                 }),
+//               ],
+//             ));
+//   }
 }

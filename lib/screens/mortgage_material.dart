@@ -12,17 +12,27 @@ class MortgageMaterialView extends StatelessWidget {
     return Scaffold(
       body: Consumer(builder: (context, ref, child) {
         final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
-        return ListView.builder(
-          itemCount: mortgageMaterials.length,
-          itemBuilder: (context, index) => ListTile(
-            onTap: () => mortgageDialog(context, mortgageMaterials[index]),
-            onLongPress: mortgageMaterials[index].isAddedByUser == 1
-                ? () =>
-                    mortgageDeleteDialog(context, ref, mortgageMaterials[index])
-                : null,
-            title: Text(mortgageMaterials[index].name),
-          ),
-        );
+
+        return mortgageMaterials.when(
+            data: (data) {
+              return data.isEmpty
+                  ? Center(child: Text('No mortgage material found'))
+                  : ListView.builder(
+                      itemCount: data.length,
+                      itemBuilder: (context, index) => ListTile(
+                        onTap: () => mortgageDialog(context, data[index]),
+                        onLongPress: data[index].isAddedByUser == 1
+                            ? () =>
+                                mortgageDeleteDialog(context, ref, data[index])
+                            : null,
+                        title: Text(data[index].name),
+                      ),
+                    );
+            },
+            error: (_, __) {
+              return Center(child: Text("An error occurred"));
+            },
+            loading: () => Center(child: CircularProgressIndicator()));
       }),
       floatingActionButton: FloatingActionButton(
         onPressed: () => mortgageDialog(context, null),

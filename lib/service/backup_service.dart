@@ -59,24 +59,49 @@ class BackupService {
       if (fileList != null &&
           fileList.isNotEmpty &&
           fileList.first.id != null) {
-        final driveBackupDate = DateTime.tryParse(fileList.first.name!
-            .replaceAll('backup-', '')
-            .replaceAll('.db', ''));
-        if (driveBackupDate != null) {
-          final fileBackupDate =
-              DateTime.fromMillisecondsSinceEpoch(FastDB.getDbUpdateTime());
-          if (fileBackupDate.isBefore(driveBackupDate)) {
-            drive.Media? file = (await driveApi.files.get(fileList.first.id!,
-                    downloadOptions: drive.DownloadOptions.fullMedia))
-                as drive.Media?;
-            if (file != null) {
-              final first = await file.stream.first;
-              await saveFile.writeAsBytes(first, flush: true);
+        if (FastDB.getDbUpdateTime() == 0) {
+          drive.Media? file = (await driveApi.files.get(fileList.first.id!,
+                  downloadOptions: drive.DownloadOptions.fullMedia))
+              as drive.Media?;
+          if (file != null) {
+            final bytesArray = await file.stream.toList();
+            List<int> bytes = [];
+            for (var arr in bytesArray) {
+              bytes.addAll(arr);
             }
-            if (fileList.length > 1) {
-              for (final file in fileList.sublist(1)) {
-                if (file.id != null) {
-                  await driveApi.files.delete(file.id!);
+            await saveFile.writeAsBytes(bytes, flush: true);
+          }
+          if (fileList.length > 1) {
+            for (final file in fileList.sublist(1)) {
+              if (file.id != null) {
+                await driveApi.files.delete(file.id!);
+              }
+            }
+          }
+        } else {
+          final driveBackupDate = DateTime.tryParse(fileList.first.name!
+              .replaceAll('backup-', '')
+              .replaceAll('.db', ''));
+          if (driveBackupDate != null) {
+            final fileBackupDate =
+                DateTime.fromMillisecondsSinceEpoch(FastDB.getDbUpdateTime());
+            if (fileBackupDate.isBefore(driveBackupDate)) {
+              drive.Media? file = (await driveApi.files.get(fileList.first.id!,
+                      downloadOptions: drive.DownloadOptions.fullMedia))
+                  as drive.Media?;
+              if (file != null) {
+                final bytesArray = await file.stream.toList();
+                List<int> bytes = [];
+                for (var arr in bytesArray) {
+                  bytes.addAll(arr);
+                }
+                await saveFile.writeAsBytes(bytes, flush: true);
+              }
+              if (fileList.length > 1) {
+                for (final file in fileList.sublist(1)) {
+                  if (file.id != null) {
+                    await driveApi.files.delete(file.id!);
+                  }
                 }
               }
             }
@@ -134,7 +159,7 @@ class GoogleAuthClient extends http.BaseClient {
   }
 }
 
-Future<void> registerBackUp() async{
+Future<void> registerBackUp() async {
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
   Workmanager().registerPeriodicTask(
     "MortgageBackupTaskgfcgfdfgdfgcscdfs65",

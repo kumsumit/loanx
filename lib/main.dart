@@ -4,9 +4,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mortgage/screens/ask_backup_screen.dart';
 import 'package:mortgage/screens/error.dart';
 import 'package:mortgage/screens/unauthorized.dart';
-import 'package:mortgage/service/database_helper.dart';
+// import 'package:mortgage/service/database_helper.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/auth_screen.dart';
 import 'package:mortgage/screens/dashboard.dart';
@@ -19,16 +20,12 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await FastDB.init();
-  final database = await DatabaseHelper.instance.database;
-  if (!FastDB.getIsTableCreated()) {
-    await DatabaseHelper.instance.onCreate(database, 1);
-  }
   // await Firebase.initializeApp();
 
   // final directory = await getApplicationSupportDirectory();
   FlutterNativeSplash.remove();
   runApp(ProviderScope(
-      overrides: [databaseProvider.overrideWithValue(database)],
+      // overrides: [databaseProvider.overrideWithValue(database)],
       child: const MyApp()));
   // runApp(DevicePreview(
   //     storage: FileDevicePreviewStorage(
@@ -67,7 +64,7 @@ class MyApp extends ConsumerWidget {
         debugShowCheckedModeBanner: false,
         home: authenticate.when(
             data: (data) {
-              return data ? DashBoard() : AuthFailurePage();
+              return data ? FastDB.getIsBackUpRegistered() ?const DashBoard(): const AskBackupScreen() : const AuthFailurePage();
             },
             error: (err, obj) => ErrorPage(),
             loading: () => AuthScreen()));

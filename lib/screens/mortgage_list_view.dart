@@ -4,25 +4,21 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 // import 'package:mortgage/extension/string.dart';
-import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
 // import 'package:mortgage/model/loan.dart';
 import 'package:mortgage/model/mortgage.dart';
-import 'package:mortgage/model/mortgage_material.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/mortgage_details.dart';
 
 class MortgageListView extends StatelessWidget {
   const MortgageListView({super.key});
 
-  Widget _itemBuilder(
-      BuildContext context,
-      Mortgage mortgage,
-      Iterable<Item> items,
-      Iterable<MortgageMaterial> mortgageMaterials,
-      Iterable<FamilyRelation> familyRelations) {
+  Widget _mortgageBuilder(
+    BuildContext context,
+    Mortgage mortgage,
+    Item item,
+  ) {
     return Consumer(builder: (context, ref, child) {
-      final item = items.firstWhere((item) => item.id == mortgage.itemId);
       return GestureDetector(
         onDoubleTap: () {
           Navigator.push(
@@ -52,7 +48,9 @@ class MortgageListView extends StatelessWidget {
                   value: mortgage.isFinished(),
                   onChanged: (bool? value) async {
                     mortgage.toggleFinished();
-                    ref.read(mortgageListProvider.notifier).update(mortgage);
+                    ref
+                        .read(mortgageListProvider.notifier)
+                        .updateMortgage(mortgage);
                   }),
               Expanded(
                 child: DecoratedBox(
@@ -99,51 +97,63 @@ class MortgageListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(child: Consumer(builder: (context, ref, child) {
-      final mortgages = ref.watch(mortgageListProvider);
       final items = ref.watch(itemListProvider);
-      final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
-      final familyRelations = ref.watch(familyRelationListProvider);
-      if (mortgages.isEmpty ||
-          items.isEmpty ||
-          mortgageMaterials.isEmpty ||
-          familyRelations.isEmpty) {
-        return Center(child: CircularProgressIndicator());
-      }
-      return ListView.builder(
-          shrinkWrap: true,
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          itemCount: mortgages.length,
-          itemBuilder: (c, i) {
-            return _itemBuilder(
-                c, mortgages[i], items, mortgageMaterials, familyRelations);
-          });
+      final mortgages = ref.watch(mortgageListProvider);
+      return items.when(
+          data: (itemList) {
+            if (itemList.isEmpty) {
+              return Center(child: Text("No data found", style: TextStyle(fontSize: 20,color : Theme.of(context).colorScheme.secondary),));
+            }
+            return mortgages.when(
+                data: (mortgageList) {
+                  if (mortgageList.isEmpty) {
+                    return Center(child: Text("No data found",style: TextStyle(fontSize: 20, color : Theme.of(context).colorScheme.secondary),));
+                  }
+                  return ListView.builder(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      itemCount: mortgageList.length,
+                      itemBuilder: (context, index) {
+                        final mortgage = mortgageList[index];
+                        final item = itemList
+                            .firstWhere((item) => item.id == mortgage.itemId);
+                        return _mortgageBuilder(context, mortgage, item);
+                      });
+                },
+                error: (e, b) => Center(child: Text("An Error occurred",style: TextStyle(fontSize: 20,color : Theme.of(context).colorScheme.secondary),)),
+                loading: () => Center(child: CircularProgressIndicator()));
+          },
+          error: (e, b) => Center(child: Text("An Error occurred",style: TextStyle(fontSize: 20,color : Theme.of(context).colorScheme.secondary),)),
+          loading: () => Center(
+                child: CircularProgressIndicator(),
+              ));
     }));
   }
 }
 
-class ColorCircle extends StatelessWidget {
-  const ColorCircle({super.key, required this.color, required this.text});
-  final Color color;
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        SizedBox(
-          height: 40,
-          child: DecoratedBox(
-              decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(20),
-          )),
-        ),
-        Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 12)),
-      ],
-    );
-  }
-}
+// class ColorCircle extends StatelessWidget {
+//   const ColorCircle({super.key, required this.color, required this.text});
+//   final Color color;
+//   final String text;
+//   @override
+//   Widget build(BuildContext context) {
+//     return ListView(
+//       shrinkWrap: true,
+//       physics: const NeverScrollableScrollPhysics(),
+//       children: [
+//         SizedBox(
+//           height: 40,
+//           child: DecoratedBox(
+//               decoration: BoxDecoration(
+//             color: color,
+//             borderRadius: BorderRadius.circular(20),
+//           )),
+//         ),
+//         Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 12)),
+//       ],
+//     );
+//   }
+// }
 
 class SearchAppBar extends HookWidget {
   const SearchAppBar({super.key});
@@ -176,22 +186,30 @@ class SearchAppBar extends HookWidget {
                     ));
               },
               itemBuilder: (context, mortgage) {
-                final m = ref.watch(itemListProvider);
-                return ListTile(
-                  title: Text(mortgage.depositorName),
-                  leading:
-                      Text(m.firstWhere((mo) => mo.id == mortgage.itemId).name),
-                );
+                final m = ref.watch(mortgageListProvider);
+                return m.when(
+                    data: (data) => ListTile(
+                          title: Text(mortgage.depositorName),
+                          leading: Text(data
+                              .firstWhere((mo) => mo.id == mortgage.itemId)
+                              .depositorName),
+                        ),
+                    error: (_, o) => Center(child: Text("An error occurred")),
+                    loading: () => Center(child: CircularProgressIndicator()));
               },
               onSelected: (mortgage) {
-                final item = ref
-                    .read(itemListProvider)
-                    .firstWhere((item) => item.id == mortgage.itemId);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            MortgageDetails(mortgage: mortgage, item: item)));
+                ref.read(itemListProvider).when(
+                    data: (data) {
+                      final item =
+                          data.firstWhere((item) => item.id == mortgage.itemId);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => MortgageDetails(
+                                  mortgage: mortgage, item: item)));
+                    },
+                    error: (_, e) {},
+                    loading: () {});
               },
             );
           })),
@@ -471,18 +489,23 @@ class SearchAppBar extends HookWidget {
             height: MediaQuery.of(context).size.height * .75,
             child: Consumer(builder: (context, ref, child) {
               final items = ref.watch(itemListProvider);
-              if (items.isEmpty) return SizedBox();
-              return ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(items[index].name),
-                    onTap: () {
-                      Navigator.of(context).pop(index);
-                    },
-                  );
-                },
-              );
+              return items.when(
+                  data: (data) {
+                    if (data.isEmpty) return SizedBox();
+                    return ListView.builder(
+                      itemCount: data.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(data[index].name),
+                          onTap: () {
+                            Navigator.of(context).pop(index);
+                          },
+                        );
+                      },
+                    );
+                  },
+                  error: (_, __) => Center(child: Text("An error occurred")),
+                  loading: () => Center(child: CircularProgressIndicator()));
             }),
           ),
         );
@@ -501,17 +524,21 @@ class SearchAppBar extends HookWidget {
             child: Consumer(builder: (context, ref, child) {
               final mortgageMaterialTypes =
                   ref.watch(mortgageMaterialListProvider);
-              return ListView.builder(
-                itemCount: mortgageMaterialTypes.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(mortgageMaterialTypes[index].name),
-                    onTap: () {
-                      Navigator.of(context).pop(index);
-                    },
-                  );
-                },
-              );
+
+              return mortgageMaterialTypes.when(
+                  data: (data) => ListView.builder(
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(data[index].name),
+                            onTap: () {
+                              Navigator.of(context).pop(index);
+                            },
+                          );
+                        },
+                      ),
+                  error: (_, __) => Center(child: Text("An error occurred")),
+                  loading: () => Center(child: CircularProgressIndicator()));
             }),
           ),
         );
