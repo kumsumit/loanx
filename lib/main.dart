@@ -42,7 +42,6 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeManagerProvider);
-    final fontSize = ref.watch(fontSizeProvider);
     final appColor = ref.watch(appColorProvider);
     final authenticate = ref.watch(authenticateProvider);
     return MaterialApp(
@@ -53,13 +52,11 @@ class MyApp extends ConsumerWidget {
         theme: ThemeData(
           colorSchemeSeed:
               Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
-          textTheme: TextTheme(bodyMedium: TextStyle(fontSize: fontSize)),
         ),
         darkTheme: ThemeData(
           colorSchemeSeed:
               Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
           brightness: Brightness.dark,
-          textTheme: TextTheme(bodyMedium: TextStyle(fontSize: fontSize)),
         ),
         debugShowCheckedModeBanner: false,
         home: authenticate.when(

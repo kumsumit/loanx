@@ -54,20 +54,6 @@ final themeModeManagerProvider =
 );
 
 typedef _$ThemeModeManager = Notifier<ThemeMode>;
-String _$fontSizeHash() => r'910a675c6a9205ce8385d077b72ef0d7f515bfc7';
-
-/// See also [FontSize].
-@ProviderFor(FontSize)
-final fontSizeProvider = NotifierProvider<FontSize, double>.internal(
-  FontSize.new,
-  name: r'fontSizeProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$fontSizeHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$FontSize = Notifier<double>;
 String _$holdingPeriodHash() => r'39e133da62b8fee70920cec543129ce4949d2dca';
 
 /// See also [HoldingPeriod].

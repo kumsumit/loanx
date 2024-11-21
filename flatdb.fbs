@@ -1,7 +1,6 @@
 table FlatDB {
   is_table_created: bool;
   theme_mode: int8;
-  font_size: float;
   app_color: string;
   holding_period:int8;
   interest_type:int8;

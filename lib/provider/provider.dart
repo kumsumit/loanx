@@ -63,18 +63,6 @@ class ThemeModeManager extends _$ThemeModeManager {
   }
 }
 
-@Riverpod(keepAlive: true)
-class FontSize extends _$FontSize {
-  @override
-  double build() {
-    return FastDB.getFontSize();
-  }
-
-  void set(double value) {
-    state = value;
-    FastDB.putFontSize(state);
-  }
-}
 
 @riverpod
 class HoldingPeriod extends _$HoldingPeriod {

@@ -73,7 +73,6 @@ class FastDB {
         flatDbBuilder = db.FlatDbObjectBuilder(
           isTableCreated: flatDb.isTableCreated,
           themeMode: flatDb.themeMode,
-          fontSize: flatDb.fontSize,
           appColor: flatDb.appColor,
           holdingPeriod: flatDb.holdingPeriod,
           interestType: flatDb.interestType,
@@ -94,13 +93,6 @@ class FastDB {
       flatDbBuilder = db.FlatDbObjectBuilder();
       debugPrint(e.toString());
     }
-  }
-
-  static double getFontSize() {
-    if (flatDbBuilder.fontSize == null || flatDbBuilder.fontSize == 0) {
-      return 16.0;
-    }
-    return flatDbBuilder.fontSize!;
   }
 
   static String getAppColor() {
@@ -170,10 +162,6 @@ class FastDB {
 
   static void putAppColor(String appColor) {
     flatDbBuilder.appColor = appColor;
-  }
-
-  static void putFontSize(double fontSize) {
-    flatDbBuilder.fontSize = fontSize;
   }
 
   static void putHoldingPeriod(int holdingPeriod) {
