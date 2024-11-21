@@ -97,7 +97,10 @@ class FastDB {
   }
 
   static double getFontSize() {
-    return flatDbBuilder.fontSize ?? 16.0;
+    if (flatDbBuilder.fontSize == null || flatDbBuilder.fontSize == 0) {
+      return 16.0;
+    }
+    return flatDbBuilder.fontSize!;
   }
 
   static String getAppColor() {

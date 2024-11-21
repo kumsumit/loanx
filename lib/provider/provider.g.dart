@@ -54,7 +54,7 @@ final themeModeManagerProvider =
 );
 
 typedef _$ThemeModeManager = Notifier<ThemeMode>;
-String _$fontSizeHash() => r'92bd7960481f42fde45c26223d0bdd55c85acbcd';
+String _$fontSizeHash() => r'910a675c6a9205ce8385d077b72ef0d7f515bfc7';
 
 /// See also [FontSize].
 @ProviderFor(FontSize)
@@ -68,7 +68,7 @@ final fontSizeProvider = NotifierProvider<FontSize, double>.internal(
 );
 
 typedef _$FontSize = Notifier<double>;
-String _$holdingPeriodHash() => r'71ab8cfb7a902b2f58bd063c558eeb4152d8a24d';
+String _$holdingPeriodHash() => r'39e133da62b8fee70920cec543129ce4949d2dca';
 
 /// See also [HoldingPeriod].
 @ProviderFor(HoldingPeriod)
@@ -118,6 +118,41 @@ final scheduledBackUpTimeMinuteProvider =
 );
 
 typedef _$ScheduledBackUpTimeMinute = AutoDisposeNotifier<int>;
+String _$interestTypeStatusHash() =>
+    r'a7259b867f13985012eee64a5356936fdcb719da';
+
+/// See also [InterestTypeStatus].
+@ProviderFor(InterestTypeStatus)
+final interestTypeStatusProvider =
+    AutoDisposeNotifierProvider<InterestTypeStatus, InterestType>.internal(
+  InterestTypeStatus.new,
+  name: r'interestTypeStatusProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$interestTypeStatusHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$InterestTypeStatus = AutoDisposeNotifier<InterestType>;
+String _$compoundingFrequencyStatusHash() =>
+    r'061e70a3ad757e7c71bd743386b702b7b84dab5a';
+
+/// See also [CompoundingFrequencyStatus].
+@ProviderFor(CompoundingFrequencyStatus)
+final compoundingFrequencyStatusProvider = AutoDisposeNotifierProvider<
+    CompoundingFrequencyStatus, CompoundingFrequency>.internal(
+  CompoundingFrequencyStatus.new,
+  name: r'compoundingFrequencyStatusProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$compoundingFrequencyStatusHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$CompoundingFrequencyStatus
+    = AutoDisposeNotifier<CompoundingFrequency>;
 String _$backupStatusHash() => r'990dc476961e6789301b13e5a9737f80627a70e5';
 
 /// See also [BackupStatus].
@@ -150,22 +185,6 @@ final backupDownloadStatusProvider =
 );
 
 typedef _$BackupDownloadStatus = AutoDisposeNotifier<bool>;
-String _$sliderFontSizeHash() => r'f3d7bfb4f59e6896716d4bef20f61418ee6df8a8';
-
-/// See also [SliderFontSize].
-@ProviderFor(SliderFontSize)
-final sliderFontSizeProvider =
-    AutoDisposeNotifierProvider<SliderFontSize, double>.internal(
-  SliderFontSize.new,
-  name: r'sliderFontSizeProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$sliderFontSizeHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$SliderFontSize = AutoDisposeNotifier<double>;
 String _$mortgageSelectionListHash() =>
     r'f8d90ee7c04d2ee7081ada419ac872d8727d87e9';
 

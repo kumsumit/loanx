@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// import 'package:mortgage/db/fastdb.dart';
 
 class BulletPoint extends StatelessWidget {
   const BulletPoint(this.text, {super.key, this.italic = false});
@@ -14,14 +15,16 @@ class BulletPoint extends StatelessWidget {
         children: [
           Text(
             '•',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle( fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary
+            ),
           ),
           SizedBox(width: 8), // Space between bullet and text
           Expanded(
             child: Text(
               text,
               style: TextStyle(
-                  fontSize: 18,
+                
                   fontStyle: italic ? FontStyle.italic : FontStyle.normal),
             ),
           ),

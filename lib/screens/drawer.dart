@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mortgage/model/loan.dart';
 import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/widget/bullet.dart';
-import 'package:mortgage/widget/snackbar.dart';
+import 'package:mortgage/widget/styled_dropdown.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MyDrawer extends StatelessWidget {
@@ -64,18 +65,25 @@ class MyDrawer extends StatelessWidget {
                     title: Text(
                       'About',
                     ),
-                    content: Column(mainAxisSize: MainAxisSize.min, children: [
-                      BulletPoint(
-                        'A revolutionary app to keep records of loans provided by the unorganized sector in India without any paperwork.\n',
-                      ),
-                      BulletPoint(
-                        'Mortgage is a simple and easy to use app that allows you to track your mortgage loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their mortgage records. With Mortgage, you can easily create, update, and delete mortgage loans, as well as view your loan history. The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. Mortgage is available on both Android and iOS platforms, making it accessible to a wide range of users. Whether you\'re a seasoned mortgage professional or just starting out, Mortgage is the perfect app to help you manage your mortgage loans efficiently and efficiently.',
-                      ),
-                      BulletPoint(
-                        'Traditionally practiced, now technologically advanced',
-                        italic: true,
-                      )
-                    ]),
+                    content: SingleChildScrollView(
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                         BulletPoint(
+                          'Traditionally practiced, now technologically advanced',
+                          italic: true,
+                        ),
+                        BulletPoint(
+                          'A revolutionary app to keep records of loans provided by the unorganized sector in India without any paperwork.\n',
+                        ),
+                        BulletPoint(
+                          'Mortgage is a simple and easy to use app that allows you to track your mortgage loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their mortgage records. With Mortgage, you can easily create, update, and delete mortgage loans, as well as view your loan history.',
+                        ),
+                        BulletPoint('The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. Mortgage is available on both Android and iOS platforms, making it accessible to a wide range of users.'),
+                        BulletPoint(
+                          'Whether you\'re a seasoned mortgage professional or just starting out, Mortgage is the perfect app to help you manage your mortgage loans efficiently and efficiently.',
+                        ),
+                       
+                      ]),
+                    ),
                     contentTextStyle: TextStyle(
                         color: Theme.of(context).colorScheme.inverseSurface),
                     actions: [
@@ -166,49 +174,48 @@ class MyDrawer extends StatelessWidget {
                     title: Text('Change Font Size'),
                     content: SizedBox(
                       height: 200,
-                      child: Column(
-                        children: [
-                          Consumer(builder: (context, ref, child) {
-                            final sliderFontSize =
-                                ref.watch(sliderFontSizeProvider);
-                            return Slider(
-                              value: sliderFontSize,
-                              min: 10.0,
-                              max: 30.0,
-                              divisions: 20,
-                              label: sliderFontSize.round().toString(),
-                              onChanged: (value) {
-                                ref
-                                    .read(sliderFontSizeProvider.notifier)
-                                    .set(value);
-                              },
-                            );
-                          }),
-                          Consumer(builder: (context, ref, child) {
-                            return Text(
-                              "Mortgage",
-                              style: TextStyle(
-                                  fontSize: ref.watch(sliderFontSizeProvider)),
-                            );
-                          })
-                        ],
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            Consumer(builder: (context, ref, child) {
+                              final fontSize =
+                                  ref.watch(fontSizeProvider);
+                              return Slider(
+                                value: fontSize,
+                                min: 10.0,
+                                max: 30.0,
+                                divisions: 20,
+                                label: fontSize.round().toString(),
+                                onChanged: (value) {
+                                  if ( value>10 && value <30) return;
+                                  ref
+                                      .read(fontSizeProvider.notifier)
+                                      .set(value);
+                                },
+                              );
+                            }),
+                            Consumer(builder: (context, ref, child) {
+                              return Text(
+                                "Mortgage",
+                                style: TextStyle(
+                                    fontSize: ref.watch(fontSizeProvider)),
+                              );
+                            })
+                          ],
+                        ),
                       ),
                     ),
                     actions: [
                       Consumer(builder: (context, ref, child) {
-                        return TextButton(
+                        return OutlinedButton(
                           onPressed: () async {
-                            await ref.read(fontSizeProvider.notifier).set();
+                           await FastDB.flush();
                             if (context.mounted) {
                               Navigator.of(context).pop();
                             }
                           },
                           child: Text('OK',
-                              style: TextStyle(
-                                  fontSize: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .fontSize)),
+                              style: TextStyle(color: Theme.of(context).colorScheme.primary)),
                         );
                       }),
                     ],
@@ -269,7 +276,7 @@ class MyDrawer extends StatelessWidget {
                       Consumer(builder: (context, ref, child) {
                         return TextButton(
                           onPressed: () async {
-                            await ref.read(fontSizeProvider.notifier).set();
+                          await FastDB.flush();
                             if (context.mounted) {
                               Navigator.of(context).pop();
                             }
@@ -288,35 +295,130 @@ class MyDrawer extends StatelessWidget {
               );
             },
           ),
-          Consumer(builder: (context, ref, child) {
-            final hour = ref.watch(scheduledBackUpTimeHourProvider);
-            final minute = ref.watch(scheduledBackUpTimeMinuteProvider);
-            return ListTile(
-                leading: Icon(Icons.settings_backup_restore),
-                title: Text('Set Backup Time'),
-                onTap: () async {
-                  final TimeOfDay? picked = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay(hour: hour, minute: minute),
-                  );
-                  if (picked != null) {
-                    FastDB.putScheduledBackUpTimeHour(picked.hour);
-                    FastDB.putScheduledBackUpTimeMinute(picked.minute);
-                    await FastDB.flush();
-                    ref
-                        .read(scheduledBackUpTimeHourProvider.notifier)
-                        .set(picked.hour);
-                    ref
-                        .read(scheduledBackUpTimeMinuteProvider.notifier)
-                        .set(picked.minute);
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      showSnackBar(context,
-                          'Backup Time Updated to Time ${picked.format(context)}');
-                    }
-                  }
-                });
-          }),
+          ListTile(
+            leading: Icon(Icons.settings_backup_restore),
+            title: Text('Set Interest Type'),
+            onTap: () async {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainer,
+                      title: Text('Select Interest Type'),
+                      content: SizedBox(
+                        height: 200,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Expanded(
+                              child: Consumer(builder: (context, ref, child) {
+                                final interestType =
+                                    ref.watch(interestTypeStatusProvider);
+                                return ListView.builder(
+                                  itemCount: InterestType.values.length,
+                                  itemBuilder: (context, index) {
+                                    return RadioListTile(
+                                      value: InterestType.values[index],
+                                      groupValue: interestType,
+                                      title:
+                                          Text(InterestType.values[index].name),
+                                      onChanged: (value) {
+                                        if (value != null) {
+                                          ref
+                                              .read(interestTypeStatusProvider
+                                                  .notifier)
+                                              .set(value);
+                                        }
+                                      },
+                                    );
+                                  },
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: 20),
+                            Consumer(builder: (context, ref, child) {
+                              final compoundingFrequency =
+                                  ref.watch(compoundingFrequencyStatusProvider);
+                              return ref.watch(interestTypeStatusProvider) ==
+                                      InterestType.compound
+                                  ? StyledDropdown(
+                                      selectedValue: compoundingFrequency,
+                                      onChanged: (value) {
+                                        if (value != null) {
+                                          ref
+                                              .read(
+                                                  compoundingFrequencyStatusProvider
+                                                      .notifier)
+                                              .set(value);
+                                        }
+                                      },
+                                      items: [
+                                        DropdownMenuItem(
+                                          value: CompoundingFrequency.yearly,
+                                          child: Text('Yearly',
+                                              style: TextStyle(
+                                                  fontSize: 15.0,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .secondary)),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: CompoundingFrequency.halfYearly,
+                                          child: Text('Half-Yearly',
+                                              style: TextStyle(
+                                                  fontSize: 15.0,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .secondary)),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: CompoundingFrequency.quarterly,
+                                          child: Text('Quarterly',
+                                              style: TextStyle(
+                                                  fontSize: 15.0,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .secondary)),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: CompoundingFrequency.monthly,
+                                          child: Text('Monthly',
+                                              style: TextStyle(
+                                                  fontSize: 15.0,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .secondary)),
+                                        ),
+                                      ],
+                                      hintText: "Compounding Frequency",
+                                      labelText: "Compounding Frequency",
+                                      onTap: () {})
+                                  : SizedBox();
+                            }),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        Consumer(builder: (context, ref, child) {
+                          return OutlinedButton(
+                            onPressed: () async {
+                              await FastDB.flush();
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                              }
+                            },
+                            child: Text('OK',
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme.primary)),
+                          );
+                        }),
+                      ],
+                    );
+                  });
+            },
+          ),
           Consumer(builder: (context, ref, child) {
             return ref.watch(backupDownloadStatusProvider)
                 ? SizedBox()

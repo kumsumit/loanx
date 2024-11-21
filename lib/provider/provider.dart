@@ -9,6 +9,7 @@ import 'package:mortgage/algo/damerau_lavenstien.dart';
 import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
+import 'package:mortgage/model/loan.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/model/mortgage_material.dart';
 import 'package:mortgage/service/database_helper.dart';
@@ -69,10 +70,9 @@ class FontSize extends _$FontSize {
     return FastDB.getFontSize();
   }
 
-  Future<void> set() async {
-    state = ref.read(sliderFontSizeProvider);
+  void set(double value) {
+    state = value;
     FastDB.putFontSize(state);
-    await FastDB.flush();
   }
 }
 
@@ -83,10 +83,9 @@ class HoldingPeriod extends _$HoldingPeriod {
     return FastDB.getHoldingPeriod();
   }
 
-  Future<void> set(int val) async {
+  void set(int val){
     state = val;
     FastDB.putHoldingPeriod(state);
-    await FastDB.flush();
   }
 }
 
@@ -117,6 +116,31 @@ class ScheduledBackUpTimeMinute extends _$ScheduledBackUpTimeMinute {
 }
 
 @riverpod
+class InterestTypeStatus extends _$InterestTypeStatus {
+  @override
+  InterestType build() {
+    return  InterestType.values[FastDB.getInterestType()];
+  }
+  void set(InterestType interestType){
+    state = interestType;
+    FastDB.putInterestType(interestType.index);
+  }
+}
+
+@riverpod
+class CompoundingFrequencyStatus extends _$CompoundingFrequencyStatus {
+  @override
+  CompoundingFrequency build() {
+    return  CompoundingFrequency.values[FastDB.getCompoundingFrequency()];
+  }
+  void set(CompoundingFrequency compundingFrequency){
+    state = compundingFrequency;
+    FastDB.putCompoundingFrequency(compundingFrequency.index);
+  }
+}
+
+
+@riverpod
 class BackupStatus extends _$BackupStatus {
   @override
   bool build() {
@@ -137,16 +161,6 @@ class BackupDownloadStatus extends _$BackupDownloadStatus {
 
   void set(bool backupStatus) {
     state = backupStatus;
-  }
-}
-
-@riverpod
-class SliderFontSize extends _$SliderFontSize {
-  @override
-  double build() => FastDB.getFontSize();
-
-  void set(double newValue) {
-    state = newValue;
   }
 }
 
