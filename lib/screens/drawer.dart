@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mortgage/extension/string.dart';
 import 'package:mortgage/model/loan.dart';
 import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/db/fastdb.dart';
@@ -256,7 +257,7 @@ class MyDrawer extends StatelessWidget {
                                       value: InterestType.values[index],
                                       groupValue: interestType,
                                       title:
-                                          Text(InterestType.values[index].name),
+                                          Text(InterestType.values[index].name.toSentenceCase()),
                                       onChanged: (value) {
                                         if (value != null) {
                                           ref
@@ -407,7 +408,7 @@ class MyDrawer extends StatelessWidget {
             leading: Icon(Icons.policy),
             title: Text('Privacy Policy'),
             onTap: () {
-              _launchURL('https://mortgage.kumpali.com/privacy');
+              _launchURL('https://mortgage.kumpali.com/privacy.html');
             },
           ),
         ],
