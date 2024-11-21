@@ -7,6 +7,7 @@ import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/widget/bullet.dart';
+import 'package:mortgage/widget/snackbar.dart';
 import 'package:mortgage/widget/styled_dropdown.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -231,7 +232,7 @@ class MyDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.settings_backup_restore),
+            leading: Icon(Icons.input),
             title: Text('Set Interest Type'),
             onTap: () async {
               showDialog(
@@ -354,6 +355,35 @@ class MyDrawer extends StatelessWidget {
                   });
             },
           ),
+            Consumer(builder: (context, ref, child) {
+            final hour = ref.watch(scheduledBackUpTimeHourProvider);
+            final minute = ref.watch(scheduledBackUpTimeMinuteProvider);
+            return ListTile(
+                leading: Icon(Icons.settings_backup_restore),
+                title: Text('Set Backup Time'),
+                onTap: () async {
+                  final TimeOfDay? picked = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay(hour: hour, minute: minute),
+                  );
+                  if (picked != null) {
+                    FastDB.putScheduledBackUpTimeHour(picked.hour);
+                    FastDB.putScheduledBackUpTimeMinute(picked.minute);
+                    await FastDB.flush();
+                    ref
+                        .read(scheduledBackUpTimeHourProvider.notifier)
+                        .set(picked.hour);
+                    ref
+                        .read(scheduledBackUpTimeMinuteProvider.notifier)
+                        .set(picked.minute);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      showSnackBar(context,
+                          'Backup Time Updated to Time ${picked.format(context)}');
+                    }
+                  }
+                });
+          }),
           Consumer(builder: (context, ref, child) {
             return ref.watch(backupDownloadStatusProvider)
                 ? SizedBox()
