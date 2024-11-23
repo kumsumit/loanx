@@ -37,14 +37,25 @@ class SearchAppBar extends HookWidget {
                     ));
               },
               itemBuilder: (context, mortgage) {
-                final m = ref.watch(mortgageListProvider);
+                  // return ListTile(
+                  //         title: Text(mortgage.depositorName),
+                  //         leading: Text(data
+                  //             .firstWhere((mo) => mo.id == mortgage.itemId)
+                  //             .depositorName),
+                  //       );
+                final m = ref.watch(itemListProvider);
                 return m.when(
-                    data: (data) => ListTile(
+                    data: (data) {
+                      if(data.isEmpty ){
+                        return Center(child: Text("No data found"));
+                      }
+                      return ListTile(
                           title: Text(mortgage.depositorName),
                           leading: Text(data
                               .firstWhere((mo) => mo.id == mortgage.itemId)
-                              .depositorName),
-                        ),
+                              .name),
+                        );
+                    },
                     error: (_, o) => Center(child: Text("An error occurred")),
                     loading: () => Center(child: CircularProgressIndicator()));
               },
@@ -130,18 +141,6 @@ class SearchAppBar extends HookWidget {
           //     onPressed: () {
           //       _showDialog(context);
           //     })
-          // IconButton(
-          //     onPressed: () async => await uploadToGoogleDrive(context),
-          //     icon: Icon(Icons.upload)),
-          // IconButton(
-          //     onPressed: listBackupFiles,
-          //     icon: Icon(Icons.view_comfortable_outlined)),
-          // IconButton(
-          //   onPressed: () {
-          //     showOverlay(context);
-          //   },
-          //   icon: Icon(Icons.favorite),
-          // ),
         ],
       )),
     );
@@ -235,7 +234,7 @@ class SearchAppBar extends HookWidget {
   }
 
   suggestionsCallback(String searchTerm, int filter, WidgetRef ref) {
-  
+  debugPrint(searchTerm);
     switch (filter) {
       case 1:
         return ref
@@ -245,7 +244,7 @@ class SearchAppBar extends HookWidget {
         return ref
             .read(mortgageListProvider.notifier)
             .searchMortgagesByRelativeName(searchTerm);
-    }
+    }return [];
   }
 
   // void _showDialog(BuildContext context) {

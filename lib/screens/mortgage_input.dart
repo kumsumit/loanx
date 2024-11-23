@@ -222,7 +222,7 @@ class MortgageInput extends HookConsumerWidget {
               StyledTextField(
                 failedValidationMessage: "Weight can't be empty",
                 textEditingController: weightController,
-                hintText: "Weight",
+                hintText: "Weight (in Grams)",
                 labelText: "Weight",
                 keyboardType: TextInputType.number,
                 onTap: () {
@@ -250,8 +250,8 @@ class MortgageInput extends HookConsumerWidget {
               StyledTextField(
                 failedValidationMessage: "Address can't be empty",
                 textEditingController: addressController,
-                hintText: "Address",
-                labelText: "Address",
+                hintText: "Depositor Address",
+                labelText: "Depositor Address",
                 onTap: () {
                   scrollController.animateTo(
                     scrollController.position.maxScrollExtent,
@@ -272,6 +272,40 @@ class MortgageInput extends HookConsumerWidget {
                     curve: Curves.easeInOut,
                   );
                 },
+              ),   familyRelations.when(
+                data: (data) {
+                  return StyledDropdown<FamilyRelation>(
+                    selectedValue: currentFamilyRelation.value,
+                    items: buildMenuRelationTypes(data, context),
+                    onChanged: (value) {
+                      if (value != null) {
+                        currentFamilyRelation.value = value;
+                      }
+                    },
+                    onTap: () {
+                      scrollController.animateTo(
+                        scrollController.position.maxScrollExtent,
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    hintText: "Family Relation",
+                    labelText: "Family Relation",
+                    onAddPressed: () {
+                      isDialogOpen.value = true;
+                      showAddDialog(
+                          context,
+                          ref,
+                          'Add Family Relation',
+                          'Enter the family relation',
+                          ref.read(familyRelationListProvider.notifier).add);
+                    },
+                  );
+                },
+                error: (_, __) {
+                  return const SizedBox();
+                },
+                loading: () => const SizedBox(),
               ),
               StyledTextField(
                 failedValidationMessage: "Loan Amount can't be empty",
@@ -290,7 +324,7 @@ class MortgageInput extends HookConsumerWidget {
               StyledTextField(
                 failedValidationMessage: "Interest Rate can't be empty",
                 textEditingController: interestRateController,
-                hintText: "Interest Rate",
+                hintText: "Interest Rate (in %)",
                 labelText: "Interest Rate",
                 keyboardType: TextInputType.number,
                 onTap: () {
@@ -378,42 +412,6 @@ class MortgageInput extends HookConsumerWidget {
                         value ?? CompoundingFrequency.yearly;
                   },
                 ),
-              familyRelations.when(
-                data: (data) {
-                  return StyledDropdown<FamilyRelation>(
-                    selectedValue: currentFamilyRelation.value,
-                    items: buildMenuRelationTypes(data, context),
-                    onChanged: (value) {
-                      if (value != null) {
-                        currentFamilyRelation.value = value;
-                      }
-                    },
-                    onTap: () {
-                      scrollController.animateTo(
-                        scrollController.position.maxScrollExtent,
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    hintText: "Family Relation",
-                    labelText: "Family Relation",
-                    onAddPressed: () {
-                      isDialogOpen.value = true;
-                      showAddDialog(
-                          context,
-                          ref,
-                          'Add Family Relation',
-                          'Enter the family relation',
-                          ref.read(familyRelationListProvider.notifier).add);
-                    },
-                  );
-                },
-                error: (_, __) {
-                  return const SizedBox();
-                },
-                loading: () => const SizedBox(),
-              ),
-
               StyledTextField(
                 textEditingController: additionalDetailsController,
                 hintText: "Additional Details",

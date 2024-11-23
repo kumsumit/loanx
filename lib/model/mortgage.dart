@@ -105,7 +105,7 @@ class Mortgage {
       Mortgage(
           id: id ?? this.id,
           depositorName: depositorName ?? this.depositorName,
-          relativeName: relativeName ?? this.depositorName,
+          relativeName: relativeName ?? this.relativeName,
           address: address ?? this.address,
           loanAmount: loanAmount ?? this.loanAmount,
           interestRate: interestRate ?? this.interestRate,

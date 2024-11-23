@@ -33,19 +33,22 @@ class MortgageDetails extends ConsumerWidget {
                     compoundingFrequency: CompoundingFrequency.monthly);
                 final double interest = loan.calculateInterest();
                 return Scaffold(
-                  appBar: AppBar(title: Text('Mortgage Details')),
-                  body: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
+                  appBar: AppBar(
+                    title: Text('Mortgage Details'),
+                    centerTitle: true,
+                  ),
+                  body: Padding(
+                    padding: const EdgeInsets.all(8.0),
                     child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: DataTable(
-                        columns: [
-                          DataColumn(label: SizedBox()),
-                          DataColumn(label: SizedBox()),
-                        ],
-                        rows: [
-                          buildDataRow(context, 'Depositor Name',
-                              mortgage.depositorName),
+                      child: Table(
+                        border: TableBorder.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        children: [
+                          buildDataRow(
+                              context, 'Depositor Name', mortgage.depositorName),
                           buildDataRow(
                               context, 'Relative Name', mortgage.relativeName),
                           buildDataRow(context, 'Address', mortgage.address),
@@ -98,15 +101,23 @@ class MortgageDetails extends ConsumerWidget {
             ));
   }
 
-  DataRow buildDataRow(BuildContext context, String title, String value) {
-    return DataRow(
-      cells: [
-        DataCell(Text(title,
-            style: TextStyle(
-                fontSize: 15, color: Theme.of(context).colorScheme.primary))),
-        DataCell(Text(value,
-            style: TextStyle(
-                fontSize: 15, color: Theme.of(context).colorScheme.secondary))),
+  TableRow buildDataRow(BuildContext context, String title, String value) {
+    return TableRow(
+      // cells:
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(title,
+              style: TextStyle(
+                  fontSize: 15, color: Theme.of(context).colorScheme.primary)),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(value,
+              style: TextStyle(
+                  fontSize: 15,
+                  color: Theme.of(context).colorScheme.secondary)),
+        ),
       ],
     );
   }
