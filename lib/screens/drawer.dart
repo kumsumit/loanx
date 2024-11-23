@@ -40,7 +40,7 @@ class MyDrawer extends StatelessWidget {
                     ),
                     ProfilePicture(imageUrl: FastDB.getPhotourl(), displayName: FastDB.getDisplayName()),
                   ],
-                ),
+                ),Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -48,10 +48,14 @@ class MyDrawer extends StatelessWidget {
                       child: Column(mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          AutoSizeText(FastDB.getDisplayName(), style: TextStyle(fontSize: 15),
+                          AutoSizeText(FastDB.getDisplayName(), style: TextStyle(fontSize: 13,
+                           color: Theme.of(context).colorScheme.onSecondary,
+                          ),
                           minFontSize: 10,
                           ),
-                          AutoSizeText(FastDB.getEmail(), style: TextStyle(fontSize: 15),
+                          AutoSizeText(FastDB.getEmail(), style: TextStyle(fontSize: 13,
+                           color: Theme.of(context).colorScheme.onSecondary,
+                          ),
                           maxLines: 3, // Set the maximum number of lines
                            overflow: TextOverflow.visible,
                             minFontSize: 10,
