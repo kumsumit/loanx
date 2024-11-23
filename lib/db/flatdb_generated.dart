@@ -16,24 +16,42 @@ class FlatDb {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  bool get isTableCreated => const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
+  bool get isTableCreated =>
+      const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
   int get themeMode => const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, 0);
-  String? get appColor => const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 8);
-  int get holdingPeriod => const fb.Int8Reader().vTableGet(_bc, _bcOffset, 10, 0);
-  int get interestType => const fb.Int8Reader().vTableGet(_bc, _bcOffset, 12, 0);
-  int get compoundingFrequency => const fb.Int8Reader().vTableGet(_bc, _bcOffset, 14, 0);
-  int get scheduledBackUpTimeHour => const fb.Int8Reader().vTableGet(_bc, _bcOffset, 16, 0);
-  int get scheduledBackUpTimeMinute => const fb.Int8Reader().vTableGet(_bc, _bcOffset, 18, 0);
-  String? get driveAccessToken => const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 20);
-  int get driveAccessTokenExpires => const fb.Int64Reader().vTableGet(_bc, _bcOffset, 22, 0);
-  String? get driveFileId => const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 24);
+  String? get appColor =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 8);
+  int get holdingPeriod =>
+      const fb.Int8Reader().vTableGet(_bc, _bcOffset, 10, 0);
+  int get interestType =>
+      const fb.Int8Reader().vTableGet(_bc, _bcOffset, 12, 0);
+  int get compoundingFrequency =>
+      const fb.Int8Reader().vTableGet(_bc, _bcOffset, 14, 0);
+  int get scheduledBackUpTimeHour =>
+      const fb.Int8Reader().vTableGet(_bc, _bcOffset, 16, 0);
+  int get scheduledBackUpTimeMinute =>
+      const fb.Int8Reader().vTableGet(_bc, _bcOffset, 18, 0);
+  String? get driveAccessToken =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 20);
+  int get driveAccessTokenExpires =>
+      const fb.Int64Reader().vTableGet(_bc, _bcOffset, 22, 0);
+  String? get driveFileId =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 24);
   int get driveUser => const fb.Int8Reader().vTableGet(_bc, _bcOffset, 26, 0);
-  bool get isBackUpRegistered => const fb.BoolReader().vTableGet(_bc, _bcOffset, 28, false);
-  int get dbUpdateTime => const fb.Int64Reader().vTableGet(_bc, _bcOffset, 30, 0);
+  bool get isBackUpRegistered =>
+      const fb.BoolReader().vTableGet(_bc, _bcOffset, 28, false);
+  int get dbUpdateTime =>
+      const fb.Int64Reader().vTableGet(_bc, _bcOffset, 30, 0);
+  String? get displayName =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 32);
+  String? get email =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 34);
+  String? get photourl =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 36);
 
-  @override
+   @override
   String toString() {
-    return 'FlatDb{isTableCreated: $isTableCreated, themeMode: $themeMode, appColor: $appColor, holdingPeriod: $holdingPeriod, interestType: $interestType, compoundingFrequency: $compoundingFrequency, scheduledBackUpTimeHour: $scheduledBackUpTimeHour, scheduledBackUpTimeMinute: $scheduledBackUpTimeMinute, driveAccessToken: $driveAccessToken, driveAccessTokenExpires: $driveAccessTokenExpires, driveFileId: $driveFileId, driveUser: $driveUser, isBackUpRegistered: $isBackUpRegistered, dbUpdateTime: $dbUpdateTime}';
+    return 'FlatDb{isTableCreated: $isTableCreated, themeMode: $themeMode, appColor: $appColor, holdingPeriod: $holdingPeriod, interestType: $interestType, compoundingFrequency: $compoundingFrequency, scheduledBackUpTimeHour: $scheduledBackUpTimeHour, scheduledBackUpTimeMinute: $scheduledBackUpTimeMinute, driveAccessToken: $driveAccessToken, driveAccessTokenExpires: $driveAccessTokenExpires, driveFileId: $driveFileId, driveUser: $driveUser, isBackUpRegistered: $isBackUpRegistered, dbUpdateTime: $dbUpdateTime, displayName: $displayName, email: $email, photourl: $photourl}';
   }
 }
 
@@ -59,6 +77,9 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
   int? driveUser;
   bool? isBackUpRegistered;
   int? dbUpdateTime;
+  String? displayName;
+  String? email;
+  String? photourl;
 
   FlatDbObjectBuilder({
     this.isTableCreated,
@@ -75,6 +96,9 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     this.driveUser,
     this.isBackUpRegistered,
     this.dbUpdateTime,
+    this.displayName,
+    this.email,
+    this.photourl,
   });
 
   /// Finish building, and store into the [fbBuilder].
@@ -87,7 +111,13 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
         : fbBuilder.writeString(driveAccessToken!);
     final int? driveFileIdOffset =
         driveFileId == null ? null : fbBuilder.writeString(driveFileId!);
-    fbBuilder.startTable(14);
+    final int? displayNameOffset = displayName == null ? null
+        : fbBuilder.writeString(displayName!);
+    final int? emailOffset = email == null ? null
+        : fbBuilder.writeString(email!);
+    final int? photourlOffset = photourl == null ? null
+        : fbBuilder.writeString(photourl!);
+    fbBuilder.startTable(17);
     fbBuilder.addBool(0, isTableCreated);
     fbBuilder.addInt8(1, themeMode);
     fbBuilder.addOffset(2, appColorOffset);
@@ -102,6 +132,9 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addInt8(11, driveUser);
     fbBuilder.addBool(12, isBackUpRegistered);
     fbBuilder.addInt64(13, dbUpdateTime);
+     fbBuilder.addOffset(14, displayNameOffset);
+    fbBuilder.addOffset(15, emailOffset);
+    fbBuilder.addOffset(16, photourlOffset);
     return fbBuilder.endTable();
   }
 

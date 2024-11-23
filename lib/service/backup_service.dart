@@ -119,10 +119,12 @@ class BackupService {
     if (FastDB.getDriveAccessToken().isEmpty) {
       account = await googleSignIn.signIn();
       if (account == null) return null;
+      await saveData(account);
     } else if (DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
         FastDB.getDriveAccessTokenExpires()))) {
       account = await googleSignIn.signInSilently();
       if (account == null) return null;
+     await saveData(account);
     }
     if (account != null) {
       final GoogleSignInAuthentication googleSignInAuthentication =
@@ -144,6 +146,13 @@ class BackupService {
       return drive.DriveApi(authenticateClient);
     }
     return null;
+  }
+
+  Future<void> saveData(GoogleSignInAccount account) async {
+    FastDB.putDisplayName(account.displayName ?? "");
+    FastDB.putPhotourl(account.photoUrl ?? "");
+    FastDB.putEmail(account.email);
+    await FastDB.flush();
   }
 }
 

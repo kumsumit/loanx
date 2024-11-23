@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:mortgage/model/loan.dart';
 import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/widget/avatar.dart';
 import 'package:mortgage/widget/bullet.dart';
 import 'package:mortgage/widget/snackbar.dart';
 import 'package:mortgage/widget/styled_dropdown.dart';
@@ -24,29 +26,51 @@ class MyDrawer extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.secondary,
             ),
-            child: Stack(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Mortgage',
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSecondary,
-                      fontSize: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Mortgage',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSecondary,
+                          fontSize: 20),
+                    ),
+                    ProfilePicture(imageUrl: FastDB.getPhotourl(), displayName: FastDB.getDisplayName()),
+                  ],
                 ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Consumer(builder: (context, ref, child) {
-                    return IconButton(
-                      onPressed: () async {
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AutoSizeText(FastDB.getDisplayName(), style: TextStyle(fontSize: 15),
+                          minFontSize: 10,
+                          ),
+                          AutoSizeText(FastDB.getEmail(), style: TextStyle(fontSize: 15),
+                          maxLines: 3, // Set the maximum number of lines
+                           overflow: TextOverflow.visible,
+                            minFontSize: 10,
+                          ),
+                        ],
+                      ),
+                    ),Consumer(builder: (context, ref, child) {
+                    return InkWell(
+                      onTap: () async {
                         await ref.read(themeModeManagerProvider.notifier).set();
                       },
-                      icon: ref.watch(themeModeManagerProvider).index == 2
+                      child: ref.watch(themeModeManagerProvider).index == 2
                           ? Icon(Icons.light_mode,
                               color: Theme.of(context).colorScheme.onSecondary)
                           : Icon(Icons.dark_mode,
                               color: Theme.of(context).colorScheme.onSecondary),
                     );
                   }),
+                  ],
                 ),
               ],
             ),
@@ -69,7 +93,7 @@ class MyDrawer extends StatelessWidget {
                     ),
                     content: SingleChildScrollView(
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
-                         BulletPoint(
+                        BulletPoint(
                           'Traditionally practiced, now technologically advanced',
                           italic: true,
                         ),
@@ -79,11 +103,11 @@ class MyDrawer extends StatelessWidget {
                         BulletPoint(
                           'Mortgage is a simple and easy to use app that allows you to track your mortgage loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their mortgage records. With Mortgage, you can easily create, update, and delete mortgage loans, as well as view your loan history.',
                         ),
-                        BulletPoint('The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. Mortgage is available on both Android and iOS platforms, making it accessible to a wide range of users.'),
+                        BulletPoint(
+                            'The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. Mortgage is available on both Android and iOS platforms, making it accessible to a wide range of users.'),
                         BulletPoint(
                           'Whether you\'re a seasoned mortgage professional or just starting out, Mortgage is the perfect app to help you manage your mortgage loans efficiently and efficiently.',
                         ),
-                       
                       ]),
                     ),
                     contentTextStyle: TextStyle(
@@ -212,7 +236,7 @@ class MyDrawer extends StatelessWidget {
                       Consumer(builder: (context, ref, child) {
                         return TextButton(
                           onPressed: () async {
-                          await FastDB.flush();
+                            await FastDB.flush();
                             if (context.mounted) {
                               Navigator.of(context).pop();
                             }
@@ -257,8 +281,9 @@ class MyDrawer extends StatelessWidget {
                                     return RadioListTile(
                                       value: InterestType.values[index],
                                       groupValue: interestType,
-                                      title:
-                                          Text(InterestType.values[index].name.toSentenceCase()),
+                                      title: Text(InterestType
+                                          .values[index].name
+                                          .toSentenceCase()),
                                       onChanged: (value) {
                                         if (value != null) {
                                           ref
@@ -300,7 +325,8 @@ class MyDrawer extends StatelessWidget {
                                                       .secondary)),
                                         ),
                                         DropdownMenuItem(
-                                          value: CompoundingFrequency.halfYearly,
+                                          value:
+                                              CompoundingFrequency.halfYearly,
                                           child: Text('Half-Yearly',
                                               style: TextStyle(
                                                   fontSize: 15.0,
@@ -346,8 +372,8 @@ class MyDrawer extends StatelessWidget {
                             },
                             child: Text('OK',
                                 style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme.primary)),
+                                    color:
+                                        Theme.of(context).colorScheme.primary)),
                           );
                         }),
                       ],
@@ -355,7 +381,7 @@ class MyDrawer extends StatelessWidget {
                   });
             },
           ),
-            Consumer(builder: (context, ref, child) {
+          Consumer(builder: (context, ref, child) {
             final hour = ref.watch(scheduledBackUpTimeHourProvider);
             final minute = ref.watch(scheduledBackUpTimeMinuteProvider);
             return ListTile(

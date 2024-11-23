@@ -13,4 +13,7 @@ table FlatDB {
   drive_user: int8;
   is_back_up_registered: bool;
   db_update_time: int64;
+  display_name: string;
+  email: string;
+  photourl: string;
 }

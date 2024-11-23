@@ -85,6 +85,9 @@ class FastDB {
           driveUser: flatDb.driveUser,
           isBackUpRegistered: flatDb.isBackUpRegistered,
           dbUpdateTime: flatDb.dbUpdateTime,
+          displayName: flatDb.displayName,
+          email: flatDb.email,
+          photourl: flatDb.photourl,
         );
       } else {
         flatDbBuilder = db.FlatDbObjectBuilder();
@@ -152,6 +155,18 @@ class FastDB {
     return flatDbBuilder.dbUpdateTime ?? 0;
   }
 
+  static String getDisplayName() {
+    return flatDbBuilder.displayName ?? "";
+  }
+
+  static String getEmail() {
+    return flatDbBuilder.email ?? "";
+  }
+
+  static String getPhotourl() {
+    return flatDbBuilder.photourl ?? "";
+  }
+
   static void putThemeMode(int themeMode) {
     flatDbBuilder.themeMode = themeMode;
   }
@@ -206,6 +221,18 @@ class FastDB {
 
   static void putDbUpdateTime(int dbUpdateTime) {
     flatDbBuilder.dbUpdateTime = dbUpdateTime;
+  }
+
+  static void putDisplayName(String displayName) {
+    flatDbBuilder.displayName = displayName;
+  }
+
+  static void putEmail(String email) {
+    flatDbBuilder.email = email;
+  }
+
+  static void putPhotourl(String photourl) {
+    flatDbBuilder.photourl = photourl;
   }
 
   static Future<void> flush() async {

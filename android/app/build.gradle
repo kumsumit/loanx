@@ -16,8 +16,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.kumpali.mortgage"
     compileSdk = 35
-    ndkVersion '28.0.12433566'
-
+    ndkVersion '28.0.12433566'                                                                                                              
+ 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
