@@ -220,6 +220,21 @@ class MortgageInput extends HookConsumerWidget {
                 loading: () => const SizedBox(),
               ),
               StyledTextField(
+                failedValidationMessage: "Weight can't be empty",
+                textEditingController: weightController,
+                hintText: "Weight",
+                labelText: "Weight",
+                keyboardType: TextInputType.number,
+                onTap: () {
+                  scrollController.animateTo(
+                    scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
+
+              StyledTextField(
                 failedValidationMessage: "Depositor Name can't be empty",
                 textEditingController: depositorController,
                 hintText: "Depositor Name",
@@ -399,16 +414,20 @@ class MortgageInput extends HookConsumerWidget {
                 loading: () => const SizedBox(),
               ),
 
-              // StyledDropdown<FamilyRelation>(
-              //         selectedValue: currentFamilyRelation.value,
-              //         items: buildMenuRelationTypes(familyRelations, context),
-              //         onChanged: (value) {
-              //           if (value != null) {
-              //             currentFamilyRelation.value = value;
-              //           }
-              //         },
+              StyledTextField(
+                textEditingController: additionalDetailsController,
+                hintText: "Additional Details",
+                labelText: "Additional Details",
+                onTap: () {
+                  scrollController.animateTo(
+                    scrollController.position.maxScrollExtent,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                maxLines: 3,
+              ),
 
-              //       ),
               Consumer(builder: (context, ref, child) {
                 return Center(
                   child: OutlinedButton(
