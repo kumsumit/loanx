@@ -12,14 +12,14 @@ class ProfilePicture extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-      radius: 30,
-      backgroundColor: Colors.blueGrey,
+      radius: 35,
+      backgroundColor: Theme.of(context).colorScheme.onPrimary,
       child: imageUrl != null
           ? ClipOval(
               child: Image.network(
                 imageUrl!,
-                width: 60,
-                height: 60,
+                width: 70,
+                height: 70,
                 fit: BoxFit.cover,
                 errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                   return _buildInitialsAvatar();
@@ -49,7 +49,7 @@ class ProfilePicture extends StatelessWidget {
    return Text(
       initials,
       style: TextStyle(
-        color: Colors.white,
+        // color: Colors.white,
         fontSize: 24,
         fontWeight: FontWeight.bold,
       ),

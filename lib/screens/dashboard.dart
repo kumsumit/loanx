@@ -38,6 +38,7 @@ class DashBoard extends HookWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(title.value),
+            currentIndex.value == 0 ? 
             Consumer(builder: (context, ref, child) {
               final mortgageSelectionList =
                   ref.watch(mortgageSelectionListProvider);
@@ -104,7 +105,7 @@ class DashBoard extends HookWidget {
                     ),
                 ],
               );
-            })
+            }): const SizedBox()
           ],
         ),
       ),
