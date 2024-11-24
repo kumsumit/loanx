@@ -121,7 +121,7 @@ class MortgageListView extends StatelessWidget {
                 error: (e, b) => Center(child: Text("An Error occurred",style: TextStyle(fontSize: 20,color : Theme.of(context).colorScheme.secondary),)),
                 loading: () => Center(child: CircularProgressIndicator()));
           },
-          error: (e, b) => Center(child: Text("An Error occurred",style: TextStyle(fontSize: 20,color : Theme.of(context).colorScheme.secondary),)),
+          error: (e, b) => Center(child: Text("Loading ...",style: TextStyle(fontSize: 20,color : Theme.of(context).colorScheme.secondary),)),
           loading: () => Center(
                 child: CircularProgressIndicator(),
               ));

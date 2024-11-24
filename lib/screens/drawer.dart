@@ -38,42 +38,57 @@ class MyDrawer extends StatelessWidget {
                           color: Theme.of(context).colorScheme.onSecondary,
                           fontSize: 20),
                     ),
-                    ProfilePicture(imageUrl: FastDB.getPhotourl(), displayName: FastDB.getDisplayName()),
+                    ProfilePicture(
+                        imageUrl: FastDB.getPhotourl(),
+                        displayName: FastDB.getDisplayName()),
                   ],
-                ),Spacer(),
+                ),
+                Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Column(mainAxisSize: MainAxisSize.min,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          AutoSizeText(FastDB.getDisplayName(), style: TextStyle(fontSize: 13,
-                           color: Theme.of(context).colorScheme.onSecondary,
+                          AutoSizeText(
+                            FastDB.getDisplayName(),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context).colorScheme.onSecondary,
+                            ),
+                            minFontSize: 10,
                           ),
-                          minFontSize: 10,
-                          ),
-                          AutoSizeText(FastDB.getEmail(), style: TextStyle(fontSize: 13,
-                           color: Theme.of(context).colorScheme.onSecondary,
-                          ),
-                          maxLines: 3, // Set the maximum number of lines
-                           overflow: TextOverflow.visible,
+                          AutoSizeText(
+                            FastDB.getEmail(),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context).colorScheme.onSecondary,
+                            ),
+                            maxLines: 3, // Set the maximum number of lines
+                            overflow: TextOverflow.visible,
                             minFontSize: 10,
                           ),
                         ],
                       ),
-                    ),Consumer(builder: (context, ref, child) {
-                    return InkWell(
-                      onTap: () async {
-                        await ref.read(themeModeManagerProvider.notifier).set();
-                      },
-                      child: ref.watch(themeModeManagerProvider).index == 2
-                          ? Icon(Icons.light_mode,
-                              color: Theme.of(context).colorScheme.onSecondary)
-                          : Icon(Icons.dark_mode,
-                              color: Theme.of(context).colorScheme.onSecondary),
-                    );
-                  }),
+                    ),
+                    Consumer(builder: (context, ref, child) {
+                      return InkWell(
+                        onTap: () async {
+                          await ref
+                              .read(themeModeManagerProvider.notifier)
+                              .set();
+                        },
+                        child: ref.watch(themeModeManagerProvider).index == 2
+                            ? Icon(Icons.light_mode,
+                                color:
+                                    Theme.of(context).colorScheme.onSecondary)
+                            : Icon(Icons.dark_mode,
+                                color:
+                                    Theme.of(context).colorScheme.onSecondary),
+                      );
+                    }),
                   ],
                 ),
               ],
@@ -388,31 +403,36 @@ class MyDrawer extends StatelessWidget {
           Consumer(builder: (context, ref, child) {
             final hour = ref.watch(scheduledBackUpTimeHourProvider);
             final minute = ref.watch(scheduledBackUpTimeMinuteProvider);
-            return ListTile(
-                leading: Icon(Icons.settings_backup_restore),
-                title: Text('Set Backup Time'),
-                onTap: () async {
-                  final TimeOfDay? picked = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay(hour: hour, minute: minute),
-                  );
-                  if (picked != null) {
-                    FastDB.putScheduledBackUpTimeHour(picked.hour);
-                    FastDB.putScheduledBackUpTimeMinute(picked.minute);
-                    await FastDB.flush();
-                    ref
-                        .read(scheduledBackUpTimeHourProvider.notifier)
-                        .set(picked.hour);
-                    ref
-                        .read(scheduledBackUpTimeMinuteProvider.notifier)
-                        .set(picked.minute);
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      showSnackBar(context,
-                          'Backup Time Updated to Time ${picked.format(context)}');
+            final isBackUpRegistered = ref.watch(backupStatusProvider);
+            if (isBackUpRegistered) {
+              return ListTile(
+                  leading: Icon(Icons.settings_backup_restore),
+                  title: Text('Set Backup Time'),
+                  onTap: () async {
+                    final TimeOfDay? picked = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay(hour: hour, minute: minute),
+                    );
+                    if (picked != null) {
+                      FastDB.putScheduledBackUpTimeHour(picked.hour);
+                      FastDB.putScheduledBackUpTimeMinute(picked.minute);
+                      await FastDB.flush();
+                      ref
+                          .read(scheduledBackUpTimeHourProvider.notifier)
+                          .set(picked.hour);
+                      ref
+                          .read(scheduledBackUpTimeMinuteProvider.notifier)
+                          .set(picked.minute);
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        showSnackBar(context,
+                            'Backup Time Updated to Time ${picked.format(context)}');
+                      }
                     }
-                  }
-                });
+                  });
+            } else {
+              return SizedBox();
+            }
           }),
           Consumer(builder: (context, ref, child) {
             return ref.watch(backupDownloadStatusProvider)

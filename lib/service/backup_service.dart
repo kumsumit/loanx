@@ -173,7 +173,7 @@ class GoogleAuthClient extends http.BaseClient {
 }
 
 Future<void> registerBackUp() async {
-   await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+   await Workmanager().initialize(callbackDispatcher, isInDebugMode:false);
   if(FastDB.getBackupTaskId().isNotEmpty){
    await Workmanager().cancelByUniqueName(FastDB.getBackupTaskId());
   }
