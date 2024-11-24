@@ -61,7 +61,7 @@ class MyApp extends ConsumerWidget {
         debugShowCheckedModeBanner: false,
         home: authenticate.when(
             data: (data) {
-              return data ? FastDB.getIsBackUpRegistered() ?const DashBoard(): const AskBackupScreen() : const AuthFailurePage();
+              return data ? FastDB.getIsTableCreated() ?const DashBoard(): const AskBackupScreen() : const AuthFailurePage();
             },
             error: (err, obj) => ErrorPage(),
             loading: () => AuthScreen()));

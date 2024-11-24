@@ -33,7 +33,7 @@ class ProfilePicture extends StatelessWidget {
   Widget _buildInitialsAvatar() {
     String initials = "";
     if (displayName.isEmpty){
-    initials = "";
+    return Icon(Icons.person,);
     }
     else if (displayName.length < 2){
       initials = displayName.toUpperCase();

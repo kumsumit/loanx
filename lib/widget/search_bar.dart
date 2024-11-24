@@ -32,29 +32,23 @@ class SearchAppBar extends HookWidget {
                     autofocus: true,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText:  'Search Mortgage',
+                      labelText: 'Search Mortgage',
                       suffixIcon: Icon(Icons.search),
                     ));
               },
               itemBuilder: (context, mortgage) {
-                  // return ListTile(
-                  //         title: Text(mortgage.depositorName),
-                  //         leading: Text(data
-                  //             .firstWhere((mo) => mo.id == mortgage.itemId)
-                  //             .depositorName),
-                  //       );
                 final m = ref.watch(itemListProvider);
                 return m.when(
                     data: (data) {
-                      if(data.isEmpty ){
+                      if (data.isEmpty) {
                         return Center(child: Text("No data found"));
                       }
                       return ListTile(
-                          title: Text(mortgage.depositorName),
-                          leading: Text(data
-                              .firstWhere((mo) => mo.id == mortgage.itemId)
-                              .name),
-                        );
+                        title: Text(mortgage.depositorName),
+                        leading: Text(data
+                            .firstWhere((mo) => mo.id == mortgage.itemId)
+                            .name),
+                      );
                     },
                     error: (_, o) => Center(child: Text("An error occurred")),
                     loading: () => Center(child: CircularProgressIndicator()));
@@ -86,7 +80,7 @@ class SearchAppBar extends HookWidget {
                     suggestionsController.suggestions = ref
                         .read(mortgageListProvider.notifier)
                         .searchMortgagesByDateCreated(date);
-                    suggestionsController.open(gainFocus: true);
+                    suggestionsController.open();
                   }
                 } else if (value == 4) {
                   final dateRange = await showDateRangeSelectorDialog(context);
@@ -94,15 +88,17 @@ class SearchAppBar extends HookWidget {
                     suggestionsController.suggestions = ref
                         .read(mortgageListProvider.notifier)
                         .searchMortgagesByDateRange(dateRange);
+                    suggestionsController.open();
                   }
                 } else if (value == 5) {
                   final itemType = await showItemTypeSelectorDialog(context);
+                  debugPrint(itemType.toString());
                   if (itemType != null) {
                     suggestionsController.suggestions = ref
                         .read(mortgageListProvider.notifier)
                         .searchMortgagesByItemId(itemType);
+                    suggestionsController.open();
                   }
-                  suggestionsController.suggestions = [];
                 } else if (value == 6) {
                   final mortgageMaterialType =
                       await showMortageMaterialTypeSelectorDialog(context);
@@ -111,6 +107,7 @@ class SearchAppBar extends HookWidget {
                         .read(mortgageListProvider.notifier)
                         .searchMortgagesByMortgageMaterialId(
                             mortgageMaterialType);
+                    suggestionsController.open();
                   }
                 }
 
@@ -234,7 +231,7 @@ class SearchAppBar extends HookWidget {
   }
 
   suggestionsCallback(String searchTerm, int filter, WidgetRef ref) {
-  debugPrint(searchTerm);
+    debugPrint(searchTerm);
     switch (filter) {
       case 1:
         return ref
@@ -244,7 +241,8 @@ class SearchAppBar extends HookWidget {
         return ref
             .read(mortgageListProvider.notifier)
             .searchMortgagesByRelativeName(searchTerm);
-    }return [];
+    }
+    return [];
   }
 
   // void _showDialog(BuildContext context) {
@@ -409,7 +407,4 @@ class SearchAppBar extends HookWidget {
   //     },
   //   );
   // }
-
-
-
 }

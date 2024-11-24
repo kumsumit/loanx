@@ -16,4 +16,5 @@ table FlatDB {
   display_name: string;
   email: string;
   photourl: string;
+  backup_task_id: string;
 }

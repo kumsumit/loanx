@@ -88,6 +88,7 @@ class FastDB {
           displayName: flatDb.displayName,
           email: flatDb.email,
           photourl: flatDb.photourl,
+          backupTaskId: flatDb.backupTaskId,
         );
       } else {
         flatDbBuilder = db.FlatDbObjectBuilder();
@@ -167,6 +168,10 @@ class FastDB {
     return flatDbBuilder.photourl ?? "";
   }
 
+  static String getBackupTaskId() {
+    return flatDbBuilder.backupTaskId ?? "";
+  }
+
   static void putThemeMode(int themeMode) {
     flatDbBuilder.themeMode = themeMode;
   }
@@ -233,6 +238,10 @@ class FastDB {
 
   static void putPhotourl(String photourl) {
     flatDbBuilder.photourl = photourl;
+  }
+
+  static void putBackupTaskId(String backupTaskId) {
+    flatDbBuilder.backupTaskId = backupTaskId;
   }
 
   static Future<void> flush() async {

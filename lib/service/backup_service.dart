@@ -50,7 +50,8 @@ class BackupService {
     return false;
   }
 
-  Future<void> downloadFileToDevice() async {
+  Future<bool> downloadFileToDevice() async {
+    bool isDownloaded = false;
     final driveApi = await getDriveApi();
     File saveFile = File(join(await getDatabasesPath(), 'mortgage.db'));
     if (driveApi != null) {
@@ -70,6 +71,7 @@ class BackupService {
               bytes.addAll(arr);
             }
             await saveFile.writeAsBytes(bytes, flush: true);
+            isDownloaded = true;
           }
           if (fileList.length > 1) {
             for (final file in fileList.sublist(1)) {
@@ -96,6 +98,7 @@ class BackupService {
                   bytes.addAll(arr);
                 }
                 await saveFile.writeAsBytes(bytes, flush: true);
+                isDownloaded = true;
               }
               if (fileList.length > 1) {
                 for (final file in fileList.sublist(1)) {
@@ -109,6 +112,7 @@ class BackupService {
         }
       }
     }
+    return isDownloaded;
   }
 
   Future<drive.DriveApi?> getDriveApi() async {
@@ -124,7 +128,7 @@ class BackupService {
         FastDB.getDriveAccessTokenExpires()))) {
       account = await googleSignIn.signInSilently();
       if (account == null) return null;
-     await saveData(account);
+      await saveData(account);
     }
     if (account != null) {
       final GoogleSignInAuthentication googleSignInAuthentication =
@@ -169,24 +173,38 @@ class GoogleAuthClient extends http.BaseClient {
 }
 
 Future<void> registerBackUp() async {
-  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+   await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  if(FastDB.getBackupTaskId().isNotEmpty){
+   await Workmanager().cancelByUniqueName(FastDB.getBackupTaskId());
+  }
+  DateTime now = DateTime.now();
+  final uniqueID =
+      "${DateTime.now().millisecondsSinceEpoch}_dailyBackup_mortgage";
   Workmanager().registerPeriodicTask(
-    "MortgageBackupTaskgfcgfdfgdfgcscdfs65",
+    uniqueID,
     "dailyBackup",
-    initialDelay: Duration(
-        hours: FastDB.getScheduledBackUpTimeHour(),
-        minutes: FastDB.getScheduledBackUpTimeMinute()),
-    frequency: Duration(days: 1),
+    initialDelay: now.difference(DateTime(
+        now.year,
+        now.month,
+        now.day,
+        FastDB.getScheduledBackUpTimeHour(),
+        FastDB.getScheduledBackUpTimeMinute())),
+    frequency: Duration(hours: 24),
+    constraints: Constraints(
+      networkType: NetworkType.connected,
+    ),
   );
+  FastDB.putBackupTaskId(uniqueID);
   FastDB.putIsBackUpRegistered(true);
-  await FastDB.flush();
 }
 
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task == "dailyBackup") {
-      await BackupService().performBackup();
+       debugPrint("Task backup started");
+     return  await BackupService().performBackup();
     }
-    return Future.value(true);
+    debugPrint("Task backup not found");
+    return Future.value(false);
   });
 }

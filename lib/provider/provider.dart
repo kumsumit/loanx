@@ -63,7 +63,6 @@ class ThemeModeManager extends _$ThemeModeManager {
   }
 }
 
-
 @riverpod
 class HoldingPeriod extends _$HoldingPeriod {
   @override
@@ -71,7 +70,7 @@ class HoldingPeriod extends _$HoldingPeriod {
     return FastDB.getHoldingPeriod();
   }
 
-  void set(int val){
+  void set(int val) {
     state = val;
     FastDB.putHoldingPeriod(state);
   }
@@ -107,9 +106,10 @@ class ScheduledBackUpTimeMinute extends _$ScheduledBackUpTimeMinute {
 class InterestTypeStatus extends _$InterestTypeStatus {
   @override
   InterestType build() {
-    return  InterestType.values[FastDB.getInterestType()];
+    return InterestType.values[FastDB.getInterestType()];
   }
-  void set(InterestType interestType){
+
+  void set(InterestType interestType) {
     state = interestType;
     FastDB.putInterestType(interestType.index);
   }
@@ -119,14 +119,14 @@ class InterestTypeStatus extends _$InterestTypeStatus {
 class CompoundingFrequencyStatus extends _$CompoundingFrequencyStatus {
   @override
   CompoundingFrequency build() {
-    return  CompoundingFrequency.values[FastDB.getCompoundingFrequency()];
+    return CompoundingFrequency.values[FastDB.getCompoundingFrequency()];
   }
-  void set(CompoundingFrequency compundingFrequency){
+
+  void set(CompoundingFrequency compundingFrequency) {
     state = compundingFrequency;
     FastDB.putCompoundingFrequency(compundingFrequency.index);
   }
 }
-
 
 @riverpod
 class BackupStatus extends _$BackupStatus {
@@ -240,7 +240,7 @@ Future<String> appVersion(Ref ref) async {
 @Riverpod(keepAlive: true)
 class DB extends _$DB {
   @override
-  Future<Database> build()async {
+  Future<Database> build() async {
     return await DatabaseHelper.instance.database;
   }
 }
@@ -367,7 +367,7 @@ class MortgageMaterialList extends _$MortgageMaterialList {
   }
 
   Future<List<MortgageMaterial>> readAllMortgageMaterials() async {
-   db = ref.watch(dBProvider).value!;
+    db = ref.watch(dBProvider).value!;
     final orderBy = '${MortgageMaterialFields.id} ASC';
     final result = await db.query(MortgageMaterial.tableName, orderBy: orderBy);
     return result.map((json) => MortgageMaterial.fromJson(json)).toList();
@@ -470,12 +470,12 @@ class ItemList extends _$ItemList {
   late Database db;
 
   @override
- Future< List<Item>> build() async{
+  Future<List<Item>> build() async {
     return await readAllItems();
   }
 
   Future<List<Item>> readAllItems() async {
-  db = ref.watch(dBProvider).value!;
+    db = ref.watch(dBProvider).value!;
     final orderBy = '${ItemFields.id} ASC';
     final result = await db.query(Item.tableName, orderBy: orderBy);
     return result.map((json) => Item.fromJson(json)).toList();
@@ -497,15 +497,15 @@ class ItemList extends _$ItemList {
   }
 
   Future<int> add(String name) async {
-    if(state.value == null || state.value!.isEmpty){
-       Item item = Item(name: name, isAddedByUser: 1);
-         final id = await db.insert(Item.tableName, item.toJson());
-          if (id > 0) {
-      await updateDBTime();
-      item = item.copy(id: id);
-      state = AsyncData([item]);
-      return id;
-    }
+    if (state.value == null || state.value!.isEmpty) {
+      Item item = Item(name: name, isAddedByUser: 1);
+      final id = await db.insert(Item.tableName, item.toJson());
+      if (id > 0) {
+        await updateDBTime();
+        item = item.copy(id: id);
+        state = AsyncData([item]);
+        return id;
+      }
     }
     if (state.value!
         .any((element) => element.name.toLowerCase() == name.toLowerCase())) {
@@ -533,7 +533,8 @@ class ItemList extends _$ItemList {
     }
     final results = await batch.commit();
     await updateDBTime();
-    state = AsyncData(state.value!.where((item) => !results.contains(item.id)).toList());
+    state = AsyncData(
+        state.value!.where((item) => !results.contains(item.id)).toList());
   }
 
   Future<void> updateItem(Item item) async {
@@ -575,7 +576,7 @@ class MortgageList extends _$MortgageList {
   }
 
   Future<List<Mortgage>> readAllMortgages() async {
-  db = ref.watch(dBProvider).value!;
+    db = ref.watch(dBProvider).value!;
     final orderBy = '${MortgageFields.id} ASC';
     final result = await db.query(Mortgage.tableName, orderBy: orderBy);
     return result.map((json) => Mortgage.fromJson(json)).toList();
@@ -583,7 +584,11 @@ class MortgageList extends _$MortgageList {
 
   List<Mortgage> searchMortgagesByItemId(int itemId) {
     if (state.value == null) return [];
-    return state.value!.where((item) => item.itemId == itemId).toList();
+    debugPrint("====================");
+    debugPrint(itemId.toString());
+    final mor =state.value!.where((mortgage) => mortgage.itemId == itemId).toList();
+    debugPrint(mor.length.toString());
+    return mor;
   }
 
   List<Mortgage> searchMortgagesByMortgageMaterialId(int mortgageMaterialId) {
@@ -608,7 +613,7 @@ class MortgageList extends _$MortgageList {
     return state.value!
         .where((item) =>
             item.dateCreated.isAfter(dateTimeRange.start) &&
-            item.dateCreated.isBefore(dateTimeRange.end))
+            item.dateCreated.isBefore(dateTimeRange.end.add(Duration(days: 1))))  
         .toList();
   }
 
