@@ -99,8 +99,8 @@ class AskBackupScreen extends StatelessWidget {
                                   loading: () {});
                             }
                           }
-                          FastDB.putScheduledBackUpTimeHour(13);
-                          FastDB.putScheduledBackUpTimeMinute(10);
+                          FastDB.putScheduledBackUpTimeHour(02);
+                          FastDB.putScheduledBackUpTimeMinute(00);
                           await registerBackUp();
                           FastDB.putIsTableCreated(true);
                           await FastDB.flush();
