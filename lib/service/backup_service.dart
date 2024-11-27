@@ -5,16 +5,20 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 import 'package:mortgage/db/fastdb.dart';
+import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/service/database_helper.dart';
+import 'package:mortgage/widget/snackbar.dart';
+// import 'package:mortgage/widget/snackbar.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:workmanager/workmanager.dart';
 
 class BackupService {
-  Future<bool> performBackup() async {
+  static Future<bool> performBackup() async {
     try {
       final driveApi = await getDriveApi();
       if (driveApi != null) {
-        return await createFile(driveApi);
+        return await createFileOnDrive(driveApi);
       }
       return false;
     } catch (e) {
@@ -24,7 +28,7 @@ class BackupService {
     }
   }
 
-  Future<bool> createFile(drive.DriveApi driveApi) async {
+  static Future<bool> createFileOnDrive(drive.DriveApi driveApi) async {
     final driveFile = drive.File();
     driveFile.name = "backup-${DateTime.now().toIso8601String()}.db";
     driveFile.parents = ["appDataFolder"];
@@ -50,7 +54,7 @@ class BackupService {
     return false;
   }
 
-  Future<bool> downloadFileToDevice() async {
+  static Future<bool> downloadFileToDevice() async {
     bool isDownloaded = false;
     final driveApi = await getDriveApi();
     File saveFile = File(join(await getDatabasesPath(), 'mortgage.db'));
@@ -65,12 +69,29 @@ class BackupService {
                   downloadOptions: drive.DownloadOptions.fullMedia))
               as drive.Media?;
           if (file != null) {
-            final bytesArray = await file.stream.toList();
-            List<int> bytes = [];
-            for (var arr in bytesArray) {
-              bytes.addAll(arr);
+            if (saveFile.existsSync()) {
+              File tempFile =
+                  File(join(await getDatabasesPath(), 'mortgage_temp.db'));
+              final bytesArray = await file.stream.toList();
+              List<int> bytes = [];
+              for (var arr in bytesArray) {
+                bytes.addAll(arr);
+              }
+              await tempFile.writeAsBytes(bytes, flush: true);
+              final tempDb = await openDatabase(tempFile.path,
+                  readOnly: true, singleInstance: true, version: 1);
+
+              await DatabaseHelper.mergeTables(tempDb);
+              await tempDb.close();
+              await tempFile.delete();
+            } else {
+              final bytesArray = await file.stream.toList();
+              List<int> bytes = [];
+              for (var arr in bytesArray) {
+                bytes.addAll(arr);
+              }
+              await saveFile.writeAsBytes(bytes, flush: true);
             }
-            await saveFile.writeAsBytes(bytes, flush: true);
             isDownloaded = true;
           }
           if (fileList.length > 1) {
@@ -115,33 +136,20 @@ class BackupService {
     return isDownloaded;
   }
 
-  Future<drive.DriveApi?> getDriveApi() async {
+  static Future<drive.DriveApi?> getDriveApi() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
       scopes: [drive.DriveApi.driveAppdataScope],
     );
     GoogleSignInAccount? account;
     if (FastDB.getDriveAccessToken().isEmpty) {
       account = await googleSignIn.signIn();
-      if (account == null) return null;
-      await saveData(account);
     } else if (DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
         FastDB.getDriveAccessTokenExpires()))) {
       account = await googleSignIn.signInSilently();
-      if (account == null) return null;
-      await saveData(account);
     }
-    if (account != null) {
-      final GoogleSignInAuthentication googleSignInAuthentication =
-          await account.authentication;
-      FastDB.putDriveAccessTokenExpires(DateTime.now().millisecondsSinceEpoch);
-      FastDB.putDriveAccessToken(googleSignInAuthentication.accessToken ?? "");
-      final headers = await account.authHeaders;
-      if (headers["X-Goog-AuthUser"] != null) {
-        FastDB.putDriveUser(
-            int.tryParse(headers["X-Goog-AuthUser"] ?? "") ?? 0);
-      }
-      await FastDB.flush();
 
+    if (account != null) {
+      await saveData(account);
       final authHeaders = {
         "Authorization": "Bearer ${FastDB.getDriveAccessToken()}",
         "X-Goog-AuthUser": "${FastDB.getDriveUser()}"
@@ -152,10 +160,32 @@ class BackupService {
     return null;
   }
 
-  Future<void> saveData(GoogleSignInAccount account) async {
+  static Future<void> saveData(GoogleSignInAccount account) async {
     FastDB.putDisplayName(account.displayName ?? "");
     FastDB.putPhotourl(account.photoUrl ?? "");
     FastDB.putEmail(account.email);
+    final GoogleSignInAuthentication googleSignInAuthentication =
+        await account.authentication;
+    FastDB.putDriveAccessTokenExpires(DateTime.now().millisecondsSinceEpoch);
+    FastDB.putDriveAccessToken(googleSignInAuthentication.accessToken ?? "");
+    final headers = await account.authHeaders;
+    if (headers["X-Goog-AuthUser"] != null) {
+      FastDB.putDriveUser(int.tryParse(headers["X-Goog-AuthUser"] ?? "") ?? 0);
+    }
+    await FastDB.flush();
+  }
+
+  static Future<void> removeData() async {
+    FastDB.putDisplayName("");
+    FastDB.putPhotourl("");
+    FastDB.putEmail("");
+    FastDB.putDriveAccessTokenExpires(0);
+    FastDB.putDriveAccessToken("");
+    FastDB.putDriveUser(0);
+    FastDB.putDriveFileId("");
+    FastDB.putIsBackUpRegistered(false);
+    await Workmanager().cancelByUniqueName(FastDB.getBackupTaskId());
+    FastDB.putBackupTaskId("");
     await FastDB.flush();
   }
 }
@@ -173,16 +203,15 @@ class GoogleAuthClient extends http.BaseClient {
 }
 
 Future<void> registerBackUp() async {
-   await Workmanager().initialize(callbackDispatcher, isInDebugMode:false);
-  if(FastDB.getBackupTaskId().isNotEmpty){
-   await Workmanager().cancelByUniqueName(FastDB.getBackupTaskId());
+  if (FastDB.getBackupTaskId().isNotEmpty) {
+    await Workmanager().cancelByUniqueName(FastDB.getBackupTaskId());
   }
   DateTime now = DateTime.now();
   final uniqueID =
       "${DateTime.now().millisecondsSinceEpoch}_dailyBackup_mortgage";
   Workmanager().registerPeriodicTask(
     uniqueID,
-    "dailyBackup",
+    dailyBackUpUpload,
     initialDelay: now.difference(DateTime(
         now.year,
         now.month,
@@ -195,16 +224,45 @@ Future<void> registerBackUp() async {
     ),
   );
   FastDB.putBackupTaskId(uniqueID);
-  FastDB.putIsBackUpRegistered(true);
 }
 
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    if (task == "dailyBackup") {
-       debugPrint("Task backup started");
-     return  await BackupService().performBackup();
+    if (task == dailyBackUpUpload) {
+      return await BackupService.performBackup();
     }
-    debugPrint("Task backup not found");
+    // if(task == dailyBackUpDownload ){
+    //   await BackupService.downloadFileToDevice();
+    //   showToast("Backup Downloaded");
+    // }
     return Future.value(false);
   });
+}
+
+Future<void> removeAccount() async {
+  final GoogleSignIn googleSignIn = GoogleSignIn(
+    scopes: [drive.DriveApi.driveAppdataScope],
+  );
+  await googleSignIn.signOut();
+  await BackupService.removeData();
+}
+
+Future<GoogleSignInAccount?> changeAccount(BuildContext context) async {
+  final GoogleSignIn googleSignIn = GoogleSignIn(
+    scopes: [drive.DriveApi.driveAppdataScope],
+  );
+  await googleSignIn.signOut();
+  final account = await googleSignIn.signIn();
+  if (account == null) return account;
+  await BackupService.saveData(account);
+  if (context.mounted) {
+    showSnackBar(context, " Signed In, Please wait ... \n Download backup now");
+  }
+  final status = await BackupService.downloadFileToDevice();
+  if (status && context.mounted) {
+    showSnackBar(context, "Data Downloaded");
+  } else if (!status && context.mounted) {
+    showErrorSnackBar(context, "Data Download Failed");
+  }
+  return account;
 }

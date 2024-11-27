@@ -1,5 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+// import 'package:fluttertoast/fluttertoast.dart';
+
+// showToast(String message) {
+//   Fluttertoast.showToast(
+//     msg: message,
+//     toastLength: Toast.LENGTH_SHORT,
+//     gravity: ToastGravity.BOTTOM,
+//     timeInSecForIosWeb: 1,
+//     backgroundColor: Colors.black,
+//     textColor: Colors.white,
+//     fontSize: 16.0,
+//   );
+// }
+
 
 void showErrorSnackBar(BuildContext context, String message) {
   final overlay = Overlay.of(context);

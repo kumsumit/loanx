@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
+import 'package:mortgage/model/mortgage.dart';
 // import 'package:mortgage/model/loan.dart';
 // import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/model/mortgage_material.dart';
@@ -25,7 +26,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'mortgage.db');
-    if(await File(path).exists()){
+    if (await File(path).exists()) {
       return await openDatabase(path,
           version: 1,
           // onCreate: onCreate,
@@ -1056,6 +1057,52 @@ class DatabaseHelper {
     await batch.commit();
     FastDB.putIsTableCreated(true);
     await FastDB.flush();
+  }
+
+  static Future<void> mergeTables(Database db2) async {
+    // Fetch records from the second database
+    final List<Map<String, dynamic>> familyRelations = await db2.query(FamilyRelation.tableName);
+    final List<Map<String, dynamic>> items = await db2.query(Item.tableName);
+    final List<Map<String, dynamic>> mortgageMaterials = await db2.query(MortgageMaterial.tableName);
+    final List<Map<String, dynamic>> mortgages = await db2.query(Mortgage.tableName);
+
+ if (_database != null) {
+       final batch = _database!.batch();
+
+    // Insert records into the first database
+    for (final familyRelation in familyRelations) {
+        batch.insert(
+          FamilyRelation.tableName,
+          familyRelation,
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+
+      for (final item in items) {
+        batch.insert(
+          Item.tableName,
+          item,
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+
+      for (final mortgageMaterial in mortgageMaterials) {
+        batch.insert(
+          MortgageMaterial.tableName,
+          mortgageMaterial,
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+
+      for (final mortgage in mortgages) {
+        batch.insert(
+          Mortgage.tableName,
+          mortgage,
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+
+    }
   }
 
   Future close() async {

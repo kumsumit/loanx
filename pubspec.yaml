@@ -34,11 +34,13 @@ dependencies:
   google_sign_in:
     git: https://github.com/kumsumit/google_sign_in.git
   googleapis: ^13.2.0
-  googleapis_auth: ^1.6.0
+  # googleapis_auth: ^1.6.0
   http: ^1.2.2
   riverpod: ^2.6.1
   hooks_riverpod: ^2.6.1
   flutter_hooks: ^0.20.5
+  # fluttertoast:
+  #   git: https://github.com/sumitsharansatsangi/fluttertoast.git
   fuzzywuzzy: ^1.2.0
   riverpod_annotation: ^2.5.3
   # extension_google_sign_in_as_googleapis_auth: ^2.0.12
@@ -51,6 +53,8 @@ dependencies:
     git: https://github.com/kumsumit/local_auth.git  
   workmanager:
     git: https://github.com/sumitsharansatsangi/workmanager.git
+  internet_connection_checker_plus:
+    git: https://github.com/sumitsharansatsangi/internet_connection_checker_plus.git  
   # device_preview:
   #   git: https://github.com/sumitsharansatsangi/device_preview.git
 

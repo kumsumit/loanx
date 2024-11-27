@@ -38,6 +38,65 @@ final appVersionProvider = AutoDisposeFutureProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AppVersionRef = AutoDisposeFutureProviderRef<String>;
+String _$backUpRegisteredHash() => r'497359e8fff9c398361517c2ab2b9465bcc38b96';
+
+/// See also [BackUpRegistered].
+@ProviderFor(BackUpRegistered)
+final backUpRegisteredProvider =
+    AutoDisposeNotifierProvider<BackUpRegistered, bool>.internal(
+  BackUpRegistered.new,
+  name: r'backUpRegisteredProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$backUpRegisteredHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$BackUpRegistered = AutoDisposeNotifier<bool>;
+String _$displayNameHash() => r'f36776e6dee59fe44d8d6ee8cb7672915f20bf51';
+
+/// See also [DisplayName].
+@ProviderFor(DisplayName)
+final displayNameProvider =
+    AutoDisposeNotifierProvider<DisplayName, String>.internal(
+  DisplayName.new,
+  name: r'displayNameProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$displayNameHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$DisplayName = AutoDisposeNotifier<String>;
+String _$photoUrlHash() => r'0e0a3e6c4c5f3edbb602db2c2985ae6782dedf43';
+
+/// See also [PhotoUrl].
+@ProviderFor(PhotoUrl)
+final photoUrlProvider = AutoDisposeNotifierProvider<PhotoUrl, String>.internal(
+  PhotoUrl.new,
+  name: r'photoUrlProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$photoUrlHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$PhotoUrl = AutoDisposeNotifier<String>;
+String _$emailHash() => r'02b8f0c9b0441abda29058ca5eda10282f3f8b67';
+
+/// See also [Email].
+@ProviderFor(Email)
+final emailProvider = AutoDisposeNotifierProvider<Email, String>.internal(
+  Email.new,
+  name: r'emailProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$emailHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$Email = AutoDisposeNotifier<String>;
 String _$themeModeManagerHash() => r'ddd2afdcc60d59e17e4ea51fbc3332bd3758a187';
 
 /// See also [ThemeModeManager].
@@ -248,7 +307,7 @@ final dBProvider = AsyncNotifierProvider<DB, Database>.internal(
 
 typedef _$DB = AsyncNotifier<Database>;
 String _$familyRelationListHash() =>
-    r'90a258bd02db96be2c9dec351bd2a1a89bfa9c97';
+    r'02292015d41597d95c72ea9a18b97add5b5ba1d1';
 
 /// See also [FamilyRelationList].
 @ProviderFor(FamilyRelationList)
@@ -265,7 +324,7 @@ final familyRelationListProvider =
 
 typedef _$FamilyRelationList = AsyncNotifier<List<FamilyRelation>>;
 String _$mortgageMaterialListHash() =>
-    r'cc3fabb544c0fab3961ed8f138a70d3957500c71';
+    r'3d9b3bcd0ff13ae9550c29810acb434cb59042b3';
 
 /// See also [MortgageMaterialList].
 @ProviderFor(MortgageMaterialList)
@@ -281,7 +340,7 @@ final mortgageMaterialListProvider = AsyncNotifierProvider<MortgageMaterialList,
 );
 
 typedef _$MortgageMaterialList = AsyncNotifier<List<MortgageMaterial>>;
-String _$itemListHash() => r'7e59f3c6cbb858b460738f8881549880be776436';
+String _$itemListHash() => r'49032728c36176b6b5a956c02e08eb375acd1596';
 
 /// See also [ItemList].
 @ProviderFor(ItemList)
@@ -295,7 +354,7 @@ final itemListProvider = AsyncNotifierProvider<ItemList, List<Item>>.internal(
 );
 
 typedef _$ItemList = AsyncNotifier<List<Item>>;
-String _$mortgageListHash() => r'3d214cb0ba63fea80f9bd292863e92b260cbf258';
+String _$mortgageListHash() => r'e6326daf3e19aa94d9330351afd2f25f54b4fe1b';
 
 /// See also [MortgageList].
 @ProviderFor(MortgageList)

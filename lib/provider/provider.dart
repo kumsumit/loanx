@@ -4,19 +4,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:mortgage/algo/damerau_lavenstien.dart';
 import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/model/family_relation.dart';
 import 'package:mortgage/model/item.dart';
 import 'package:mortgage/model/loan.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/model/mortgage_material.dart';
 import 'package:mortgage/service/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
-import 'package:sqflite_sqlcipher/sqlite_api.dart';
 part 'provider.g.dart';
+
+final dailyBackUpUpload = 'dailyBackupUpload';
+// final dailyBackUpDownload = 'dailyBackupDownload';
+
+final networkCheckerProvider = StreamProvider<bool>((ref) {
+  final internetChecker = InternetConnection.createInstance(
+    customCheckOptions: [
+      InternetCheckOption(uri: Uri.parse('https://drive.google.com')),
+    ],
+  );
+  return internetChecker.onStatusChange.map((status) {
+    return status == InternetStatus.connected;
+  });
+});
 
 @Riverpod(keepAlive: true)
 Future<bool> authenticate(Ref ref) async {
@@ -47,6 +62,60 @@ Future<bool> authenticate(Ref ref) async {
     return false;
   }
   return false;
+}
+
+
+@riverpod
+class BackUpRegistered extends _$BackUpRegistered {
+  @override
+  bool build() => FastDB.getIsBackUpRegistered();
+
+  void set(bool isRegistered) {
+    state = isRegistered;
+    FastDB.putIsBackUpRegistered(isRegistered);
+  }
+}
+
+@riverpod
+class DisplayName extends _$DisplayName {
+  @override
+  String build() => FastDB.getDisplayName();
+
+  void set(String displayName) {
+    state = displayName;
+  }
+
+  void remove() {
+    state = "";
+  }
+}
+
+@riverpod
+class PhotoUrl extends _$PhotoUrl {
+  @override
+  String build() => FastDB.getPhotourl();
+
+  void set(String photoUrl) {
+    state = photoUrl;
+  }
+
+  void remove() {
+    state = "";
+  }
+}
+
+@riverpod
+class Email extends _$Email {
+  @override
+  String build() => FastDB.getEmail();
+
+  void set(String email) {
+    state = email;
+  }
+
+  void remove() {
+    state = "";
+  }
 }
 
 @Riverpod(keepAlive: true)
@@ -256,7 +325,7 @@ class FamilyRelationList extends _$FamilyRelationList {
 
   Future<List<FamilyRelation>> readAllFamilyRelations() async {
     db = ref.watch(dBProvider).value!;
-    final orderBy = '${FamilyRelationFields.id} ASC';
+    final orderBy = '${FamilyRelationFields.id} DESC';
     final result = await db.query(FamilyRelation.tableName, orderBy: orderBy);
     return result.map((json) => FamilyRelation.fromJson(json)).toList();
   }
@@ -368,7 +437,7 @@ class MortgageMaterialList extends _$MortgageMaterialList {
 
   Future<List<MortgageMaterial>> readAllMortgageMaterials() async {
     db = ref.watch(dBProvider).value!;
-    final orderBy = '${MortgageMaterialFields.id} ASC';
+    final orderBy = '${MortgageMaterialFields.id} DESC';
     final result = await db.query(MortgageMaterial.tableName, orderBy: orderBy);
     return result.map((json) => MortgageMaterial.fromJson(json)).toList();
   }
@@ -476,7 +545,7 @@ class ItemList extends _$ItemList {
 
   Future<List<Item>> readAllItems() async {
     db = ref.watch(dBProvider).value!;
-    final orderBy = '${ItemFields.id} ASC';
+    final orderBy = '${ItemFields.id} DESC';
     final result = await db.query(Item.tableName, orderBy: orderBy);
     return result.map((json) => Item.fromJson(json)).toList();
   }
@@ -577,7 +646,7 @@ class MortgageList extends _$MortgageList {
 
   Future<List<Mortgage>> readAllMortgages() async {
     db = ref.watch(dBProvider).value!;
-    final orderBy = '${MortgageFields.id} ASC';
+    final orderBy = '${MortgageFields.dateCreated} DESC';
     final result = await db.query(Mortgage.tableName, orderBy: orderBy);
     return result.map((json) => Mortgage.fromJson(json)).toList();
   }
@@ -586,7 +655,8 @@ class MortgageList extends _$MortgageList {
     if (state.value == null) return [];
     debugPrint("====================");
     debugPrint(itemId.toString());
-    final mor =state.value!.where((mortgage) => mortgage.itemId == itemId).toList();
+    final mor =
+        state.value!.where((mortgage) => mortgage.itemId == itemId).toList();
     debugPrint(mor.length.toString());
     return mor;
   }
@@ -613,7 +683,7 @@ class MortgageList extends _$MortgageList {
     return state.value!
         .where((item) =>
             item.dateCreated.isAfter(dateTimeRange.start) &&
-            item.dateCreated.isBefore(dateTimeRange.end.add(Duration(days: 1))))  
+            item.dateCreated.isBefore(dateTimeRange.end.add(Duration(days: 1))))
         .toList();
   }
 

@@ -11,6 +11,8 @@ import 'package:mortgage/screens/unauthorized.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/auth_screen.dart';
 import 'package:mortgage/screens/dashboard.dart';
+import 'package:mortgage/service/backup_service.dart';
+import 'package:workmanager/workmanager.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
 
@@ -19,6 +21,7 @@ import 'db/fastdb.dart';
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+    await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   await FastDB.init();
   // await Firebase.initializeApp();
 

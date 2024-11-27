@@ -215,6 +215,24 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.18.0"
+  connectivity_plus:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: cc3d6fc68bbed29b0e4ebaa606984d81eca1bc76
+      url: "https://github.com/kumsumit/connectivity_plus.git"
+    source: git
+    version: "6.1.0"
+  connectivity_plus_platform_interface:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "7179c92d6e705afaa0bac4efc32f89276dfd5d50"
+      url: "https://github.com/kumsumit/connectivity_plus_platform_interface.git"
+    source: git
+    version: "2.0.1"
   convert:
     dependency: transitive
     description:
@@ -295,6 +313,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.7"
+  dbus:
+    dependency: transitive
+    description:
+      name: dbus
+      sha256: "365c771ac3b0e58845f39ec6deebc76e3276aa9922b0cc60840712094d9047ac"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.10"
   encrypt:
     dependency: "direct main"
     description:
@@ -646,14 +672,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "13.2.0"
-  googleapis_auth:
-    dependency: "direct main"
-    description:
-      name: googleapis_auth
-      sha256: befd71383a955535060acde8792e7efc11d2fccd03dd1d3ec434e85b68775938
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.6.0"
   graphs:
     dependency: transitive
     description:
@@ -790,6 +808,15 @@ packages:
       url: "https://github.com/kumsumit/image_picker_windows.git"
     source: git
     version: "0.2.1+1"
+  internet_connection_checker_plus:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: eefd59ae2194175532113b6f8ec4ee0953a2d7d2
+      url: "https://github.com/sumitsharansatsangi/internet_connection_checker_plus.git"
+    source: git
+    version: "2.5.2"
   intl:
     dependency: "direct main"
     description:
@@ -947,6 +974,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  nm:
+    dependency: transitive
+    description:
+      name: nm
+      sha256: "2c9aae4127bdc8993206464fcc063611e0e36e72018696cd9631023a31b24254"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   package_config:
     dependency: transitive
     description:

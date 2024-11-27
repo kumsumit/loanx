@@ -8,6 +8,7 @@ import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/service/database_helper.dart';
 import 'package:mortgage/widget/loading_overlay.dart';
 import 'package:mortgage/widget/snackbar.dart';
+// import 'package:workmanager/workmanager.dart';
 
 class AskBackupScreen extends HookWidget {
   const AskBackupScreen({super.key});
@@ -17,9 +18,9 @@ class AskBackupScreen extends HookWidget {
     final isLoading = useState(false);
     return Material(
         child: LoadingOverlay(
-          isLoading: isLoading.value,
-          child: Center(
-                child: Padding(
+      isLoading: isLoading.value,
+      child: Center(
+        child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -87,62 +88,95 @@ class AskBackupScreen extends HookWidget {
                         );
                       }),
                       Consumer(builder: (context, ref, child) {
+                        final networkStatus = ref.watch(networkCheckerProvider);
                         return OutlinedButton(
                           onPressed: () async {
-                            isLoading.value = true;
-                            final BackupService backupService = BackupService();
-                            final isDownloaded =
-                                await backupService.downloadFileToDevice();
-                            if (!isDownloaded) {
-                              if (!FastDB.getIsTableCreated()) {
-                                ref.read(dBProvider).when(
-                                    data: (data) async {
-                                      await DatabaseHelper.instance
-                                          .onCreate(data, 1);
-                                    },
-                                    error: (_, __) {
-                                      showSnackBar(context,
-                                          "An Error occured, Please try again later");
-                                    },
-                                    loading: () {});
-                              }
-                            }
-                            FastDB.putScheduledBackUpTimeHour(02);
-                            FastDB.putScheduledBackUpTimeMinute(00);
-                            await registerBackUp();
-                            FastDB.putIsTableCreated(true);
-                            await FastDB.flush();
-                            ref.read(dBProvider).when(
+                            networkStatus.when(
                                 data: (data) async {
-                                  ref.read(itemListProvider);
-                                  ref
-                                      .read(mortgageMaterialListProvider.notifier)
-                                      .readAllMortgageMaterials();
-                                  ref
-                                      .read(familyRelationListProvider.notifier)
-                                      .readAllFamilyRelations();
-                                  ref
-                                      .read(mortgageListProvider.notifier)
-                                      .readAllMortgages();
-                                },
-                                error: (_, __) {
-                                  if (!FastDB.getIsTableCreated()) {
+                                  if (data) {
+                                    isLoading.value = true;
+                                    // await Workmanager().registerOneOffTask(
+                                    //   DateTime.now()
+                                    //       .microsecondsSinceEpoch
+                                    //       .toString(),
+                                    //   dailyBackUpDownload,
+                                    // );
+                                    await BackupService.downloadFileToDevice();
+                                    if (!FastDB.getIsTableCreated()) {
+                                      ref.read(dBProvider).when(
+                                          data: (data) async {
+                                            await DatabaseHelper.instance
+                                                .onCreate(data, 1);
+                                          },
+                                          error: (_, __) {
+                                            showSnackBar(context,
+                                                "An Error occured, Please try again later");
+                                          },
+                                          loading: () {});
+                                    }
+                                    FastDB.putScheduledBackUpTimeHour(02);
+                                    FastDB.putScheduledBackUpTimeMinute(00);
+                                    await registerBackUp();
+                                    ref
+                                        .read(backUpRegisteredProvider.notifier)
+                                        .set(true);
+                                    FastDB.putIsTableCreated(true);
+                                    await FastDB.flush();
                                     ref.read(dBProvider).when(
                                         data: (data) async {
-                                          await DatabaseHelper.instance
-                                              .onCreate(data, 1);
+                                          ref.read(itemListProvider);
+                                          ref
+                                              .read(mortgageMaterialListProvider
+                                                  .notifier)
+                                              .readAllMortgageMaterials();
+                                          ref
+                                              .read(familyRelationListProvider
+                                                  .notifier)
+                                              .readAllFamilyRelations();
+                                          ref
+                                              .read(
+                                                  mortgageListProvider.notifier)
+                                              .readAllMortgages();
                                         },
                                         error: (_, __) {
+                                          if (!FastDB.getIsTableCreated()) {
+                                            ref.read(dBProvider).when(
+                                                data: (data) async {
+                                                  await DatabaseHelper.instance
+                                                      .onCreate(data, 1);
+                                                },
+                                                error: (_, __) {
+                                                  showSnackBar(context,
+                                                      "An Error occured, Please try again later");
+                                                },
+                                                loading: () {});
+                                          }
                                           showSnackBar(context,
-                                              "An Error occured, Please try again later");
+                                              "An Error occured During Back Up, Please try again later");
                                         },
                                         loading: () {});
+                                  } else {
+                                    if (!FastDB.getIsTableCreated()) {
+                                      ref.read(dBProvider).when(
+                                          data: (data) async {
+                                            await DatabaseHelper.instance
+                                                .onCreate(data, 1);
+                                          },
+                                          error: (_, __) {
+                                            showSnackBar(context,
+                                                "An Error occured, Please try again later");
+                                          },
+                                          loading: () {});
+                                    }
                                   }
+                                },
+                                error: (_, __) {
                                   showSnackBar(context,
-                                      "An Error occured During Back Up, Please try again later");
+                                      "An Error occured, Please try again later");
                                 },
                                 loading: () {});
-                                isLoading.value = false;
+
+                            isLoading.value = false;
                             if (context.mounted) {
                               Navigator.pushReplacement(
                                   context,
@@ -159,8 +193,8 @@ class AskBackupScreen extends HookWidget {
               ),
             ),
           ),
-                ),
-              ),
-        ));
+        ),
+      ),
+    ));
   }
 }
