@@ -205,12 +205,13 @@ class MyDrawer extends HookWidget {
                       ),
                       actions: <Widget>[
                         Consumer(builder: (context, ref, child) {
-                          return ElevatedButton(
-                            child: const Text('Got it'),
+                          return OutlinedButton(
+                            child: const Text('Ok'),
                             onPressed: () async {
                               await ref.read(appColorProvider.notifier).set();
                               if (context.mounted) {
                                 Navigator.of(context).pop();
+                                   showSnackBar(context, "App Color Changed");
                               }
                             },
                           );
@@ -274,6 +275,7 @@ class MyDrawer extends HookWidget {
                               await FastDB.flush();
                               if (context.mounted) {
                                 Navigator.of(context).pop();
+                                showSnackBar(context, "Mortgage Data Holding Period changed");
                               }
                             },
                             child: Text('OK',
@@ -404,6 +406,7 @@ class MyDrawer extends HookWidget {
                                 await FastDB.flush();
                                 if (context.mounted) {
                                   Navigator.of(context).pop();
+                                  showSnackBar(context, "Interest Type changed successfully");
                                 }
                               },
                               child: Text('OK',
