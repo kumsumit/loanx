@@ -54,7 +54,9 @@ dependencies:
   workmanager:
     git: https://github.com/sumitsharansatsangi/workmanager.git
   internet_connection_checker_plus:
-    git: https://github.com/sumitsharansatsangi/internet_connection_checker_plus.git  
+    git: https://github.com/sumitsharansatsangi/internet_connection_checker_plus.git
+  share_plus:
+    git: https://github.com/kumsumit/share_plus.git
   # device_preview:
   #   git: https://github.com/sumitsharansatsangi/device_preview.git
 

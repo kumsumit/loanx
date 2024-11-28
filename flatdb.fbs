@@ -17,4 +17,5 @@ table FlatDB {
   email: string;
   photourl: string;
   backup_task_id: string;
+  secure: bool;
 }

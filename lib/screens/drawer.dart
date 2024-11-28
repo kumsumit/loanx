@@ -13,7 +13,9 @@ import 'package:mortgage/widget/bullet.dart';
 import 'package:mortgage/widget/loading_overlay.dart';
 import 'package:mortgage/widget/snackbar.dart';
 import 'package:mortgage/widget/styled_dropdown.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 // import 'package:workmanager/workmanager.dart';
 
 class MyDrawer extends HookWidget {
@@ -211,7 +213,7 @@ class MyDrawer extends HookWidget {
                               await ref.read(appColorProvider.notifier).set();
                               if (context.mounted) {
                                 Navigator.of(context).pop();
-                                   showSnackBar(context, "App Color Changed");
+                                showSnackBar(context, "App Color Changed");
                               }
                             },
                           );
@@ -275,7 +277,8 @@ class MyDrawer extends HookWidget {
                               await FastDB.flush();
                               if (context.mounted) {
                                 Navigator.of(context).pop();
-                                showSnackBar(context, "Mortgage Data Holding Period changed");
+                                showSnackBar(context,
+                                    "Mortgage Data Holding Period changed");
                               }
                             },
                             child: Text('OK',
@@ -406,7 +409,8 @@ class MyDrawer extends HookWidget {
                                 await FastDB.flush();
                                 if (context.mounted) {
                                   Navigator.of(context).pop();
-                                  showSnackBar(context, "Interest Type changed successfully");
+                                  showSnackBar(context,
+                                      "Interest Type changed successfully");
                                 }
                               },
                               child: Text('OK',
@@ -456,7 +460,10 @@ class MyDrawer extends HookWidget {
               }
             }),
             Consumer(builder: (context, ref, child) {
-              // final networkStatus = ref.watch(networkCheckerProvider);
+              final token = ref.watch(driveAccessTokenProvider);
+              if (token.isEmpty) {
+                return SizedBox();
+              }
               return ref.watch(backupDownloadStatusProvider)
                   ? SizedBox()
                   : ListTile(
@@ -496,13 +503,6 @@ class MyDrawer extends HookWidget {
                                         showErrorSnackBar(
                                             context, "Data Backup Failed");
                                       }
-                                      // showSnackBar(context,"Do your work we are backing up your data");
-                                      // await Workmanager().registerOneOffTask(
-                                      //   DateTime.now()
-                                      //       .microsecondsSinceEpoch
-                                      //       .toString(),
-                                      //   dailyBackUpUpload,
-                                      // );
                                       ref
                                           .read(backupStatusProvider.notifier)
                                           .set(false);
@@ -520,6 +520,10 @@ class MyDrawer extends HookWidget {
                             });
             }),
             Consumer(builder: (context, ref, child) {
+              final token = ref.watch(driveAccessTokenProvider);
+              if (token.isEmpty) {
+                return SizedBox();
+              }
               return ref.watch(backupStatusProvider)
                   ? SizedBox()
                   : ListTile(
@@ -554,39 +558,49 @@ class MyDrawer extends HookWidget {
                               loading: () =>
                                   showErrorSnackBar(context, "Please wait ..."),
                             );
-                        // await Workmanager().registerOneOffTask(
-                        //   DateTime.now().microsecondsSinceEpoch.toString(),
-                        //   dailyBackUpUpload,
-                        // );
 
                         isLoading.value = false;
                       },
                     );
             }),
             Consumer(builder: (context, ref, child) {
+              final token = ref.watch(driveAccessTokenProvider);
               return ListTile(
                 leading: Icon(Icons.change_circle_outlined),
-                title: Text('Change Account'),
+                title: Text(token.isEmpty ? 'Add Account' : 'Change Account'),
                 onTap: () async {
                   isLoading.value = true;
-                  final account = await changeAccount(context);
+                  final chngAccount = await changeAccount(context);
+                  if (chngAccount.length == 2) {
+                    final authentication = chngAccount[0];
+                    final account = chngAccount[1];
                   if (account != null) {
                     ref
                         .read(displayNameProvider.notifier)
-                        .set(account.displayName ?? "");
+                        .set(account!.displayName ?? "");
                     ref
                         .read(photoUrlProvider.notifier)
-                        .set(account.photoUrl ?? "");
-                    ref.read(emailProvider.notifier).set(account.email);
+                        .set(account!.photoUrl ?? "");
+                    ref
+                        .read(emailProvider.notifier)
+                        .set(account!.email);
+                    ref.read(driveAccessTokenProvider.notifier).set(
+                        authentication.accessToken ??
+                            "");
                   }
                   isLoading.value = false;
                   if (context.mounted) {
                     showSnackBar(context, "Account Changed");
                   }
+                  }
                 },
               );
             }),
             Consumer(builder: (context, ref, child) {
+              final token = ref.watch(driveAccessTokenProvider);
+              if (token.isEmpty) {
+                return SizedBox();
+              }
               return ListTile(
                   leading: Icon(Icons.logout),
                   title: Text('Remove Account'),
@@ -595,6 +609,7 @@ class MyDrawer extends HookWidget {
                     ref.read(displayNameProvider.notifier).set("");
                     ref.read(photoUrlProvider.notifier).set("");
                     ref.read(emailProvider.notifier).set("");
+                    ref.read(backUpRegisteredProvider.notifier).set(false);
                   });
             }),
             ListTile(
@@ -617,10 +632,44 @@ class MyDrawer extends HookWidget {
                 _launchURL('https://mortgage.kumpali.com/privacy.html');
               },
             ),
+            ListTile(
+                leading: Icon(Icons.star_rate),
+                title: Text('Rate Us'),
+                onTap: _openReview
+                ),
+            ListTile(
+              leading: Icon(Icons.share),
+              title: Text('Share App'),
+              onTap: () {
+                Share.share('''Mortgage is a mortgage calculator app that helps you calculate your monthly mortgage payments. It also helps you understand the different types of mortgages and how much you can borrow. Mortgage is available on both Android and iOS.
+                \nYou can download Mortgage from the Google Play Store or the App Store.
+                Playstore: https://play.google.com/store/apps/details?id=com.kumpali.mortgage
+                App Store: https://apps.apple.com/us/app/mortgage-mortgage-calculator/id1502002892
+                \n\nThank you for using Mortgage!
+                ''',
+                subject: 'Install this awesome app!',
+                );
+              },
+            ),
+            ListTile(
+              title: Text("Write Us"),
+              onTap: () {
+                _launchURL('https://forms.gle/zSRbdvU45hvPWEYp7');
+              },
+            )    
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _openReview() async {
+     const mortgage = MethodChannel('mortgage');
+    try {
+      await mortgage.invokeMethod('openReview');
+    } on PlatformException catch (e) {
+      debugPrint("Failed to open review page: '${e.message}'.");
+    }
   }
 
   void _launchURL(String url) async {

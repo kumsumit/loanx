@@ -160,7 +160,7 @@ class BackupService {
     return null;
   }
 
-  static Future<void> saveData(GoogleSignInAccount account) async {
+  static Future<GoogleSignInAuthentication> saveData(GoogleSignInAccount account) async {
     FastDB.putDisplayName(account.displayName ?? "");
     FastDB.putPhotourl(account.photoUrl ?? "");
     FastDB.putEmail(account.email);
@@ -173,6 +173,7 @@ class BackupService {
       FastDB.putDriveUser(int.tryParse(headers["X-Goog-AuthUser"] ?? "") ?? 0);
     }
     await FastDB.flush();
+    return googleSignInAuthentication;
   }
 
   static Future<void> removeData() async {
@@ -247,14 +248,14 @@ Future<void> removeAccount() async {
   await BackupService.removeData();
 }
 
-Future<GoogleSignInAccount?> changeAccount(BuildContext context) async {
+Future<List> changeAccount(BuildContext context) async {
   final GoogleSignIn googleSignIn = GoogleSignIn(
     scopes: [drive.DriveApi.driveAppdataScope],
   );
   await googleSignIn.signOut();
   final account = await googleSignIn.signIn();
-  if (account == null) return account;
-  await BackupService.saveData(account);
+  if (account == null) return [];
+  final googleSignInAuthentication = await BackupService.saveData(account);
   if (context.mounted) {
     showSnackBar(context, " Signed In, Please wait ... \n Download backup now");
   }
@@ -264,5 +265,12 @@ Future<GoogleSignInAccount?> changeAccount(BuildContext context) async {
   } else if (!status && context.mounted) {
     showErrorSnackBar(context, "Data Download Failed");
   }
-  return account;
+  return [googleSignInAuthentication,account];
 }
+
+
+// class Change{
+//   final GoogleSignInAuthentication? googleSignInAuthentication;
+//   final GoogleSignInAccount? account;
+//   Change(this.googleSignInAuthentication,this.account);
+// } 

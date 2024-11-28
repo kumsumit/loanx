@@ -38,6 +38,22 @@ final appVersionProvider = AutoDisposeFutureProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AppVersionRef = AutoDisposeFutureProviderRef<String>;
+String _$driveAccessTokenHash() => r'ce313e39a994ebbe7a38e8e8a8350157d667eb6e';
+
+/// See also [DriveAccessToken].
+@ProviderFor(DriveAccessToken)
+final driveAccessTokenProvider =
+    AutoDisposeNotifierProvider<DriveAccessToken, String>.internal(
+  DriveAccessToken.new,
+  name: r'driveAccessTokenProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$driveAccessTokenHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$DriveAccessToken = AutoDisposeNotifier<String>;
 String _$backUpRegisteredHash() => r'497359e8fff9c398361517c2ab2b9465bcc38b96';
 
 /// See also [BackUpRegistered].

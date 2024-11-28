@@ -35,6 +35,9 @@ final networkCheckerProvider = StreamProvider<bool>((ref) {
 
 @Riverpod(keepAlive: true)
 Future<bool> authenticate(Ref ref) async {
+  if(!FastDB.getSecure()){
+    return true;
+  }
   final LocalAuthentication localAuthentication = LocalAuthentication();
   try {
     final bool canAuthenticateWithBiometrics =
@@ -62,6 +65,21 @@ Future<bool> authenticate(Ref ref) async {
     return false;
   }
   return false;
+}
+
+@riverpod
+class DriveAccessToken extends _$DriveAccessToken {
+  @override 
+  String build() => FastDB.getDriveAccessToken();
+  
+  void set(String token) {
+    state = token;
+  }
+
+  void remove() {
+    state = "";
+  }
+
 }
 
 
