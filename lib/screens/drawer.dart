@@ -575,24 +575,22 @@ class MyDrawer extends HookWidget {
                   if (chngAccount.length == 2) {
                     final authentication = chngAccount[0];
                     final account = chngAccount[1];
-                  if (account != null) {
-                    ref
-                        .read(displayNameProvider.notifier)
-                        .set(account!.displayName ?? "");
-                    ref
-                        .read(photoUrlProvider.notifier)
-                        .set(account!.photoUrl ?? "");
-                    ref
-                        .read(emailProvider.notifier)
-                        .set(account!.email);
-                    ref.read(driveAccessTokenProvider.notifier).set(
-                        authentication.accessToken ??
-                            "");
-                  }
-                  isLoading.value = false;
-                  if (context.mounted) {
-                    showSnackBar(context, "Account Changed");
-                  }
+                    if (account != null) {
+                      ref
+                          .read(displayNameProvider.notifier)
+                          .set(account!.displayName ?? "");
+                      ref
+                          .read(photoUrlProvider.notifier)
+                          .set(account!.photoUrl ?? "");
+                      ref.read(emailProvider.notifier).set(account!.email);
+                      ref
+                          .read(driveAccessTokenProvider.notifier)
+                          .set(authentication.accessToken ?? "");
+                    }
+                    isLoading.value = false;
+                    if (context.mounted) {
+                      showSnackBar(context, "Account Changed");
+                    }
                   }
                 },
               );
@@ -614,6 +612,39 @@ class MyDrawer extends HookWidget {
                   });
             }),
             ListTile(
+                leading: Icon(Icons.star_rate),
+                title: Text('Rate Us'),
+                onTap: _openReview),
+            ListTile(
+              leading: Icon(Icons.share),
+              title: Text('Share App'),
+              onTap: () {
+                Share.share(
+                  '''Mortgage is a mortgage calculator app that helps you calculate your monthly mortgage payments. It also helps you understand the different types of mortgages and how much you can borrow. Mortgage is available on both Android and iOS.
+                \nYou can download Mortgage from the Google Play Store or the App Store.
+                Playstore: https://play.google.com/store/apps/details?id=com.kumpali.mortgage
+                App Store: https://apps.apple.com/us/app/mortgage-mortgage-calculator/id1502002892
+                \n\nThank you for using Mortgage!
+                ''',
+                  subject: 'Install this awesome app!',
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.edit_square),
+              title: Text("Write Us"),
+              onTap: () {
+                _launchURL('https://forms.gle/zSRbdvU45hvPWEYp7');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.policy),
+              title: Text('Privacy Policy'),
+              onTap: () {
+                _launchURL('https://mortgage.kumpali.com/privacy.html');
+              },
+            ),
+            ListTile(
               leading: Icon(Icons.info_outline),
               title: Consumer(builder: (context, ref, child) {
                 return ref.watch(appVersionProvider).when(
@@ -626,39 +657,6 @@ class MyDrawer extends HookWidget {
                     loading: () => Text("..."));
               }),
             ),
-            ListTile(
-              leading: Icon(Icons.policy),
-              title: Text('Privacy Policy'),
-              onTap: () {
-                _launchURL('https://mortgage.kumpali.com/privacy.html');
-              },
-            ),
-            ListTile(
-                leading: Icon(Icons.star_rate),
-                title: Text('Rate Us'),
-                onTap: _openReview
-                ),
-            ListTile(
-              leading: Icon(Icons.share),
-              title: Text('Share App'),
-              onTap: () {
-                Share.share('''Mortgage is a mortgage calculator app that helps you calculate your monthly mortgage payments. It also helps you understand the different types of mortgages and how much you can borrow. Mortgage is available on both Android and iOS.
-                \nYou can download Mortgage from the Google Play Store or the App Store.
-                Playstore: https://play.google.com/store/apps/details?id=com.kumpali.mortgage
-                App Store: https://apps.apple.com/us/app/mortgage-mortgage-calculator/id1502002892
-                \n\nThank you for using Mortgage!
-                ''',
-                subject: 'Install this awesome app!',
-                );
-              },
-            ),
-            ListTile(
-                 leading: Icon(Icons.edit_square),
-              title: Text("Write Us"),
-              onTap: () {
-                _launchURL('https://forms.gle/zSRbdvU45hvPWEYp7');
-              },
-            )    
           ],
         ),
       ),
@@ -666,7 +664,7 @@ class MyDrawer extends HookWidget {
   }
 
   Future<void> _openReview() async {
-     const mortgage = MethodChannel('mortgage');
+    const mortgage = MethodChannel('mortgage');
     try {
       await mortgage.invokeMethod('openReview');
     } on PlatformException catch (e) {
