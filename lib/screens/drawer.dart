@@ -1,4 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -652,6 +653,7 @@ class MyDrawer extends HookWidget {
               },
             ),
             ListTile(
+                 leading: Icon(Icons.edit_square),
               title: Text("Write Us"),
               onTap: () {
                 _launchURL('https://forms.gle/zSRbdvU45hvPWEYp7');
