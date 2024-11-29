@@ -7,6 +7,7 @@ import 'package:mortgage/model/item.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/mortgage_details.dart';
+import 'package:mortgage/widget/snackbar.dart';
 
 class MortgageListView extends StatelessWidget {
   const MortgageListView({super.key});
@@ -18,6 +19,44 @@ class MortgageListView extends StatelessWidget {
   ) {
     return Consumer(builder: (context, ref, child) {
       return GestureDetector(
+        onHorizontalDragEnd: (details) async {
+          if (details.velocity.pixelsPerSecond.dx > 0 && !mortgage.isFinished()) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text("Confirmation"),
+                content: Text(
+                    "Are you sure want you have returned this mortgage to the borrower?"),
+                actionsAlignment: MainAxisAlignment.spaceEvenly,
+                actions: [
+                  OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text("Cancel")),
+                  Consumer(builder: (context, ref, child) {
+                    return OutlinedButton(
+                      child: const Text('Ok'),
+                      onPressed: () async {
+                        await ref.read(appColorProvider.notifier).set();
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          showSnackBar(context,
+                              "Now, you can give mortgage to the borrower");
+                        }
+                      },
+                    );
+                  }),
+                ],
+              ),
+            );
+
+            mortgage.toggleFinished();
+            await ref
+                .read(mortgageListProvider.notifier)
+                .updateMortgage(mortgage);
+          }
+        },
         onDoubleTap: () {
           Navigator.push(
               context,
@@ -42,14 +81,14 @@ class MortgageListView extends StatelessWidget {
               : Colors.transparent,
           child: Row(
             children: <Widget>[
-              Checkbox(
-                  value: mortgage.isFinished(),
-                  onChanged: (bool? value) async {
-                    mortgage.toggleFinished();
-                    ref
-                        .read(mortgageListProvider.notifier)
-                        .updateMortgage(mortgage);
-                  }),
+              // Checkbox(
+              //     value: mortgage.isFinished(),
+              //     onChanged: (bool? value) async {
+              //       mortgage.toggleFinished();
+              //     await  ref
+              //           .read(mortgageListProvider.notifier)
+              //           .updateMortgage(mortgage);
+              //     }),
               Expanded(
                 child: DecoratedBox(
                   decoration: const BoxDecoration(
@@ -100,12 +139,24 @@ class MortgageListView extends StatelessWidget {
       return items.when(
           data: (itemList) {
             if (itemList.isEmpty) {
-              return Center(child: Text("No data found", style: TextStyle(fontSize: 20,color : Theme.of(context).colorScheme.secondary),));
+              return Center(
+                  child: Text(
+                "No data found",
+                style: TextStyle(
+                    fontSize: 20,
+                    color: Theme.of(context).colorScheme.secondary),
+              ));
             }
             return mortgages.when(
                 data: (mortgageList) {
                   if (mortgageList.isEmpty) {
-                    return Center(child: Text("No data found",style: TextStyle(fontSize: 20, color : Theme.of(context).colorScheme.secondary),));
+                    return Center(
+                        child: Text(
+                      "No data found",
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Theme.of(context).colorScheme.secondary),
+                    ));
                   }
                   return ListView.builder(
                       shrinkWrap: true,
@@ -118,10 +169,22 @@ class MortgageListView extends StatelessWidget {
                         return _mortgageBuilder(context, mortgage, item);
                       });
                 },
-                error: (e, b) => Center(child: Text("An Error occurred",style: TextStyle(fontSize: 20,color : Theme.of(context).colorScheme.secondary),)),
+                error: (e, b) => Center(
+                        child: Text(
+                      "An Error occurred",
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Theme.of(context).colorScheme.secondary),
+                    )),
                 loading: () => Center(child: CircularProgressIndicator()));
           },
-          error: (e, b) => Center(child: Text("Loading ...",style: TextStyle(fontSize: 20,color : Theme.of(context).colorScheme.secondary),)),
+          error: (e, b) => Center(
+                  child: Text(
+                "Loading ...",
+                style: TextStyle(
+                    fontSize: 20,
+                    color: Theme.of(context).colorScheme.secondary),
+              )),
           loading: () => Center(
                 child: CircularProgressIndicator(),
               ));
