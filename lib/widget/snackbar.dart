@@ -54,7 +54,7 @@ void showSnackBar(BuildContext context, String message) {
   overlay.insert(overlayEntry);
 
   // Remove the snackbar after a delay
-  Future.delayed(Duration(seconds: 2), () {
+  Future.delayed(Duration(seconds: 3), () {
     overlayEntry.remove();
   });
 }

@@ -6,7 +6,7 @@ part of 'provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authenticateHash() => r'86538e8fd6595b5a11cabc8f3e13aee8e041fd32';
+String _$authenticateHash() => r'f98a0ad121a1d7c3ea0fabc99d8e6afe4df3964e';
 
 /// See also [authenticate].
 @ProviderFor(authenticate)
@@ -38,6 +38,20 @@ final appVersionProvider = AutoDisposeFutureProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AppVersionRef = AutoDisposeFutureProviderRef<String>;
+String _$secureHash() => r'394ab5929b38a134c2450733ad4d5dc77d51acd8';
+
+/// See also [Secure].
+@ProviderFor(Secure)
+final secureProvider = AutoDisposeNotifierProvider<Secure, bool>.internal(
+  Secure.new,
+  name: r'secureProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$secureHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$Secure = AutoDisposeNotifier<bool>;
 String _$driveAccessTokenHash() => r'ce313e39a994ebbe7a38e8e8a8350157d667eb6e';
 
 /// See also [DriveAccessToken].
@@ -323,7 +337,7 @@ final dBProvider = AsyncNotifierProvider<DB, Database>.internal(
 
 typedef _$DB = AsyncNotifier<Database>;
 String _$familyRelationListHash() =>
-    r'02292015d41597d95c72ea9a18b97add5b5ba1d1';
+    r'78594e6268fdf9722fa5c11dcad0458f7cd10ee6';
 
 /// See also [FamilyRelationList].
 @ProviderFor(FamilyRelationList)
@@ -340,7 +354,7 @@ final familyRelationListProvider =
 
 typedef _$FamilyRelationList = AsyncNotifier<List<FamilyRelation>>;
 String _$mortgageMaterialListHash() =>
-    r'3d9b3bcd0ff13ae9550c29810acb434cb59042b3';
+    r'2eb126f853120b3cc114fdbdf46eafc3d50767eb';
 
 /// See also [MortgageMaterialList].
 @ProviderFor(MortgageMaterialList)
@@ -356,7 +370,7 @@ final mortgageMaterialListProvider = AsyncNotifierProvider<MortgageMaterialList,
 );
 
 typedef _$MortgageMaterialList = AsyncNotifier<List<MortgageMaterial>>;
-String _$itemListHash() => r'49032728c36176b6b5a956c02e08eb375acd1596';
+String _$itemListHash() => r'd3e22df3d50ca3e9d58ce34d88492f819d971ac2';
 
 /// See also [ItemList].
 @ProviderFor(ItemList)

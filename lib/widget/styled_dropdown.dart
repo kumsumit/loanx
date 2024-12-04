@@ -7,7 +7,7 @@ class StyledDropdown<T> extends StatelessWidget {
   final String hintText;
   final String labelText;
   final VoidCallback? onAddPressed;
-  final VoidCallback onTap;
+  // final VoidCallback onTap;
   const StyledDropdown(
       {super.key,
       this.selectedValue,
@@ -16,7 +16,8 @@ class StyledDropdown<T> extends StatelessWidget {
       required this.hintText,
       required this.labelText,
       this.onAddPressed,
-      required this.onTap});
+      // required this.onTap
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class StyledDropdown<T> extends StatelessWidget {
         },
         value: selectedValue,
         hint: Text(hintText),
-        onTap: onTap,
+        // onTap: onTap,
         decoration: InputDecoration(
           suffixIcon:
                  onAddPressed != null ? IconButton(onPressed: onAddPressed, icon: const Icon(Icons.add)) : null,

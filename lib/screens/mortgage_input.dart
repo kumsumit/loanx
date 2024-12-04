@@ -71,55 +71,55 @@ class MortgageInput extends HookConsumerWidget {
     final additionalDetailsController =
         useTextEditingController(text: mortgage?.additionalDetails ?? '');
     final scrollController = useScrollController();
-    final focusNodes =
-        useMemoized(() => List.generate(7, (_) => FocusNode()), []);
-    useEffect(() {
-      // if (items.isNotEmpty) {
-      //   currentItem.value = mortgage == null
-      //       ? items.first
-      //       : items.firstWhere((element) => element.id == mortgage!.itemId);
-      // }
-      // if (familyRelations.isNotEmpty) {
-      //   currentFamilyRelation.value = mortgage == null
-      //       ? familyRelations.first
-      //       : familyRelations.firstWhere(
-      //           (element) => element.id == mortgage!.familyRelationId);
-      // }
+    // final focusNodes =
+    //     useMemoized(() => List.generate(7, (_) => FocusNode()), []);
+    // useEffect(() {
+    //   // if (items.isNotEmpty) {
+    //   //   currentItem.value = mortgage == null
+    //   //       ? items.first
+    //   //       : items.firstWhere((element) => element.id == mortgage!.itemId);
+    //   // }
+    //   // if (familyRelations.isNotEmpty) {
+    //   //   currentFamilyRelation.value = mortgage == null
+    //   //       ? familyRelations.first
+    //   //       : familyRelations.firstWhere(
+    //   //           (element) => element.id == mortgage!.familyRelationId);
+    //   // }
 
-      // if (mortgageMaterials.isNotEmpty) {
-      //   currentMortgageMaterial.value = mortgage == null
-      //       ? mortgageMaterials.first
-      //       : mortgageMaterials.firstWhere(
-      //           (element) => element.id == mortgage!.mortgageMaterialId);
-      // }
-      void scrollToFocusedTextField() {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          for (final focusNode in focusNodes) {
-            if (focusNode.hasFocus) {
-              scrollController.animateTo(
-                scrollController.position.maxScrollExtent,
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-              break;
-            }
-          }
-        });
-      }
+    //   // if (mortgageMaterials.isNotEmpty) {
+    //   //   currentMortgageMaterial.value = mortgage == null
+    //   //       ? mortgageMaterials.first
+    //   //       : mortgageMaterials.firstWhere(
+    //   //           (element) => element.id == mortgage!.mortgageMaterialId);
+    //   // }
+    //   void scrollToFocusedTextField() {
+    //     WidgetsBinding.instance.addPostFrameCallback((_) {
+    //       for (final focusNode in focusNodes) {
+    //         if (focusNode.hasFocus) {
+    //           scrollController.animateTo(
+    //             scrollController.position.maxScrollExtent,
+    //             duration: Duration(milliseconds: 300),
+    //             curve: Curves.easeInOut,
+    //           );
+    //           break;
+    //         }
+    //       }
+    //     });
+    //   }
 
-      final lifecycleEventHandler =
-          LifecycleEventHandler(onDidChangeMetrics: () {
-        if (View.of(context).viewInsets.bottom > 0.0) {
-          scrollToFocusedTextField();
-        }
-      });
+    //   final lifecycleEventHandler =
+    //       LifecycleEventHandler(onDidChangeMetrics: () {
+    //     if (View.of(context).viewInsets.bottom > 0.0) {
+    //       scrollToFocusedTextField();
+    //     }
+    //   });
 
-      WidgetsBinding.instance.addObserver(lifecycleEventHandler);
+    //   WidgetsBinding.instance.addObserver(lifecycleEventHandler);
 
-      return () {
-        WidgetsBinding.instance.removeObserver(lifecycleEventHandler);
-      };
-    }, [scrollController, items, familyRelations, mortgageMaterials]);
+    //   return () {
+    //     WidgetsBinding.instance.removeObserver(lifecycleEventHandler);
+    //   };
+    // }, [scrollController, items, familyRelations, mortgageMaterials]);
 
     return Scaffold(
       appBar: AppBar(
@@ -157,13 +157,13 @@ class MortgageInput extends HookConsumerWidget {
                           currentItem.value = value;
                         }
                       },
-                      onTap: () {
-                        scrollController.animateTo(
-                          scrollController.position.maxScrollExtent,
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
+                      // onTap: () {
+                      //   scrollController.animateTo(
+                      //     scrollController.position.maxScrollExtent,
+                      //     duration: Duration(milliseconds: 300),
+                      //     curve: Curves.easeInOut,
+                      //   );
+                      // },
                       hintText: "Item Name",
                       labelText: "Item Name",
                       onAddPressed: () {
@@ -194,13 +194,13 @@ class MortgageInput extends HookConsumerWidget {
                         currentMortgageMaterial.value = value;
                       }
                     },
-                    onTap: () {
-                      scrollController.animateTo(
-                        scrollController.position.maxScrollExtent,
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
+                    // onTap: () {
+                    //   scrollController.animateTo(
+                    //     scrollController.position.maxScrollExtent,
+                    //     duration: Duration(milliseconds: 300),
+                    //     curve: Curves.easeInOut,
+                    //   );
+                    // },
                     hintText: "Mortgage Material",
                     labelText: "Mortgage Material",
                     onAddPressed: () {
@@ -282,13 +282,13 @@ class MortgageInput extends HookConsumerWidget {
                         currentFamilyRelation.value = value;
                       }
                     },
-                    onTap: () {
-                      scrollController.animateTo(
-                        scrollController.position.maxScrollExtent,
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
+                    // onTap: () {
+                    //   scrollController.animateTo(
+                    //     scrollController.position.maxScrollExtent,
+                    //     duration: Duration(milliseconds: 300),
+                    //     curve: Curves.easeInOut,
+                    //   );
+                    // },
                     hintText: "Family Relation",
                     labelText: "Family Relation",
                     onAddPressed: () {
@@ -339,13 +339,13 @@ class MortgageInput extends HookConsumerWidget {
                   selectedValue: interestType.value,
                   labelText: 'Interest Type',
                   hintText: 'Interest Type',
-                  onTap: () {
-                    scrollController.animateTo(
-                      scrollController.position.maxScrollExtent,
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  },
+                  // onTap: () {
+                  //   scrollController.animateTo(
+                  //     scrollController.position.maxScrollExtent,
+                  //     duration: Duration(milliseconds: 300),
+                  //     curve: Curves.easeInOut,
+                  //   );
+                  // },
                   items: [
                     DropdownMenuItem(
                       value: InterestType.simple,
@@ -367,13 +367,13 @@ class MortgageInput extends HookConsumerWidget {
                   }),
               if (interestType.value == InterestType.compound)
                 StyledDropdown<CompoundingFrequency>(
-                  onTap: () {
-                    scrollController.animateTo(
-                      scrollController.position.maxScrollExtent,
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  },
+                  // onTap: () {
+                  //   scrollController.animateTo(
+                  //     scrollController.position.maxScrollExtent,
+                  //     duration: Duration(milliseconds: 300),
+                  //     curve: Curves.easeInOut,
+                  //   );
+                  // },
                   hintText: "Compounding Frequency",
                   labelText: "Compounding Frequency",
                   selectedValue: compoundingFrequency.value,

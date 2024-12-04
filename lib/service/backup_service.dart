@@ -1,6 +1,8 @@
 import 'dart:io';
+// import 'dart:isolate';
 
 import 'package:flutter/material.dart';
+// import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -54,6 +56,11 @@ class BackupService {
     return false;
   }
 
+  // static Future<bool> downloadFileToDevice() async {
+  //   BackgroundIsolateBinaryMessenger.ensureInitialized();
+  //  return Isolate.run<bool>(downloadDB);
+  // }
+
   static Future<bool> downloadFileToDevice() async {
     bool isDownloaded = false;
     final driveApi = await getDriveApi();
@@ -79,8 +86,7 @@ class BackupService {
               }
               await tempFile.writeAsBytes(bytes, flush: true);
               final tempDb = await openDatabase(tempFile.path,
-                  readOnly: true, singleInstance: true, version: 1);
-
+                  readOnly: true, singleInstance: true, version: 1, password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf');
               await DatabaseHelper.mergeTables(tempDb);
               await tempDb.close();
               await tempFile.delete();
@@ -160,7 +166,8 @@ class BackupService {
     return null;
   }
 
-  static Future<GoogleSignInAuthentication> saveData(GoogleSignInAccount account) async {
+  static Future<GoogleSignInAuthentication> saveData(
+      GoogleSignInAccount account) async {
     FastDB.putDisplayName(account.displayName ?? "");
     FastDB.putPhotourl(account.photoUrl ?? "");
     FastDB.putEmail(account.email);
@@ -265,7 +272,7 @@ Future<List> changeAccount(BuildContext context) async {
   } else if (!status && context.mounted) {
     showErrorSnackBar(context, "Data Download Failed");
   }
-  return [googleSignInAuthentication,account];
+  return [googleSignInAuthentication, account];
 }
 
 

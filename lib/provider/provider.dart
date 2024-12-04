@@ -68,6 +68,19 @@ Future<bool> authenticate(Ref ref) async {
 }
 
 @riverpod
+class Secure extends _$Secure {
+  @override
+  bool build() => FastDB.getSecure();
+
+  Future<void> toggle() async{
+    state = !state;
+    FastDB.putSecure(state);
+    await FastDB.flush();
+  }
+}
+
+
+@riverpod
 class DriveAccessToken extends _$DriveAccessToken {
   @override 
   String build() => FastDB.getDriveAccessToken();
@@ -343,7 +356,7 @@ class FamilyRelationList extends _$FamilyRelationList {
 
   Future<List<FamilyRelation>> readAllFamilyRelations() async {
     db = ref.watch(dBProvider).value!;
-    final orderBy = '${FamilyRelationFields.id} DESC';
+    final orderBy = FamilyRelationFields.name;
     final result = await db.query(FamilyRelation.tableName, orderBy: orderBy);
     return result.map((json) => FamilyRelation.fromJson(json)).toList();
   }
@@ -455,7 +468,7 @@ class MortgageMaterialList extends _$MortgageMaterialList {
 
   Future<List<MortgageMaterial>> readAllMortgageMaterials() async {
     db = ref.watch(dBProvider).value!;
-    final orderBy = '${MortgageMaterialFields.id} DESC';
+    final orderBy = MortgageMaterialFields.name;
     final result = await db.query(MortgageMaterial.tableName, orderBy: orderBy);
     return result.map((json) => MortgageMaterial.fromJson(json)).toList();
   }
@@ -563,7 +576,7 @@ class ItemList extends _$ItemList {
 
   Future<List<Item>> readAllItems() async {
     db = ref.watch(dBProvider).value!;
-    final orderBy = '${ItemFields.id} DESC';
+    final orderBy = ItemFields.name;
     final result = await db.query(Item.tableName, orderBy: orderBy);
     return result.map((json) => Item.fromJson(json)).toList();
   }

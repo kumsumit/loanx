@@ -164,6 +164,48 @@ class MyDrawer extends HookWidget {
                 );
               },
             ),
+            Consumer(builder: (context, ref, child) {
+              final secure = ref.watch(secureProvider);
+              return ListTile(
+                  leading: Icon( secure ? Icons.lock_open_rounded: Icons.lock_outlined),
+                  title: Text( secure? 'Make App Unsecure': 'Make App Secure',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      )),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor:
+                            Theme.of(context).colorScheme.surfaceContainer,
+                        title: const Text('Confirmation'),
+                        content: secure ? Text("Are you sure you want to make the app unsecure?"): Text("Are you sure you want to secure the app?"),
+                        actions: <Widget>[
+                         OutlinedButton(
+                              child: const Text('Ok'),
+                              onPressed: () async {
+                                await ref.read(secureProvider.notifier).toggle();
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                  if(secure){
+                                  showSnackBar(context, "App gets secured, Now you need to restart the app");
+                                  }else{
+                                    showSnackBar(context, "App gets unsecured, Now you need to restart the app");
+                                  }
+                                }
+                              },
+                            ),
+                            OutlinedButton(
+                              child: const Text('Cancel'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                        ],
+                      ),
+                    );
+                  });
+            }),
             ListTile(
                 leading: Icon(Icons.color_lens),
                 title: Text('Change App Color',
@@ -228,6 +270,12 @@ class MyDrawer extends HookWidget {
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
                   )),
+              subtitle: Consumer(
+                builder: (context,ref,child) {
+                  final holdingPeriod = ref.watch(holdingPeriodProvider);
+                  return Text("Default is $holdingPeriod Years");
+                }
+              ),    
               onTap: () {
                 showDialog(
                   context: context,
@@ -243,6 +291,7 @@ class MyDrawer extends HookWidget {
                             Consumer(builder: (context, ref, child) {
                               final holdingPeriod =
                                   ref.watch(holdingPeriodProvider);
+                                  debugPrint(holdingPeriod.toString());
                               return Slider(
                                 value: holdingPeriod.toDouble(),
                                 min: 0,
@@ -250,9 +299,14 @@ class MyDrawer extends HookWidget {
                                 divisions: 30,
                                 label: holdingPeriod.toString(),
                                 onChanged: (value) {
+                                  if(value.toInt() ==0){
+                                    showErrorSnackBar(context, "Holding Period can't be 0");
+                                    return;
+                                  }
+                                  if(value.toInt() != holdingPeriod.toInt()){
                                   ref
                                       .read(holdingPeriodProvider.notifier)
-                                      .set(value.toInt());
+                                      .set(value.toInt());}
                                 },
                               );
                             }),
@@ -297,7 +351,13 @@ class MyDrawer extends HookWidget {
             ),
             ListTile(
               leading: Icon(Icons.input),
-              title: Text('Set Interest Type'),
+              title: Text('Change Interest Type'),
+              subtitle: Consumer(
+                builder: (context,ref,child) {
+                  final interestType = ref.watch(interestTypeStatusProvider);
+                  return Text("Default is ${interestType.name.toSentenceCase()} Interest");
+                }
+              ),
               onTap: () async {
                 showDialog(
                     context: context,
@@ -396,7 +456,8 @@ class MyDrawer extends HookWidget {
                                         ],
                                         hintText: "Compounding Frequency",
                                         labelText: "Compounding Frequency",
-                                        onTap: () {})
+                                        // onTap: () {}
+                                        )
                                     : SizedBox();
                               }),
                             ],
@@ -429,10 +490,12 @@ class MyDrawer extends HookWidget {
               final hour = ref.watch(scheduledBackUpTimeHourProvider);
               final minute = ref.watch(scheduledBackUpTimeMinuteProvider);
               final isBackUpRegistered = ref.watch(backUpRegisteredProvider);
+              final time = TimeOfDay(hour: hour, minute: minute);
               if (isBackUpRegistered) {
                 return ListTile(
                     leading: Icon(Icons.settings_backup_restore),
-                    title: Text('Set Backup Time'),
+                    title: Text('Change Backup Time'),
+                    subtitle: Text("Default is ${time.format(context)}"),
                     onTap: () async {
                       final TimeOfDay? picked = await showTimePicker(
                         context: context,
@@ -569,6 +632,7 @@ class MyDrawer extends HookWidget {
                 leading: Icon(Icons.change_circle_outlined),
                 title: Text(token.isEmpty ? 'Add Account' : 'Change Account'),
                 onTap: () async {
+                  final isAddingAccount = token.isEmpty;
                   isLoading.value = true;
                   final chngAccount = await changeAccount(context);
                   if (chngAccount.length == 2) {
@@ -585,11 +649,21 @@ class MyDrawer extends HookWidget {
                       ref
                           .read(driveAccessTokenProvider.notifier)
                           .set(authentication.accessToken ?? "");
+                          
+                    }
+                    if (context.mounted) {
+                      if(isAddingAccount){
+                        showSnackBar(context, "Account Added");
+                      }else{
+                        showSnackBar(context, "Account Changed");
+                      }
                     }
                     isLoading.value = false;
-                    if (context.mounted) {
-                      showSnackBar(context, "Account Changed");
-                    }
+                  }
+                  if(context.mounted && isLoading.value){
+                     isLoading.value = false;
+                    showSnackBar(context, "You have not selected any account.");
+                    
                   }
                 },
               );

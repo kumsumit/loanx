@@ -51,7 +51,7 @@ class StyledTextField extends StatelessWidget {
           // suffixIcon: Icon(Icons.check_circle, color: Colors.green),
         ),
         keyboardType: keyboardType,
-        onTap: onTap,
+        // onTap: onTap,
       ),
     );
   }

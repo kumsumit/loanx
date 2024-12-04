@@ -23,6 +23,13 @@ void main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   await FastDB.init();
+  if(!FastDB.getIsTableCreated()){
+    FastDB.putHoldingPeriod(5);
+    FastDB.putInterestRate(2.5);
+    FastDB.putInterestType(1);
+    FastDB.putScheduledBackUpTimeHour(2);
+    await FastDB.flush();
+  }
   // await Firebase.initializeApp();
 
   // final directory = await getApplicationSupportDirectory();

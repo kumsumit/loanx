@@ -75,6 +75,7 @@ class FastDB {
           themeMode: flatDb.themeMode,
           appColor: flatDb.appColor,
           holdingPeriod: flatDb.holdingPeriod,
+          interestRate: flatDb.interestRate,
           interestType: flatDb.interestType,
           compoundingFrequency: flatDb.compoundingFrequency,
           scheduledBackUpTimeHour: flatDb.scheduledBackUpTimeHour,
@@ -116,13 +117,17 @@ class FastDB {
     return flatDbBuilder.holdingPeriod ?? 5;
   }
 
+  static double getInterestRate() {
+    return flatDbBuilder.interestRate ?? 2.5;
+  }
+
   static int getInterestType() {
-    return flatDbBuilder.interestType ?? InterestType.simple.index;
+    return flatDbBuilder.interestType ?? InterestType.compound.index;
   }
 
   static int getCompoundingFrequency() {
     return flatDbBuilder.compoundingFrequency ??
-        CompoundingFrequency.yearly.index;
+        CompoundingFrequency.monthly.index;
   }
 
   static int getScheduledBackUpTimeHour() {
@@ -191,6 +196,10 @@ class FastDB {
 
   static void putHoldingPeriod(int holdingPeriod) {
     flatDbBuilder.holdingPeriod = holdingPeriod;
+  }
+
+  static void putInterestRate(double interestRate) {
+    flatDbBuilder.interestRate = interestRate;
   }
 
   static void putInterestType(int interestType) {

@@ -3,6 +3,7 @@ table FlatDB {
   theme_mode: int8;
   app_color: string;
   holding_period:int8;
+  interest_rate:float;
   interest_type:int8;
   compounding_frequency:int8;
   scheduled_back_up_time_hour: int8;
