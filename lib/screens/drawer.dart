@@ -486,6 +486,37 @@ class MyDrawer extends HookWidget {
                     });
               },
             ),
+            Consumer(
+              builder: (context, ref, child) {
+                final interestRate = ref.watch(interestRateProvider);
+                return ListTile(
+                  leading: Icon(Icons.percent),
+                  title: Text('Interest Rate'),
+                  subtitle: Text("Default Interest Rate is $interestRate"),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Change Interest Rate'),
+                        content: Consumer(builder: (context, ref, child) {
+                          final interestRate = ref.watch(interestRateProvider);
+                          return Slider(
+                            value: interestRate,
+                            min: 0.0,
+                            max: 100.0,
+                            divisions: 100,
+                            label: interestRate.toString(),
+                            onChanged: (value) {
+                              ref.read(interestRateProvider.notifier).set(value);
+                            },
+                          );
+                        }),
+                      ),
+                    );
+                  }
+                );
+              }
+            ),
             Consumer(builder: (context, ref, child) {
               final hour = ref.watch(scheduledBackUpTimeHourProvider);
               final minute = ref.watch(scheduledBackUpTimeMinuteProvider);
@@ -681,6 +712,7 @@ class MyDrawer extends HookWidget {
                     ref.read(displayNameProvider.notifier).set("");
                     ref.read(photoUrlProvider.notifier).set("");
                     ref.read(emailProvider.notifier).set("");
+                    ref.read(driveAccessTokenProvider.notifier).set("");
                     ref.read(backUpRegisteredProvider.notifier).set(false);
                   });
             }),

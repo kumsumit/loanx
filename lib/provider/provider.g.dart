@@ -210,6 +210,21 @@ final interestTypeStatusProvider =
 );
 
 typedef _$InterestTypeStatus = AutoDisposeNotifier<InterestType>;
+String _$interestRateHash() => r'43877bba667fbf31c28743a6e9f42fde4995d69d';
+
+/// See also [InterestRate].
+@ProviderFor(InterestRate)
+final interestRateProvider =
+    AutoDisposeNotifierProvider<InterestRate, double>.internal(
+  InterestRate.new,
+  name: r'interestRateProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$interestRateHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$InterestRate = AutoDisposeNotifier<double>;
 String _$compoundingFrequencyStatusHash() =>
     r'061e70a3ad757e7c71bd743386b702b7b84dab5a';
 

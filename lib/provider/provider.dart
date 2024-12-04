@@ -216,6 +216,19 @@ class InterestTypeStatus extends _$InterestTypeStatus {
 }
 
 @riverpod
+class InterestRate extends _$InterestRate {
+  @override
+  double build() {
+    return FastDB.getInterestRate();
+  }
+
+  void set(double interestRate) {
+    state = interestRate;
+    FastDB.putInterestRate(interestRate);
+  }
+}
+
+@riverpod
 class CompoundingFrequencyStatus extends _$CompoundingFrequencyStatus {
   @override
   CompoundingFrequency build() {

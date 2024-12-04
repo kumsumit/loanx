@@ -65,7 +65,7 @@ class MortgageInput extends HookConsumerWidget {
     final loanAmountController =
         useTextEditingController(text: mortgage?.loanAmount.toString() ?? '');
     final interestRateController =
-        useTextEditingController(text: mortgage?.interestRate.toString() ?? '');
+        useTextEditingController(text: mortgage?.interestRate.toString() ?? ref.read(interestRateProvider).toString());
     final weightController =
         useTextEditingController(text: mortgage?.weight.toString() ?? '');
     final additionalDetailsController =
