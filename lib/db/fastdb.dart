@@ -77,7 +77,7 @@ class FastDB {
           holdingPeriod: flatDb.holdingPeriod,
           interestRate: flatDb.interestRate,
           interestType: flatDb.interestType,
-          compoundingFrequency: flatDb.compoundingFrequency,
+          interestFrequency: flatDb.interestFrequency,
           scheduledBackUpTimeHour: flatDb.scheduledBackUpTimeHour,
           scheduledBackUpTimeMinute: flatDb.scheduledBackUpTimeMinute,
           driveAccessToken: flatDb.driveAccessToken,
@@ -125,9 +125,9 @@ class FastDB {
     return flatDbBuilder.interestType ?? InterestType.compound.index;
   }
 
-  static int getCompoundingFrequency() {
-    return flatDbBuilder.compoundingFrequency ??
-        CompoundingFrequency.monthly.index;
+  static int getInterestFrequency() {
+    return flatDbBuilder.interestFrequency ??
+        InterestFrequency.monthly.index;
   }
 
   static int getScheduledBackUpTimeHour() {
@@ -206,8 +206,8 @@ class FastDB {
     flatDbBuilder.interestType = interestType;
   }
 
-  static void putCompoundingFrequency(int compoundingFrequency) {
-    flatDbBuilder.compoundingFrequency = compoundingFrequency;
+  static void putInterestFrequency(int interestFrequency) {
+    flatDbBuilder.interestFrequency = interestFrequency;
   }
 
   static void putScheduledBackUpTimeHour(int scheduledBackUpTimeHour) {

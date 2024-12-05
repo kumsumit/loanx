@@ -27,7 +27,7 @@ class FlatDb {
       const fb.Float32Reader().vTableGet(_bc, _bcOffset, 12, 0.0);
   int get interestType =>
       const fb.Int8Reader().vTableGet(_bc, _bcOffset, 14, 0);
-  int get compoundingFrequency =>
+  int get interestFrequency =>
       const fb.Int8Reader().vTableGet(_bc, _bcOffset, 16, 0);
   int get scheduledBackUpTimeHour =>
       const fb.Int8Reader().vTableGet(_bc, _bcOffset, 18, 0);
@@ -56,7 +56,7 @@ class FlatDb {
 
   @override
   String toString() {
-    return 'FlatDb{isTableCreated: $isTableCreated, themeMode: $themeMode, appColor: $appColor, holdingPeriod: $holdingPeriod, interestRate: $interestRate, interestType: $interestType, compoundingFrequency: $compoundingFrequency, scheduledBackUpTimeHour: $scheduledBackUpTimeHour, scheduledBackUpTimeMinute: $scheduledBackUpTimeMinute, driveAccessToken: $driveAccessToken, driveAccessTokenExpires: $driveAccessTokenExpires, driveFileId: $driveFileId, driveUser: $driveUser, isBackUpRegistered: $isBackUpRegistered, dbUpdateTime: $dbUpdateTime, displayName: $displayName, email: $email, photourl: $photourl, backupTaskId: $backupTaskId, secure: $secure}';
+    return 'FlatDb{isTableCreated: $isTableCreated, themeMode: $themeMode, appColor: $appColor, holdingPeriod: $holdingPeriod, interestRate: $interestRate, interestType: $interestType, compoundingFrequency: $interestFrequency, scheduledBackUpTimeHour: $scheduledBackUpTimeHour, scheduledBackUpTimeMinute: $scheduledBackUpTimeMinute, driveAccessToken: $driveAccessToken, driveAccessTokenExpires: $driveAccessTokenExpires, driveFileId: $driveFileId, driveUser: $driveUser, isBackUpRegistered: $isBackUpRegistered, dbUpdateTime: $dbUpdateTime, displayName: $displayName, email: $email, photourl: $photourl, backupTaskId: $backupTaskId, secure: $secure}';
   }
 }
 
@@ -74,7 +74,7 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
   int? holdingPeriod;
   double? interestRate;
   int? interestType;
-  int? compoundingFrequency;
+  int? interestFrequency;
   int? scheduledBackUpTimeHour;
   int? scheduledBackUpTimeMinute;
   String? driveAccessToken;
@@ -96,7 +96,7 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     this.holdingPeriod,
     this.interestRate,
     this.interestType,
-    this.compoundingFrequency,
+    this.interestFrequency,
     this.scheduledBackUpTimeHour,
     this.scheduledBackUpTimeMinute,
     this.driveAccessToken,
@@ -137,7 +137,7 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addInt8(3, holdingPeriod);
     fbBuilder.addFloat32(4, interestRate);
     fbBuilder.addInt8(5, interestType);
-    fbBuilder.addInt8(6, compoundingFrequency);
+    fbBuilder.addInt8(6, interestFrequency);
     fbBuilder.addInt8(7, scheduledBackUpTimeHour);
     fbBuilder.addInt8(8, scheduledBackUpTimeMinute);
     fbBuilder.addOffset(9, driveAccessTokenOffset);

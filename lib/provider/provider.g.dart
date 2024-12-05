@@ -225,24 +225,23 @@ final interestRateProvider =
 );
 
 typedef _$InterestRate = AutoDisposeNotifier<double>;
-String _$compoundingFrequencyStatusHash() =>
-    r'061e70a3ad757e7c71bd743386b702b7b84dab5a';
+String _$interestFrequencyStatusHash() =>
+    r'9e92c86199e1dbf1b8b7f9537d2287584851ffc1';
 
-/// See also [CompoundingFrequencyStatus].
-@ProviderFor(CompoundingFrequencyStatus)
-final compoundingFrequencyStatusProvider = AutoDisposeNotifierProvider<
-    CompoundingFrequencyStatus, CompoundingFrequency>.internal(
-  CompoundingFrequencyStatus.new,
-  name: r'compoundingFrequencyStatusProvider',
+/// See also [InterestFrequencyStatus].
+@ProviderFor(InterestFrequencyStatus)
+final interestFrequencyStatusProvider = AutoDisposeNotifierProvider<
+    InterestFrequencyStatus, InterestFrequency>.internal(
+  InterestFrequencyStatus.new,
+  name: r'interestFrequencyStatusProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$compoundingFrequencyStatusHash,
+      : _$interestFrequencyStatusHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$CompoundingFrequencyStatus
-    = AutoDisposeNotifier<CompoundingFrequency>;
+typedef _$InterestFrequencyStatus = AutoDisposeNotifier<InterestFrequency>;
 String _$backupStatusHash() => r'990dc476961e6789301b13e5a9737f80627a70e5';
 
 /// See also [BackupStatus].

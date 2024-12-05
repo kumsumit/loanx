@@ -26,7 +26,6 @@ void main() async {
   if(!FastDB.getIsTableCreated()){
     FastDB.putHoldingPeriod(5);
     FastDB.putInterestRate(2.5);
-    FastDB.putInterestType(1);
     FastDB.putScheduledBackUpTimeHour(2);
     await FastDB.flush();
   }

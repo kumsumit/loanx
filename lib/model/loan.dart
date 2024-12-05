@@ -5,7 +5,7 @@ class Loan {
   final double interestRate;
   final int duration;
   final InterestType interestType;
-  final CompoundingFrequency compoundingFrequency;
+  final InterestFrequency compoundingFrequency;
 
   Loan({
     required this.principal,
@@ -21,13 +21,13 @@ class Loan {
     } else if (interestType == InterestType.compound) {
       int n;
       switch (compoundingFrequency) {
-        case CompoundingFrequency.monthly:
+        case InterestFrequency.monthly:
           n = 12;
           break;
-        case CompoundingFrequency.quarterly:
+        case InterestFrequency.quarterly:
           n = 4;
           break;
-        case CompoundingFrequency.halfYearly:
+        case InterestFrequency.halfYearly:
           n = 2;
           break;
         default:
@@ -45,7 +45,7 @@ enum InterestType {
   compound,
 }
 
-enum CompoundingFrequency {
+enum InterestFrequency {
   yearly,
   halfYearly,
   quarterly,

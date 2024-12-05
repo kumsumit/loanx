@@ -229,15 +229,15 @@ class InterestRate extends _$InterestRate {
 }
 
 @riverpod
-class CompoundingFrequencyStatus extends _$CompoundingFrequencyStatus {
+class InterestFrequencyStatus extends _$InterestFrequencyStatus {
   @override
-  CompoundingFrequency build() {
-    return CompoundingFrequency.values[FastDB.getCompoundingFrequency()];
+  InterestFrequency build() {
+    return InterestFrequency.values[FastDB.getInterestFrequency()];
   }
 
-  void set(CompoundingFrequency compundingFrequency) {
-    state = compundingFrequency;
-    FastDB.putCompoundingFrequency(compundingFrequency.index);
+  void set(InterestFrequency interestFrequency) {
+    state = interestFrequency;
+    FastDB.putInterestFrequency(interestFrequency.index);
   }
 }
 

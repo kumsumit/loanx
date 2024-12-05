@@ -30,7 +30,7 @@ class MortgageDetails extends ConsumerWidget {
                     duration:
                         DateTime.now().difference(mortgage.dateCreated).inDays,
                     interestType: InterestType.simple,
-                    compoundingFrequency: CompoundingFrequency.monthly);
+                    compoundingFrequency: InterestFrequency.monthly);
                 final double interest = loan.calculateInterest();
                 return Scaffold(
                   appBar: AppBar(
@@ -68,7 +68,7 @@ class MortgageDetails extends ConsumerWidget {
                             buildDataRow(
                                 context,
                                 'Compounding Frequency',
-                                CompoundingFrequency
+                                InterestFrequency
                                     .values[mortgage.compoundingFrequency].name
                                     .toSentenceCase()),
                           buildDataRow(

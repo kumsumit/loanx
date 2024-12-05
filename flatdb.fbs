@@ -5,7 +5,7 @@ table FlatDB {
   holding_period:int8;
   interest_rate:float;
   interest_type:int8;
-  compounding_frequency:int8;
+  interest_frequency:int8;
   scheduled_back_up_time_hour: int8;
   scheduled_back_up_time_minute: int8;
   drive_access_token: string;

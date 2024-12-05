@@ -167,8 +167,9 @@ class MyDrawer extends HookWidget {
             Consumer(builder: (context, ref, child) {
               final secure = ref.watch(secureProvider);
               return ListTile(
-                  leading: Icon( secure ? Icons.lock_open_rounded: Icons.lock_outlined),
-                  title: Text( secure? 'Make App Unsecure': 'Make App Secure',
+                  leading: Icon(
+                      secure ? Icons.lock_open_rounded : Icons.lock_outlined),
+                  title: Text(secure ? 'Make App Unsecure' : 'Make App Secure',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface,
                       )),
@@ -179,28 +180,33 @@ class MyDrawer extends HookWidget {
                         backgroundColor:
                             Theme.of(context).colorScheme.surfaceContainer,
                         title: const Text('Confirmation'),
-                        content: secure ? Text("Are you sure you want to make the app unsecure?"): Text("Are you sure you want to secure the app?"),
+                        content: secure
+                            ? Text(
+                                "Are you sure you want to make the app unsecure?")
+                            : Text("Are you sure you want to secure the app?"),
                         actions: <Widget>[
-                         OutlinedButton(
-                              child: const Text('Ok'),
-                              onPressed: () async {
-                                await ref.read(secureProvider.notifier).toggle();
-                                if (context.mounted) {
-                                  Navigator.of(context).pop();
-                                  if(secure){
-                                  showSnackBar(context, "App gets secured, Now you need to restart the app");
-                                  }else{
-                                    showSnackBar(context, "App gets unsecured, Now you need to restart the app");
-                                  }
-                                }
-                              },
-                            ),
-                            OutlinedButton(
-                              child: const Text('Cancel'),
-                              onPressed: () {
+                          OutlinedButton(
+                            child: const Text('Ok'),
+                            onPressed: () async {
+                              await ref.read(secureProvider.notifier).toggle();
+                              if (context.mounted) {
                                 Navigator.of(context).pop();
-                              },
-                            ),
+                                if (secure) {
+                                  showSnackBar(context,
+                                      "App gets secured, Now you need to restart the app");
+                                } else {
+                                  showSnackBar(context,
+                                      "App gets unsecured, Now you need to restart the app");
+                                }
+                              }
+                            },
+                          ),
+                          OutlinedButton(
+                            child: const Text('Cancel'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
                         ],
                       ),
                     );
@@ -247,7 +253,15 @@ class MyDrawer extends HookWidget {
                           ],
                         ),
                       ),
+                      actionsAlignment: MainAxisAlignment.spaceEvenly,
                       actions: <Widget>[
+                        OutlinedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              'Cancel',
+                            )),
                         Consumer(builder: (context, ref, child) {
                           return OutlinedButton(
                             child: const Text('Ok'),
@@ -270,12 +284,10 @@ class MyDrawer extends HookWidget {
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
                   )),
-              subtitle: Consumer(
-                builder: (context,ref,child) {
-                  final holdingPeriod = ref.watch(holdingPeriodProvider);
-                  return Text("Default is $holdingPeriod Years");
-                }
-              ),    
+              subtitle: Consumer(builder: (context, ref, child) {
+                final holdingPeriod = ref.watch(holdingPeriodProvider);
+                return Text("Default is $holdingPeriod Years");
+              }),
               onTap: () {
                 showDialog(
                   context: context,
@@ -285,13 +297,13 @@ class MyDrawer extends HookWidget {
                           Theme.of(context).colorScheme.surfaceContainer,
                       title: Text('Change Holding Period'),
                       content: SizedBox(
-                        height: 200,
+                        height: 100,
                         child: Column(
                           children: [
                             Consumer(builder: (context, ref, child) {
                               final holdingPeriod =
                                   ref.watch(holdingPeriodProvider);
-                                  debugPrint(holdingPeriod.toString());
+                              debugPrint(holdingPeriod.toString());
                               return Slider(
                                 value: holdingPeriod.toDouble(),
                                 min: 0,
@@ -299,14 +311,16 @@ class MyDrawer extends HookWidget {
                                 divisions: 30,
                                 label: holdingPeriod.toString(),
                                 onChanged: (value) {
-                                  if(value.toInt() ==0){
-                                    showErrorSnackBar(context, "Holding Period can't be 0");
+                                  if (value.toInt() == 0) {
+                                    showErrorSnackBar(
+                                        context, "Holding Period can't be 0");
                                     return;
                                   }
-                                  if(value.toInt() != holdingPeriod.toInt()){
-                                  ref
-                                      .read(holdingPeriodProvider.notifier)
-                                      .set(value.toInt());}
+                                  if (value.toInt() != holdingPeriod.toInt()) {
+                                    ref
+                                        .read(holdingPeriodProvider.notifier)
+                                        .set(value.toInt());
+                                  }
                                 },
                               );
                             }),
@@ -352,12 +366,11 @@ class MyDrawer extends HookWidget {
             ListTile(
               leading: Icon(Icons.input),
               title: Text('Change Interest Type'),
-              subtitle: Consumer(
-                builder: (context,ref,child) {
-                  final interestType = ref.watch(interestTypeStatusProvider);
-                  return Text("Default is ${interestType.name.toSentenceCase()} Interest");
-                }
-              ),
+              subtitle: Consumer(builder: (context, ref, child) {
+                final interestType = ref.watch(interestTypeStatusProvider);
+                return Text(
+                    "Default is ${interestType.name.toSentenceCase()} Interest");
+              }),
               onTap: () async {
                 showDialog(
                     context: context,
@@ -367,103 +380,42 @@ class MyDrawer extends HookWidget {
                             Theme.of(context).colorScheme.surfaceContainer,
                         title: Text('Select Interest Type'),
                         content: SizedBox(
-                          height: 200,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Expanded(
-                                child: Consumer(builder: (context, ref, child) {
-                                  final interestType =
-                                      ref.watch(interestTypeStatusProvider);
-                                  return ListView.builder(
-                                    itemCount: InterestType.values.length,
-                                    itemBuilder: (context, index) {
-                                      return RadioListTile(
-                                        value: InterestType.values[index],
-                                        groupValue: interestType,
-                                        title: Text(InterestType
-                                            .values[index].name
-                                            .toSentenceCase()),
-                                        onChanged: (value) {
-                                          if (value != null) {
-                                            ref
-                                                .read(interestTypeStatusProvider
-                                                    .notifier)
-                                                .set(value);
-                                          }
-                                        },
-                                      );
-                                    },
-                                  );
-                                }),
-                              ),
-                              const SizedBox(height: 20),
-                              Consumer(builder: (context, ref, child) {
-                                final compoundingFrequency = ref
-                                    .watch(compoundingFrequencyStatusProvider);
-                                return ref.watch(interestTypeStatusProvider) ==
-                                        InterestType.compound
-                                    ? StyledDropdown(
-                                        selectedValue: compoundingFrequency,
-                                        onChanged: (value) {
-                                          if (value != null) {
-                                            ref
-                                                .read(
-                                                    compoundingFrequencyStatusProvider
-                                                        .notifier)
-                                                .set(value);
-                                          }
-                                        },
-                                        items: [
-                                          DropdownMenuItem(
-                                            value: CompoundingFrequency.yearly,
-                                            child: Text('Yearly',
-                                                style: TextStyle(
-                                                    fontSize: 15.0,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .secondary)),
-                                          ),
-                                          DropdownMenuItem(
-                                            value:
-                                                CompoundingFrequency.halfYearly,
-                                            child: Text('Half-Yearly',
-                                                style: TextStyle(
-                                                    fontSize: 15.0,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .secondary)),
-                                          ),
-                                          DropdownMenuItem(
-                                            value:
-                                                CompoundingFrequency.quarterly,
-                                            child: Text('Quarterly',
-                                                style: TextStyle(
-                                                    fontSize: 15.0,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .secondary)),
-                                          ),
-                                          DropdownMenuItem(
-                                            value: CompoundingFrequency.monthly,
-                                            child: Text('Monthly',
-                                                style: TextStyle(
-                                                    fontSize: 15.0,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .secondary)),
-                                          ),
-                                        ],
-                                        hintText: "Compounding Frequency",
-                                        labelText: "Compounding Frequency",
-                                        // onTap: () {}
-                                        )
-                                    : SizedBox();
-                              }),
-                            ],
-                          ),
+                          height: 100,
+                          width: double.maxFinite * 0.8,
+                          child: Consumer(builder: (context, ref, child) {
+                            final interestType =
+                                ref.watch(interestTypeStatusProvider);
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: InterestType.values.length,
+                              itemBuilder: (context, index) {
+                                return RadioListTile(
+                                  value: InterestType.values[index],
+                                  groupValue: interestType,
+                                  title: Text(InterestType.values[index].name
+                                      .toSentenceCase()),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      ref
+                                          .read(interestTypeStatusProvider
+                                              .notifier)
+                                          .set(value);
+                                    }
+                                  },
+                                );
+                              },
+                            );
+                          }),
                         ),
+                        actionsAlignment: MainAxisAlignment.spaceEvenly,
                         actions: [
+                          OutlinedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text(
+                                'Cancel',
+                              )),
                           Consumer(builder: (context, ref, child) {
                             return OutlinedButton(
                               onPressed: () async {
@@ -486,10 +438,104 @@ class MyDrawer extends HookWidget {
                     });
               },
             ),
-            Consumer(
-              builder: (context, ref, child) {
-                final interestRate = ref.watch(interestRateProvider);
-                return ListTile(
+            Consumer(builder: (context, ref, child) {
+              final interestFrequency =
+                  ref.watch(interestFrequencyStatusProvider);
+              return ListTile(
+                leading: Icon(Icons.calendar_month_outlined),
+                title: Text('Interest Frequency'),
+                subtitle: Text(
+                    'Default interest frequency is ${interestFrequency.name}'),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Interest Frequency'),
+                      content: SizedBox(
+                        height: 100,
+                        child: Column(
+                          children: [
+                            StyledDropdown(
+                              selectedValue: interestFrequency,
+                              onChanged: (value) {
+                                if (value != null) {
+                                  ref
+                                      .read(interestFrequencyStatusProvider
+                                          .notifier)
+                                      .set(value);
+                                }
+                              },
+                              items: [
+                                DropdownMenuItem(
+                                  value: InterestFrequency.yearly,
+                                  child: Text('Yearly',
+                                      style: TextStyle(
+                                          fontSize: 15.0,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary)),
+                                ),
+                                DropdownMenuItem(
+                                  value: InterestFrequency.halfYearly,
+                                  child: Text('Half-Yearly',
+                                      style: TextStyle(
+                                          fontSize: 15.0,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary)),
+                                ),
+                                DropdownMenuItem(
+                                  value: InterestFrequency.quarterly,
+                                  child: Text('Quarterly',
+                                      style: TextStyle(
+                                          fontSize: 15.0,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary)),
+                                ),
+                                DropdownMenuItem(
+                                  value: InterestFrequency.monthly,
+                                  child: Text('Monthly',
+                                      style: TextStyle(
+                                          fontSize: 15.0,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary)),
+                                ),
+                              ],
+                              hintText: "Interest Frequency",
+                              labelText: "Interest Frequency",
+                              // onTap: () {}
+                            ),
+                            Text(
+                                'The interest frequency is set to ${interestFrequency.name}'),
+                          ],
+                        ),
+                      ),
+                      actionsAlignment: MainAxisAlignment.spaceEvenly,
+                      actions: [
+                        OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text("Cancel")),
+                        OutlinedButton(
+                            onPressed: () async {
+                              await FastDB.flush();
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                              }
+                            },
+                            child: Text('Ok'))
+                      ],
+                    ),
+                  );
+                },
+              );
+            }),
+            Consumer(builder: (context, ref, child) {
+              final interestRate = ref.watch(interestRateProvider);
+              return ListTile(
                   leading: Icon(Icons.percent),
                   title: Text('Interest Rate'),
                   subtitle: Text("Default Interest Rate is $interestRate"),
@@ -498,25 +544,61 @@ class MyDrawer extends HookWidget {
                       context: context,
                       builder: (context) => AlertDialog(
                         title: Text('Change Interest Rate'),
-                        content: Consumer(builder: (context, ref, child) {
-                          final interestRate = ref.watch(interestRateProvider);
-                          return Slider(
-                            value: interestRate,
-                            min: 0.0,
-                            max: 100.0,
-                            divisions: 100,
-                            label: interestRate.toString(),
-                            onChanged: (value) {
-                              ref.read(interestRateProvider.notifier).set(value);
-                            },
-                          );
-                        }),
+                        content: SizedBox(
+                          height: 100,
+                          child: Consumer(builder: (context, ref, child) {
+                            final interestRate =
+                                ref.watch(interestRateProvider);
+                            return Column(
+                              children: [
+                                Slider(
+                                  value: interestRate,
+                                  min: 0.0,
+                                  max: 100.0,
+                                  divisions: 100,
+                                  label: interestRate.toString(),
+                                  onChanged: (value) {
+                                    ref
+                                        .read(interestRateProvider.notifier)
+                                        .set(value);
+                                  },
+                                ),
+                                Text(
+                                  "Current Interest rate is $interestRate",
+                                )
+                              ],
+                            );
+                          }),
+                        ),
+                        actionsAlignment: MainAxisAlignment.spaceEvenly,
+                        actions: [
+                          OutlinedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text(
+                                'Cancel',
+                              )),
+                          Consumer(builder: (context, ref, child) {
+                            return OutlinedButton(
+                              onPressed: () async {
+                                await FastDB.flush();
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                  showSnackBar(
+                                      context, "Interest Rate Changed");
+                                }
+                              },
+                              child: Text(
+                                'OK',
+                              ),
+                            );
+                          }),
+                        ],
                       ),
                     );
-                  }
-                );
-              }
-            ),
+                  });
+            }),
             Consumer(builder: (context, ref, child) {
               final hour = ref.watch(scheduledBackUpTimeHourProvider);
               final minute = ref.watch(scheduledBackUpTimeMinuteProvider);
@@ -680,21 +762,19 @@ class MyDrawer extends HookWidget {
                       ref
                           .read(driveAccessTokenProvider.notifier)
                           .set(authentication.accessToken ?? "");
-                          
                     }
                     if (context.mounted) {
-                      if(isAddingAccount){
+                      if (isAddingAccount) {
                         showSnackBar(context, "Account Added");
-                      }else{
+                      } else {
                         showSnackBar(context, "Account Changed");
                       }
                     }
                     isLoading.value = false;
                   }
-                  if(context.mounted && isLoading.value){
-                     isLoading.value = false;
+                  if (context.mounted && isLoading.value) {
+                    isLoading.value = false;
                     showSnackBar(context, "You have not selected any account.");
-                    
                   }
                 },
               );

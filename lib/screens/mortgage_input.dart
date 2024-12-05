@@ -52,9 +52,9 @@ class MortgageInput extends HookConsumerWidget {
     final currentMortgageMaterial = useState<MortgageMaterial?>(null);
     final interestType = useState<InterestType>(InterestType.values[
         mortgage == null ? FastDB.getInterestType() : mortgage!.interestType]);
-    final compoundingFrequency = useState<CompoundingFrequency>(
-        CompoundingFrequency.values[mortgage == null
-            ? FastDB.getCompoundingFrequency()
+    final compoundingFrequency = useState<InterestFrequency>(
+        InterestFrequency.values[mortgage == null
+            ? FastDB.getInterestFrequency()
             : mortgage!.compoundingFrequency]);
     final depositorController =
         useTextEditingController(text: mortgage?.depositorName ?? '');
@@ -365,8 +365,8 @@ class MortgageInput extends HookConsumerWidget {
                   onChanged: (value) {
                     interestType.value = value ?? InterestType.simple;
                   }),
-              if (interestType.value == InterestType.compound)
-                StyledDropdown<CompoundingFrequency>(
+              // if (interestType.value == InterestType.compound)
+                StyledDropdown<InterestFrequency>(
                   // onTap: () {
                   //   scrollController.animateTo(
                   //     scrollController.position.maxScrollExtent,
@@ -374,33 +374,33 @@ class MortgageInput extends HookConsumerWidget {
                   //     curve: Curves.easeInOut,
                   //   );
                   // },
-                  hintText: "Compounding Frequency",
-                  labelText: "Compounding Frequency",
+                  hintText: "Interest Frequency",
+                  labelText: "Interest Frequency",
                   selectedValue: compoundingFrequency.value,
                   items: [
                     DropdownMenuItem(
-                      value: CompoundingFrequency.yearly,
+                      value: InterestFrequency.yearly,
                       child: Text('Yearly',
                           style: TextStyle(
                               fontSize: 15.0,
                               color: Theme.of(context).colorScheme.secondary)),
                     ),
                     DropdownMenuItem(
-                      value: CompoundingFrequency.halfYearly,
+                      value: InterestFrequency.halfYearly,
                       child: Text('Half-Yearly',
                           style: TextStyle(
                               fontSize: 15.0,
                               color: Theme.of(context).colorScheme.secondary)),
                     ),
                     DropdownMenuItem(
-                      value: CompoundingFrequency.quarterly,
+                      value: InterestFrequency.quarterly,
                       child: Text('Quarterly',
                           style: TextStyle(
                               fontSize: 15.0,
                               color: Theme.of(context).colorScheme.secondary)),
                     ),
                     DropdownMenuItem(
-                      value: CompoundingFrequency.monthly,
+                      value: InterestFrequency.monthly,
                       child: Text('Monthly',
                           style: TextStyle(
                               fontSize: 15.0,
@@ -409,7 +409,7 @@ class MortgageInput extends HookConsumerWidget {
                   ],
                   onChanged: (value) {
                     compoundingFrequency.value =
-                        value ?? CompoundingFrequency.yearly;
+                        value ?? InterestFrequency.yearly;
                   },
                 ),
               StyledTextField(
