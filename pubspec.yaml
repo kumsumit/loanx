@@ -1,5 +1,7 @@
 name: mortgage
-description: "Demonstrates how to use the storage plugin."
+description: "A mortgage calculator app that helps you calculate your monthly mortgage payments. It also helps you understand the different types of mortgages and how much you can borrow. Mortgage is available on both Android and iOS platforms, making it accessible to a wide range of users."
+publish_to: "none"
+version: 1.0.0+1
 
 environment:
   sdk: ^3.5.3
