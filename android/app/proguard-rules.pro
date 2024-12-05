@@ -1,5 +1,4 @@
 -keep class net.sqlcipher.** { *; }
--libraryjars libs/commons-codec.jar
 -libraryjars libs/guava-r09.jar
 -libraryjars libs/sqlcipher.jar
 
