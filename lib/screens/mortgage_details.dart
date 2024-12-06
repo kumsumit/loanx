@@ -24,21 +24,15 @@ class MortgageDetails extends ConsumerWidget {
                 final mortgageMaterial = mortgageMaterialList.firstWhere(
                     (mortgageMaterial) =>
                         mortgageMaterial.id == mortgage.mortgageMaterialId);
-                Duration duration = Duration();
-                if(mortgage.compoundingFrequency==InterestFrequency){
-
-                  duration = DateTime.now().difference(mortgage.dateCreated);
-                }else{
-
-                }
+              
                 final loan = Loan(
                     principal: mortgage.loanAmount,
                     interestRate: mortgage.interestRate,
                     duration:
                         DateTime.now().difference(mortgage.dateCreated).inDays,
-                    interestType: InterestType.simple,
-                    interestFrequency: InterestFrequency.monthly);
-                final double interest = loan.calculateInterest();
+                    interestType: InterestType.values[mortgage.interestType],
+                    interestFrequency: InterestFrequency.values[mortgage.interestFrequency]);
+                final double collectable = loan.calculateCollectable();
                 return Scaffold(
                   appBar: AppBar(
                     title: Text('Mortgage Details'),
@@ -61,8 +55,10 @@ class MortgageDetails extends ConsumerWidget {
                           buildDataRow(context, 'Address', mortgage.address),
                           buildDataRow(context, 'Loan Amount',
                               mortgage.loanAmount.toStringAsFixed(2)),
-                          buildDataRow(context, 'Calculated Interest',
-                              interest.toStringAsFixed(2)),
+                          buildDataRow(context, 'Interest',
+                              (collectable-mortgage.loanAmount).toStringAsFixed(2)),
+                              buildDataRow(context, 'Collectable Amount',
+                              collectable.toStringAsFixed(2)),
                           buildDataRow(context, 'Interest Rate',
                               mortgage.interestRate.toString()),
                           buildDataRow(
@@ -74,9 +70,9 @@ class MortgageDetails extends ConsumerWidget {
                               InterestType.compound)
                             buildDataRow(
                                 context,
-                                'Compounding Frequency',
+                                'Interest Frequency',
                                 InterestFrequency
-                                    .values[mortgage.compoundingFrequency].name
+                                    .values[mortgage.interestFrequency].name
                                     .toSentenceCase()),
                           buildDataRow(
                               context, 'Weight', mortgage.weight.toString()),

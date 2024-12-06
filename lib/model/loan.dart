@@ -15,25 +15,25 @@ class Loan {
     required this.interestFrequency,
   });
 
-  double calculateInterest() {
+  double calculateCollectable() {
     int n;
     switch (interestFrequency) {
       case InterestFrequency.monthly:
-        n = 365;
+        n = 30;
         break;
       case InterestFrequency.quarterly:
-        n = 90;
+        n = 120;
         break;
       case InterestFrequency.halfYearly:
         n = 182;
         break;
       default:
-        n = 1;
+        n = 365;
     }
     if (interestType == InterestType.simple) {
-      return principal * (interestRate / 100) * duration;
+      return principal+ (principal * (interestRate / 100) * duration)/n;
     } else if (interestType == InterestType.compound) {
-      return principal * pow((1 + (interestRate / 100) / n), n * duration) -
+      return principal * pow((1 + (interestRate / 100) * n),  duration/n) -
           principal;
     }
     return 0.0;

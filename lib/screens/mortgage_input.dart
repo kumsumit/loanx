@@ -52,10 +52,10 @@ class MortgageInput extends HookConsumerWidget {
     final currentMortgageMaterial = useState<MortgageMaterial?>(null);
     final interestType = useState<InterestType>(InterestType.values[
         mortgage == null ? FastDB.getInterestType() : mortgage!.interestType]);
-    final compoundingFrequency = useState<InterestFrequency>(
+    final interestFrequency = useState<InterestFrequency>(
         InterestFrequency.values[mortgage == null
             ? FastDB.getInterestFrequency()
-            : mortgage!.compoundingFrequency]);
+            : mortgage!.interestFrequency]);
     final depositorController =
         useTextEditingController(text: mortgage?.depositorName ?? '');
     final addressController =
@@ -376,7 +376,7 @@ class MortgageInput extends HookConsumerWidget {
                   // },
                   hintText: "Interest Frequency",
                   labelText: "Interest Frequency",
-                  selectedValue: compoundingFrequency.value,
+                  selectedValue: interestFrequency.value,
                   items: [
                     DropdownMenuItem(
                       value: InterestFrequency.yearly,
@@ -408,7 +408,7 @@ class MortgageInput extends HookConsumerWidget {
                     ),
                   ],
                   onChanged: (value) {
-                    compoundingFrequency.value =
+                    interestFrequency.value =
                         value ?? InterestFrequency.yearly;
                   },
                 ),
@@ -440,7 +440,7 @@ class MortgageInput extends HookConsumerWidget {
                             _parseDouble(interestRateController.text),
                             _parseDouble(weightController.text),
                             interestType.value.index,
-                            compoundingFrequency.value.index,
+                            interestFrequency.value.index,
                             additionalDetailsController.text,
                             currentItem.value!.id!,
                             currentFamilyRelation.value!.id!,
@@ -462,6 +462,7 @@ class MortgageInput extends HookConsumerWidget {
                   ),
                 );
               }),
+              SizedBox(height: 10),
             ]),
           )),
       // resizeToAvoidBottomInset: true,

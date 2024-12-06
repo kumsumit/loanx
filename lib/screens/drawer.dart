@@ -797,6 +797,8 @@ class MyDrawer extends HookWidget {
                       ref
                           .read(driveAccessTokenProvider.notifier)
                           .set(authentication.accessToken ?? "");
+                          ref.read(backUpRegisteredProvider.notifier).set(true);
+                          await FastDB.flush();
                     }
                     if (context.mounted) {
                       if (isAddingAccount) {

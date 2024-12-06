@@ -11,7 +11,7 @@ class MortgageFields {
   static final String interestRate = 'interestRate';
   static final String weight = 'weight';
   static final String interestType = 'interestType';
-  static final String compoundingFrequency = 'compoundingFrequency';
+  static final String interestFrequency = 'interestFrequency';
   static final String additionalDetails = 'additionalDetails';
   static final String dateCreated = 'dateCreated';
   static final String dateFinished = 'dateFinished';
@@ -30,7 +30,7 @@ class Mortgage {
   double interestRate;
   double weight;
   int interestType;
-  int compoundingFrequency;
+  int interestFrequency;
   String additionalDetails;
   DateTime dateCreated;
   DateTime? dateFinished;
@@ -47,7 +47,7 @@ class Mortgage {
       required this.interestRate,
       required this.weight,
       required this.interestType,
-      required this.compoundingFrequency,
+      required this.interestFrequency,
       required this.additionalDetails,
       required this.itemId,
       required this.familyRelationId,
@@ -96,7 +96,7 @@ class Mortgage {
           double? interestRate,
           double? weight,
           int? interestType,
-          int? compoundingFrequency,
+          int? interestFrequency,
           String? additionalDetails,
           DateTime? dateCreated,
           int? itemId,
@@ -111,8 +111,8 @@ class Mortgage {
           interestRate: interestRate ?? this.interestRate,
           weight: weight ?? this.weight,
           interestType: interestType ?? this.interestType,
-          compoundingFrequency:
-              compoundingFrequency ?? this.compoundingFrequency,
+          interestFrequency:
+              interestFrequency ?? this.interestFrequency,
           additionalDetails: additionalDetails ?? this.additionalDetails,
           dateCreated: dateCreated ?? this.dateCreated,
           itemId: itemId ?? this.itemId,
@@ -128,7 +128,7 @@ class Mortgage {
       interestRate: json[MortgageFields.interestRate] as double,
       weight: json[MortgageFields.weight] as double,
       interestType: json[MortgageFields.interestType] as int,
-      compoundingFrequency: json[MortgageFields.compoundingFrequency] as int,
+      interestFrequency: json[MortgageFields.interestFrequency] as int,
       additionalDetails: json[MortgageFields.additionalDetails] as String,
       dateCreated: DateTime.parse(json[MortgageFields.dateCreated] as String),
       itemId: json[MortgageFields.itemId] as int,
@@ -144,7 +144,7 @@ class Mortgage {
         MortgageFields.interestRate: interestRate,
         MortgageFields.weight: weight,
         MortgageFields.interestType: interestType,
-        MortgageFields.compoundingFrequency: compoundingFrequency,
+        MortgageFields.interestFrequency: interestFrequency,
         MortgageFields.additionalDetails: additionalDetails,
         MortgageFields.dateCreated:
             DateFormat('yyyy-MM-dd kk:mm:ss').format(dateCreated),

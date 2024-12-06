@@ -1009,7 +1009,7 @@ class DatabaseHelper {
     batch.execute(
         '''CREATE TABLE IF NOT EXISTS mortgages(id INTEGER PRIMARY KEY, depositorName TEXT,
            relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, interestType INTEGER,
-           compoundingFrequency INTEGER, additionalDetails TEXT,
+           interestFrequency INTEGER, additionalDetails TEXT,
            dateCreated TEXT, dateFinished TEXT, itemId INTEGER, familyRelationId INTEGER, mortgageMaterialId INTEGER,
            FOREIGN KEY (itemId) REFERENCES items (id),
            FOREIGN KEY (familyRelationId) REFERENCES familyRelations (id),
