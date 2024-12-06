@@ -12,7 +12,6 @@ import 'package:mortgage/widget/avatar.dart';
 import 'package:mortgage/widget/bullet.dart';
 import 'package:mortgage/widget/loading_overlay.dart';
 import 'package:mortgage/widget/snackbar.dart';
-import 'package:mortgage/widget/styled_dropdown.dart';
 import 'package:mortgage/widget/styled_text.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -117,44 +116,44 @@ class MyDrawer extends HookWidget {
               title: StyledText('About'),
               onTap: () {
                 showDialog(
-                  context: context,barrierDismissible: false,
+                  context: context,
+                  barrierDismissible: false,
                   builder: (context) {
-                    return AlertDialog(
+                    return Dialog(
                       backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainer,
-                      title: StyledText('About'),
-                      content: SingleChildScrollView(
-                        child:
-                            Column(mainAxisSize: MainAxisSize.min, children: [
-                          BulletPoint(
-                            'Traditionally practiced, now technologically advanced',
-                            italic: true,
-                          ),
-                          BulletPoint(
-                            'A revolutionary app to keep records of loans provided by the unorganized sector in India without any paperwork.\n',
-                          ),
-                          BulletPoint(
-                            'Mortgage is a simple and easy to use app that allows you to track your mortgage loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their mortgage records. With Mortgage, you can easily create, update, and delete mortgage loans, as well as view your loan history.',
-                          ),
-                          BulletPoint(
-                              'The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. Mortgage is available on both Android and iOS platforms, making it accessible to a wide range of users.'),
-                          BulletPoint(
-                            'Whether you\'re a seasoned mortgage professional or just starting out, Mortgage is the perfect app to help you manage your mortgage loans efficiently and efficiently.',
-                          ),
-                        ]),
-                      ),
-                      contentTextStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.inverseSurface),
-                      actions: [
-                        OutlinedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text(
-                            'OK',
-                          ),
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SingleChildScrollView(
+                          child:
+                              Column(mainAxisSize: MainAxisSize.min, children: [
+                            StyledHeading('About'),
+                            BulletPoint(
+                              'Traditionally practiced, now technologically advanced',
+                              italic: true,
+                            ),
+                            BulletPoint(
+                              'A revolutionary app to keep records of loans provided by the unorganized sector in India without any paperwork.\n',
+                            ),
+                            BulletPoint(
+                              'Mortgage is a simple and easy to use app that allows you to track your mortgage loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their mortgage records. With Mortgage, you can easily create, update, and delete mortgage loans, as well as view your loan history.',
+                            ),
+                            BulletPoint(
+                                'The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. Mortgage is available on both Android and iOS platforms, making it accessible to a wide range of users.'),
+                            BulletPoint(
+                              'Whether you\'re a seasoned mortgage professional or just starting out, Mortgage is the perfect app to help you manage your mortgage loans efficiently and efficiently.',
+                            ),
+                            OutlinedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text(
+                                'OK',
+                              ),
+                            ),
+                          ]),
                         ),
-                      ],
+                      ),
                     );
                   },
                 );
@@ -169,39 +168,55 @@ class MyDrawer extends HookWidget {
                       secure ? 'Make App Unsecure' : 'Make App Secure'),
                   onTap: () {
                     showDialog(
-                      context: context,barrierDismissible: false,
-                      builder: (context) => AlertDialog(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.surfaceContainer,
-                        title: StyledText('Confirmation'),
-                        content: StyledSubtitle(secure
-                            ? "Are you sure you want to make the app unsecure?"
-                            : "Are you sure you want to secure the app?"),
-                        actionsAlignment: MainAxisAlignment.spaceEvenly,
-                        actions: <Widget>[
-                          OutlinedButton(
-                            child: const Text('Cancel'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => Dialog(
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                StyledHeading('Confirmation'),
+                                StyledSubtitle(secure
+                                    ? "Are you sure you want to make the app unsecure?"
+                                    : "Are you sure you want to secure the app?"),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    OutlinedButton(
+                                      child: const Text('Cancel'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    OutlinedButton(
+                                      child: const Text('Ok'),
+                                      onPressed: () async {
+                                        await ref
+                                            .read(secureProvider.notifier)
+                                            .toggle();
+                                        if (context.mounted) {
+                                          Navigator.of(context).pop();
+                                          if (secure) {
+                                            showSnackBar(context,
+                                                "App gets secured, Now you need to restart the app");
+                                          } else {
+                                            showSnackBar(context,
+                                                "App gets unsecured, Now you need to restart the app");
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
-                          OutlinedButton(
-                            child: const Text('Ok'),
-                            onPressed: () async {
-                              await ref.read(secureProvider.notifier).toggle();
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                                if (secure) {
-                                  showSnackBar(context,
-                                      "App gets secured, Now you need to restart the app");
-                                } else {
-                                  showSnackBar(context,
-                                      "App gets unsecured, Now you need to restart the app");
-                                }
-                              }
-                            },
-                          ),
-                        ],
+                        ),
                       ),
                     );
                   });
@@ -211,59 +226,71 @@ class MyDrawer extends HookWidget {
                 title: StyledText('Change App Color'),
                 onTap: () {
                   showDialog(
-                    context: context,barrierDismissible: false,
-                    builder: (context) => AlertDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => Dialog(
                       backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainer,
-                      title: StyledText('Pick a color!'),
-                      content: Wrap(
-                        children: [
-                          Consumer(builder: (context, ref, child) {
-                            final color = ref.watch(pickerColorProvider);
-                            return ColorPicker(
-                              pickerColor: Color(int.parse(
-                                  'FF${color.substring(1)}',
-                                  radix: 16)),
-                              onColorChanged:
-                                  ref.read(pickerColorProvider.notifier).set,
-                            );
-                          }),
-                          Consumer(builder: (context, ref, child) {
-                            return OutlinedButton(
-                                onPressed: () async {
-                                  await ref
-                                      .read(appColorProvider.notifier)
-                                      .setFromLogo();
-                                  if (context.mounted) {
-                                    Navigator.pop(context);
-                                  }
-                                },
-                                child: Text("Set Logo Color"));
-                          })
-                        ],
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              StyledHeading('Pick a color!'),
+                              Consumer(builder: (context, ref, child) {
+                                final color = ref.watch(pickerColorProvider);
+                                return ColorPicker(
+                                  pickerColor:
+                                      Color(int.parse(color, radix: 16)),
+                                  onColorChanged: ref
+                                      .read(pickerColorProvider.notifier)
+                                      .set,
+                                );
+                              }),
+                              Consumer(builder: (context, ref, child) {
+                                return OutlinedButton(
+                                    onPressed: () async {
+                                      await ref
+                                          .read(appColorProvider.notifier)
+                                          .setFromLogo();
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                    child: Text("Set Logo Color"));
+                              }),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                  OutlinedButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(
+                                        'Cancel',
+                                      )),
+                                  Consumer(builder: (context, ref, child) {
+                                    return OutlinedButton(
+                                      child: const Text('Ok'),
+                                      onPressed: () async {
+                                        await ref
+                                            .read(appColorProvider.notifier)
+                                            .set();
+                                        if (context.mounted) {
+                                          Navigator.of(context).pop();
+                                          showSnackBar(
+                                              context, "App Color Changed");
+                                        }
+                                      },
+                                    );
+                                  }),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
                       ),
-                      actionsAlignment: MainAxisAlignment.spaceEvenly,
-                      actions: <Widget>[
-                        OutlinedButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text(
-                              'Cancel',
-                            )),
-                        Consumer(builder: (context, ref, child) {
-                          return OutlinedButton(
-                            child: const Text('Ok'),
-                            onPressed: () async {
-                              await ref.read(appColorProvider.notifier).set();
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                                showSnackBar(context, "App Color Changed");
-                              }
-                            },
-                          );
-                        }),
-                      ],
                     ),
                   );
                 }),
@@ -279,76 +306,86 @@ class MyDrawer extends HookWidget {
                   context: context,
                   barrierDismissible: false,
                   builder: (context) {
-                    return AlertDialog(
+                    return Dialog(
                       backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainer,
-                      title: StyledText('Change Holding Period'),
-                      content:Wrap(
-                        children: [
-                          Consumer(builder: (context, ref, child) {
-                            final holdingPeriod =
-                                ref.watch(holdingPeriodProvider);
-                            debugPrint(holdingPeriod.toString());
-                            return Slider(
-                              value: holdingPeriod.toDouble(),
-                              min: 0,
-                              max: 30,
-                              divisions: 30,
-                              label: holdingPeriod.toString(),
-                              onChanged: (value) {
-                                if (value.toInt() == 0) {
-                                  showErrorSnackBar(
-                                      context, "Holding Period can't be 0");
-                                  return;
-                                }
-                                if (value.toInt() != holdingPeriod.toInt()) {
-                                  ref
-                                      .read(holdingPeriodProvider.notifier)
-                                      .set(value.toInt());
-                                }
-                              },
-                            );
-                          }),
-                          Consumer(builder: (context, ref, child) {
-                            final holdingPeriod =
-                                ref.watch(holdingPeriodProvider);
-                            return StyledSubtitle(
-                              "Mortgage Holding Period : $holdingPeriod Years",
-                            );
-                          }),
-                          StyledSubtitle(
-                            "Default holding Period is 5 years",
-                            fontSize: 12,
-                          )
-                        ],
-                      ),
-                      actionsAlignment: MainAxisAlignment.spaceEvenly,  
-                      actions: [
-                        OutlinedButton(
-                          onPressed: () async {
-                            Navigator.pop(context);
-                          },
-                          child: Text('Cancel'),
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              StyledHeading('Change Holding Period'),
+                              Consumer(builder: (context, ref, child) {
+                                final holdingPeriod =
+                                    ref.watch(holdingPeriodProvider);
+                                debugPrint(holdingPeriod.toString());
+                                return Slider(
+                                  value: holdingPeriod.toDouble(),
+                                  min: 0,
+                                  max: 30,
+                                  divisions: 30,
+                                  label: holdingPeriod.toString(),
+                                  onChanged: (value) {
+                                    if (value.toInt() == 0) {
+                                      showErrorSnackBar(
+                                          context, "Holding Period can't be 0");
+                                      return;
+                                    }
+                                    if (value.toInt() !=
+                                        holdingPeriod.toInt()) {
+                                      ref
+                                          .read(holdingPeriodProvider.notifier)
+                                          .set(value.toInt());
+                                    }
+                                  },
+                                );
+                              }),
+                              Consumer(builder: (context, ref, child) {
+                                final holdingPeriod =
+                                    ref.watch(holdingPeriodProvider);
+                                return StyledSubtitle(
+                                  "Mortgage Holding Period : $holdingPeriod Years",
+                                );
+                              }),
+                              StyledSubtitle(
+                                "Default holding Period is 5 years",
+                                fontSize: 12,
+                              ),
+                              SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  OutlinedButton(
+                                    onPressed: () async {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Cancel'),
+                                  ),
+                                  Consumer(builder: (context, ref, child) {
+                                    return OutlinedButton(
+                                      onPressed: () async {
+                                        await FastDB.flush();
+                                        if (context.mounted) {
+                                          Navigator.of(context).pop();
+                                          showSnackBar(context,
+                                              "Mortgage Data Holding Period changed");
+                                        }
+                                      },
+                                      child: Text('OK',
+                                          style: TextStyle(
+                                              fontSize: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium!
+                                                  .fontSize)),
+                                    );
+                                  }),
+                                ],
+                              )
+                            ],
+                          ),
                         ),
-                        Consumer(builder: (context, ref, child) {
-                          return OutlinedButton(
-                            onPressed: () async {
-                              await FastDB.flush();
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                                showSnackBar(context,
-                                    "Mortgage Data Holding Period changed");
-                              }
-                            },
-                            child: Text('OK',
-                                style: TextStyle(
-                                    fontSize: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium!
-                                        .fontSize)),
-                          );
-                        }),
-                      ],
+                      ),
                     );
                   },
                 );
@@ -364,67 +401,79 @@ class MyDrawer extends HookWidget {
               }),
               onTap: () async {
                 showDialog(
-                    context: context,barrierDismissible: false,
+                    context: context,
+                    barrierDismissible: false,
                     builder: (context) {
-                      return AlertDialog(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.surfaceContainer,
-                        title: StyledText('Select Interest Type'),
-                        content: SizedBox(
-                          height: 100,
-                          width: double.maxFinite * 0.8,
-                          child: Consumer(builder: (context, ref, child) {
-                            final interestType =
-                                ref.watch(interestTypeStatusProvider);
-                            return ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: InterestType.values.length,
-                              itemBuilder: (context, index) {
-                                return RadioListTile(
-                                  value: InterestType.values[index],
-                                  groupValue: interestType,
-                                  title: Text(InterestType.values[index].name
-                                      .toSentenceCase()),
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      ref
-                                          .read(interestTypeStatusProvider
-                                              .notifier)
-                                          .set(value);
-                                    }
-                                  },
-                                );
-                              },
-                            );
-                          }),
+                      return Dialog(
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                StyledHeading('Select Interest Type'),
+                                Consumer(builder: (context, ref, child) {
+                                  final interestType =
+                                      ref.watch(interestTypeStatusProvider);
+                                  return ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: InterestType.values.length,
+                                    itemBuilder: (context, index) {
+                                      return RadioListTile(
+                                        value: InterestType.values[index],
+                                        groupValue: interestType,
+                                        title: StyledSubtitle(InterestType
+                                            .values[index].name
+                                            .toSentenceCase()),
+                                        onChanged: (value) {
+                                          if (value != null) {
+                                            ref
+                                                .read(interestTypeStatusProvider
+                                                    .notifier)
+                                                .set(value);
+                                          }
+                                        },
+                                      );
+                                    },
+                                  );
+                                }),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    OutlinedButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(
+                                          'Cancel',
+                                        )),
+                                    Consumer(builder: (context, ref, child) {
+                                      return OutlinedButton(
+                                        onPressed: () async {
+                                          await FastDB.flush();
+                                          if (context.mounted) {
+                                            Navigator.of(context).pop();
+                                            showSnackBar(context,
+                                                "Interest Type changed successfully");
+                                          }
+                                        },
+                                        child: Text('OK',
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary)),
+                                      );
+                                    }),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
                         ),
-                        actionsAlignment: MainAxisAlignment.spaceEvenly,
-                        actions: [
-                          OutlinedButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text(
-                                'Cancel',
-                              )),
-                          Consumer(builder: (context, ref, child) {
-                            return OutlinedButton(
-                              onPressed: () async {
-                                await FastDB.flush();
-                                if (context.mounted) {
-                                  Navigator.of(context).pop();
-                                  showSnackBar(context,
-                                      "Interest Type changed successfully");
-                                }
-                              },
-                              child: Text('OK',
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary)),
-                            );
-                          }),
-                        ],
                       );
                     });
               },
@@ -435,162 +484,154 @@ class MyDrawer extends HookWidget {
               return ListTile(
                 leading: StyledIcon(Icons.calendar_month_outlined),
                 title: StyledText('Interest Frequency'),
-                subtitle: Text(
+                subtitle: StyledSubtitle(
                     'Default interest frequency is ${interestFrequency.name}'),
                 onTap: () {
                   showDialog(
                     context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Interest Frequency'),
-                      content: SizedBox(
-                        height: 100,
-                        child: Column(
-                          children: [
-                            StyledDropdown(
-                              selectedValue: interestFrequency,
-                              onChanged: (value) {
-                                if (value != null) {
-                                  ref
-                                      .read(interestFrequencyStatusProvider
-                                          .notifier)
-                                      .set(value);
-                                }
-                              },
-                              items: [
-                                DropdownMenuItem(
-                                  value: InterestFrequency.yearly,
-                                  child: Text('Yearly',
-                                      style: TextStyle(
-                                          fontSize: 15.0,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .secondary)),
-                                ),
-                                DropdownMenuItem(
-                                  value: InterestFrequency.halfYearly,
-                                  child: Text('Half-Yearly',
-                                      style: TextStyle(
-                                          fontSize: 15.0,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .secondary)),
-                                ),
-                                DropdownMenuItem(
-                                  value: InterestFrequency.quarterly,
-                                  child: Text('Quarterly',
-                                      style: TextStyle(
-                                          fontSize: 15.0,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .secondary)),
-                                ),
-                                DropdownMenuItem(
-                                  value: InterestFrequency.monthly,
-                                  child: Text('Monthly',
-                                      style: TextStyle(
-                                          fontSize: 15.0,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .secondary)),
-                                ),
-                              ],
-                              hintText: "Interest Frequency",
-                              labelText: "Interest Frequency",
-                              // onTap: () {}
-                            ),
-                            Text(
-                                'The interest frequency is set to ${interestFrequency.name}'),
-                          ],
+                    builder: (context) => Dialog(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              StyledHeading('Interest Frequency'),
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 20.0,
+                                children: [
+                                  for (final option in InterestFrequency.values)
+                                    RadioListTile(
+                                      value: option,
+                                      groupValue: interestFrequency,
+                                      title: StyledSubtitle(
+                                          option.name.toSentenceCase()),
+                                      onChanged: (value) {
+                                        if (value != null) {
+                                          ref
+                                              .read(
+                                                  interestFrequencyStatusProvider
+                                                      .notifier)
+                                              .set(value);
+                                        }
+                                      },
+                                    ),
+                                ],
+                              ),
+                              StyledText(
+                                  'The interest frequency is set to ${interestFrequency.name}'),
+                              SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  OutlinedButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text("Cancel")),
+                                  OutlinedButton(
+                                      onPressed: () async {
+                                        await FastDB.flush();
+                                        if (context.mounted) {
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                      child: Text('Ok'))
+                                ],
+                              )
+                            ],
+                          ),
                         ),
                       ),
-                      actionsAlignment: MainAxisAlignment.spaceEvenly,
-                      actions: [
-                        OutlinedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text("Cancel")),
-                        OutlinedButton(
-                            onPressed: () async {
-                              await FastDB.flush();
-                              if (context.mounted) {
-                                Navigator.pop(context);
-                              }
-                            },
-                            child: Text('Ok'))
-                      ],
                     ),
                   );
                 },
               );
             }),
-            Consumer(builder: (context, ref, child) {
-              final interestRate = ref.watch(interestRateProvider);
-              return ListTile(
+            ListTile(
                   leading: StyledIcon(Icons.percent),
                   title: StyledText('Interest Rate'),
                   subtitle:
-                      StyledText("Default Interest Rate is $interestRate"),
+                      Consumer(
+                        builder: (context,ref,child) {
+                          final interestRate = ref.watch(interestRateProvider);
+                          return StyledText("Default Interest Rate is $interestRate");
+                        }
+                      ),
                   onTap: () {
                     showDialog(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        title: StyledText('Change Interest Rate'),
-                        content: SizedBox(
-                          height: 100,
-                          child: Consumer(builder: (context, ref, child) {
-                            final interestRate =
-                                ref.watch(interestRateProvider);
-                            return Column(
-                              children: [
-                                Slider(
-                                  value: interestRate,
-                                  min: 0.0,
-                                  max: 100.0,
-                                  divisions: 100,
-                                  label: interestRate.toString(),
-                                  onChanged: (value) {
-                                    ref
-                                        .read(interestRateProvider.notifier)
-                                        .set(value);
-                                  },
-                                ),
-                                Text(
-                                  "Current Interest rate is $interestRate",
-                                )
-                              ],
-                            );
-                          }),
+                      builder: (context) => Dialog(
+                        child:  Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SingleChildScrollView(
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  StyledHeading('Change Interest Rate'),
+                                  Consumer(
+                                    builder: (context,ref,child) {
+                                      final interestRate = ref.watch(interestRateProvider);
+                                      return Slider(
+                                        value: interestRate,
+                                        min: 0.0,
+                                        max: 100.0,
+                                        divisions: 100,
+                                        label: interestRate.toString(),
+                                        onChanged: (value) {
+                                          ref
+                                              .read(interestRateProvider.notifier)
+                                              .set(value);
+                                        },
+                                      );
+                                    }
+                                  ),
+                                  Consumer(
+                                    builder: (context,ref,child) {
+                                      final interestRate = ref.watch(interestRateProvider);
+                                      return StyledSubtitle(
+                                        "Current Interest rate is $interestRate",
+                                      );
+                                    }
+                                  ),
+                                  SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      OutlinedButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text(
+                                            'Cancel',
+                                          )),
+                                      Consumer(builder: (context, ref, child) {
+                                        return OutlinedButton(
+                                          onPressed: () async {
+                                            await FastDB.flush();
+                                            if (context.mounted) {
+                                              Navigator.of(context).pop();
+                                              showSnackBar(context,
+                                                  "Interest Rate Changed");
+                                            }
+                                          },
+                                          child: Text(
+                                            'OK',
+                                          ),
+                                        );
+                                      }),
+                                    ],
+                                  )
+                                ],
+                            ),
+                          ),
                         ),
-                        actionsAlignment: MainAxisAlignment.spaceEvenly,
-                        actions: [
-                          OutlinedButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text(
-                                'Cancel',
-                              )),
-                          Consumer(builder: (context, ref, child) {
-                            return OutlinedButton(
-                              onPressed: () async {
-                                await FastDB.flush();
-                                if (context.mounted) {
-                                  Navigator.of(context).pop();
-                                  showSnackBar(
-                                      context, "Interest Rate Changed");
-                                }
-                              },
-                              child: Text(
-                                'OK',
-                              ),
-                            );
-                          }),
-                        ],
                       ),
                     );
-                  });
-            }),
+                  }
+            ),
             Consumer(builder: (context, ref, child) {
               final hour = ref.watch(scheduledBackUpTimeHourProvider);
               final minute = ref.watch(scheduledBackUpTimeMinuteProvider);
@@ -598,9 +639,10 @@ class MyDrawer extends HookWidget {
               final time = TimeOfDay(hour: hour, minute: minute);
               if (isBackUpRegistered) {
                 return ListTile(
-                    leading: Icon(Icons.settings_backup_restore),
-                    title: Text('Change Backup Time'),
-                    subtitle: Text("Default is ${time.format(context)}"),
+                    leading: StyledIcon(Icons.settings_backup_restore),
+                    title: StyledText('Change Backup Time'),
+                    subtitle:
+                        StyledSubtitle("Default is ${time.format(context)}"),
                     onTap: () async {
                       final TimeOfDay? picked = await showTimePicker(
                         context: context,
@@ -635,8 +677,8 @@ class MyDrawer extends HookWidget {
               return ref.watch(backupDownloadStatusProvider)
                   ? SizedBox()
                   : ListTile(
-                      leading: Icon(Icons.backup),
-                      title: Text("Back up now"),
+                      leading: StyledIcon(Icons.backup),
+                      title: StyledText("Back up now"),
                       subtitle: ref.watch(backupStatusProvider)
                           ? Text(
                               "Backup in progress, Please wait ...",
@@ -695,8 +737,8 @@ class MyDrawer extends HookWidget {
               return ref.watch(backupStatusProvider)
                   ? SizedBox()
                   : ListTile(
-                      leading: Icon(Icons.download),
-                      title: Text('Download Backup'),
+                      leading: StyledIcon(Icons.download),
+                      title: StyledText('Download Backup'),
                       subtitle: ref.watch(backupDownloadStatusProvider)
                           ? Text(
                               "Downloading in progress, Please wait ...",
@@ -734,8 +776,9 @@ class MyDrawer extends HookWidget {
             Consumer(builder: (context, ref, child) {
               final token = ref.watch(driveAccessTokenProvider);
               return ListTile(
-                leading: Icon(Icons.change_circle_outlined),
-                title: Text(token.isEmpty ? 'Add Account' : 'Change Account'),
+                leading: StyledIcon(Icons.change_circle_outlined),
+                title: StyledText(
+                    token.isEmpty ? 'Add Account' : 'Change Account'),
                 onTap: () async {
                   final isAddingAccount = token.isEmpty;
                   isLoading.value = true;
@@ -777,8 +820,8 @@ class MyDrawer extends HookWidget {
                 return SizedBox();
               }
               return ListTile(
-                  leading: Icon(Icons.logout),
-                  title: Text('Remove Account'),
+                  leading: StyledIcon(Icons.logout),
+                  title: StyledText('Remove Account'),
                   onTap: () async {
                     await removeAccount();
                     ref.read(displayNameProvider.notifier).set("");
@@ -789,12 +832,12 @@ class MyDrawer extends HookWidget {
                   });
             }),
             ListTile(
-                leading: Icon(Icons.star_rate),
-                title: Text('Rate Us'),
+                leading: StyledIcon(Icons.star_rate),
+                title: StyledText('Rate Us'),
                 onTap: _openReview),
             ListTile(
-              leading: Icon(Icons.share),
-              title: Text('Share App'),
+              leading: StyledIcon(Icons.share),
+              title: StyledText('Share App'),
               onTap: () {
                 Share.share(
                   '''Mortgage is a mortgage calculator app that helps you calculate your monthly mortgage payments. It also helps you understand the different types of mortgages and how much you can borrow. Mortgage is available on both Android and iOS.
@@ -808,30 +851,32 @@ class MyDrawer extends HookWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.edit_square),
-              title: Text("Write Us"),
+              leading: StyledIcon(Icons.edit_square),
+              title: StyledText("Write Us"),
               onTap: () {
                 _launchURL('https://forms.gle/zSRbdvU45hvPWEYp7');
               },
             ),
             ListTile(
-              leading: Icon(Icons.policy),
-              title: Text('Privacy Policy'),
+              leading: StyledIcon(Icons.policy),
+              title: StyledText('Privacy Policy'),
               onTap: () {
                 _launchURL('https://mortgage.kumpali.com/privacy.html');
               },
             ),
             ListTile(
-              leading: Icon(Icons.info_outline),
+              leading: StyledIcon(Icons.info_outline),
               title: Consumer(builder: (context, ref, child) {
                 return ref.watch(appVersionProvider).when(
                     data: (appVersion) {
-                      return Text('App Version:  $appVersion');
+                      return StyledText('App Version:  $appVersion');
                     },
                     error: (obj, trace) {
-                      return Text("An error occurred");
+                      return Text("An error occurred",
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.error));
                     },
-                    loading: () => Text("..."));
+                    loading: () => StyledText("..."));
               }),
             ),
           ],

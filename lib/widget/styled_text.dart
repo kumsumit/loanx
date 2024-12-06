@@ -19,6 +19,25 @@ class StyledText extends StatelessWidget {
   }
 }
 
+class StyledHeading extends StatelessWidget {
+  const StyledHeading(this.text,{super.key, this.maxLines = 1});
+  final String text;
+  final int maxLines;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.primary,
+          fontSize: Theme.of( context).textTheme.titleLarge!.fontSize,
+        )
+        // style: TextStyle(
+        //             color: Theme.of(context).colorScheme.onSurface,
+        //           )
+        );
+  }
+}
+
 
 class StyledSubtitle extends StatelessWidget {
   const StyledSubtitle(this.text,{super.key, this.fontSize,  this.maxLines = 1});

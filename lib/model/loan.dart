@@ -31,7 +31,7 @@ class Loan {
         n = 1;
     }
     if (interestType == InterestType.simple) {
-      return principal * (interestRate / 100) * duration ;
+      return principal * (interestRate / 100) * duration;
     } else if (interestType == InterestType.compound) {
       return principal * pow((1 + (interestRate / 100) / n), n * duration) -
           principal;
@@ -46,8 +46,8 @@ enum InterestType {
 }
 
 enum InterestFrequency {
-  yearly,
-  halfYearly,
-  quarterly,
   monthly,
+  quarterly,
+  halfYearly,
+  yearly,
 }

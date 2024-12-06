@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
@@ -337,8 +338,8 @@ class PickerColor extends _$PickerColor {
   String build() => FastDB.getAppColor();
 
   void set(Color color) {
-    state = color.value.toRadixString(16).substring(2);
-    debugPrint(state);
+    // state = color.value.toRadixString(16).substring(2);
+    state= color.toHexString();
   }
 }
 

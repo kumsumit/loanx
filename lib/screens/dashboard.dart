@@ -6,6 +6,7 @@ import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/home.dart';
 import 'package:mortgage/screens/manage.dart';
 import 'package:mortgage/screens/mortgage_input.dart';
+import 'package:mortgage/widget/styled_text.dart';
 // import 'package:mortgage/service/backup_service.dart';
 // import 'package:mortgage/service/database_helper.dart';
 // import 'package:mortgage/widget/snackbar.dart';
@@ -34,10 +35,11 @@ class DashBoard extends HookWidget {
     // }
     return Scaffold(
       appBar: AppBar(
+        foregroundColor: Theme.of(context).colorScheme.primary,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title.value),
+            StyledHeading(title.value),
             currentIndex.value == 0 ? 
             Consumer(builder: (context, ref, child) {
               final mortgageSelectionList =
@@ -48,7 +50,7 @@ class DashBoard extends HookWidget {
                       onPressed: () {
                         ref.read(searchBarStatusProvider.notifier).toogle();
                       },
-                      icon: Icon(Icons.search)),
+                      icon: StyledIcon(Icons.search)),
                   if (mortgageSelectionList.length == 1)
                     IconButton(
                       icon: Icon(Icons.edit),
@@ -112,6 +114,8 @@ class DashBoard extends HookWidget {
       drawer: MyDrawer(),
       body:   _pages[currentIndex.value],
       bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Theme.of(context).colorScheme.secondary,
         currentIndex: currentIndex.value,
         onTap: (index) {
           currentIndex.value = index;
