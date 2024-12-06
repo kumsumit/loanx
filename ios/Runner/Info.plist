@@ -47,5 +47,9 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSFaceIDUsageDescription</key>
+        <string>We use Face ID to securely authenticate and verify your identity for accessing your mortgage and loan records and ensuring your data privacy and security.</string>
+	    <key>NSPhotoLibraryUsageDescription</key>
+        <string>We need access to your photo library to choose logo.</string>
 	</dict>
 </plist>

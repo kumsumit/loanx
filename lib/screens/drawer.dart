@@ -841,6 +841,7 @@ class MyDrawer extends HookWidget {
               leading: StyledIcon(Icons.share),
               title: StyledText('Share App'),
               onTap: () {
+                final box = context.findRenderObject() as RenderBox?;
                 Share.share(
                   '''Mortgage is a mortgage calculator app that helps you calculate your monthly mortgage payments. It also helps you understand the different types of mortgages and how much you can borrow. Mortgage is available on both Android and iOS.
                 \nYou can download Mortgage from the Google Play Store or the App Store.
@@ -849,6 +850,7 @@ class MyDrawer extends HookWidget {
                 \n\nThank you for using Mortgage!
                 ''',
                   subject: 'Install this awesome app!',
+                  sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
                 );
               },
             ),
