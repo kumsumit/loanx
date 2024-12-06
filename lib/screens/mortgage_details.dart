@@ -24,13 +24,20 @@ class MortgageDetails extends ConsumerWidget {
                 final mortgageMaterial = mortgageMaterialList.firstWhere(
                     (mortgageMaterial) =>
                         mortgageMaterial.id == mortgage.mortgageMaterialId);
+                Duration duration = Duration();
+                if(mortgage.compoundingFrequency==InterestFrequency){
+
+                  duration = DateTime.now().difference(mortgage.dateCreated);
+                }else{
+
+                }
                 final loan = Loan(
                     principal: mortgage.loanAmount,
                     interestRate: mortgage.interestRate,
                     duration:
                         DateTime.now().difference(mortgage.dateCreated).inDays,
                     interestType: InterestType.simple,
-                    compoundingFrequency: InterestFrequency.monthly);
+                    interestFrequency: InterestFrequency.monthly);
                 final double interest = loan.calculateInterest();
                 return Scaffold(
                   appBar: AppBar(

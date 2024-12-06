@@ -24,7 +24,7 @@ class BulletPoint extends StatelessWidget {
             child: Text(
               text,
               style: TextStyle(
-                
+                  color: Theme.of(context).colorScheme.secondary,
                   fontStyle: italic ? FontStyle.italic : FontStyle.normal),
             ),
           ),

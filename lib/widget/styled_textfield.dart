@@ -9,8 +9,7 @@ class StyledTextField extends StatelessWidget {
       this.keyboardType = TextInputType.text,
       required this.onTap,
       this.failedValidationMessage,
-      this.maxLines = 1
-      });
+      this.maxLines = 1});
   final TextEditingController textEditingController;
   final String hintText;
   final String labelText;
@@ -32,7 +31,7 @@ class StyledTextField extends StatelessWidget {
                 return null;
               }
             : null,
-            maxLines: maxLines,
+        maxLines: maxLines,
         controller: textEditingController,
         decoration: InputDecoration(
           hintText: hintText,

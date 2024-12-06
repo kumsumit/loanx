@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/mortgage_details.dart';
+// import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 
 class SearchAppBar extends HookWidget {
   const SearchAppBar({super.key});
@@ -261,16 +262,18 @@ class SearchAppBar extends HookWidget {
   //           }),
   //         ],
   //       ),
-  //       content: Consumer(builder: (context, ref, child) {
-  //         final color = ref.watch(pickerColorProvider);
-  //         return ColorPicker(
-  //             pickerColor:
-  //                 Color(int.parse('FF${color.substring(1)}', radix: 16)),
-  //             onColorChanged: (color) async {
-  //               ref.read(pickerColorProvider.notifier).set(color);
-  //               await ref.read(appColorProvider.notifier).set();
-  //             });
-  //       }),
+  //       content: SingleChildScrollView(
+  //         child: Consumer(builder: (context, ref, child) {
+  //           final color = ref.watch(pickerColorProvider);
+  //           return ColorPicker(
+  //               pickerColor:
+  //                   Color(int.parse('FF${color.substring(1)}', radix: 16)),
+  //               onColorChanged: (color) async {
+  //                 ref.read(pickerColorProvider.notifier).set(color);
+  //                 await ref.read(appColorProvider.notifier).set();
+  //               });
+  //         }),
+  //       ),
   //       actions: <Widget>[
   //         ElevatedButton(
   //           child: const Text('Got it'),
@@ -408,3 +411,27 @@ class SearchAppBar extends HookWidget {
   //   );
   // }
 }
+
+// class ColorCircle extends StatelessWidget {
+//   const ColorCircle({super.key, required this.color, required this.text});
+//   final Color color;
+//   final String text;
+//   @override
+//   Widget build(BuildContext context) {
+//     return ListView(
+//       shrinkWrap: true,
+//       physics: const NeverScrollableScrollPhysics(),
+//       children: [
+//         SizedBox(
+//           height: 40,
+//           child: DecoratedBox(
+//               decoration: BoxDecoration(
+//             color: color,
+//             borderRadius: BorderRadius.circular(20),
+//           )),
+//         ),
+//         Text(text, textAlign: TextAlign.center, style: TextStyle(fontSize: 12)),
+//       ],
+//     );
+//   }
+// }

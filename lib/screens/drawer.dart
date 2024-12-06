@@ -13,6 +13,7 @@ import 'package:mortgage/widget/bullet.dart';
 import 'package:mortgage/widget/loading_overlay.dart';
 import 'package:mortgage/widget/snackbar.dart';
 import 'package:mortgage/widget/styled_dropdown.dart';
+import 'package:mortgage/widget/styled_text.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
@@ -112,21 +113,16 @@ class MyDrawer extends HookWidget {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.info),
-              title: Text('About',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  )),
+              leading: StyledIcon(Icons.info),
+              title: StyledText('About'),
               onTap: () {
                 showDialog(
-                  context: context,
+                  context: context,barrierDismissible: false,
                   builder: (context) {
                     return AlertDialog(
                       backgroundColor:
                           Theme.of(context).colorScheme.surfaceContainer,
-                      title: Text(
-                        'About',
-                      ),
+                      title: StyledText('About'),
                       content: SingleChildScrollView(
                         child:
                             Column(mainAxisSize: MainAxisSize.min, children: [
@@ -167,24 +163,28 @@ class MyDrawer extends HookWidget {
             Consumer(builder: (context, ref, child) {
               final secure = ref.watch(secureProvider);
               return ListTile(
-                  leading: Icon(
+                  leading: StyledIcon(
                       secure ? Icons.lock_open_rounded : Icons.lock_outlined),
-                  title: Text(secure ? 'Make App Unsecure' : 'Make App Secure',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      )),
+                  title: StyledText(
+                      secure ? 'Make App Unsecure' : 'Make App Secure'),
                   onTap: () {
                     showDialog(
-                      context: context,
+                      context: context,barrierDismissible: false,
                       builder: (context) => AlertDialog(
                         backgroundColor:
                             Theme.of(context).colorScheme.surfaceContainer,
-                        title: const Text('Confirmation'),
-                        content: secure
-                            ? Text(
-                                "Are you sure you want to make the app unsecure?")
-                            : Text("Are you sure you want to secure the app?"),
+                        title: StyledText('Confirmation'),
+                        content: StyledSubtitle(secure
+                            ? "Are you sure you want to make the app unsecure?"
+                            : "Are you sure you want to secure the app?"),
+                        actionsAlignment: MainAxisAlignment.spaceEvenly,
                         actions: <Widget>[
+                          OutlinedButton(
+                            child: const Text('Cancel'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
                           OutlinedButton(
                             child: const Text('Ok'),
                             onPressed: () async {
@@ -201,57 +201,46 @@ class MyDrawer extends HookWidget {
                               }
                             },
                           ),
-                          OutlinedButton(
-                            child: const Text('Cancel'),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
                         ],
                       ),
                     );
                   });
             }),
             ListTile(
-                leading: Icon(Icons.color_lens),
-                title: Text('Change App Color',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    )),
+                leading: StyledIcon(Icons.color_lens),
+                title: StyledText('Change App Color'),
                 onTap: () {
                   showDialog(
-                    context: context,
+                    context: context,barrierDismissible: false,
                     builder: (context) => AlertDialog(
                       backgroundColor:
                           Theme.of(context).colorScheme.surfaceContainer,
-                      title: const Text('Pick a color!'),
-                      content: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            Consumer(builder: (context, ref, child) {
-                              final color = ref.watch(pickerColorProvider);
-                              return ColorPicker(
-                                pickerColor: Color(int.parse(
-                                    'FF${color.substring(1)}',
-                                    radix: 16)),
-                                onColorChanged:
-                                    ref.read(pickerColorProvider.notifier).set,
-                              );
-                            }),
-                            Consumer(builder: (context, ref, child) {
-                              return OutlinedButton(
-                                  onPressed: () async {
-                                    await ref
-                                        .read(appColorProvider.notifier)
-                                        .setFromLogo();
-                                    if (context.mounted) {
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                  child: Text("Set Logo Color"));
-                            })
-                          ],
-                        ),
+                      title: StyledText('Pick a color!'),
+                      content: Wrap(
+                        children: [
+                          Consumer(builder: (context, ref, child) {
+                            final color = ref.watch(pickerColorProvider);
+                            return ColorPicker(
+                              pickerColor: Color(int.parse(
+                                  'FF${color.substring(1)}',
+                                  radix: 16)),
+                              onColorChanged:
+                                  ref.read(pickerColorProvider.notifier).set,
+                            );
+                          }),
+                          Consumer(builder: (context, ref, child) {
+                            return OutlinedButton(
+                                onPressed: () async {
+                                  await ref
+                                      .read(appColorProvider.notifier)
+                                      .setFromLogo();
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                  }
+                                },
+                                child: Text("Set Logo Color"));
+                          })
+                        ],
                       ),
                       actionsAlignment: MainAxisAlignment.spaceEvenly,
                       actions: <Widget>[
@@ -279,68 +268,70 @@ class MyDrawer extends HookWidget {
                   );
                 }),
             ListTile(
-              leading: Icon(Icons.currency_exchange),
-              title: Text('Change Mortgage Holding Period',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  )),
+              leading: StyledIcon(Icons.currency_exchange),
+              title: StyledText('Change Mortgage Holding Period'),
               subtitle: Consumer(builder: (context, ref, child) {
                 final holdingPeriod = ref.watch(holdingPeriodProvider);
-                return Text("Default is $holdingPeriod Years");
+                return StyledSubtitle("Default is $holdingPeriod Years");
               }),
               onTap: () {
                 showDialog(
                   context: context,
+                  barrierDismissible: false,
                   builder: (context) {
                     return AlertDialog(
                       backgroundColor:
                           Theme.of(context).colorScheme.surfaceContainer,
-                      title: Text('Change Holding Period'),
-                      content: SizedBox(
-                        height: 100,
-                        child: Column(
-                          children: [
-                            Consumer(builder: (context, ref, child) {
-                              final holdingPeriod =
-                                  ref.watch(holdingPeriodProvider);
-                              debugPrint(holdingPeriod.toString());
-                              return Slider(
-                                value: holdingPeriod.toDouble(),
-                                min: 0,
-                                max: 30,
-                                divisions: 30,
-                                label: holdingPeriod.toString(),
-                                onChanged: (value) {
-                                  if (value.toInt() == 0) {
-                                    showErrorSnackBar(
-                                        context, "Holding Period can't be 0");
-                                    return;
-                                  }
-                                  if (value.toInt() != holdingPeriod.toInt()) {
-                                    ref
-                                        .read(holdingPeriodProvider.notifier)
-                                        .set(value.toInt());
-                                  }
-                                },
-                              );
-                            }),
-                            Consumer(builder: (context, ref, child) {
-                              final holdingPeriod =
-                                  ref.watch(holdingPeriodProvider);
-                              return Text(
-                                "Mortgage Holding Period : $holdingPeriod Years",
-                              );
-                            }),
-                            Text(
-                              "Default holding Period is 5 years",
-                              style: TextStyle(fontSize: 12),
-                            )
-                          ],
-                        ),
+                      title: StyledText('Change Holding Period'),
+                      content:Wrap(
+                        children: [
+                          Consumer(builder: (context, ref, child) {
+                            final holdingPeriod =
+                                ref.watch(holdingPeriodProvider);
+                            debugPrint(holdingPeriod.toString());
+                            return Slider(
+                              value: holdingPeriod.toDouble(),
+                              min: 0,
+                              max: 30,
+                              divisions: 30,
+                              label: holdingPeriod.toString(),
+                              onChanged: (value) {
+                                if (value.toInt() == 0) {
+                                  showErrorSnackBar(
+                                      context, "Holding Period can't be 0");
+                                  return;
+                                }
+                                if (value.toInt() != holdingPeriod.toInt()) {
+                                  ref
+                                      .read(holdingPeriodProvider.notifier)
+                                      .set(value.toInt());
+                                }
+                              },
+                            );
+                          }),
+                          Consumer(builder: (context, ref, child) {
+                            final holdingPeriod =
+                                ref.watch(holdingPeriodProvider);
+                            return StyledSubtitle(
+                              "Mortgage Holding Period : $holdingPeriod Years",
+                            );
+                          }),
+                          StyledSubtitle(
+                            "Default holding Period is 5 years",
+                            fontSize: 12,
+                          )
+                        ],
                       ),
+                      actionsAlignment: MainAxisAlignment.spaceEvenly,  
                       actions: [
+                        OutlinedButton(
+                          onPressed: () async {
+                            Navigator.pop(context);
+                          },
+                          child: Text('Cancel'),
+                        ),
                         Consumer(builder: (context, ref, child) {
-                          return TextButton(
+                          return OutlinedButton(
                             onPressed: () async {
                               await FastDB.flush();
                               if (context.mounted) {
@@ -364,21 +355,21 @@ class MyDrawer extends HookWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.input),
-              title: Text('Change Interest Type'),
+              leading: StyledIcon(Icons.input),
+              title: StyledText('Change Interest Type'),
               subtitle: Consumer(builder: (context, ref, child) {
                 final interestType = ref.watch(interestTypeStatusProvider);
-                return Text(
+                return StyledSubtitle(
                     "Default is ${interestType.name.toSentenceCase()} Interest");
               }),
               onTap: () async {
                 showDialog(
-                    context: context,
+                    context: context,barrierDismissible: false,
                     builder: (context) {
                       return AlertDialog(
                         backgroundColor:
                             Theme.of(context).colorScheme.surfaceContainer,
-                        title: Text('Select Interest Type'),
+                        title: StyledText('Select Interest Type'),
                         content: SizedBox(
                           height: 100,
                           width: double.maxFinite * 0.8,
@@ -442,8 +433,8 @@ class MyDrawer extends HookWidget {
               final interestFrequency =
                   ref.watch(interestFrequencyStatusProvider);
               return ListTile(
-                leading: Icon(Icons.calendar_month_outlined),
-                title: Text('Interest Frequency'),
+                leading: StyledIcon(Icons.calendar_month_outlined),
+                title: StyledText('Interest Frequency'),
                 subtitle: Text(
                     'Default interest frequency is ${interestFrequency.name}'),
                 onTap: () {
@@ -536,14 +527,15 @@ class MyDrawer extends HookWidget {
             Consumer(builder: (context, ref, child) {
               final interestRate = ref.watch(interestRateProvider);
               return ListTile(
-                  leading: Icon(Icons.percent),
-                  title: Text('Interest Rate'),
-                  subtitle: Text("Default Interest Rate is $interestRate"),
+                  leading: StyledIcon(Icons.percent),
+                  title: StyledText('Interest Rate'),
+                  subtitle:
+                      StyledText("Default Interest Rate is $interestRate"),
                   onTap: () {
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: Text('Change Interest Rate'),
+                        title: StyledText('Change Interest Rate'),
                         content: SizedBox(
                           height: 100,
                           child: Consumer(builder: (context, ref, child) {
