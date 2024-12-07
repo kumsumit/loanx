@@ -25,8 +25,6 @@ class AskBackupScreen extends HookWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
-                  // Theme.of(context).colorScheme.primary.computeLuminance() >
-                  //         0.5
                   ? Colors.grey[800]
                   : Colors.grey[200],
               borderRadius: BorderRadius.circular(12.0),
@@ -49,12 +47,16 @@ class AskBackupScreen extends HookWidget {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Do you want to backup your mortgage data on Google Drive?',
-                    style: TextStyle(
-                        fontSize: 18,
-                        color: Theme.of(context).colorScheme.primary),
-                    textAlign: TextAlign.center,
+                  Image.asset("assets/backup.png",height: 100,width: 100,),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0,right: 8.0),
+                    child: Text(
+                      'Do you want to backup your mortgage data on Google Drive?',
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.primary),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   SizedBox(
                     height: 20,
@@ -64,6 +66,8 @@ class AskBackupScreen extends HookWidget {
                     children: [
                       Consumer(builder: (context, ref, child) {
                         return OutlinedButton(
+                          style: ButtonStyle(backgroundColor:
+                          WidgetStateProperty.all<Color>(Color(0xFF080E1E))) ,
                           onPressed: () async {
                             isLoading.value = true;
                             if (!FastDB.getIsTableCreated()) {
@@ -84,7 +88,7 @@ class AskBackupScreen extends HookWidget {
                                 MaterialPageRoute(
                                     builder: (context) => const DashBoard()));
                           },
-                          child: const Text('No'),
+                          child: const Text('No', style: TextStyle(color: Colors.white),),
                         );
                       }),
                       Consumer(builder: (context, ref, child) {
