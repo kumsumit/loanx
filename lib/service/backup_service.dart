@@ -145,6 +145,7 @@ class BackupService {
   static Future<drive.DriveApi?> getDriveApi() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
       scopes: [drive.DriveApi.driveAppdataScope],
+        clientId: Platform.isIOS? "1074342328106-2hp10d0723lu82e8imt37lue13dk7l2h.apps.googleusercontent.com": null
     );
     GoogleSignInAccount? account;
     if (FastDB.getDriveAccessToken().isEmpty) {

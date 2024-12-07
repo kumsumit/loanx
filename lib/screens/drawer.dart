@@ -876,7 +876,7 @@ class MyDrawer extends HookWidget {
                       return StyledText('App Version:  $appVersion');
                     },
                     error: (obj, trace) {
-                      return Text("An error occurred",
+                      return Text("Can not find app version",
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.error));
                     },
