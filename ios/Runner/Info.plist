@@ -48,20 +48,19 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>NSFaceIDUsageDescription</key>
-        <string>We use Face ID to securely authenticate and verify your identity for accessing your mortgage and loan records and ensuring your data privacy and security.</string>
-	    <key>NSPhotoLibraryUsageDescription</key>
-        <string>We need access to your photo library to choose logo.</string>
-        <key>GIDClientID</key>
-        <string>1074342328106-2hp10d0723lu82e8imt37lue13dk7l2h.apps.googleusercontent.com</string>
-        <key>CFBundleURLTypes</key>
-          <array>
-            <dict>
-              <key>CFBundleURLSchemes</key>
-              <array>
-                <string>com.googleusercontent.apps.1074342328106-2hp10d0723lu82e8imt37lue13dk7l2h</string>
-              </array>
-            </dict>
-          </array>
-
+		<string>We use Face ID to securely authenticate and verify your identity for accessing your mortgage and loan records and ensuring your data privacy and security.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>We need access to your photo library to choose logo.</string>
+		<key>GIDClientID</key>
+		<string>1074342328106-2hp10d0723lu82e8imt37lue13dk7l2h.apps.googleusercontent.com</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.1074342328106-2hp10d0723lu82e8imt37lue13dk7l2h</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>

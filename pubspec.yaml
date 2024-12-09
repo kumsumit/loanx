@@ -23,7 +23,7 @@ dependencies:
   path_provider:
     git: https://github.com/kumsumit/path_provider.git
   cupertino_icons: ^1.0.8
-  flutter_native_splash: ^2.4.2
+  flutter_native_splash: ^2.4.3
   url_launcher:
     git: https://github.com/kumsumit/url_launcher.git
   # flutter_screenutil:
@@ -89,8 +89,8 @@ flutter:
     - assets/
 
 flutter_native_splash: 
-  color: '#FFFAD1'
-  color_dark: '#423301'
+  color: '#4B9DA9'
+  color_dark: '#4B9DA9'
   android: true
   ios: true
   image_android: 'logo.png'
@@ -102,5 +102,5 @@ flutter_native_splash:
   android_12: 
     image: 'logo.png'
     image_dark: 'logo.png'
-    color: '#FFFAD1'
-    color_dark: '#423301'
+    color: '#4B9DA9'
+    color_dark: '#4B9DA9'
