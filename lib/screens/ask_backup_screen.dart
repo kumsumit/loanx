@@ -14,48 +14,24 @@ class AskBackupScreen extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     final isLoading = useState(false);
     return Material(
         child: LoadingOverlay(
       isLoading: isLoading.value,
-      child: 
-      DecoratedBox(
+      child: DecoratedBox(
         decoration: BoxDecoration(
-          // color: Theme.of(context).brightness == Brightness.dark
-          //     ? Colors.grey[800]
-          //     : Colors.grey[200],
           image: DecorationImage(
             image: AssetImage("assets/background.png"),
             fit: BoxFit.cover,
           ),
-          borderRadius: BorderRadius.circular(12.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 2,
-              blurRadius: 5,  
-              offset: Offset(0, 3),
-            )]),     
+        ),
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child:
-             DecoratedBox(
+            child: DecoratedBox(
               decoration: BoxDecoration(
-                // color: Theme.of(context).brightness == Brightness.dark
-                //     ? Colors.grey[800]
-                //     : Colors.grey[200],
-                color: Colors.transparent,
+                color: Colors.black38.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color.fromARGB(255, 73, 51, 2).withOpacity(0.7),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  ),
-                ],
                 border: Border.all(
                   color: Theme.of(context).colorScheme.primary,
                   width: 2,
@@ -67,16 +43,21 @@ class AskBackupScreen extends HookWidget {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                 Text('Backup',
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.primary,
-          fontSize: Theme.of( context).textTheme.headlineMedium!.fontSize,
-        )
-        
-        ),
-                    Image.asset("assets/backup.png",height: 200,width: 200,),
+                    Text('Backup',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: Theme.of(context)
+                              .textTheme
+                              .headlineMedium!
+                              .fontSize,
+                        )),
+                    Image.asset(
+                      "assets/backup.png",
+                      height: 200,
+                      width: 200,
+                    ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 8.0,right: 8.0),
+                      padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                       child: Text(
                         'Do you want to backup your mortgage data from/to Google Drive?',
                         style: TextStyle(
@@ -93,7 +74,6 @@ class AskBackupScreen extends HookWidget {
                       children: [
                         Consumer(builder: (context, ref, child) {
                           return OutlinedButton(
-      
                             onPressed: () async {
                               isLoading.value = true;
                               if (!FastDB.getIsTableCreated()) {
@@ -118,7 +98,8 @@ class AskBackupScreen extends HookWidget {
                           );
                         }),
                         Consumer(builder: (context, ref, child) {
-                          final networkStatus = ref.watch(networkCheckerProvider);
+                          final networkStatus =
+                              ref.watch(networkCheckerProvider);
                           return OutlinedButton(
                             onPressed: () async {
                               networkStatus.when(
@@ -131,7 +112,8 @@ class AskBackupScreen extends HookWidget {
                                       //       .toString(),
                                       //   dailyBackUpDownload,
                                       // );
-                                      await BackupService.downloadFileToDevice();
+                                      await BackupService
+                                          .downloadFileToDevice();
                                       if (!FastDB.getIsTableCreated()) {
                                         ref.read(dBProvider).when(
                                             data: (data) async {
@@ -148,7 +130,8 @@ class AskBackupScreen extends HookWidget {
                                       FastDB.putScheduledBackUpTimeMinute(00);
                                       await registerBackUp();
                                       ref
-                                          .read(backUpRegisteredProvider.notifier)
+                                          .read(
+                                              backUpRegisteredProvider.notifier)
                                           .set(true);
                                       FastDB.putIsTableCreated(true);
                                       await FastDB.flush();
@@ -156,23 +139,25 @@ class AskBackupScreen extends HookWidget {
                                           data: (data) async {
                                             ref.read(itemListProvider);
                                             ref
-                                                .read(mortgageMaterialListProvider
-                                                    .notifier)
+                                                .read(
+                                                    mortgageMaterialListProvider
+                                                        .notifier)
                                                 .readAllMortgageMaterials();
                                             ref
                                                 .read(familyRelationListProvider
                                                     .notifier)
                                                 .readAllFamilyRelations();
                                             ref
-                                                .read(
-                                                    mortgageListProvider.notifier)
+                                                .read(mortgageListProvider
+                                                    .notifier)
                                                 .readAllMortgages();
                                           },
                                           error: (_, __) {
                                             if (!FastDB.getIsTableCreated()) {
                                               ref.read(dBProvider).when(
                                                   data: (data) async {
-                                                    await DatabaseHelper.instance
+                                                    await DatabaseHelper
+                                                        .instance
                                                         .onCreate(data, 1);
                                                   },
                                                   error: (_, __) {
@@ -205,13 +190,14 @@ class AskBackupScreen extends HookWidget {
                                         "An Error occured, Please try again later");
                                   },
                                   loading: () {});
-        
+
                               isLoading.value = false;
                               if (context.mounted) {
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => const DashBoard()));
+                                        builder: (context) =>
+                                            const DashBoard()));
                               }
                             },
                             child: const Text('Yes'),
@@ -257,5 +243,4 @@ class AskBackupScreen extends HookWidget {
   //     ),
   //   );
   // }
-
 }

@@ -35,7 +35,6 @@ class MortgageInput extends HookConsumerWidget {
       } catch (ie) {
         return 0.0;
       }
-      // Default value if parsing fails
     }
   }
 
@@ -64,77 +63,19 @@ class MortgageInput extends HookConsumerWidget {
         useTextEditingController(text: mortgage?.relativeName ?? '');
     final loanAmountController =
         useTextEditingController(text: mortgage?.loanAmount.toString() ?? '');
-    final interestRateController =
-        useTextEditingController(text: mortgage?.interestRate.toString() ?? ref.read(interestRateProvider).toString());
+    final interestRateController = useTextEditingController(
+        text: mortgage?.interestRate.toString() ??
+            ref.read(interestRateProvider).toString());
     final weightController =
         useTextEditingController(text: mortgage?.weight.toString() ?? '');
     final additionalDetailsController =
         useTextEditingController(text: mortgage?.additionalDetails ?? '');
     final scrollController = useScrollController();
-    // final focusNodes =
-    //     useMemoized(() => List.generate(7, (_) => FocusNode()), []);
-    // useEffect(() {
-    //   // if (items.isNotEmpty) {
-    //   //   currentItem.value = mortgage == null
-    //   //       ? items.first
-    //   //       : items.firstWhere((element) => element.id == mortgage!.itemId);
-    //   // }
-    //   // if (familyRelations.isNotEmpty) {
-    //   //   currentFamilyRelation.value = mortgage == null
-    //   //       ? familyRelations.first
-    //   //       : familyRelations.firstWhere(
-    //   //           (element) => element.id == mortgage!.familyRelationId);
-    //   // }
-
-    //   // if (mortgageMaterials.isNotEmpty) {
-    //   //   currentMortgageMaterial.value = mortgage == null
-    //   //       ? mortgageMaterials.first
-    //   //       : mortgageMaterials.firstWhere(
-    //   //           (element) => element.id == mortgage!.mortgageMaterialId);
-    //   // }
-    //   void scrollToFocusedTextField() {
-    //     WidgetsBinding.instance.addPostFrameCallback((_) {
-    //       for (final focusNode in focusNodes) {
-    //         if (focusNode.hasFocus) {
-    //           scrollController.animateTo(
-    //             scrollController.position.maxScrollExtent,
-    //             duration: Duration(milliseconds: 300),
-    //             curve: Curves.easeInOut,
-    //           );
-    //           break;
-    //         }
-    //       }
-    //     });
-    //   }
-
-    //   final lifecycleEventHandler =
-    //       LifecycleEventHandler(onDidChangeMetrics: () {
-    //     if (View.of(context).viewInsets.bottom > 0.0) {
-    //       scrollToFocusedTextField();
-    //     }
-    //   });
-
-    //   WidgetsBinding.instance.addObserver(lifecycleEventHandler);
-
-    //   return () {
-    //     WidgetsBinding.instance.removeObserver(lifecycleEventHandler);
-    //   };
-    // }, [scrollController, items, familyRelations, mortgageMaterials]);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(appBarTitle),
         foregroundColor: Theme.of(context).colorScheme.primary,
-        // actions: [
-        //   IconButton(
-        //       onPressed: () {
-        //         debugPrint(
-        //             damerauLevenshteinDistance("kitten", "sitting").toString());
-        //         debugPrint(damerauLevenshteinDistance("Anastsia", "Anastasia")
-        //             .toString());
-        //       },
-        //       icon: Icon(Icons.search))
-        // ],
       ),
       body: Padding(
           padding: EdgeInsets.only(left: 20, right: 20),
@@ -157,13 +98,6 @@ class MortgageInput extends HookConsumerWidget {
                           currentItem.value = value;
                         }
                       },
-                      // onTap: () {
-                      //   scrollController.animateTo(
-                      //     scrollController.position.maxScrollExtent,
-                      //     duration: Duration(milliseconds: 300),
-                      //     curve: Curves.easeInOut,
-                      //   );
-                      // },
                       hintText: "Item Name",
                       labelText: "Item Name",
                       onAddPressed: () {
@@ -181,9 +115,6 @@ class MortgageInput extends HookConsumerWidget {
                         child: Text("An Error occured"),
                       ),
                   loading: () => Center(child: CircularProgressIndicator())),
-
-              // SearchableDropdown(),air2255
-
               mortgageMaterials.when(
                 data: (data) {
                   return StyledDropdown<MortgageMaterial>(
@@ -194,13 +125,6 @@ class MortgageInput extends HookConsumerWidget {
                         currentMortgageMaterial.value = value;
                       }
                     },
-                    // onTap: () {
-                    //   scrollController.animateTo(
-                    //     scrollController.position.maxScrollExtent,
-                    //     duration: Duration(milliseconds: 300),
-                    //     curve: Curves.easeInOut,
-                    //   );
-                    // },
                     hintText: "Mortgage Material",
                     labelText: "Mortgage Material",
                     onAddPressed: () {
@@ -225,54 +149,26 @@ class MortgageInput extends HookConsumerWidget {
                 hintText: "Weight (in Grams)",
                 labelText: "Weight",
                 keyboardType: TextInputType.number,
-                onTap: () {
-                  scrollController.animateTo(
-                    scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
               ),
-
               StyledTextField(
                 failedValidationMessage: "Depositor Name can't be empty",
                 textEditingController: depositorController,
                 hintText: "Depositor Name",
                 labelText: "Depositor Name",
-                onTap: () {
-                  scrollController.animateTo(
-                    scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
               ),
               StyledTextField(
                 failedValidationMessage: "Address can't be empty",
                 textEditingController: addressController,
                 hintText: "Depositor Address",
                 labelText: "Depositor Address",
-                onTap: () {
-                  scrollController.animateTo(
-                    scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
               ),
               StyledTextField(
                 failedValidationMessage: "Relative Name can't be empty",
                 textEditingController: relativeNameController,
                 hintText: "Relative Name",
                 labelText: "Relative Name",
-                onTap: () {
-                  scrollController.animateTo(
-                    scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-              ),   familyRelations.when(
+              ),
+              familyRelations.when(
                 data: (data) {
                   return StyledDropdown<FamilyRelation>(
                     selectedValue: currentFamilyRelation.value,
@@ -282,13 +178,6 @@ class MortgageInput extends HookConsumerWidget {
                         currentFamilyRelation.value = value;
                       }
                     },
-                    // onTap: () {
-                    //   scrollController.animateTo(
-                    //     scrollController.position.maxScrollExtent,
-                    //     duration: Duration(milliseconds: 300),
-                    //     curve: Curves.easeInOut,
-                    //   );
-                    // },
                     hintText: "Family Relation",
                     labelText: "Family Relation",
                     onAddPressed: () {
@@ -313,13 +202,6 @@ class MortgageInput extends HookConsumerWidget {
                 hintText: "Loan Amount",
                 labelText: "Loan Amount",
                 keyboardType: TextInputType.number,
-                onTap: () {
-                  scrollController.animateTo(
-                    scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
               ),
               StyledTextField(
                 failedValidationMessage: "Interest Rate can't be empty",
@@ -327,25 +209,11 @@ class MortgageInput extends HookConsumerWidget {
                 hintText: "Interest Rate (in %)",
                 labelText: "Interest Rate",
                 keyboardType: TextInputType.number,
-                onTap: () {
-                  scrollController.animateTo(
-                    scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
               ),
               StyledDropdown<InterestType>(
                   selectedValue: interestType.value,
                   labelText: 'Interest Type',
                   hintText: 'Interest Type',
-                  // onTap: () {
-                  //   scrollController.animateTo(
-                  //     scrollController.position.maxScrollExtent,
-                  //     duration: Duration(milliseconds: 300),
-                  //     curve: Curves.easeInOut,
-                  //   );
-                  // },
                   items: [
                     DropdownMenuItem(
                       value: InterestType.simple,
@@ -365,67 +233,50 @@ class MortgageInput extends HookConsumerWidget {
                   onChanged: (value) {
                     interestType.value = value ?? InterestType.simple;
                   }),
-              // if (interestType.value == InterestType.compound)
-                StyledDropdown<InterestFrequency>(
-                  // onTap: () {
-                  //   scrollController.animateTo(
-                  //     scrollController.position.maxScrollExtent,
-                  //     duration: Duration(milliseconds: 300),
-                  //     curve: Curves.easeInOut,
-                  //   );
-                  // },
-                  hintText: "Interest Frequency",
-                  labelText: "Interest Frequency",
-                  selectedValue: interestFrequency.value,
-                  items: [
-                    DropdownMenuItem(
-                      value: InterestFrequency.yearly,
-                      child: Text('Yearly',
-                          style: TextStyle(
-                              fontSize: 15.0,
-                              color: Theme.of(context).colorScheme.secondary)),
-                    ),
-                    DropdownMenuItem(
-                      value: InterestFrequency.halfYearly,
-                      child: Text('Half-Yearly',
-                          style: TextStyle(
-                              fontSize: 15.0,
-                              color: Theme.of(context).colorScheme.secondary)),
-                    ),
-                    DropdownMenuItem(
-                      value: InterestFrequency.quarterly,
-                      child: Text('Quarterly',
-                          style: TextStyle(
-                              fontSize: 15.0,
-                              color: Theme.of(context).colorScheme.secondary)),
-                    ),
-                    DropdownMenuItem(
-                      value: InterestFrequency.monthly,
-                      child: Text('Monthly',
-                          style: TextStyle(
-                              fontSize: 15.0,
-                              color: Theme.of(context).colorScheme.secondary)),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    interestFrequency.value =
-                        value ?? InterestFrequency.yearly;
-                  },
-                ),
+              StyledDropdown<InterestFrequency>(
+                hintText: "Interest Frequency",
+                labelText: "Interest Frequency",
+                selectedValue: interestFrequency.value,
+                items: [
+                  DropdownMenuItem(
+                    value: InterestFrequency.yearly,
+                    child: Text('Yearly',
+                        style: TextStyle(
+                            fontSize: 15.0,
+                            color: Theme.of(context).colorScheme.secondary)),
+                  ),
+                  DropdownMenuItem(
+                    value: InterestFrequency.halfYearly,
+                    child: Text('Half-Yearly',
+                        style: TextStyle(
+                            fontSize: 15.0,
+                            color: Theme.of(context).colorScheme.secondary)),
+                  ),
+                  DropdownMenuItem(
+                    value: InterestFrequency.quarterly,
+                    child: Text('Quarterly',
+                        style: TextStyle(
+                            fontSize: 15.0,
+                            color: Theme.of(context).colorScheme.secondary)),
+                  ),
+                  DropdownMenuItem(
+                    value: InterestFrequency.monthly,
+                    child: Text('Monthly',
+                        style: TextStyle(
+                            fontSize: 15.0,
+                            color: Theme.of(context).colorScheme.secondary)),
+                  ),
+                ],
+                onChanged: (value) {
+                  interestFrequency.value = value ?? InterestFrequency.yearly;
+                },
+              ),
               StyledTextField(
                 textEditingController: additionalDetailsController,
                 hintText: "Additional Details",
                 labelText: "Additional Details",
-                onTap: () {
-                  scrollController.animateTo(
-                    scrollController.position.maxScrollExtent,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
                 maxLines: 3,
               ),
-
               Consumer(builder: (context, ref, child) {
                 return Center(
                   child: OutlinedButton(
@@ -451,13 +302,6 @@ class MortgageInput extends HookConsumerWidget {
                         }
                       }
                     },
-                    // style: OutlinedButton.styleFrom(
-                    //   // foregroundColor: Colors.white, // Text color
-                    //   // backgroundColor: color, // Button color
-                    //   padding:
-                    //       EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    //   // textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    // ),
                     child: const Text('Save'),
                   ),
                 );
@@ -538,18 +382,5 @@ class MortgageInput extends HookConsumerWidget {
     );
     // Clear text after dialog is dismissed.
     controller.clear();
-  }
-}
-
-class LifecycleEventHandler extends WidgetsBindingObserver {
-  final VoidCallback? onDidChangeMetrics;
-
-  LifecycleEventHandler({this.onDidChangeMetrics});
-
-  @override
-  void didChangeMetrics() {
-    if (onDidChangeMetrics != null) {
-      onDidChangeMetrics!();
-    }
   }
 }

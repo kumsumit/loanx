@@ -7,14 +7,12 @@ class StyledTextField extends StatelessWidget {
       required this.hintText,
       required this.labelText,
       this.keyboardType = TextInputType.text,
-      required this.onTap,
       this.failedValidationMessage,
       this.maxLines = 1});
   final TextEditingController textEditingController;
   final String hintText;
   final String labelText;
   final TextInputType keyboardType;
-  final VoidCallback onTap;
   final String? failedValidationMessage;
   final int maxLines;
 
@@ -37,8 +35,15 @@ class StyledTextField extends StatelessWidget {
           hintText: hintText,
           labelText: labelText,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.secondary,
+              )),
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.secondary,
+              )),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(
               color: Theme.of(context).colorScheme.primaryFixedDim,
@@ -46,11 +51,8 @@ class StyledTextField extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(10.0),
           ),
-          // prefixIcon: Icon(Icons.text_fields, color: Colors.blue),
-          // suffixIcon: Icon(Icons.check_circle, color: Colors.green),
         ),
         keyboardType: keyboardType,
-        // onTap: onTap,
       ),
     );
   }

@@ -89,18 +89,18 @@ flutter:
     - assets/
 
 flutter_native_splash: 
-  color: '#4B9DA9'
-  color_dark: '#4B9DA9'
+  color: '#ffffff'
+  color_dark: '#000000'
   android: true
   ios: true
-  image_android: 'logo.png'
-  image_dark_android: 'logo.png'
-  image_ios: 'logo.png'
-  image_dark_ios: 'logo.png'
+  image_android: 'logo_light.png'
+  image_dark_android: 'logo_dark.png'
+  image_ios: 'logo_light.png'
+  image_dark_ios: 'logo_dark.png'
   android_gravity: center
   ios_content_mode: center
   android_12: 
-    image: 'logo.png'
-    image_dark: 'logo.png'
-    color: '#4B9DA9'
-    color_dark: '#4B9DA9'
+    image: 'logo_light.png'
+    image_dark: 'logo_dark.png'
+    color: '#ffffff'
+    color_dark: '#000000'

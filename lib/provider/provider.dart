@@ -97,7 +97,7 @@ class DriveAccessToken extends _$DriveAccessToken {
 }
 
 
-@riverpod
+@Riverpod(keepAlive: true)
 class BackUpRegistered extends _$BackUpRegistered {
   @override
   bool build() => FastDB.getIsBackUpRegistered();
@@ -345,10 +345,9 @@ class PickerColor extends _$PickerColor {
 
 @riverpod
 Future<String> appVersion(Ref ref) async {
-  const mortgage = MethodChannel('mortgage');
-  return await mortgage.invokeMethod('versionName') +
-      '.' +
-      (await mortgage.invokeMethod('versionCode')).toString();
+  return await MethodChannel('mortgage').invokeMethod('versionName');
+      // + '.' +
+      // (await mortgage.invokeMethod('versionCode')).toString();
 }
 
 @Riverpod(keepAlive: true)

@@ -37,7 +37,20 @@ class StyledDropdown<T> extends StatelessWidget {
           suffixIcon:
                  onAddPressed != null ? IconButton(onPressed: onAddPressed, icon: const Icon(Icons.add)) : null,
           labelText: labelText,
-          border: OutlineInputBorder(
+           border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.secondary,
+              )),
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.secondary,
+              )), focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primaryFixedDim,
+              width: 2.0,
+            ),
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),

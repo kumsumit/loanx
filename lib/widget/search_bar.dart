@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
+// import 'color_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -6,9 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mortgage/model/mortgage.dart';
 import 'package:mortgage/provider/provider.dart';
 import 'package:mortgage/screens/mortgage_details.dart';
-
-import 'color_button.dart';
-
 
 class SearchAppBar extends HookWidget {
   const SearchAppBar({super.key});
@@ -39,6 +37,25 @@ class SearchAppBar extends HookWidget {
                       labelText: 'Search Mortgage',
                       suffixIcon: Icon(Icons.search),
                     ));
+              },
+              emptyBuilder: (context) {
+                return ListTile(
+                  tileColor: Theme.of(context).colorScheme.surfaceContainer,
+                  title: Text(
+                    "No data found",
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary),
+                  ),
+                );
+              },
+              errorBuilder: (context, error) {
+                return ListTile(
+                  title: Text(
+                    "An error occurred",
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary),
+                  ),
+                );
               },
               itemBuilder: (context, mortgage) {
                 final m = ref.watch(itemListProvider);
@@ -137,8 +154,8 @@ class SearchAppBar extends HookWidget {
               },
             );
           }),
-          if(kDebugMode)
-         ColorButton()
+          //   if(kDebugMode)
+          //  ColorButton()
         ],
       )),
     );
