@@ -886,7 +886,7 @@ class MyDrawer extends HookWidget {
             ),
             if(Platform.isAndroid)
             ListTile(leading: StyledIcon(Icons.update), title: StyledText('Check for Update'),
-            onTap:checkForUpdates ,
+            onTap: ()=> checkForUpdates(context) ,
             ),
             ListTile(
               leading: StyledIcon(Icons.info_outline),

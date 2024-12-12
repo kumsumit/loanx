@@ -31,7 +31,7 @@ class DashBoard extends HookWidget {
     final title = useState<String>("Mortgage");
    if(Platform.isAndroid) {
      useEffect(() {
-      checkForUpdates();
+      checkForUpdates(context);
       return null;
     }, []);
    }
