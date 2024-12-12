@@ -7,12 +7,17 @@ package com.kumpali.mortgage
 //import android.app.Activity
 //import android.os.Bundle
 //import androidx.annotation.NonNull
+//import android.content.Context
 import com.google.android.play.core.review.ReviewManagerFactory
 import io.flutter.embedding.engine.FlutterEngine
 //import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import android.content.pm.PackageManager
+//import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+//import com.google.android.play.core.appupdate.AppUpdateOptions
+//import com.google.android.play.core.install.model.AppUpdateType
+//import com.google.android.play.core.install.model.UpdateAvailability
 import io.flutter.embedding.android.FlutterFragmentActivity
 
 class MainActivity : FlutterFragmentActivity() {
@@ -60,6 +65,31 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+//    private fun checkUpdate(context: Context){
+//        val appUpdateManager = AppUpdateManagerFactory.create(context)
+//
+//// Returns an intent object that you use to check for an update.
+//        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+//
+//// Checks that the platform will allow the specified type of update.
+//        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+//            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+//                // This example applies an immediate update. To apply a flexible update
+//                // instead, pass in AppUpdateType.FLEXIBLE
+//                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+//            ) {
+//                // Request the update.
+//                appUpdateManager.startUpdateFlowForResult(
+//                    // Pass the intent that is returned by 'getAppUpdateInfo()'.
+//                    appUpdateInfo,
+//                    // an activity result launcher registered via registerForActivityResult
+//                    activityResultLauncher,
+//                    // Or pass 'AppUpdateType.FLEXIBLE' to newBuilder() for
+//                    // flexible updates.
+//                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build())
+//            }
+//        }
+//    }
 
     private fun getAppVersionName(): String {
         return try {

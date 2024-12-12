@@ -59,6 +59,8 @@ dependencies:
     git: https://github.com/sumitsharansatsangi/internet_connection_checker_plus.git
   share_plus:
     git: https://github.com/kumsumit/share_plus.git
+  in_app_update:
+    git: https://github.com/sumitsharansatsangi/flutter_in_app_update.git
   # device_preview:
   #   git: https://github.com/sumitsharansatsangi/device_preview.git
 

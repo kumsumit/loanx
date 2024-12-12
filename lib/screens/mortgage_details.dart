@@ -24,14 +24,15 @@ class MortgageDetails extends ConsumerWidget {
                 final mortgageMaterial = mortgageMaterialList.firstWhere(
                     (mortgageMaterial) =>
                         mortgageMaterial.id == mortgage.mortgageMaterialId);
-              
+
                 final loan = Loan(
                     principal: mortgage.loanAmount,
                     interestRate: mortgage.interestRate,
                     duration:
                         DateTime.now().difference(mortgage.dateCreated).inDays,
                     interestType: InterestType.values[mortgage.interestType],
-                    interestFrequency: InterestFrequency.values[mortgage.interestFrequency]);
+                    interestFrequency:
+                        InterestFrequency.values[mortgage.interestFrequency]);
                 final double collectable = loan.calculateCollectable();
                 return Scaffold(
                   appBar: AppBar(
@@ -48,17 +49,29 @@ class MortgageDetails extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         children: [
-                          buildDataRow(
-                              context, 'Depositor Name', mortgage.depositorName),
+                          buildDataRow(context, 'Depositor Name',
+                              mortgage.depositorName),
                           buildDataRow(
                               context, 'Relative Name', mortgage.relativeName),
                           buildDataRow(context, 'Address', mortgage.address),
                           buildDataRow(context, 'Loan Amount',
                               mortgage.loanAmount.toStringAsFixed(2)),
-                          buildDataRow(context, 'Interest',
-                              (collectable-mortgage.loanAmount).toStringAsFixed(2)),
-                              buildDataRow(context, 'Collectable Amount',
-                              collectable.toStringAsFixed(2)),
+                          mortgage.interestType == InterestType.compound.index
+                              ? buildDataRow(
+                                  context,
+                                  'Interest',
+                                  (collectable - mortgage.loanAmount)
+                                      .toStringAsFixed(2))
+                              : buildDataRow(context, 'Interest',
+                                  collectable.toStringAsFixed(2)),
+                          mortgage.interestType == InterestType.compound.index
+                              ? buildDataRow(context, 'Collectable Amount',
+                                  collectable.toStringAsFixed(2))
+                              : buildDataRow(
+                                  context,
+                                  'Collectable Amount',
+                                  (mortgage.loanAmount + collectable)
+                                      .toStringAsFixed(2)),
                           buildDataRow(context, 'Interest Rate',
                               mortgage.interestRate.toString()),
                           buildDataRow(

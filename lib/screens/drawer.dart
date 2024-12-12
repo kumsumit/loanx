@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
@@ -8,6 +10,7 @@ import 'package:mortgage/model/loan.dart';
 import 'package:mortgage/service/backup_service.dart';
 import 'package:mortgage/db/fastdb.dart';
 import 'package:mortgage/provider/provider.dart';
+import 'package:mortgage/service/update_service.dart';
 import 'package:mortgage/widget/avatar.dart';
 import 'package:mortgage/widget/bullet.dart';
 import 'package:mortgage/widget/loading_overlay.dart';
@@ -202,11 +205,12 @@ class MyDrawer extends HookWidget {
                                         if (context.mounted) {
                                           Navigator.of(context).pop();
                                           if (secure) {
-                                            showSnackBar(context,
-                                                "App gets secured, Now you need to restart the app");
+                                               showSnackBar(context,
+                                                "App gets unsecured, Now you need to restart the app");
                                           } else {
                                             showSnackBar(context,
-                                                "App gets unsecured, Now you need to restart the app");
+                                                "App gets secured, Now you need to restart the app");
+                                         
                                           }
                                         }
                                       },
@@ -867,6 +871,10 @@ class MyDrawer extends HookWidget {
               onTap: () {
                 _launchURL('https://mortgage.kumpali.com/privacy.html');
               },
+            ),
+            if(Platform.isAndroid)
+            ListTile(leading: StyledIcon(Icons.update), title: Text('Check for Update'),
+            onTap:checkForUpdates ,
             ),
             ListTile(
               leading: StyledIcon(Icons.info_outline),

@@ -808,6 +808,15 @@ packages:
       url: "https://github.com/kumsumit/image_picker_windows.git"
     source: git
     version: "0.2.1+1"
+  in_app_update:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "970c33a982d4e8df2a41beae6e4559cdc3c02c6a"
+      url: "https://github.com/sumitsharansatsangi/flutter_in_app_update.git"
+    source: git
+    version: "4.2.3"
   internet_connection_checker_plus:
     dependency: "direct main"
     description:
