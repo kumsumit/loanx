@@ -29,12 +29,12 @@ class DashBoard extends HookWidget {
   Widget build(BuildContext context) {
     final currentIndex = useState<int>(0);
     final title = useState<String>("Mortgage");
-   if(Platform.isAndroid) {
-     useEffect(() {
-      checkForUpdates(context);
-      return null;
-    }, []);
-   }
+    if (Platform.isAndroid) {
+      useEffect(() {
+        checkForUpdates(context);
+        return null;
+      }, []);
+    }
 
     return Scaffold(
       appBar: AppBar(
