@@ -43,12 +43,24 @@ class MyDrawer extends HookWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Mortgage',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSecondary,
-                            fontSize: 20),
-                      ),
+                       Text(
+                            'Mortgage',
+                            style: TextStyle(fontWeight: FontWeight.w500,
+                                color: Theme.of(context).colorScheme.onSecondary,
+                                fontSize: 25),
+                          ),
+                      // Column(
+                      //   children: [
+                      //     Text(
+                      //       'Mortgage',
+                      //       style: TextStyle(
+                      //           color: Theme.of(context).colorScheme.onSecondary,
+                      //           fontSize: 20),
+                      //     ),
+                      //     Image.asset("assets/logo.png", height: 50,),
+                      //   ],
+
+                      // ),
                       Consumer(builder: (context, ref, child) {
                         return ProfilePicture(
                             imageUrl: ref.watch(photoUrlProvider),
@@ -873,7 +885,7 @@ class MyDrawer extends HookWidget {
               },
             ),
             if(Platform.isAndroid)
-            ListTile(leading: StyledIcon(Icons.update), title: Text('Check for Update'),
+            ListTile(leading: StyledIcon(Icons.update), title: StyledText('Check for Update'),
             onTap:checkForUpdates ,
             ),
             ListTile(
