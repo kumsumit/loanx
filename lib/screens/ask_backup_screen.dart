@@ -30,7 +30,7 @@ class AskBackupScreen extends HookWidget {
             padding: const EdgeInsets.all(20.0),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: Colors.black38.withOpacity(0.7),
+                color: Colors.black38.withValues(alpha:0.7),
                 borderRadius: BorderRadius.circular(12.0),
                 border: Border.all(
                   color: Theme.of(context).colorScheme.primary,

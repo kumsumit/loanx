@@ -74,9 +74,7 @@ class Mortgage {
     }
   }
 
-  /// If the task is new returns 'Created on <date>',
-  /// if it is finished 'Finished on <date>'. The date is formatted
-  /// for the current locale.
+
   String getStateText() {
     String text;
     if (isFinished()) {
