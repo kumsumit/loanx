@@ -30,7 +30,7 @@ class AskBackupScreen extends HookWidget {
             padding: const EdgeInsets.all(20.0),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: Colors.black38.withValues(alpha:0.7),
+                color: Colors.black38.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(12.0),
                 border: Border.all(
                   color: Theme.of(context).colorScheme.primary,
@@ -100,18 +100,22 @@ class AskBackupScreen extends HookWidget {
                         Consumer(builder: (context, ref, child) {
                           final networkStatus =
                               ref.watch(networkCheckerProvider);
+                          final backupRegistered =
+                              ref.read(backUpRegisteredProvider.notifier);
+                          final db = ref.read(dBProvider);
+                          final itemList = ref.read(itemListProvider.notifier);
+                          final familyRelationList =
+                              ref.read(familyRelationListProvider.notifier);
+                          final mortgageMaterialList =
+                              ref.read(mortgageMaterialListProvider.notifier);
+                          final mortgageList =
+                              ref.read(mortgageListProvider.notifier);
                           return OutlinedButton(
                             onPressed: () async {
                               networkStatus.when(
                                   data: (data) async {
                                     if (data) {
                                       isLoading.value = true;
-                                      // await Workmanager().registerOneOffTask(
-                                      //   DateTime.now()
-                                      //       .microsecondsSinceEpoch
-                                      //       .toString(),
-                                      //   dailyBackUpDownload,
-                                      // );
                                       await BackupService
                                           .downloadFileToDevice();
                                       if (!FastDB.getIsTableCreated()) {
@@ -129,32 +133,21 @@ class AskBackupScreen extends HookWidget {
                                       FastDB.putScheduledBackUpTimeHour(02);
                                       FastDB.putScheduledBackUpTimeMinute(00);
                                       await registerBackUp();
-                                      ref
-                                          .read(
-                                              backUpRegisteredProvider.notifier)
-                                          .set(true);
+                                      backupRegistered.set(true);
                                       FastDB.putIsTableCreated(true);
                                       await FastDB.flush();
-                                      ref.read(dBProvider).when(
+                                      db.when(
                                           data: (data) async {
-                                            ref.read(itemListProvider);
-                                            ref
-                                                .read(
-                                                    mortgageMaterialListProvider
-                                                        .notifier)
+                                            itemList.readAllItems();
+                                            mortgageMaterialList
                                                 .readAllMortgageMaterials();
-                                            ref
-                                                .read(familyRelationListProvider
-                                                    .notifier)
+                                            familyRelationList
                                                 .readAllFamilyRelations();
-                                            ref
-                                                .read(mortgageListProvider
-                                                    .notifier)
-                                                .readAllMortgages();
+                                            mortgageList.readAllMortgages();
                                           },
                                           error: (_, __) {
                                             if (!FastDB.getIsTableCreated()) {
-                                              ref.read(dBProvider).when(
+                                              db.when(
                                                   data: (data) async {
                                                     await DatabaseHelper
                                                         .instance
@@ -172,7 +165,7 @@ class AskBackupScreen extends HookWidget {
                                           loading: () {});
                                     } else {
                                       if (!FastDB.getIsTableCreated()) {
-                                        ref.read(dBProvider).when(
+                                        db.when(
                                             data: (data) async {
                                               await DatabaseHelper.instance
                                                   .onCreate(data, 1);
