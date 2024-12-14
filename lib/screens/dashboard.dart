@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-// import 'package:mortgage/db/fastdb.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/screens/home.dart';
-import 'package:mortgage/screens/manage.dart';
-import 'package:mortgage/screens/mortgage_input.dart';
-import 'package:mortgage/service/update_service.dart';
-import 'package:mortgage/widget/styled_text.dart';
-// import 'package:mortgage/service/backup_service.dart';
-// import 'package:mortgage/service/database_helper.dart';
-// import 'package:mortgage/widget/snackbar.dart';
+// import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/screens/home.dart';
+import 'package:loanx/screens/manage.dart';
+import 'package:loanx/screens/mortgage_input.dart';
+import 'package:loanx/service/update_service.dart';
+import 'package:loanx/widget/styled_text.dart';
+// import 'package:loanx/service/backup_service.dart';
+// import 'package:loanx/service/database_helper.dart';
+// import 'package:loanx/widget/snackbar.dart';
 
 import 'drawer.dart';
 
@@ -28,7 +28,7 @@ class DashBoard extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = useState<int>(0);
-    final title = useState<String>("Mortgage");
+    final title = useState<String>("Loanx");
     if (Platform.isAndroid) {
       useEffect(() {
         checkForUpdates(context);
@@ -89,8 +89,8 @@ class DashBoard extends HookWidget {
                                                         mortgageSelectionListProvider)
                                                     .length ==
                                                 1
-                                            ? 'Are you sure you want to delete this mortgage?'
-                                            : 'Are you sure you want to delete these mortgages?'),
+                                            ? 'Are you sure you want to delete this loanx?'
+                                            : 'Are you sure you want to delete these loanxs?'),
                                         actions: [
                                           TextButton(
                                             onPressed: () {
@@ -128,7 +128,7 @@ class DashBoard extends HookWidget {
         currentIndex: currentIndex.value,
         onTap: (index) {
           currentIndex.value = index;
-          title.value = index == 0 ? "Mortgage" : "Manage";
+          title.value = index == 0 ? "loanx" : "Manage";
         },
         items: [
           BottomNavigationBarItem(

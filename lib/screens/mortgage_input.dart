@@ -1,29 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/db/fastdb.dart';
-import 'package:mortgage/model/family_relation.dart';
-import 'package:mortgage/model/item.dart';
-import 'package:mortgage/model/loan.dart';
-import 'package:mortgage/model/mortgage.dart';
-import 'package:mortgage/model/mortgage_material.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/widget/snackbar.dart';
-// import 'package:mortgage/widget/notched_dropdown.dart';
-import 'package:mortgage/widget/styled_dropdown.dart';
-import 'package:mortgage/widget/styled_textfield.dart';
+import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/model/family_relation.dart';
+import 'package:loanx/model/item.dart';
+import 'package:loanx/model/loan.dart';
+import 'package:loanx/model/mortgage.dart';
+import 'package:loanx/model/mortgage_material.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/widget/snackbar.dart';
+// import 'package:loanx/widget/notched_dropdown.dart';
+import 'package:loanx/widget/styled_dropdown.dart';
+import 'package:loanx/widget/styled_textfield.dart';
 
 // import '../algo/damerau_lavenstien.dart';
 
-/// Interface to add a new or update an existing mortgage.
-///
-/// Supports adding or changing the text and setting the associated tag of
-/// a task.
 class MortgageInput extends HookConsumerWidget {
   final Mortgage? mortgage;
-
-  /// If [mortgageId] is not null, the id of the mortgage to edit.
-  /// Otherwise, will create a new task.
   const MortgageInput({super.key, this.mortgage});
 
   double _parseDouble(String input) {
@@ -298,7 +291,7 @@ class MortgageInput extends HookConsumerWidget {
                             currentMortgageMaterial.value!.id!);
                         if (context.mounted) {
                           Navigator.pop(context);
-                          showSnackBar(context, "Mortgage Added Successfully");
+                          showSnackBar(context, "Record Added Successfully");
                         }
                       }
                     },

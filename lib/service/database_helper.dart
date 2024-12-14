@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:mortgage/model/family_relation.dart';
-import 'package:mortgage/model/item.dart';
-import 'package:mortgage/model/mortgage.dart';
-// import 'package:mortgage/model/loan.dart';
-// import 'package:mortgage/model/mortgage.dart';
-import 'package:mortgage/model/mortgage_material.dart';
+import 'package:loanx/model/family_relation.dart';
+import 'package:loanx/model/item.dart';
+import 'package:loanx/model/mortgage.dart';
+// import 'package:loanx/model/loan.dart';
+// import 'package:loanx/model/loanx.dart';
+import 'package:loanx/model/mortgage_material.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path/path.dart';
 // import 'package:faker/faker.dart';
@@ -25,7 +25,7 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'mortgage.db');
+    String path = join(await getDatabasesPath(), 'loanx.db');
     if (await File(path).exists()) {
       return await openDatabase(path,
           version: 1,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/model/mortgage_material.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/widget/snackbar.dart';
+import 'package:loanx/model/mortgage_material.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/widget/snackbar.dart';
 
 class MortgageMaterialView extends StatelessWidget {
   const MortgageMaterialView({super.key});
@@ -112,10 +112,10 @@ class MortgageMaterialView extends StatelessWidget {
                       Navigator.of(context).pop();
                       if (status > 0) {
                         showSnackBar(
-                            context, 'Mortgage Material added successfully');
+                            context, 'loanx Material added successfully');
                       } else {
                         showSnackBar(
-                            context, 'Mortgage Material already exists');
+                            context, 'loanx Material already exists');
                       }
                     }
                   }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/db/fastdb.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/screens/dashboard.dart';
-import 'package:mortgage/service/backup_service.dart';
-import 'package:mortgage/service/database_helper.dart';
-import 'package:mortgage/widget/loading_overlay.dart';
-import 'package:mortgage/widget/snackbar.dart';
+import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/screens/dashboard.dart';
+import 'package:loanx/service/backup_service.dart';
+import 'package:loanx/service/database_helper.dart';
+import 'package:loanx/widget/loading_overlay.dart';
+import 'package:loanx/widget/snackbar.dart';
 
 class AskBackupScreen extends HookWidget {
   const AskBackupScreen({super.key});
@@ -59,7 +59,7 @@ class AskBackupScreen extends HookWidget {
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                       child: Text(
-                        'Do you want to backup your mortgage data from/to Google Drive?',
+                        'Do you want to backup your Loanx data from/to Google Drive?',
                         style: TextStyle(
                             fontSize: 16,
                             color: Theme.of(context).colorScheme.primary),
@@ -208,32 +208,4 @@ class AskBackupScreen extends HookWidget {
     ));
   }
 
-  // void _showDialog(BuildContext context) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: const Text('Backup',textAlign: TextAlign.center,),
-  //       content: Column(
-  //         children: [ Image.asset("assets/backup.png",height: 200,width: 200,),
-  //           const Text(
-  //               'Do you want to backup your mortgage data from/to Google Drive?'),
-  //         ],
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () {
-  //             Navigator.pop(context);
-  //           },
-  //           child: const Text('No'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () {
-  //             Navigator.pop(context);
-  //           },
-  //           child: const Text('Yes'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

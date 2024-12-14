@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import to use SystemNavigator.pop
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/screens/dashboard.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/screens/dashboard.dart';
 
 class AuthFailurePage extends HookWidget {
   const AuthFailurePage({super.key});

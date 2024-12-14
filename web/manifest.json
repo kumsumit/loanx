@@ -1,6 +1,6 @@
 {
-    "name": "mortgage",
-    "short_name": "mortgage",
+    "name": "loanx",
+    "short_name": "loanx",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

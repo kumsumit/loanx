@@ -5,7 +5,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Mortgage</string>
+		<string>Loanx</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>mortgage</string>
+		<string>loanx</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -48,7 +48,7 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>NSFaceIDUsageDescription</key>
-		<string>We use Face ID to securely authenticate and verify your identity for accessing your mortgage and loan records and ensuring your data privacy and security.</string>
+		<string>We use Face ID to securely authenticate and verify your identity for accessing your loanx records and ensuring your data privacy and security.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>We need access to your photo library to choose logo.</string>
 		<key>GIDClientID</key>

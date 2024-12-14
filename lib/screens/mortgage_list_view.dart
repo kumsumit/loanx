@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-// import 'package:mortgage/extension/string.dart';
-import 'package:mortgage/model/item.dart';
-// import 'package:mortgage/model/loan.dart';
-import 'package:mortgage/model/mortgage.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/screens/mortgage_details.dart';
-import 'package:mortgage/widget/snackbar.dart';
+// import 'package:loanx/extension/string.dart';
+import 'package:loanx/model/item.dart';
+// import 'package:loanx/model/loan.dart';
+import 'package:loanx/model/mortgage.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/screens/mortgage_details.dart'; 
+import 'package:loanx/widget/snackbar.dart';
 
 class MortgageListView extends StatelessWidget {
   const MortgageListView({super.key});
@@ -49,7 +49,6 @@ class MortgageListView extends StatelessWidget {
                 ],
               ),
             );
-
             mortgage.toggleFinished();
             await ref
                 .read(mortgageListProvider.notifier)
@@ -81,12 +80,12 @@ class MortgageListView extends StatelessWidget {
           child: Row(
             children: <Widget>[
               // Checkbox(
-              //     value: mortgage.isFinished(),
+              //     value: loanx.isFinished(),
               //     onChanged: (bool? value) async {
-              //       mortgage.toggleFinished();
+              //       loanx.toggleFinished();
               //     await  ref
-              //           .read(mortgageListProvider.notifier)
-              //           .updateMortgage(mortgage);
+              //           .read(loanxListProvider.notifier)
+              //           .updateloanx(loanx);
               //     }),
               Expanded(
                 child: DecoratedBox(
@@ -192,19 +191,19 @@ class MortgageListView extends StatelessWidget {
 }
 
 
-// showDescriptionDialog(BuildContext context, Mortgage mortgage, Item item,
-//     FamilyRelation familyRelation, MortgageMaterial mortgageMaterial) {
+// showDescriptionDialog(BuildContext context, loanx loanx, Item item,
+//     FamilyRelation familyRelation, MortgageMaterial MortgageMaterial) {
 //   final loan = Loan(
-//       principal: mortgage.loanAmount,
-//       interestRate: mortgage.interestRate,
-//       duration: DateTime.now().difference(mortgage.dateCreated).inDays,
+//       principal: loanx.loanAmount,
+//       interestRate: loanx.interestRate,
+//       duration: DateTime.now().difference(loanx.dateCreated).inDays,
 //       interestType: InterestType.simple,
 //       compoundingFrequency: CompoundingFrequency.monthly);
 //   final double interest = loan.calculateInterest();
 //   showDialog(
 //       context: context,
 //       builder: (context) => AlertDialog(
-//             title: Text('Mortgage Details'),
+//             title: Text('loanx Details'),
 //             content: SingleChildScrollView(
 //               scrollDirection: Axis.horizontal,
 //               child: SingleChildScrollView(
@@ -216,29 +215,29 @@ class MortgageListView extends StatelessWidget {
 //                   ],
 //                   rows: [
 //                     buildDataRow(
-//                         context, 'Depositor Name', mortgage.depositorName),
+//                         context, 'Depositor Name', loanx.depositorName),
 //                     buildDataRow(
-//                         context, 'Relative Name', mortgage.relativeName),
-//                     buildDataRow(context, 'Address', mortgage.address),
+//                         context, 'Relative Name', loanx.relativeName),
+//                     buildDataRow(context, 'Address', loanx.address),
 //                     buildDataRow(
-//                         context, 'Loan Amount', mortgage.loanAmount.toStringAsFixed(2)),
+//                         context, 'Loan Amount', loanx.loanAmount.toStringAsFixed(2)),
 //                      buildDataRow(
 //                         context, 'Calculated Interest', interest.toStringAsFixed(2)),
 //                     buildDataRow(context, 'Interest Rate',
-//                         mortgage.interestRate.toString()),
+//                         loanx.interestRate.toString()),
 //                     buildDataRow(context, 'Interest Type',
-//                        InterestType.values[mortgage.interestType].name.toSentenceCase()),
-//                     if (InterestType.values[mortgage.interestType] == InterestType.compound)
+//                        InterestType.values[loanx.interestType].name.toSentenceCase()),
+//                     if (InterestType.values[loanx.interestType] == InterestType.compound)
 //                       buildDataRow(context, 'Compounding Frequency',
-//                           CompoundingFrequency.values[mortgage.compoundingFrequency].name.toSentenceCase()),
-//                     buildDataRow(context, 'Weight', mortgage.weight.toString()),
+//                           CompoundingFrequency.values[loanx.compoundingFrequency].name.toSentenceCase()),
+//                     buildDataRow(context, 'Weight', loanx.weight.toString()),
 //                     buildDataRow(context, 'Additional Details',
-//                         mortgage.additionalDetails),
+//                         loanx.additionalDetails),
 //                     buildDataRow(context, 'Item', item.name),
 //                     buildDataRow(
 //                         context, 'Family Relation', familyRelation.name),
 //                     buildDataRow(
-//                         context, 'Mortgage Material', mortgageMaterial.name),
+//                         context, 'loanx Material', MortgageMaterial.name),
 //                   ],
 //                 ),
 //               ),

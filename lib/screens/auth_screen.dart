@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/service/eye_rolling.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/service/eye_rolling.dart';
 
 class AuthScreen extends HookConsumerWidget {
   const AuthScreen({super.key});

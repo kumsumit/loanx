@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:mortgage/db/fastdb.dart';
+// import 'package:loanx/db/fastdb.dart';
 
 class BulletPoint extends StatelessWidget {
   const BulletPoint(this.text, {super.key, this.italic = false});

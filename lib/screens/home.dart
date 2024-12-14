@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/screens/mortgage_input.dart';
-import 'package:mortgage/screens/mortgage_list_view.dart';
-import 'package:mortgage/widget/search_bar.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/screens/mortgage_input.dart';
+import 'package:loanx/screens/mortgage_list_view.dart';
+import 'package:loanx/widget/search_bar.dart';
 
 // import 'keyboard_input.dart';
 

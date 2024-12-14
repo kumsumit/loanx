@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import to use SystemNavigator.pop
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:mortgage/service/eye_rolling.dart';
+import 'package:loanx/service/eye_rolling.dart';
 
 class ErrorPage extends HookWidget {
   const ErrorPage({super.key});

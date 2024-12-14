@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/model/family_relation.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/widget/snackbar.dart';
+import 'package:loanx/model/family_relation.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/widget/snackbar.dart';
 
 class FamilyRelationView extends StatelessWidget {
   const FamilyRelationView({super.key});

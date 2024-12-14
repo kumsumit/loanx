@@ -7,7 +7,7 @@ class MortgageMaterialFields {
 }
 
 class MortgageMaterial {
-  static const String tableName = 'mortgageMaterials';
+  static const String tableName = 'MortgageMaterials';
   final int? id;
   final String name;
   final int isAddedByUser;
@@ -37,8 +37,8 @@ class MortgageMaterial {
       );
 
   Map<String, Object?> toJson() => {
-        MortgageMaterialFields.id: id,
-        MortgageMaterialFields.name: name,
-        MortgageMaterialFields.isAddedByUser: isAddedByUser,
+       MortgageMaterialFields.id: id,
+       MortgageMaterialFields.name: name,
+       MortgageMaterialFields.isAddedByUser: isAddedByUser,
       };
 }

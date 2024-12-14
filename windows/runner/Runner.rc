@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.kumpali" "\0"
-            VALUE "FileDescription", "mortgage" "\0"
+            VALUE "FileDescription", "loanx" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "mortgage" "\0"
+            VALUE "InternalName", "loanx" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.kumpali. All rights reserved." "\0"
-            VALUE "OriginalFilename", "mortgage.exe" "\0"
-            VALUE "ProductName", "mortgage" "\0"
+            VALUE "OriginalFilename", "loanx.exe" "\0"
+            VALUE "ProductName", "loanx" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

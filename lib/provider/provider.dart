@@ -7,15 +7,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:mortgage/algo/damerau_lavenstien.dart';
-import 'package:mortgage/db/fastdb.dart';
-import 'package:mortgage/model/family_relation.dart';
-import 'package:mortgage/model/item.dart';
-import 'package:mortgage/model/loan.dart';
+import 'package:loanx/algo/damerau_lavenstien.dart';
+import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/model/family_relation.dart';
+import 'package:loanx/model/item.dart';
+import 'package:loanx/model/loan.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:mortgage/model/mortgage.dart';
-import 'package:mortgage/model/mortgage_material.dart';
-import 'package:mortgage/service/database_helper.dart';
+import 'package:loanx/model/mortgage.dart';
+import 'package:loanx/model/mortgage_material.dart';
+import 'package:loanx/service/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 part 'provider.g.dart';
@@ -345,9 +345,7 @@ class PickerColor extends _$PickerColor {
 
 @riverpod
 Future<String> appVersion(Ref ref) async {
-  return await MethodChannel('mortgage').invokeMethod('versionName');
-      // + '.' +
-      // (await mortgage.invokeMethod('versionCode')).toString();
+  return await MethodChannel('loanx').invokeMethod('versionName');
 }
 
 @Riverpod(keepAlive: true)

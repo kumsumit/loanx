@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/model/mortgage.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/screens/mortgage_details.dart';
+import 'package:loanx/model/mortgage.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/screens/mortgage_details.dart';
 
 class SearchAppBar extends HookWidget {
   const SearchAppBar({super.key});

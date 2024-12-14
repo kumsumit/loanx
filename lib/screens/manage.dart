@@ -14,7 +14,7 @@ class Manage extends StatelessWidget {
         TabBar(
           tabs: [
             Tab(icon: Text("Item")),
-            Tab(icon: Text("Mortgage Material")),
+            Tab(icon: Text("loanx Material")),
             Tab(icon: Text("Family Relation")),
           ],
         ),

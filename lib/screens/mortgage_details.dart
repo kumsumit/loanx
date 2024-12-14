@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/extension/string.dart';
-import 'package:mortgage/model/item.dart';
-import 'package:mortgage/model/loan.dart';
-import 'package:mortgage/model/mortgage.dart';
-import 'package:mortgage/provider/provider.dart';
+import 'package:loanx/extension/string.dart';
+import 'package:loanx/model/item.dart';
+import 'package:loanx/model/loan.dart';
+import 'package:loanx/model/mortgage.dart';
+import 'package:loanx/provider/provider.dart';
 
 class MortgageDetails extends ConsumerWidget {
   const MortgageDetails(

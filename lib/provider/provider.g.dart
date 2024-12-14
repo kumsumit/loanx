@@ -22,7 +22,7 @@ final authenticateProvider = FutureProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AuthenticateRef = FutureProviderRef<bool>;
-String _$appVersionHash() => r'aac7e246b9d0f8c5171b3aa5a872839d70d2c309';
+String _$appVersionHash() => r'1047063a2265b00afdccc963cd6588405254dff8';
 
 /// See also [appVersion].
 @ProviderFor(appVersion)
@@ -68,12 +68,12 @@ final driveAccessTokenProvider =
 );
 
 typedef _$DriveAccessToken = AutoDisposeNotifier<String>;
-String _$backUpRegisteredHash() => r'497359e8fff9c398361517c2ab2b9465bcc38b96';
+String _$backUpRegisteredHash() => r'c6daac1f514d030f363cfea190b306d6b745562b';
 
 /// See also [BackUpRegistered].
 @ProviderFor(BackUpRegistered)
 final backUpRegisteredProvider =
-    AutoDisposeNotifierProvider<BackUpRegistered, bool>.internal(
+    NotifierProvider<BackUpRegistered, bool>.internal(
   BackUpRegistered.new,
   name: r'backUpRegisteredProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -83,7 +83,7 @@ final backUpRegisteredProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$BackUpRegistered = AutoDisposeNotifier<bool>;
+typedef _$BackUpRegistered = Notifier<bool>;
 String _$displayNameHash() => r'f36776e6dee59fe44d8d6ee8cb7672915f20bf51';
 
 /// See also [DisplayName].
@@ -321,7 +321,7 @@ final appColorProvider = NotifierProvider<AppColor, String>.internal(
 );
 
 typedef _$AppColor = Notifier<String>;
-String _$pickerColorHash() => r'b9018ce3c297d630cc73af1e0f3359675a51dbd0';
+String _$pickerColorHash() => r'feab1f97652797594d879a5a15715aab4b9bed1b';
 
 /// See also [PickerColor].
 @ProviderFor(PickerColor)
@@ -398,7 +398,7 @@ final itemListProvider = AsyncNotifierProvider<ItemList, List<Item>>.internal(
 );
 
 typedef _$ItemList = AsyncNotifier<List<Item>>;
-String _$mortgageListHash() => r'e6326daf3e19aa94d9330351afd2f25f54b4fe1b';
+String _$mortgageListHash() => r'1a7a413363f24169b09bba9de81db0ca60b718b9';
 
 /// See also [MortgageList].
 @ProviderFor(MortgageList)

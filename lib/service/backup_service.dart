@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
-import 'package:mortgage/db/fastdb.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/service/database_helper.dart';
-import 'package:mortgage/widget/snackbar.dart';
-// import 'package:mortgage/widget/snackbar.dart';
+import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/service/database_helper.dart';
+import 'package:loanx/widget/snackbar.dart';
+// import 'package:loanx/widget/snackbar.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:workmanager/workmanager.dart';
@@ -34,7 +34,7 @@ class BackupService {
     final driveFile = drive.File();
     driveFile.name = "backup-${DateTime.now().toIso8601String()}.db";
     driveFile.parents = ["appDataFolder"];
-    File file = File(join(await getDatabasesPath(), 'mortgage.db'));
+    File file = File(join(await getDatabasesPath(), 'loanx.db'));
     debugPrint(file.path);
     if (file.existsSync()) {
       drive.File result = await driveApi.files.create(
@@ -64,7 +64,7 @@ class BackupService {
   static Future<bool> downloadFileToDevice() async {
     bool isDownloaded = false;
     final driveApi = await getDriveApi();
-    File saveFile = File(join(await getDatabasesPath(), 'mortgage.db'));
+    File saveFile = File(join(await getDatabasesPath(), 'loanx.db'));
     if (driveApi != null) {
       final fileList =
           (await driveApi.files.list(spaces: 'appDataFolder')).files;
@@ -78,7 +78,7 @@ class BackupService {
           if (file != null) {
             if (saveFile.existsSync()) {
               File tempFile =
-                  File(join(await getDatabasesPath(), 'mortgage_temp.db'));
+                  File(join(await getDatabasesPath(), 'loanx_temp.db'));
               final bytesArray = await file.stream.toList();
               List<int> bytes = [];
               for (var arr in bytesArray) {
@@ -217,7 +217,7 @@ Future<void> registerBackUp() async {
   }
   DateTime now = DateTime.now();
   final uniqueID =
-      "${DateTime.now().millisecondsSinceEpoch}_dailyBackup_mortgage";
+      "${DateTime.now().millisecondsSinceEpoch}_dailyBackup_loanx";
   Workmanager().registerPeriodicTask(
     uniqueID,
     dailyBackUpUpload,

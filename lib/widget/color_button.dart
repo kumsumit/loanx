@@ -1,8 +1,8 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 // import 'package:hooks_riverpod/hooks_riverpod.dart';
-// import 'package:mortgage/provider/provider.dart';
-// import 'package:mortgage/widget/styled_text.dart';
+// import 'package:loanx/provider/provider.dart';
+// import 'package:loanx/widget/styled_text.dart';
 
 // class ColorButton extends StatelessWidget {
 //   const ColorButton({super.key});

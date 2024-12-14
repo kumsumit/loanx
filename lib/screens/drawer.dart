@@ -5,17 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mortgage/extension/string.dart';
-import 'package:mortgage/model/loan.dart';
-import 'package:mortgage/service/backup_service.dart';
-import 'package:mortgage/db/fastdb.dart';
-import 'package:mortgage/provider/provider.dart';
-import 'package:mortgage/service/update_service.dart';
-import 'package:mortgage/widget/avatar.dart';
-import 'package:mortgage/widget/bullet.dart';
-import 'package:mortgage/widget/loading_overlay.dart';
-import 'package:mortgage/widget/snackbar.dart';
-import 'package:mortgage/widget/styled_text.dart';
+import 'package:loanx/extension/string.dart';
+import 'package:loanx/model/loan.dart';
+import 'package:loanx/service/backup_service.dart';
+import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/provider/provider.dart';
+import 'package:loanx/service/update_service.dart';
+import 'package:loanx/widget/avatar.dart';
+import 'package:loanx/widget/bullet.dart';
+import 'package:loanx/widget/loading_overlay.dart';
+import 'package:loanx/widget/snackbar.dart';
+import 'package:loanx/widget/styled_text.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
@@ -44,7 +44,7 @@ class MyDrawer extends HookWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                        Text(
-                            'Mortgage',
+                            'Loanx',
                             style: TextStyle(fontWeight: FontWeight.w500,
                                 color: Theme.of(context).colorScheme.onSecondary,
                                 fontSize: 25),
@@ -52,7 +52,7 @@ class MyDrawer extends HookWidget {
                       // Column(
                       //   children: [
                       //     Text(
-                      //       'Mortgage',
+                      //       'loanx',
                       //       style: TextStyle(
                       //           color: Theme.of(context).colorScheme.onSecondary,
                       //           fontSize: 20),
@@ -151,12 +151,12 @@ class MyDrawer extends HookWidget {
                               'A revolutionary app to keep records of loans provided by the unorganized sector in India without any paperwork.\n',
                             ),
                             BulletPoint(
-                              'Mortgage is a simple and easy to use app that allows you to track your mortgage loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their mortgage records. With Mortgage, you can easily create, update, and delete mortgage loans, as well as view your loan history.',
+                              'loanx is a simple and easy to use app that allows you to track your loanx loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their loanx records. With loanx, you can easily create, update, and delete loanx loans, as well as view your loan history.',
                             ),
                             BulletPoint(
-                                'The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. Mortgage is available on both Android and iOS platforms, making it accessible to a wide range of users.'),
+                                'The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. loanx is available on both Android and iOS platforms, making it accessible to a wide range of users.'),
                             BulletPoint(
-                              'Whether you\'re a seasoned mortgage professional or just starting out, Mortgage is the perfect app to help you manage your mortgage loans efficiently and efficiently.',
+                              'Whether you\'re a seasoned loanx professional or just starting out, loanx is the perfect app to help you manage your loanx loans efficiently and efficiently.',
                             ),
                             OutlinedButton(
                               onPressed: () {
@@ -312,7 +312,7 @@ class MyDrawer extends HookWidget {
                 }),
             ListTile(
               leading: StyledIcon(Icons.currency_exchange),
-              title: StyledText('Change Mortgage Holding Period'),
+              title: StyledText('Change loanx Holding Period'),
               subtitle: Consumer(builder: (context, ref, child) {
                 final holdingPeriod = ref.watch(holdingPeriodProvider);
                 return StyledSubtitle("Default is $holdingPeriod Years");
@@ -360,7 +360,7 @@ class MyDrawer extends HookWidget {
                                 final holdingPeriod =
                                     ref.watch(holdingPeriodProvider);
                                 return StyledSubtitle(
-                                  "Mortgage Holding Period : $holdingPeriod Years",
+                                  "loanx Holding Period : $holdingPeriod Years",
                                 );
                               }),
                               StyledSubtitle(
@@ -385,7 +385,7 @@ class MyDrawer extends HookWidget {
                                         if (context.mounted) {
                                           Navigator.of(context).pop();
                                           showSnackBar(context,
-                                              "Mortgage Data Holding Period changed");
+                                              "loanx Data Holding Period changed");
                                         }
                                       },
                                       child: Text('OK',
@@ -859,11 +859,11 @@ class MyDrawer extends HookWidget {
               onTap: () {
                 final box = context.findRenderObject() as RenderBox?;
                 Share.share(
-                  '''Mortgage is a mortgage calculator app that helps you calculate your monthly mortgage payments. It also helps you understand the different types of mortgages and how much you can borrow. Mortgage is available on both Android and iOS.
-                \nYou can download Mortgage from the Google Play Store or the App Store.
-                Playstore: https://play.google.com/store/apps/details?id=com.kumpali.mortgage
-                App Store: https://apps.apple.com/us/app/mortgage-mortgage-calculator/id1502002892
-                \n\nThank you for using Mortgage!
+                  '''loanx is a loanx calculator app that helps you calculate your monthly loanx payments. It also helps you understand the different types of loanxs and how much you can borrow. loanx is available on both Android and iOS.
+                \nYou can download loanx from the Google Play Store or the App Store.
+                Playstore: https://play.google.com/store/apps/details?id=com.kumpali.loanx
+                App Store: https://apps.apple.com/us/app/loanx-loanx-calculator/id1502002892
+                \n\nThank you for using loanx!
                 ''',
                   subject: 'Install this awesome app!',
                   sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
@@ -881,7 +881,7 @@ class MyDrawer extends HookWidget {
               leading: StyledIcon(Icons.policy),
               title: StyledText('Privacy Policy'),
               onTap: () {
-                _launchURL('https://mortgage.kumpali.com/privacy.html');
+                _launchURL('https://loanx.kumpali.com/privacy.html');
               },
             ),
             if(Platform.isAndroid)
@@ -910,9 +910,9 @@ class MyDrawer extends HookWidget {
   }
 
   Future<void> _openReview() async {
-    const mortgage = MethodChannel('mortgage');
+    const loanx = MethodChannel('loanx');
     try {
-      await mortgage.invokeMethod('openReview');
+      await loanx.invokeMethod('openReview');
     } on PlatformException catch (e) {
       debugPrint("Failed to open review page: '${e.message}'.");
     }
