@@ -1,4 +1,4 @@
-package com.kumpali.mortgage
+package com.kumpali.loanx
 
 //import com.google.android.play.review.ReviewManager
 //import com.google.android.play.core.review.ReviewManager;
@@ -21,7 +21,7 @@ import android.content.pm.PackageManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 
 class MainActivity : FlutterFragmentActivity() {
-    private val channel = "mortgage"
+    private val channel = "loanx"
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
