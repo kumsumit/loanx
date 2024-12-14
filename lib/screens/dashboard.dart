@@ -31,7 +31,7 @@ class DashBoard extends HookWidget {
     final title = useState<String>("Loanx");
     if (Platform.isAndroid) {
       useEffect(() {
-        checkForUpdates(context);
+        checkForUpdates(context,false);
         return null;
       }, []);
     }

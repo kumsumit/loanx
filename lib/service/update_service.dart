@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:loanx/widget/snackbar.dart';
 
-Future<void> checkForUpdates(BuildContext context) async {
+Future<void> checkForUpdates(BuildContext context, bool showSnack) async {
   final isUpdateAvailable = await InAppUpdate.checkForUpdate();
   if (isUpdateAvailable.updateAvailability ==
       UpdateAvailability.updateAvailable) {
@@ -12,7 +12,7 @@ Future<void> checkForUpdates(BuildContext context) async {
       await InAppUpdate.startFlexibleUpdate();
     }
   } else {
-    if (context.mounted) {
+    if (showSnack && context.mounted) {
       showSnackBar(context, "No Updates Available");
     }
   }
