@@ -37,8 +37,7 @@ class AuthScreen extends HookConsumerWidget {
             DecoratedBox(
               decoration: BoxDecoration(
                   image: DecorationImage(
-                      image: AssetImage("assets/logo.png"),
-                      fit: BoxFit.cover)),
+                      image: AssetImage("assets/logo.png"), fit: BoxFit.cover)),
               child: SizedBox(
                 width: 250,
                 height: 250,

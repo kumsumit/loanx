@@ -104,7 +104,7 @@ class ShapesPainter extends CustomPainter {
 
     // Draw additional shapes
     var rectPaint = Paint()
-      ..color = Colors.white.withValues(alpha:0.5)
+      ..color = Colors.white.withValues(alpha: 0.5)
       ..style = PaintingStyle.fill;
 
     canvas.drawRect(

@@ -90,7 +90,7 @@ flutter:
     - assets/
 
 flutter_native_splash: 
-  color: '#ffffff'
+  color: '#a0d1a0'
   color_dark: '#000000'
   android: true
   ios: true
@@ -103,5 +103,5 @@ flutter_native_splash:
   android_12: 
     image: 'logo_light.png'
     image_dark: 'logo_dark.png'
-    color: '#ffffff'
+    color: '#a0d1a0'
     color_dark: '#000000'

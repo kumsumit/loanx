@@ -70,7 +70,7 @@ class LoadingOverlay extends HookWidget {
           children: <Widget>[
             SizedBox.expand(
               child: ColoredBox(
-                color: color ?? Colors.black.withValues(alpha:0.5),
+                color: color ?? Colors.black.withValues(alpha: 0.5),
               ),
             ),
             Center(child: progressIndicator),

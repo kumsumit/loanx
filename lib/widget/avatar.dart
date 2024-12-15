@@ -4,7 +4,8 @@ class ProfilePicture extends StatelessWidget {
   final String? imageUrl;
   final String displayName;
 
-  const ProfilePicture({super.key, 
+  const ProfilePicture({
+    super.key,
     required this.imageUrl,
     required this.displayName,
   });
@@ -21,7 +22,8 @@ class ProfilePicture extends StatelessWidget {
                 width: 70,
                 height: 70,
                 fit: BoxFit.cover,
-                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                errorBuilder: (BuildContext context, Object exception,
+                    StackTrace? stackTrace) {
                   return _buildInitialsAvatar();
                 },
               ),
@@ -32,21 +34,20 @@ class ProfilePicture extends StatelessWidget {
 
   Widget _buildInitialsAvatar() {
     String initials = "";
-    if (displayName.isEmpty){
-    return Icon(Icons.person,);
-    }
-    else if (displayName.length < 2){
+    if (displayName.isEmpty) {
+      return Icon(
+        Icons.person,
+      );
+    } else if (displayName.length < 2) {
       initials = displayName.toUpperCase();
-    }
-    else if(displayName.split(' ').length == 1){
+    } else if (displayName.split(' ').length == 1) {
       initials = displayName.split(' ')[0].toUpperCase();
+    } else {
+      final String firstName = displayName.split(' ')[0];
+      final String lastName = displayName.split(' ')[1];
+      initials = '${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}';
     }
-    else{
-    final String firstName = displayName.split(' ')[0];
-    final String lastName = displayName.split(' ')[1];
-    initials = '${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}';
-  }
-   return Text(
+    return Text(
       initials,
       style: TextStyle(
         // color: Colors.white,

@@ -52,13 +52,13 @@
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>We need access to your photo library to choose logo.</string>
 		<key>GIDClientID</key>
-		<string>1074342328106-2hp10d0723lu82e8imt37lue13dk7l2h.apps.googleusercontent.com</string>
+		<string>971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug.apps.googleusercontent.com</string>
 		<key>CFBundleURLTypes</key>
 		<array>
 			<dict>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>com.googleusercontent.apps.1074342328106-2hp10d0723lu82e8imt37lue13dk7l2h</string>
+					<string>com.googleusercontent.apps.971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug</string>
 				</array>
 			</dict>
 		</array>

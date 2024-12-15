@@ -37,8 +37,8 @@ class MortgageMaterial {
       );
 
   Map<String, Object?> toJson() => {
-       MortgageMaterialFields.id: id,
-       MortgageMaterialFields.name: name,
-       MortgageMaterialFields.isAddedByUser: isAddedByUser,
+        MortgageMaterialFields.id: id,
+        MortgageMaterialFields.name: name,
+        MortgageMaterialFields.isAddedByUser: isAddedByUser,
       };
 }

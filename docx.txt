@@ -1,0 +1,18 @@
+LoanX is a loan management software. Currently, It is only available for android, but will be available for other platform very soon. It can be used by a lender and a borrower, both.
+
+Problem:- 
+In the different part of the world, Since Ancient times, loans has been given to the borrower in the exchange of valuable items, often termed as mortgage.
+This type of loan is called as mortgage loan. And the facilitator of this type of loan is termed as Pawnshop.
+In India, this type of lending is prominently done by the jewellery shops, which kept the jewellery items as mortgage.
+But this type of practice is not done only in India but also in other countries like USA, UK, France, Germany, etc.
+Not only the jewellery shops but there are many other lenders who keep the valuable items as mortgage.
+
+Traditionally, the lender has to keep the record of the loan in a book, which is called as mortgage book.
+This is a very time consuming and tedious task.
+
+Whenever the borrower comes for taking the mortgage and paying the loan, the lender has to search the book when it was taken by the borrower.
+Sometimes, it also happens that borrower has taken the loan from different shop but the leander keeps searching the book. And at last, didn;t find anything.
+
+
+LoanX is a revolutionary app to keep records of loans provided by the unorganized sector in the wotrld without any paperwork.
+Every loan is recorded in the app and can be viewed by the borrower and the lender.

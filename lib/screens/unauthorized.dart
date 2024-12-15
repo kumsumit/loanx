@@ -73,37 +73,40 @@ class AuthFailurePage extends HookWidget {
                 ),
               ),
               SizedBox(height: 10),
-              Consumer(
-                builder: (context,ref,child) {
-                  return ElevatedButton.icon(
-                    onPressed: () {
-                    ref.read(authenticateProvider).when(data:(data){
-                     if(data){
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashBoard()));
-                     }
-                    }, error: (_,i){retryState.value = "An Error occurred, Please reopen.application";
-                    SystemNavigator.pop();
-                    }, loading: (){
+              Consumer(builder: (context, ref, child) {
+                return ElevatedButton.icon(
+                  onPressed: () {
+                    ref.read(authenticateProvider).when(data: (data) {
+                      if (data) {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const DashBoard()));
+                      }
+                    }, error: (_, i) {
+                      retryState.value =
+                          "An Error occurred, Please reopen.application";
+                      SystemNavigator.pop();
+                    }, loading: () {
                       retryState.value = 'Retrying...';
                     });
-                      // Implement the logic to retry authentication or navigate to the login page
-                    },
-                    icon: Icon(Icons.replay),
-                    label: Text(retryState.value),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber, // Updated backgroundColor
-                      foregroundColor: Colors.white, // Updated foregroundColor
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      textStyle: TextStyle(
-                        fontSize: 18,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+                    // Implement the logic to retry authentication or navigate to the login page
+                  },
+                  icon: Icon(Icons.replay),
+                  label: Text(retryState.value),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber, // Updated backgroundColor
+                    foregroundColor: Colors.white, // Updated foregroundColor
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    textStyle: TextStyle(
+                      fontSize: 18,
                     ),
-                  );
-                }
-              ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
         ),

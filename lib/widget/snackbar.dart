@@ -14,7 +14,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 //   );
 // }
 
-
 void showErrorSnackBar(BuildContext context, String message) {
   final overlay = Overlay.of(context);
   final overlayEntry = OverlayEntry(

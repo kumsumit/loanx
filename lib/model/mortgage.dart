@@ -74,7 +74,6 @@ class Mortgage {
     }
   }
 
-
   String getStateText() {
     String text;
     if (isFinished()) {
@@ -109,8 +108,7 @@ class Mortgage {
           interestRate: interestRate ?? this.interestRate,
           weight: weight ?? this.weight,
           interestType: interestType ?? this.interestType,
-          interestFrequency:
-              interestFrequency ?? this.interestFrequency,
+          interestFrequency: interestFrequency ?? this.interestFrequency,
           additionalDetails: additionalDetails ?? this.additionalDetails,
           dateCreated: dateCreated ?? this.dateCreated,
           itemId: itemId ?? this.itemId,

@@ -5,7 +5,7 @@ import 'package:loanx/model/item.dart';
 // import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/mortgage_details.dart'; 
+import 'package:loanx/screens/mortgage_details.dart';
 import 'package:loanx/widget/snackbar.dart';
 
 class MortgageListView extends StatelessWidget {
@@ -19,7 +19,8 @@ class MortgageListView extends StatelessWidget {
     return Consumer(builder: (context, ref, child) {
       return GestureDetector(
         onHorizontalDragEnd: (details) async {
-          if (details.velocity.pixelsPerSecond.dx > 0 && !mortgage.isFinished()) {
+          if (details.velocity.pixelsPerSecond.dx > 0 &&
+              !mortgage.isFinished()) {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
@@ -189,7 +190,6 @@ class MortgageListView extends StatelessWidget {
     }));
   }
 }
-
 
 // showDescriptionDialog(BuildContext context, loanx loanx, Item item,
 //     FamilyRelation familyRelation, MortgageMaterial MortgageMaterial) {

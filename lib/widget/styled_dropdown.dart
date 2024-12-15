@@ -8,16 +8,16 @@ class StyledDropdown<T> extends StatelessWidget {
   final String labelText;
   final VoidCallback? onAddPressed;
   // final VoidCallback onTap;
-  const StyledDropdown(
-      {super.key,
-      this.selectedValue,
-      required this.onChanged,
-      required this.items,
-      required this.hintText,
-      required this.labelText,
-      this.onAddPressed,
-      // required this.onTap
-      });
+  const StyledDropdown({
+    super.key,
+    this.selectedValue,
+    required this.onChanged,
+    required this.items,
+    required this.hintText,
+    required this.labelText,
+    this.onAddPressed,
+    // required this.onTap
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +34,11 @@ class StyledDropdown<T> extends StatelessWidget {
         hint: Text(hintText),
         // onTap: onTap,
         decoration: InputDecoration(
-          suffixIcon:
-                 onAddPressed != null ? IconButton(onPressed: onAddPressed, icon: const Icon(Icons.add)) : null,
+          suffixIcon: onAddPressed != null
+              ? IconButton(onPressed: onAddPressed, icon: const Icon(Icons.add))
+              : null,
           labelText: labelText,
-           border: OutlineInputBorder(
+          border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.0),
               borderSide: BorderSide(
                 color: Theme.of(context).colorScheme.secondary,
@@ -46,7 +47,8 @@ class StyledDropdown<T> extends StatelessWidget {
               borderRadius: BorderRadius.circular(10.0),
               borderSide: BorderSide(
                 color: Theme.of(context).colorScheme.secondary,
-              )), focusedBorder: OutlineInputBorder(
+              )),
+          focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(
               color: Theme.of(context).colorScheme.primaryFixedDim,
               width: 2.0,

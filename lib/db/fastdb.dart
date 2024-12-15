@@ -102,7 +102,7 @@ class FastDB {
   }
 
   static String getAppColor() {
-    return flatDbBuilder.appColor ?? "D4AF37";
+    return flatDbBuilder.appColor ?? "fea0d1a0";
   }
 
   static bool getIsTableCreated() {
@@ -126,8 +126,7 @@ class FastDB {
   }
 
   static int getInterestFrequency() {
-    return flatDbBuilder.interestFrequency ??
-        InterestFrequency.monthly.index;
+    return flatDbBuilder.interestFrequency ?? InterestFrequency.monthly.index;
   }
 
   static int getScheduledBackUpTimeHour() {

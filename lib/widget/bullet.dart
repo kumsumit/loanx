@@ -15,9 +15,9 @@ class BulletPoint extends StatelessWidget {
         children: [
           Text(
             '•',
-            style: TextStyle( fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary
-            ),
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary),
           ),
           SizedBox(width: 8), // Space between bullet and text
           Expanded(

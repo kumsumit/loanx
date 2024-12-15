@@ -307,7 +307,7 @@ final searchBarStatusProvider =
 );
 
 typedef _$SearchBarStatus = AutoDisposeNotifier<bool>;
-String _$appColorHash() => r'cd0567a983346fc7ff789b652a08b110ed2df2c1';
+String _$appColorHash() => r'd4700d09e29acd3afa015c2c0efe92d4d3c5dd1b';
 
 /// See also [AppColor].
 @ProviderFor(AppColor)

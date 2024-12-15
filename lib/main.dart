@@ -21,9 +21,9 @@ import 'db/fastdb.dart';
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-    await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   await FastDB.init();
-  if(!FastDB.getIsTableCreated()){
+  if (!FastDB.getIsTableCreated()) {
     FastDB.putHoldingPeriod(5);
     FastDB.putInterestRate(2.5);
     FastDB.putScheduledBackUpTimeHour(2);
@@ -70,7 +70,11 @@ class MyApp extends ConsumerWidget {
         debugShowCheckedModeBanner: false,
         home: authenticate.when(
             data: (data) {
-              return data ? FastDB.getIsTableCreated() ?const DashBoard(): const AskBackupScreen() : const AuthFailurePage();
+              return data
+                  ? FastDB.getIsTableCreated()
+                      ? const DashBoard()
+                      : const AskBackupScreen()
+                  : const AuthFailurePage();
             },
             error: (err, obj) => ErrorPage(),
             loading: () => AuthScreen()));

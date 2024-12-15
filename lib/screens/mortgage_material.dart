@@ -114,8 +114,7 @@ class MortgageMaterialView extends StatelessWidget {
                         showSnackBar(
                             context, 'loanx Material added successfully');
                       } else {
-                        showSnackBar(
-                            context, 'loanx Material already exists');
+                        showSnackBar(context, 'loanx Material already exists');
                       }
                     }
                   }

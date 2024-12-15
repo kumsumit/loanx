@@ -86,7 +86,10 @@ class BackupService {
               }
               await tempFile.writeAsBytes(bytes, flush: true);
               final tempDb = await openDatabase(tempFile.path,
-                  readOnly: true, singleInstance: true, version: 1, password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf');
+                  readOnly: true,
+                  singleInstance: true,
+                  version: 1,
+                  password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf');
               await DatabaseHelper.mergeTables(tempDb);
               await tempDb.close();
               await tempFile.delete();
@@ -144,9 +147,10 @@ class BackupService {
 
   static Future<drive.DriveApi?> getDriveApi() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
-      scopes: [drive.DriveApi.driveAppdataScope],
-        clientId: Platform.isIOS? "1074342328106-2hp10d0723lu82e8imt37lue13dk7l2h.apps.googleusercontent.com": null
-    );
+        scopes: [drive.DriveApi.driveAppdataScope],
+        clientId: Platform.isIOS
+            ? "971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug.apps.googleusercontent.com"
+            : null);
     GoogleSignInAccount? account;
     if (FastDB.getDriveAccessToken().isEmpty) {
       account = await googleSignIn.signIn();
@@ -216,8 +220,7 @@ Future<void> registerBackUp() async {
     await Workmanager().cancelByUniqueName(FastDB.getBackupTaskId());
   }
   DateTime now = DateTime.now();
-  final uniqueID =
-      "${DateTime.now().millisecondsSinceEpoch}_dailyBackup_loanx";
+  final uniqueID = "${DateTime.now().millisecondsSinceEpoch}_dailyBackup_loanx";
   Workmanager().registerPeriodicTask(
     uniqueID,
     dailyBackUpUpload,
@@ -276,9 +279,8 @@ Future<List> changeAccount(BuildContext context) async {
   return [googleSignInAuthentication, account];
 }
 
-
 // class Change{
 //   final GoogleSignInAuthentication? googleSignInAuthentication;
 //   final GoogleSignInAccount? account;
 //   Change(this.googleSignInAuthentication,this.account);
-// } 
+// }

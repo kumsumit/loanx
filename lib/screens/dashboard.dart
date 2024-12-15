@@ -31,7 +31,7 @@ class DashBoard extends HookWidget {
     final title = useState<String>("Loanx");
     if (Platform.isAndroid) {
       useEffect(() {
-        checkForUpdates(context,false);
+        checkForUpdates(context, false);
         return null;
       }, []);
     }
@@ -128,7 +128,7 @@ class DashBoard extends HookWidget {
         currentIndex: currentIndex.value,
         onTap: (index) {
           currentIndex.value = index;
-          title.value = index == 0 ? "loanx" : "Manage";
+          title.value = index == 0 ? "Loanx" : "Manage";
         },
         items: [
           BottomNavigationBarItem(

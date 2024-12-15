@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -43,20 +44,21 @@ class MyDrawer extends HookWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                       Text(
-                            'Loanx',
-                            style: TextStyle(fontWeight: FontWeight.w500,
-                                color: Theme.of(context).colorScheme.onSecondary,
-                                fontSize: 25),
-                          ),
+                      Text(
+                        'LoanX',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Theme.of(context).colorScheme.onSecondary,
+                            fontSize: 25),
+                      ),
                       // Column(
                       //   children: [
-                      //     Text(
-                      //       'loanx',
-                      //       style: TextStyle(
-                      //           color: Theme.of(context).colorScheme.onSecondary,
-                      //           fontSize: 20),
-                      //     ),
+                      //     // Text(
+                      //     //   'loanx',
+                      //     //   style: TextStyle(
+                      //     //       color: Theme.of(context).colorScheme.onSecondary,
+                      //     //       fontSize: 20),
+                      //     // ),
                       //     Image.asset("assets/logo.png", height: 50,),
                       //   ],
 
@@ -142,21 +144,26 @@ class MyDrawer extends HookWidget {
                         child: SingleChildScrollView(
                           child:
                               Column(mainAxisSize: MainAxisSize.min, children: [
+                            SizedBox(height: 10),
                             StyledHeading('About'),
                             BulletPoint(
-                              'Traditionally practiced, now technologically advanced',
+                              'Traditionally practiced, now technologically advanced.',
                               italic: true,
                             ),
                             BulletPoint(
-                              'A revolutionary app to keep records of loans provided by the unorganized sector in India without any paperwork.\n',
+                              'A revolutionary app to keep records of loans provided by the unorganized sector of the Lenders across the world without any paperwork.',
                             ),
                             BulletPoint(
-                              'loanx is a simple and easy to use app that allows you to track your loanx loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their loanx records. With loanx, you can easily create, update, and delete loanx loans, as well as view your loan history.',
+                                'LoanX is a simple and easy to use app that allows you to track your loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their loan records.'),
+                            BulletPoint(
+                              'With LoanX, you can easily create, update, and delete loan records, as well as view your loan history.',
                             ),
                             BulletPoint(
-                                'The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss. loanx is available on both Android and iOS platforms, making it accessible to a wide range of users.'),
+                                'The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss.'),
                             BulletPoint(
-                              'Whether you\'re a seasoned loanx professional or just starting out, loanx is the perfect app to help you manage your loanx loans efficiently and efficiently.',
+                                'Currently, Loanx is available on only Android, But soon will be accessible to other platforms too for making it accessible to a wide range of users.'),
+                            BulletPoint(
+                              'Whether you\'re a seasoned loan professional or just starting out, Loanx is the perfect app to help you manage your loans smoothly, efficiently and economically.',
                             ),
                             OutlinedButton(
                               onPressed: () {
@@ -193,7 +200,9 @@ class MyDrawer extends HookWidget {
                           padding: const EdgeInsets.all(8.0),
                           child: SingleChildScrollView(
                             child: Column(
+                              spacing: 10,
                               children: [
+                                SizedBox(height: 10),
                                 StyledHeading('Confirmation'),
                                 StyledSubtitle(secure
                                     ? "Are you sure you want to make the app unsecure?"
@@ -217,18 +226,18 @@ class MyDrawer extends HookWidget {
                                         if (context.mounted) {
                                           Navigator.of(context).pop();
                                           if (secure) {
-                                               showSnackBar(context,
+                                            showSnackBar(context,
                                                 "App gets unsecured, Now you need to restart the app");
                                           } else {
                                             showSnackBar(context,
                                                 "App gets secured, Now you need to restart the app");
-                                         
                                           }
                                         }
                                       },
                                     ),
                                   ],
-                                )
+                                ),
+                                SizedBox(height: 10),
                               ],
                             ),
                           ),
@@ -251,7 +260,9 @@ class MyDrawer extends HookWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: SingleChildScrollView(
                           child: Column(
+                            spacing: 10,
                             children: [
+                              SizedBox(height: 10),
                               StyledHeading('Pick a color!'),
                               Consumer(builder: (context, ref, child) {
                                 final color = ref.watch(pickerColorProvider);
@@ -262,18 +273,6 @@ class MyDrawer extends HookWidget {
                                       .read(pickerColorProvider.notifier)
                                       .set,
                                 );
-                              }),
-                              Consumer(builder: (context, ref, child) {
-                                return OutlinedButton(
-                                    onPressed: () async {
-                                      await ref
-                                          .read(appColorProvider.notifier)
-                                          .setFromLogo();
-                                      if (context.mounted) {
-                                        Navigator.pop(context);
-                                      }
-                                    },
-                                    child: Text("Set Logo Color"));
                               }),
                               Row(
                                 mainAxisAlignment:
@@ -302,7 +301,20 @@ class MyDrawer extends HookWidget {
                                     );
                                   }),
                                 ],
-                              )
+                              ),
+                              Consumer(builder: (context, ref, child) {
+                                return OutlinedButton(
+                                    onPressed: () async {
+                                      await ref
+                                          .read(appColorProvider.notifier)
+                                          .setFromLogo(context);
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                    child: Text("Set Color Using Image"));
+                              }),
+                              SizedBox(height: 10),
                             ],
                           ),
                         ),
@@ -312,7 +324,7 @@ class MyDrawer extends HookWidget {
                 }),
             ListTile(
               leading: StyledIcon(Icons.currency_exchange),
-              title: StyledText('Change loanx Holding Period'),
+              title: StyledText('Change Mortgage Holding Period'),
               subtitle: Consumer(builder: (context, ref, child) {
                 final holdingPeriod = ref.watch(holdingPeriodProvider);
                 return StyledSubtitle("Default is $holdingPeriod Years");
@@ -330,7 +342,11 @@ class MyDrawer extends HookWidget {
                         child: SingleChildScrollView(
                           child: Column(
                             children: [
-                              StyledHeading('Change Holding Period'),
+                              SizedBox(height: 10),
+                              StyledHeading(
+                                'Change Mortgage Holding Period',
+                                maxLines: 2,
+                              ),
                               Consumer(builder: (context, ref, child) {
                                 final holdingPeriod =
                                     ref.watch(holdingPeriodProvider);
@@ -360,7 +376,7 @@ class MyDrawer extends HookWidget {
                                 final holdingPeriod =
                                     ref.watch(holdingPeriodProvider);
                                 return StyledSubtitle(
-                                  "loanx Holding Period : $holdingPeriod Years",
+                                  "Mortgage Holding Period : $holdingPeriod Years",
                                 );
                               }),
                               StyledSubtitle(
@@ -385,7 +401,7 @@ class MyDrawer extends HookWidget {
                                         if (context.mounted) {
                                           Navigator.of(context).pop();
                                           showSnackBar(context,
-                                              "loanx Data Holding Period changed");
+                                              "Mortgage Holding Period changed");
                                         }
                                       },
                                       child: Text('OK',
@@ -397,7 +413,8 @@ class MyDrawer extends HookWidget {
                                     );
                                   }),
                                 ],
-                              )
+                              ),
+                              SizedBox(height: 10),
                             ],
                           ),
                         ),
@@ -430,6 +447,7 @@ class MyDrawer extends HookWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                SizedBox(height: 10),
                                 StyledHeading('Select Interest Type'),
                                 Consumer(builder: (context, ref, child) {
                                   final interestType =
@@ -485,7 +503,8 @@ class MyDrawer extends HookWidget {
                                       );
                                     }),
                                   ],
-                                )
+                                ),
+                                SizedBox(height: 10),
                               ],
                             ),
                           ),
@@ -511,6 +530,7 @@ class MyDrawer extends HookWidget {
                         child: SingleChildScrollView(
                           child: Column(
                             children: [
+                              SizedBox(height: 10),
                               StyledHeading('Interest Frequency'),
                               Wrap(
                                 alignment: WrapAlignment.center,
@@ -555,7 +575,8 @@ class MyDrawer extends HookWidget {
                                       },
                                       child: Text('Ok'))
                                 ],
-                              )
+                              ),
+                              SizedBox(height: 10),
                             ],
                           ),
                         ),
@@ -566,88 +587,200 @@ class MyDrawer extends HookWidget {
               );
             }),
             ListTile(
-                  leading: StyledIcon(Icons.percent),
-                  title: StyledText('Interest Rate'),
-                  subtitle:
-                      Consumer(
-                        builder: (context,ref,child) {
-                          final interestRate = ref.watch(interestRateProvider);
-                          return StyledText("Default Interest Rate is $interestRate");
-                        }
-                      ),
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => Dialog(
-                        child:  Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SingleChildScrollView(
-                            child: Column(
-                                mainAxisSize: MainAxisSize.min,
+                leading: StyledIcon(Icons.percent),
+                title: StyledText('Interest Rate'),
+                subtitle: Consumer(builder: (context, ref, child) {
+                  final interestRate = ref.watch(interestRateProvider);
+                  return StyledText("Default Interest Rate is $interestRate %");
+                }),
+                onTap: () {
+                  List<String> interestRateString = [];
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            spacing: 10,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(height: 10),
+                              StyledHeading('Change Interest Rate'),
+                              Row(
                                 children: [
-                                  StyledHeading('Change Interest Rate'),
-                                  Consumer(
-                                    builder: (context,ref,child) {
-                                      final interestRate = ref.watch(interestRateProvider);
-                                      return Slider(
-                                        value: interestRate,
-                                        min: 0.0,
-                                        max: 100.0,
-                                        divisions: 100,
-                                        label: interestRate.toString(),
-                                        onChanged: (value) {
-                                          ref
-                                              .read(interestRateProvider.notifier)
-                                              .set(value);
+                                  Expanded(
+                                    child: Consumer(
+                                        builder: (context, ref, child) {
+                                      final interestRate =
+                                          ref.watch(interestRateProvider);
+                                          interestRateString = interestRate.toString().split(".");
+                                      return CupertinoPicker(
+                                        itemExtent: 32,
+                                        scrollController:
+                                            FixedExtentScrollController(
+                                                initialItem:
+                                                    interestRate.toInt()),
+                                        selectionOverlay:
+                                            const CupertinoPickerDefaultSelectionOverlay(
+                                          capEndEdge: false,
+                                        ),
+                                        onSelectedItemChanged: (val) {
+                                          interestRateString[0] = val.toString();
+                                          // debugPrint(val.toString());
                                         },
+                                        children: List.generate(
+                                          51,
+                                          (index) => Text(index.toString()),
+                                        ),
                                       );
-                                    }
+                                    }),
                                   ),
-                                  Consumer(
-                                    builder: (context,ref,child) {
-                                      final interestRate = ref.watch(interestRateProvider);
-                                      return StyledSubtitle(
-                                        "Current Interest rate is $interestRate",
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  Center(
+                                    child: Text(
+                                      ".",
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontSize: 20),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  Expanded(
+                                    child: Consumer(
+                                        builder: (context, ref, child) {
+                                      final interestRate =
+                                          ref.watch(interestRateProvider);
+                                      String numberStr =
+                                          interestRate.toString();
+                                          debugPrint(numberStr);
+                                      int dotIndex = numberStr.indexOf('.');
+                                      String decimalPart =
+                                          numberStr.substring(dotIndex+1);
+                                          if(decimalPart.length > 2) {
+                                            decimalPart = decimalPart.substring(0, 2);
+                                          }else if(decimalPart.length == 1) {
+                                            decimalPart = "${decimalPart}0";
+                                          }
+                                          debugPrint(decimalPart);
+                                      return CupertinoPicker(
+                                        itemExtent: 32,
+                                        scrollController:
+                                            FixedExtentScrollController(
+                                                initialItem:
+                                                    int.tryParse(decimalPart) ??
+                                                        0),
+                                        selectionOverlay:
+                                            const CupertinoPickerDefaultSelectionOverlay(
+                                          capStartEdge: false,
+                                        ),
+                                        onSelectedItemChanged: (val) {
+                                          interestRateString[1] = val.toString();
+                                          // debugPrint(val.toString());
+                                        },
+                                        children: List.generate(
+                                          100,
+                                          (index) => Text(index.toString()),
+                                        ),
                                       );
-                                    }
+                                    }),
                                   ),
-                                  SizedBox(height: 10),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      OutlinedButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text(
-                                            'Cancel',
-                                          )),
-                                      Consumer(builder: (context, ref, child) {
-                                        return OutlinedButton(
-                                          onPressed: () async {
-                                            await FastDB.flush();
-                                            if (context.mounted) {
-                                              Navigator.of(context).pop();
-                                              showSnackBar(context,
-                                                  "Interest Rate Changed");
-                                            }
-                                          },
-                                          child: Text(
-                                            'OK',
-                                          ),
-                                        );
-                                      }),
-                                    ],
-                                  )
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  Center(
+                                    child: Text(
+                                      "%",
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontSize: 20),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
                                 ],
-                            ),
+                              ),
+                              // Consumer(builder: (context, ref, child) {
+                              //   final interestRate =
+                              //       ref.watch(interestRateProvider);
+                              //   return Slider(
+                              //     value: interestRate,
+                              //     min: 0.0,
+                              //     max: 50.0,
+                              //     divisions: 200,
+                              //     label: interestRate.toStringAsFixed(2),
+                              //     onChanged: (value) {
+                              //       ref
+                              //           .read(interestRateProvider.notifier)
+                              //           .set(value);
+                              //     },
+                              //   );
+                              // }),
+                              Consumer(builder: (context, ref, child) {
+                                final interestRate =
+                                    ref.watch(interestRateProvider);
+                                return StyledSubtitle(
+                                  "Current Interest rate is $interestRate %",
+                                );
+                              }),
+                              SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  OutlinedButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(
+                                        'Cancel',
+                                      )),
+                                  Consumer(builder: (context, ref, child) {
+                                    return OutlinedButton(
+                                      onPressed: () async {
+                                        if(interestRateString[1].length > 2) {
+                                          interestRateString[1] = interestRateString[1].substring(0, 2);
+                                        }else if(interestRateString[1].length == 1) {
+                                          interestRateString[1] = "0${interestRateString[1]}";
+                                        }
+                                        debugPrint("====================");
+                                        debugPrint(interestRateString[0]);
+                                        debugPrint(interestRateString[1]);
+                                          debugPrint('${interestRateString[0]}.${interestRateString[1]}');
+                                          ref
+                                        .read(interestRateProvider.notifier)
+                                        .set(double.parse('${interestRateString[0]}.${interestRateString[1]}'));
+                                        await FastDB.flush();
+                                        if (context.mounted) {
+                                          Navigator.of(context).pop();
+                                          showSnackBar(
+                                              context, "Interest Rate Changed");
+                                        }
+                                      },
+                                      child: Text(
+                                        'OK',
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
+                              SizedBox(height: 10),
+                            ],
                           ),
                         ),
                       ),
-                    );
-                  }
-            ),
+                    ),
+                  );
+                }),
             Consumer(builder: (context, ref, child) {
               final hour = ref.watch(scheduledBackUpTimeHourProvider);
               final minute = ref.watch(scheduledBackUpTimeMinuteProvider);
@@ -813,8 +946,8 @@ class MyDrawer extends HookWidget {
                       ref
                           .read(driveAccessTokenProvider.notifier)
                           .set(authentication.accessToken ?? "");
-                          ref.read(backUpRegisteredProvider.notifier).set(true);
-                          await FastDB.flush();
+                      ref.read(backUpRegisteredProvider.notifier).set(true);
+                      await FastDB.flush();
                     }
                     if (context.mounted) {
                       if (isAddingAccount) {
@@ -866,7 +999,8 @@ class MyDrawer extends HookWidget {
                 \n\nThank you for using loanx!
                 ''',
                   subject: 'Install this awesome app!',
-                  sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+                  sharePositionOrigin:
+                      box!.localToGlobal(Offset.zero) & box.size,
                 );
               },
             ),
@@ -884,10 +1018,12 @@ class MyDrawer extends HookWidget {
                 _launchURL('https://loanx.kumpali.com/privacy.html');
               },
             ),
-            if(Platform.isAndroid)
-            ListTile(leading: StyledIcon(Icons.update), title: StyledText('Check for Update'),
-            onTap: ()=> checkForUpdates(context,true) ,
-            ),
+            if (Platform.isAndroid)
+              ListTile(
+                leading: StyledIcon(Icons.update),
+                title: StyledText('Check for Update'),
+                onTap: () => checkForUpdates(context, true),
+              ),
             ListTile(
               leading: StyledIcon(Icons.info_outline),
               title: Consumer(builder: (context, ref, child) {

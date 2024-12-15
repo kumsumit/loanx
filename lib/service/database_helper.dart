@@ -1061,16 +1061,19 @@ class DatabaseHelper {
 
   static Future<void> mergeTables(Database db2) async {
     // Fetch records from the second database
-    final List<Map<String, dynamic>> familyRelations = await db2.query(FamilyRelation.tableName);
+    final List<Map<String, dynamic>> familyRelations =
+        await db2.query(FamilyRelation.tableName);
     final List<Map<String, dynamic>> items = await db2.query(Item.tableName);
-    final List<Map<String, dynamic>> mortgageMaterials = await db2.query(MortgageMaterial.tableName);
-    final List<Map<String, dynamic>> mortgages = await db2.query(Mortgage.tableName);
+    final List<Map<String, dynamic>> mortgageMaterials =
+        await db2.query(MortgageMaterial.tableName);
+    final List<Map<String, dynamic>> mortgages =
+        await db2.query(Mortgage.tableName);
 
- if (_database != null) {
-       final batch = _database!.batch();
+    if (_database != null) {
+      final batch = _database!.batch();
 
-    // Insert records into the first database
-    for (final familyRelation in familyRelations) {
+      // Insert records into the first database
+      for (final familyRelation in familyRelations) {
         batch.insert(
           FamilyRelation.tableName,
           familyRelation,
@@ -1101,7 +1104,6 @@ class DatabaseHelper {
           conflictAlgorithm: ConflictAlgorithm.ignore,
         );
       }
-
     }
   }
 

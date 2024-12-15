@@ -6,6 +6,7 @@ import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:loanx/widget/snackbar.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:loanx/algo/damerau_lavenstien.dart';
 import 'package:loanx/db/fastdb.dart';
@@ -36,7 +37,7 @@ final networkCheckerProvider = StreamProvider<bool>((ref) {
 
 @Riverpod(keepAlive: true)
 Future<bool> authenticate(Ref ref) async {
-  if(!FastDB.getSecure()){
+  if (!FastDB.getSecure()) {
     return true;
   }
   final LocalAuthentication localAuthentication = LocalAuthentication();
@@ -73,19 +74,18 @@ class Secure extends _$Secure {
   @override
   bool build() => FastDB.getSecure();
 
-  Future<void> toggle() async{
+  Future<void> toggle() async {
     state = !state;
     FastDB.putSecure(state);
     await FastDB.flush();
   }
 }
 
-
 @riverpod
 class DriveAccessToken extends _$DriveAccessToken {
-  @override 
+  @override
   String build() => FastDB.getDriveAccessToken();
-  
+
   void set(String token) {
     state = token;
   }
@@ -93,9 +93,7 @@ class DriveAccessToken extends _$DriveAccessToken {
   void remove() {
     state = "";
   }
-
 }
-
 
 @Riverpod(keepAlive: true)
 class BackUpRegistered extends _$BackUpRegistered {
@@ -301,7 +299,8 @@ class AppColor extends _$AppColor {
     await FastDB.flush();
   }
 
-  Future<void> setFromLogo() async {
+  Future<void> setFromLogo(BuildContext context) async {
+    bool isSet = true;
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -313,6 +312,10 @@ class AppColor extends _$AppColor {
       );
       ref.read(pickerColorProvider.notifier).set(scheme.primary);
       await set();
+      isSet = true;
+      if (context.mounted) {
+        showSnackBar(context, "App Color Changed");
+      }
     } else {
       final LostDataResponse response = await picker.retrieveLostData();
       if (!response.isEmpty) {
@@ -326,7 +329,16 @@ class AppColor extends _$AppColor {
           );
           ref.read(pickerColorProvider.notifier).set(scheme.primary);
           await set();
+          isSet = true;
+          if (context.mounted) {
+            showSnackBar(context, "App Color Changed");
+          }
         }
+      }
+    }
+    if (!isSet) {
+      if (context.mounted) {
+        showErrorSnackBar(context, "App Color Not Changed");
       }
     }
   }
@@ -339,7 +351,7 @@ class PickerColor extends _$PickerColor {
 
   void set(Color color) {
     // state = color.value.toRadixString(16).substring(2);
-    state= color.toHexString();
+    state = color.toHexString();
   }
 }
 

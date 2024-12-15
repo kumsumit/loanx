@@ -31,9 +31,9 @@ class Loan {
         n = 365;
     }
     if (interestType == InterestType.simple) {
-      return principal * (interestRate / 100) * duration/n;
+      return principal * (interestRate / 100) * duration / n;
     } else if (interestType == InterestType.compound) {
-      return principal * pow((1 + (interestRate / 100) * n),  duration/n);
+      return principal * pow((1 + (interestRate / 100) * n), duration / n);
     }
     return 0.0;
   }
