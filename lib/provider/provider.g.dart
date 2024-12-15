@@ -274,23 +274,22 @@ final backupDownloadStatusProvider =
 );
 
 typedef _$BackupDownloadStatus = AutoDisposeNotifier<bool>;
-String _$mortgageSelectionListHash() =>
-    r'f8d90ee7c04d2ee7081ada419ac872d8727d87e9';
+String _$loanSelectionListHash() => r'd51feb05f5571703a3d330258c5bb37982578ea4';
 
-/// See also [MortgageSelectionList].
-@ProviderFor(MortgageSelectionList)
-final mortgageSelectionListProvider =
-    AutoDisposeNotifierProvider<MortgageSelectionList, List<int>>.internal(
-  MortgageSelectionList.new,
-  name: r'mortgageSelectionListProvider',
+/// See also [LoanSelectionList].
+@ProviderFor(LoanSelectionList)
+final loanSelectionListProvider =
+    AutoDisposeNotifierProvider<LoanSelectionList, List<int>>.internal(
+  LoanSelectionList.new,
+  name: r'loanSelectionListProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$mortgageSelectionListHash,
+      : _$loanSelectionListHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$MortgageSelectionList = AutoDisposeNotifier<List<int>>;
+typedef _$LoanSelectionList = AutoDisposeNotifier<List<int>>;
 String _$searchBarStatusHash() => r'b411bf702dd87c78326863b709abeb0eb4c08eed';
 
 /// See also [SearchBarStatus].
@@ -351,7 +350,7 @@ final dBProvider = AsyncNotifierProvider<DB, Database>.internal(
 
 typedef _$DB = AsyncNotifier<Database>;
 String _$familyRelationListHash() =>
-    r'78594e6268fdf9722fa5c11dcad0458f7cd10ee6';
+    r'dd5b64185af2a9db4eac3987beed027b757a07dd';
 
 /// See also [FamilyRelationList].
 @ProviderFor(FamilyRelationList)
@@ -368,7 +367,7 @@ final familyRelationListProvider =
 
 typedef _$FamilyRelationList = AsyncNotifier<List<FamilyRelation>>;
 String _$mortgageMaterialListHash() =>
-    r'2eb126f853120b3cc114fdbdf46eafc3d50767eb';
+    r'03f201aeadd60fabd54792e2feb6eb9bd3e5e7d0';
 
 /// See also [MortgageMaterialList].
 @ProviderFor(MortgageMaterialList)
@@ -384,21 +383,7 @@ final mortgageMaterialListProvider = AsyncNotifierProvider<MortgageMaterialList,
 );
 
 typedef _$MortgageMaterialList = AsyncNotifier<List<MortgageMaterial>>;
-String _$itemListHash() => r'd3e22df3d50ca3e9d58ce34d88492f819d971ac2';
-
-/// See also [ItemList].
-@ProviderFor(ItemList)
-final itemListProvider = AsyncNotifierProvider<ItemList, List<Item>>.internal(
-  ItemList.new,
-  name: r'itemListProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$itemListHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$ItemList = AsyncNotifier<List<Item>>;
-String _$mortgageListHash() => r'1a7a413363f24169b09bba9de81db0ca60b718b9';
+String _$mortgageListHash() => r'e571d0f670798c92cd4bb921f90fc8015c8d01cc';
 
 /// See also [MortgageList].
 @ProviderFor(MortgageList)
@@ -413,5 +398,19 @@ final mortgageListProvider =
 );
 
 typedef _$MortgageList = AsyncNotifier<List<Mortgage>>;
+String _$loanListHash() => r'0bbf226b82cdbc3fd1e037fc0ffc695f2080de8f';
+
+/// See also [LoanList].
+@ProviderFor(LoanList)
+final loanListProvider = AsyncNotifierProvider<LoanList, List<Loan>>.internal(
+  LoanList.new,
+  name: r'loanListProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$loanListHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$LoanList = AsyncNotifier<List<Loan>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

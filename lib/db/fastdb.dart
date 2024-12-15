@@ -91,6 +91,7 @@ class FastDB {
           photourl: flatDb.photourl,
           backupTaskId: flatDb.backupTaskId,
           secure: flatDb.secure,
+          photo: flatDb.photo,
         );
       } else {
         flatDbBuilder = db.FlatDbObjectBuilder();
@@ -181,6 +182,10 @@ class FastDB {
     return flatDbBuilder.secure ?? false;
   }
 
+  static List<int> getPhoto() {
+    return flatDbBuilder.photo ?? [];
+  }
+
   static void putThemeMode(int themeMode) {
     flatDbBuilder.themeMode = themeMode;
   }
@@ -259,6 +264,11 @@ class FastDB {
 
   static Future putSecure(bool secure) async {
     flatDbBuilder.secure = secure;
+    await flush();
+  }
+
+  static Future putPhoto(List<int> photo) async {
+    flatDbBuilder.photo = photo;
     await flush();
   }
 

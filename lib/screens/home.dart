@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/mortgage_input.dart';
+import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/screens/mortgage_list_view.dart';
 import 'package:loanx/widget/search_bar.dart';
 
@@ -31,7 +31,7 @@ class Home extends StatelessWidget {
         onPressed: () {
           if (context.mounted) {
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const MortgageInput()));
+                MaterialPageRoute(builder: (context) => const LoanInput()));
           }
         },
       ),

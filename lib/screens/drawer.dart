@@ -64,9 +64,26 @@ class MyDrawer extends HookWidget {
 
                       // ),
                       Consumer(builder: (context, ref, child) {
-                        return ProfilePicture(
-                            imageUrl: ref.watch(photoUrlProvider),
-                            displayName: ref.watch(displayNameProvider));
+                        final networkStatus = ref.watch(networkCheckerProvider);
+                        final imageUrl = ref.watch(photoUrlProvider);
+                        final displayName = ref.watch(displayNameProvider);
+                        return networkStatus.when(
+                          data: (data) {
+                            return data
+                                ? ProfilePicture(
+                                    imageUrl: imageUrl,
+                                    displayName: displayName)
+                                : LocalProfilePicture(displayName: displayName);
+                          },
+                          error: (obj, trace) {
+                            return ProfilePicture(
+                                imageUrl: ref.watch(photoUrlProvider),
+                                displayName: ref.watch(displayNameProvider));
+                          },
+                          loading: () => ProfilePicture(
+                              imageUrl: ref.watch(photoUrlProvider),
+                              displayName: ref.watch(displayNameProvider)),
+                        );
                       }),
                     ],
                   ),
@@ -614,7 +631,8 @@ class MyDrawer extends HookWidget {
                                         builder: (context, ref, child) {
                                       final interestRate =
                                           ref.watch(interestRateProvider);
-                                          interestRateString = interestRate.toString().split(".");
+                                      interestRateString =
+                                          interestRate.toString().split(".");
                                       return CupertinoPicker(
                                         itemExtent: 32,
                                         scrollController:
@@ -626,7 +644,8 @@ class MyDrawer extends HookWidget {
                                           capEndEdge: false,
                                         ),
                                         onSelectedItemChanged: (val) {
-                                          interestRateString[0] = val.toString();
+                                          interestRateString[0] =
+                                              val.toString();
                                           // debugPrint(val.toString());
                                         },
                                         children: List.generate(
@@ -659,16 +678,17 @@ class MyDrawer extends HookWidget {
                                           ref.watch(interestRateProvider);
                                       String numberStr =
                                           interestRate.toString();
-                                          debugPrint(numberStr);
+                                      debugPrint(numberStr);
                                       int dotIndex = numberStr.indexOf('.');
                                       String decimalPart =
-                                          numberStr.substring(dotIndex+1);
-                                          if(decimalPart.length > 2) {
-                                            decimalPart = decimalPart.substring(0, 2);
-                                          }else if(decimalPart.length == 1) {
-                                            decimalPart = "${decimalPart}0";
-                                          }
-                                          debugPrint(decimalPart);
+                                          numberStr.substring(dotIndex + 1);
+                                      if (decimalPart.length > 2) {
+                                        decimalPart =
+                                            decimalPart.substring(0, 2);
+                                      } else if (decimalPart.length == 1) {
+                                        decimalPart = "${decimalPart}0";
+                                      }
+                                      debugPrint(decimalPart);
                                       return CupertinoPicker(
                                         itemExtent: 32,
                                         scrollController:
@@ -681,7 +701,8 @@ class MyDrawer extends HookWidget {
                                           capStartEdge: false,
                                         ),
                                         onSelectedItemChanged: (val) {
-                                          interestRateString[1] = val.toString();
+                                          interestRateString[1] =
+                                              val.toString();
                                           // debugPrint(val.toString());
                                         },
                                         children: List.generate(
@@ -747,18 +768,25 @@ class MyDrawer extends HookWidget {
                                   Consumer(builder: (context, ref, child) {
                                     return OutlinedButton(
                                       onPressed: () async {
-                                        if(interestRateString[1].length > 2) {
-                                          interestRateString[1] = interestRateString[1].substring(0, 2);
-                                        }else if(interestRateString[1].length == 1) {
-                                          interestRateString[1] = "0${interestRateString[1]}";
+                                        if (interestRateString[1].length > 2) {
+                                          interestRateString[1] =
+                                              interestRateString[1]
+                                                  .substring(0, 2);
+                                        } else if (interestRateString[1]
+                                                .length ==
+                                            1) {
+                                          interestRateString[1] =
+                                              "0${interestRateString[1]}";
                                         }
                                         debugPrint("====================");
                                         debugPrint(interestRateString[0]);
                                         debugPrint(interestRateString[1]);
-                                          debugPrint('${interestRateString[0]}.${interestRateString[1]}');
-                                          ref
-                                        .read(interestRateProvider.notifier)
-                                        .set(double.parse('${interestRateString[0]}.${interestRateString[1]}'));
+                                        debugPrint(
+                                            '${interestRateString[0]}.${interestRateString[1]}');
+                                        ref
+                                            .read(interestRateProvider.notifier)
+                                            .set(double.parse(
+                                                '${interestRateString[0]}.${interestRateString[1]}'));
                                         await FastDB.flush();
                                         if (context.mounted) {
                                           Navigator.of(context).pop();

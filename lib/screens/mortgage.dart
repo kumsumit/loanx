@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:loanx/model/item.dart';
+import 'package:loanx/model/mortgage.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
 
-class ItemView extends StatelessWidget {
-  const ItemView({super.key});
+class MortgageView extends StatelessWidget {
+  const MortgageView({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Consumer(builder: (context, ref, child) {
-        final items = ref.watch(itemListProvider);
-        return items.when(
+        final mortgages = ref.watch(mortgageListProvider);
+        return mortgages.when(
             data: (data) {
               if (data.isEmpty) {
                 return Center(child: Text("No data found"));
@@ -19,14 +19,14 @@ class ItemView extends StatelessWidget {
               return ListView.builder(
                 itemCount: data.length,
                 itemBuilder: (context, index) {
-                  final item = data[index];
+                  final mortgage = data[index];
                   return ListTile(
-                    title: Text(item.name),
-                    onTap: item.isAddedByUser == 1
-                        ? () => itemDialog(context, item)
+                    title: Text(mortgage.name),
+                    onTap: mortgage.isAddedByUser == 1
+                        ? () => mortgageDialog(context, mortgage)
                         : null,
-                    onLongPress: item.isAddedByUser == 1
-                        ? () async => await itemDeleteDialog(context, ref, item)
+                    onLongPress: mortgage.isAddedByUser == 1
+                        ? () async => await mortgageDeleteDialog(context, ref, mortgage)
                         : null,
                   );
                 },
@@ -39,19 +39,19 @@ class ItemView extends StatelessWidget {
       }),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
-            itemDialog(context, null);
+            mortgageDialog(context, null);
           },
           child: Icon(Icons.add)),
     );
   }
 
-  Future<void> itemDeleteDialog(
-      BuildContext context, WidgetRef ref, Item item) async {
+  Future<void> mortgageDeleteDialog(
+      BuildContext context, WidgetRef ref, Mortgage mortgage) async {
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
-              title: Text('Delete Item'),
-              content: Text('Are you sure you want to delete this item?'),
+              title: Text('Delete Mortgage'),
+              content: Text('Are you sure you want to delete this mortgage?'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -61,10 +61,10 @@ class ItemView extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () async {
-                    await ref.read(itemListProvider.notifier).delete(item.id!);
+                    await ref.read(mortgageListProvider.notifier).delete(mortgage.id!);
                     if (context.mounted) {
                       Navigator.of(context).pop();
-                      showSnackBar(context, 'Item deleted successfully');
+                      showSnackBar(context, 'Mortgage deleted successfully');
                     }
                   },
                   child: const Text('Delete'),
@@ -73,32 +73,32 @@ class ItemView extends StatelessWidget {
             ));
   }
 
-  void itemDialog(BuildContext context, Item? item) {
+  void mortgageDialog(BuildContext context, Mortgage? mortgage) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final itemInputController = TextEditingController(text: item?.name);
+        final mortgageInputController = TextEditingController(text: mortgage?.name);
         final formKey = GlobalKey<FormState>();
         return AlertDialog(
-          title: Text(item == null ? 'Add item' : 'Edit item'),
+          title: Text(mortgage == null ? 'Add Mortgage' : 'Edit Mortgage'),
           content: Form(
             key: formKey,
             child: TextFormField(
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().isEmpty) {
-                  return 'Item name cannot be empty';
+                  return 'Mortgage name cannot be empty';
                 }
                 return null;
               },
               autofocus: true,
               decoration: const InputDecoration(
-                hintText: 'Enter the item name',
+                hintText: 'Enter the mortgage name',
                 errorStyle: TextStyle(
                   color: Colors.redAccent,
                   fontSize: 16.0,
                 ),
               ),
-              controller: itemInputController,
+              controller: mortgageInputController,
             ),
           ),
           actions: [
@@ -109,14 +109,14 @@ class ItemView extends StatelessWidget {
                   if (formKey.currentState != null &&
                       formKey.currentState!.validate()) {
                     final status = await ref
-                        .read(itemListProvider.notifier)
-                        .add(itemInputController.text);
+                        .read(mortgageListProvider.notifier)
+                        .add(mortgageInputController.text);
                     if (context.mounted) {
                       Navigator.of(context).pop();
                       if (status > 0) {
-                        showSnackBar(context, 'Item added successfully');
+                        showSnackBar(context, 'Mortgage added successfully');
                       } else {
-                        showSnackBar(context, 'Item already exists');
+                        showSnackBar(context, 'Mortgage already exists');
                       }
                     }
                   }

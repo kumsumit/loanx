@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 // import 'package:loanx/extension/string.dart';
-import 'package:loanx/model/item.dart';
-// import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage.dart';
+// import 'package:loanx/model/loan.dart';
+import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/mortgage_details.dart';
+import 'package:loanx/screens/loan_details.dart';
 import 'package:loanx/widget/snackbar.dart';
 
 class MortgageListView extends StatelessWidget {
@@ -13,10 +13,11 @@ class MortgageListView extends StatelessWidget {
 
   Widget _mortgageBuilder(
     BuildContext context,
-    Mortgage mortgage,
-    Item item,
+    Loan mortgage,
+    Mortgage item,
   ) {
     return Consumer(builder: (context, ref, child) {
+      final loanSelectionList = ref.read(loanSelectionListProvider);
       return GestureDetector(
         onHorizontalDragEnd: (details) async {
           if (details.velocity.pixelsPerSecond.dx > 0 &&
@@ -52,8 +53,8 @@ class MortgageListView extends StatelessWidget {
             );
             mortgage.toggleFinished();
             await ref
-                .read(mortgageListProvider.notifier)
-                .updateMortgage(mortgage);
+                .read(loanListProvider.notifier)
+                .updateLoan(mortgage);
           }
         },
         onDoubleTap: () {
@@ -61,21 +62,21 @@ class MortgageListView extends StatelessWidget {
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                      MortgageDetails(mortgage: mortgage, item: item)));
+                      MortgageDetails(loan: mortgage, mortgage: item)));
         },
         onLongPress: () {
-          if (ref.read(mortgageSelectionListProvider).contains(mortgage.id)) {
+          if (loanSelectionList.contains(mortgage.id)) {
             ref
-                .read(mortgageSelectionListProvider.notifier)
+                .read(loanSelectionListProvider.notifier)
                 .remove(mortgage.id ?? 0);
           } else {
             ref
-                .read(mortgageSelectionListProvider.notifier)
+                .read(loanSelectionListProvider.notifier)
                 .add(mortgage.id ?? 0);
           }
         },
         child: ColoredBox(
-          color: ref.watch(mortgageSelectionListProvider).contains(mortgage.id)
+          color: loanSelectionList.contains(mortgage.id)
               ? Theme.of(context).colorScheme.primaryContainer
               : Colors.transparent,
           child: Row(
@@ -133,9 +134,9 @@ class MortgageListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(child: Consumer(builder: (context, ref, child) {
-      final items = ref.watch(itemListProvider);
       final mortgages = ref.watch(mortgageListProvider);
-      return items.when(
+      final loans = ref.watch(loanListProvider);
+      return mortgages.when(
           data: (itemList) {
             if (itemList.isEmpty) {
               return Center(
@@ -146,9 +147,9 @@ class MortgageListView extends StatelessWidget {
                     color: Theme.of(context).colorScheme.secondary),
               ));
             }
-            return mortgages.when(
-                data: (mortgageList) {
-                  if (mortgageList.isEmpty) {
+            return loans.when(
+                data: (loanList) {
+                  if (loanList.isEmpty) {
                     return Center(
                         child: Text(
                       "No data found",
@@ -160,12 +161,12 @@ class MortgageListView extends StatelessWidget {
                   return ListView.builder(
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      itemCount: mortgageList.length,
+                      itemCount: loanList.length,
                       itemBuilder: (context, index) {
-                        final mortgage = mortgageList[index];
+                        final loan = loanList[index];
                         final item = itemList
-                            .firstWhere((item) => item.id == mortgage.itemId);
-                        return _mortgageBuilder(context, mortgage, item);
+                            .firstWhere((item) => item.id == loan.mortgageId);
+                        return _mortgageBuilder(context, loan, item);
                       });
                 },
                 error: (e, b) => Center(

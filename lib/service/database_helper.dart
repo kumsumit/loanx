@@ -1,10 +1,8 @@
 import 'dart:io';
 
 import 'package:loanx/model/family_relation.dart';
-import 'package:loanx/model/item.dart';
 import 'package:loanx/model/mortgage.dart';
-// import 'package:loanx/model/loan.dart';
-// import 'package:loanx/model/loanx.dart';
+import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path/path.dart';
@@ -984,7 +982,7 @@ class DatabaseHelper {
     // final itemIds = List.generate(10, (index) => index + 1);
     // final materialFamily = [1, 2, 3];
 
-    final items = [
+    final mortgages = [
       'Ring',
       'Anklet',
       'Bracelet',
@@ -1001,23 +999,23 @@ class DatabaseHelper {
     final familyRelations = ['Husband', 'Father', 'Wife'];
     final batch = db.batch();
     batch.execute(
-        'CREATE TABLE IF NOT EXISTS items(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
+        'CREATE TABLE IF NOT EXISTS mortgages(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
     batch.execute(
         'CREATE TABLE IF NOT EXISTS mortgageMaterials(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
     batch.execute(
         'CREATE TABLE IF NOT EXISTS familyRelations(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
     batch.execute(
-        '''CREATE TABLE IF NOT EXISTS mortgages(id INTEGER PRIMARY KEY, depositorName TEXT,
+        '''CREATE TABLE IF NOT EXISTS loans(id INTEGER PRIMARY KEY, depositorName TEXT,
            relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, interestType INTEGER,
            interestFrequency INTEGER, additionalDetails TEXT,
-           dateCreated TEXT, dateFinished TEXT, itemId INTEGER, familyRelationId INTEGER, mortgageMaterialId INTEGER,
+           dateCreated TEXT, dateFinished TEXT, mortgageId INTEGER, familyRelationId INTEGER, mortgageMaterialId INTEGER,
            FOREIGN KEY (itemId) REFERENCES items (id),
            FOREIGN KEY (familyRelationId) REFERENCES familyRelations (id),
            FOREIGN KEY (mortgageMaterialId) REFERENCES mortgageMaterials (id),
-           UNIQUE(depositorName, relativeName, address, loanAmount, itemId, familyRelationId) )''');
-    for (final item in items) {
+           UNIQUE(depositorName, relativeName, address, loanAmount, mortgageId, familyRelationId) )''');
+    for (final mortgage in mortgages) {
       batch.insert(
-          Item.tableName, {ItemFields.name: item, ItemFields.isAddedByUser: 0});
+          Mortgage.tableName, {MortgageFields.name: mortgage, MortgageFields.isAddedByUser: 0});
     }
 
     for (final mortgageMaterial in mortgageMaterials) {
@@ -1063,11 +1061,11 @@ class DatabaseHelper {
     // Fetch records from the second database
     final List<Map<String, dynamic>> familyRelations =
         await db2.query(FamilyRelation.tableName);
-    final List<Map<String, dynamic>> items = await db2.query(Item.tableName);
+    final List<Map<String, dynamic>> mortgages = await db2.query(Mortgage.tableName);
     final List<Map<String, dynamic>> mortgageMaterials =
         await db2.query(MortgageMaterial.tableName);
-    final List<Map<String, dynamic>> mortgages =
-        await db2.query(Mortgage.tableName);
+    final List<Map<String, dynamic>> loans =
+        await db2.query(Loan.tableName);
 
     if (_database != null) {
       final batch = _database!.batch();
@@ -1081,10 +1079,10 @@ class DatabaseHelper {
         );
       }
 
-      for (final item in items) {
+      for (final mortgage in mortgages) {
         batch.insert(
-          Item.tableName,
-          item,
+          Mortgage.tableName,
+          mortgage,
           conflictAlgorithm: ConflictAlgorithm.ignore,
         );
       }
@@ -1097,10 +1095,10 @@ class DatabaseHelper {
         );
       }
 
-      for (final mortgage in mortgages) {
+      for (final loan in loans) {
         batch.insert(
-          Mortgage.tableName,
-          mortgage,
+          Loan.tableName,
+          loan,
           conflictAlgorithm: ConflictAlgorithm.ignore,
         );
       }

@@ -44,19 +44,21 @@ class FlatDb {
       const fb.BoolReader().vTableGet(_bc, _bcOffset, 30, false);
   int get dbUpdateTime =>
       const fb.Int64Reader().vTableGet(_bc, _bcOffset, 32, 0);
-  String? get displayName =>
-      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 34);
-  String? get email =>
-      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 36);
-  String? get photourl =>
-      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 38);
   String? get backupTaskId =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 34);
+  bool get secure => const fb.BoolReader().vTableGet(_bc, _bcOffset, 36, false);
+  String? get displayName =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 38);
+  String? get email =>
       const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 40);
-  bool get secure => const fb.BoolReader().vTableGet(_bc, _bcOffset, 42, false);
+  String? get photourl =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 42);
+  List<int>? get photo =>
+      const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 44);
 
   @override
   String toString() {
-    return 'FlatDb{isTableCreated: $isTableCreated, themeMode: $themeMode, appColor: $appColor, holdingPeriod: $holdingPeriod, interestRate: $interestRate, interestType: $interestType, compoundingFrequency: $interestFrequency, scheduledBackUpTimeHour: $scheduledBackUpTimeHour, scheduledBackUpTimeMinute: $scheduledBackUpTimeMinute, driveAccessToken: $driveAccessToken, driveAccessTokenExpires: $driveAccessTokenExpires, driveFileId: $driveFileId, driveUser: $driveUser, isBackUpRegistered: $isBackUpRegistered, dbUpdateTime: $dbUpdateTime, displayName: $displayName, email: $email, photourl: $photourl, backupTaskId: $backupTaskId, secure: $secure}';
+    return 'FlatDb{isTableCreated: $isTableCreated, themeMode: $themeMode, appColor: $appColor, holdingPeriod: $holdingPeriod, interestRate: $interestRate, interestType: $interestType, interestFrequency: $interestFrequency, scheduledBackUpTimeHour: $scheduledBackUpTimeHour, scheduledBackUpTimeMinute: $scheduledBackUpTimeMinute, driveAccessToken: $driveAccessToken, driveAccessTokenExpires: $driveAccessTokenExpires, driveFileId: $driveFileId, driveUser: $driveUser, isBackUpRegistered: $isBackUpRegistered, dbUpdateTime: $dbUpdateTime, backupTaskId: $backupTaskId, secure: $secure, displayName: $displayName, email: $email, photourl: $photourl, photo: $photo}';
   }
 }
 
@@ -83,11 +85,12 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
   int? driveUser;
   bool? isBackUpRegistered;
   int? dbUpdateTime;
+  String? backupTaskId;
+  bool? secure;
   String? displayName;
   String? email;
   String? photourl;
-  String? backupTaskId;
-  bool? secure;
+  List<int>? photo;
 
   FlatDbObjectBuilder({
     this.isTableCreated,
@@ -110,6 +113,7 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     this.photourl,
     this.backupTaskId,
     this.secure,
+    this.photo,
   });
 
   /// Finish building, and store into the [fbBuilder].
@@ -130,7 +134,9 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
         photourl == null ? null : fbBuilder.writeString(photourl!);
     final int? backupTaskIdOffset =
         backupTaskId == null ? null : fbBuilder.writeString(backupTaskId!);
-    fbBuilder.startTable(20);
+    final int? photoOffset =
+        photo == null ? null : fbBuilder.writeListUint8(photo!);
+    fbBuilder.startTable(21);
     fbBuilder.addBool(0, isTableCreated);
     fbBuilder.addInt8(1, themeMode);
     fbBuilder.addOffset(2, appColorOffset);
@@ -146,11 +152,12 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addInt8(12, driveUser);
     fbBuilder.addBool(13, isBackUpRegistered);
     fbBuilder.addInt64(14, dbUpdateTime);
-    fbBuilder.addOffset(15, displayNameOffset);
-    fbBuilder.addOffset(16, emailOffset);
-    fbBuilder.addOffset(17, photourlOffset);
-    fbBuilder.addOffset(18, backupTaskIdOffset);
-    fbBuilder.addBool(19, secure);
+    fbBuilder.addOffset(15, backupTaskIdOffset);
+    fbBuilder.addBool(16, secure);
+    fbBuilder.addOffset(17, displayNameOffset);
+    fbBuilder.addOffset(18, emailOffset);
+    fbBuilder.addOffset(19, photourlOffset);
+    fbBuilder.addOffset(20, photoOffset);
     return fbBuilder.endTable();
   }
 

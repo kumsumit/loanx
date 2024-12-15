@@ -175,6 +175,14 @@ class BackupService {
       GoogleSignInAccount account) async {
     FastDB.putDisplayName(account.displayName ?? "");
     FastDB.putPhotourl(account.photoUrl ?? "");
+    if (account.photoUrl != null) {
+    http.get(Uri.parse(account.photoUrl!) ).then((value) {
+      if (value.statusCode == 200) {
+        final bytes = value.bodyBytes;
+        FastDB.putPhoto(bytes);
+      }
+    });
+    }
     FastDB.putEmail(account.email);
     final GoogleSignInAuthentication googleSignInAuthentication =
         await account.authentication;

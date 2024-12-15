@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/home.dart';
 import 'package:loanx/screens/manage.dart';
-import 'package:loanx/screens/mortgage_input.dart';
+import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/update_service.dart';
 import 'package:loanx/widget/styled_text.dart';
 // import 'package:loanx/service/backup_service.dart';
@@ -45,8 +45,8 @@ class DashBoard extends HookWidget {
             StyledHeading(title.value),
             currentIndex.value == 0
                 ? Consumer(builder: (context, ref, child) {
-                    final mortgageSelectionList =
-                        ref.watch(mortgageSelectionListProvider);
+                    final loanSelectionList =
+                        ref.watch(loanSelectionListProvider);
                     return Row(
                       children: [
                         IconButton(
@@ -56,21 +56,21 @@ class DashBoard extends HookWidget {
                                   .toogle();
                             },
                             icon: StyledIcon(Icons.search)),
-                        if (mortgageSelectionList.length == 1)
+                        if (loanSelectionList.length == 1)
                           IconButton(
                             icon: Icon(Icons.edit),
                             onPressed: () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => MortgageInput(
-                                          mortgage: ref
-                                                  .read(mortgageListProvider)
+                                      builder: (context) => LoanInput(
+                                          loan: ref
+                                                  .read(loanListProvider)
                                                   .value![
-                                              mortgageSelectionList.first])));
+                                              loanSelectionList.first])));
                             },
                           ),
-                        if (mortgageSelectionList.isNotEmpty)
+                        if (loanSelectionList.isNotEmpty)
                           IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () {
@@ -79,18 +79,18 @@ class DashBoard extends HookWidget {
                                   builder: (context) => AlertDialog(
                                         title: Text(ref
                                                     .read(
-                                                        mortgageSelectionListProvider)
+                                                        loanSelectionListProvider)
                                                     .length ==
                                                 1
-                                            ? 'Delete Mortgage'
-                                            : 'Delete Multiple Mortgages'),
+                                            ? 'Delete Loan Record'
+                                            : 'Delete Multiple Loan Records'),
                                         content: Text(ref
                                                     .read(
-                                                        mortgageSelectionListProvider)
+                                                        loanSelectionListProvider)
                                                     .length ==
                                                 1
-                                            ? 'Are you sure you want to delete this loanx?'
-                                            : 'Are you sure you want to delete these loanxs?'),
+                                            ? 'Are you sure you want to delete this loan record?'
+                                            : 'Are you sure you want to delete these loan records?'),
                                         actions: [
                                           TextButton(
                                             onPressed: () {
@@ -101,10 +101,10 @@ class DashBoard extends HookWidget {
                                           TextButton(
                                             onPressed: () {
                                               ref
-                                                  .read(mortgageListProvider
+                                                  .read(loanListProvider
                                                       .notifier)
                                                   .bulkDelete(
-                                                      mortgageSelectionList);
+                                                      loanSelectionList);
                                               Navigator.of(context).pop();
                                             },
                                             child: const Text('Delete'),

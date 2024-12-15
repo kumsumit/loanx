@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:loanx/model/mortgage.dart';
+import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/mortgage_details.dart';
+import 'package:loanx/screens/loan_details.dart';
 
 class SearchAppBar extends HookWidget {
   const SearchAppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final SuggestionsController<Mortgage> suggestionsController =
-        useMemoized(() => SuggestionsController<Mortgage>());
+    final SuggestionsController<Loan> suggestionsController =
+        useMemoized(() => SuggestionsController<Loan>());
     final filter = useState<int>(1);
     return Padding(
       padding: EdgeInsets.only(left: 20.0, bottom: 10.0),
@@ -23,7 +23,7 @@ class SearchAppBar extends HookWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(child: Consumer(builder: (context, ref, child) {
-            return TypeAheadField<Mortgage>(
+            return TypeAheadField<Loan>(
               suggestionsController: suggestionsController,
               suggestionsCallback: (searchTerm) =>
                   suggestionsCallback(searchTerm, filter.value, ref),
@@ -58,7 +58,7 @@ class SearchAppBar extends HookWidget {
                 );
               },
               itemBuilder: (context, mortgage) {
-                final m = ref.watch(itemListProvider);
+                final m = ref.watch(mortgageListProvider);
                 return m.when(
                     data: (data) {
                       if (data.isEmpty) {
@@ -67,7 +67,7 @@ class SearchAppBar extends HookWidget {
                       return ListTile(
                         title: Text(mortgage.depositorName),
                         leading: Text(data
-                            .firstWhere((mo) => mo.id == mortgage.itemId)
+                            .firstWhere((mo) => mo.id == mortgage.mortgageId)
                             .name),
                       );
                     },
@@ -75,15 +75,15 @@ class SearchAppBar extends HookWidget {
                     loading: () => Center(child: CircularProgressIndicator()));
               },
               onSelected: (mortgage) {
-                ref.read(itemListProvider).when(
+                ref.read(mortgageListProvider).when(
                     data: (data) {
                       final item =
-                          data.firstWhere((item) => item.id == mortgage.itemId);
+                          data.firstWhere((item) => item.id == mortgage.mortgageId);
                       Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => MortgageDetails(
-                                  mortgage: mortgage, item: item)));
+                                  loan: mortgage, mortgage: item)));
                     },
                     error: (_, e) {},
                     loading: () {});
@@ -91,6 +91,7 @@ class SearchAppBar extends HookWidget {
             );
           })),
           Consumer(builder: (context, ref, child) {
+           final loanListNotifier=  ref.read(loanListProvider.notifier);
             return PopupMenuButton<int>(
               icon: Icon(Icons.filter_alt_outlined,
                   color: Theme.of(context).colorScheme.secondary),
@@ -98,35 +99,31 @@ class SearchAppBar extends HookWidget {
                 if (value == 3) {
                   final date = await showDateSelectorDialog(context);
                   if (date != null) {
-                    suggestionsController.suggestions = ref
-                        .read(mortgageListProvider.notifier)
-                        .searchMortgagesByDateCreated(date);
+                    suggestionsController.suggestions = loanListNotifier
+                        .searchLoansByDateCreated(date);
                     suggestionsController.open();
                   }
                 } else if (value == 4) {
                   final dateRange = await showDateRangeSelectorDialog(context);
                   if (dateRange != null) {
-                    suggestionsController.suggestions = ref
-                        .read(mortgageListProvider.notifier)
-                        .searchMortgagesByDateRange(dateRange);
+                    suggestionsController.suggestions = loanListNotifier
+                        .searchLoansByDateRange(dateRange);
                     suggestionsController.open();
                   }
                 } else if (value == 5) {
                   final itemType = await showItemTypeSelectorDialog(context);
                   debugPrint(itemType.toString());
                   if (itemType != null) {
-                    suggestionsController.suggestions = ref
-                        .read(mortgageListProvider.notifier)
-                        .searchMortgagesByItemId(itemType);
+                    suggestionsController.suggestions = loanListNotifier
+                        .searchLoansByMortgageId(itemType);
                     suggestionsController.open();
                   }
                 } else if (value == 6) {
                   final mortgageMaterialType =
                       await showMortageMaterialTypeSelectorDialog(context);
                   if (mortgageMaterialType != null) {
-                    suggestionsController.suggestions = ref
-                        .read(mortgageListProvider.notifier)
-                        .searchMortgagesByMortgageMaterialId(
+                    suggestionsController.suggestions = loanListNotifier
+                        .searchLoansByMortgageMaterialId(
                             mortgageMaterialType);
                     suggestionsController.open();
                   }
@@ -190,8 +187,8 @@ class SearchAppBar extends HookWidget {
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height * .75,
             child: Consumer(builder: (context, ref, child) {
-              final items = ref.watch(itemListProvider);
-              return items.when(
+              final mortgages = ref.watch(mortgageListProvider);
+              return mortgages.when(
                   data: (data) {
                     if (data.isEmpty) return SizedBox();
                     return ListView.builder(
@@ -253,12 +250,12 @@ class SearchAppBar extends HookWidget {
     switch (filter) {
       case 1:
         return ref
-            .read(mortgageListProvider.notifier)
-            .searchMortgagesByDepositorName(searchTerm);
+            .read(loanListProvider.notifier)
+            .searchLoansByDepositorName(searchTerm);
       case 2:
         return ref
-            .read(mortgageListProvider.notifier)
-            .searchMortgagesByRelativeName(searchTerm);
+            .read(loanListProvider.notifier)
+            .searchLoansByRelativeName(searchTerm);
     }
     return [];
   }

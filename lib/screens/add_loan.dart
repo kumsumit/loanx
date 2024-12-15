@@ -3,9 +3,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/model/family_relation.dart';
-import 'package:loanx/model/item.dart';
-import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage.dart';
+import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
@@ -15,9 +14,9 @@ import 'package:loanx/widget/styled_textfield.dart';
 
 // import '../algo/damerau_lavenstien.dart';
 
-class MortgageInput extends HookConsumerWidget {
-  final Mortgage? mortgage;
-  const MortgageInput({super.key, this.mortgage});
+class LoanInput extends HookConsumerWidget {
+  final Loan? loan;
+  const LoanInput({super.key, this.loan});
 
   double _parseDouble(String input) {
     try {
@@ -34,35 +33,35 @@ class MortgageInput extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
-    final appBarTitle = mortgage == null ? "Add Mortgage" : "Edit Mortgage";
+    final appBarTitle = loan == null ? "Add Loan Record" : "Edit Loan Record";
     final isDialogOpen = useState<bool>(false);
-    final items = ref.watch(itemListProvider);
+    final mortgages = ref.watch(mortgageListProvider);
     final familyRelations = ref.watch(familyRelationListProvider);
     final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
-    final currentItem = useState<Item?>(null);
+    final currentItem = useState<Mortgage?>(null);
     final currentFamilyRelation = useState<FamilyRelation?>(null);
     final currentMortgageMaterial = useState<MortgageMaterial?>(null);
     final interestType = useState<InterestType>(InterestType.values[
-        mortgage == null ? FastDB.getInterestType() : mortgage!.interestType]);
+        loan == null ? FastDB.getInterestType() : loan!.interestType]);
     final interestFrequency = useState<InterestFrequency>(
-        InterestFrequency.values[mortgage == null
+        InterestFrequency.values[loan == null
             ? FastDB.getInterestFrequency()
-            : mortgage!.interestFrequency]);
+            : loan!.interestFrequency]);
     final depositorController =
-        useTextEditingController(text: mortgage?.depositorName ?? '');
+        useTextEditingController(text: loan?.depositorName ?? '');
     final addressController =
-        useTextEditingController(text: mortgage?.address ?? '');
+        useTextEditingController(text: loan?.address ?? '');
     final relativeNameController =
-        useTextEditingController(text: mortgage?.relativeName ?? '');
+        useTextEditingController(text: loan?.relativeName ?? '');
     final loanAmountController =
-        useTextEditingController(text: mortgage?.loanAmount.toString() ?? '');
+        useTextEditingController(text: loan?.loanAmount.toString() ?? '');
     final interestRateController = useTextEditingController(
-        text: mortgage?.interestRate.toString() ??
+        text: loan?.interestRate.toString() ??
             ref.read(interestRateProvider).toString());
     final weightController =
-        useTextEditingController(text: mortgage?.weight.toString() ?? '');
+        useTextEditingController(text: loan?.weight.toString() ?? '');
     final additionalDetailsController =
-        useTextEditingController(text: mortgage?.additionalDetails ?? '');
+        useTextEditingController(text: loan?.additionalDetails ?? '');
     final scrollController = useScrollController();
 
     return Scaffold(
@@ -78,12 +77,12 @@ class MortgageInput extends HookConsumerWidget {
               SizedBox(
                 height: 10,
               ),
-              items.when(
+              mortgages.when(
                   data: (data) {
                     if (data.isEmpty) {
                       return SizedBox();
                     }
-                    return StyledDropdown<Item>(
+                    return StyledDropdown<Mortgage>(
                       selectedValue: currentItem.value,
                       items: buildMenuItems(data, context),
                       onChanged: (value) {
@@ -91,16 +90,16 @@ class MortgageInput extends HookConsumerWidget {
                           currentItem.value = value;
                         }
                       },
-                      hintText: "Item Name",
-                      labelText: "Item Name",
+                      hintText: "Mortgage Name",
+                      labelText: "Mortgage Name",
                       onAddPressed: () {
                         isDialogOpen.value = true;
                         showAddDialog(
                             context,
                             ref,
-                            'Add item',
-                            'Enter the item name',
-                            ref.read(itemListProvider.notifier).add);
+                            'Add mortgage',
+                            'Enter the mortgage name',
+                            ref.read(mortgageListProvider.notifier).add);
                       },
                     );
                   },
@@ -276,7 +275,7 @@ class MortgageInput extends HookConsumerWidget {
                     onPressed: () async {
                       if (formKey.currentState != null &&
                           formKey.currentState!.validate()) {
-                        await ref.read(mortgageListProvider.notifier).add(
+                        await ref.read(loanListProvider.notifier).add(
                             depositorController.text,
                             relativeNameController.text,
                             addressController.text,
@@ -306,8 +305,8 @@ class MortgageInput extends HookConsumerWidget {
     );
   }
 
-  List<DropdownMenuItem<Item>> buildMenuItems(
-          List<Item> items, BuildContext context) =>
+  List<DropdownMenuItem<Mortgage>> buildMenuItems(
+          List<Mortgage> items, BuildContext context) =>
       [
         for (var item in items)
           DropdownMenuItem(
