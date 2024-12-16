@@ -616,7 +616,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: e0b131e2f17a58cb58c016b5e1a8fe6ba8b1ed14
+      resolved-ref: "32477c06527598dc53ed37060afb52d7dd961a06"
       url: "https://github.com/kumsumit/google_sign_in.git"
     source: git
     version: "6.2.2"
@@ -625,16 +625,16 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: c82d9002b43acb4cd05906a2da92dac4abd20653
+      resolved-ref: "32db30c7a8611200b73510b8292f1c035ac3b1c0"
       url: "https://github.com/kumsumit/google_sign_in_android.git"
     source: git
-    version: "6.1.33"
+    version: "6.1.34"
   google_sign_in_ios:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "7022207ecc1cf47bd83454e87e3a4735c0cdb82d"
+      resolved-ref: "58b5bf8a37a4cc864702aab8dac43defd01387ce"
       url: "https://github.com/kumsumit/google_sign_in_ios.git"
     source: git
     version: "5.7.8"
@@ -643,7 +643,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "93ee5f92e6e894a4f602091fc6365099e479b745"
+      resolved-ref: eb5fa1b78476fdd59bac7a804d7d43260293e86d
       url: "https://github.com/kumsumit/google_sign_in_platform_interface.git"
     source: git
     version: "2.4.5"
@@ -652,7 +652,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "247fada2a8c89126c7283609fac4832dbddd0205"
+      resolved-ref: bee7a33ab4f3021bdf424a1e52d4402f7256fb76
       url: "https://github.com/kumsumit/google_sign_in_web.git"
     source: git
     version: "0.12.4+3"
@@ -724,10 +724,10 @@ packages:
     dependency: transitive
     description:
       name: image
-      sha256: "599d08e369969bdf83138f5b4e0a7e823d3f992f23b8a64dd626877c37013533"
+      sha256: "20842a5ad1555be624c314b0c0cc0566e8ece412f61e859a42efeb6d4101a26c"
       url: "https://pub.dev"
     source: hosted
-    version: "4.4.0"
+    version: "4.5.0"
   image_picker:
     dependency: "direct main"
     description:
@@ -887,7 +887,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "6e70b599cdbadc554d77296c78472f99944ed143"
+      resolved-ref: "722e1058388d4847e05bbad10273b802c7f24a1d"
       url: "https://github.com/kumsumit/local_auth.git"
     source: git
     version: "2.3.0"
@@ -896,25 +896,25 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: a1e02475f236f77ef7529e3cc69dc48293058221
+      resolved-ref: b01b6b4530bc1d999fded89d88863df9a1906915
       url: "https://github.com/kumsumit/local_auth_android.git"
     source: git
-    version: "1.0.46"
+    version: "1.0.47"
   local_auth_darwin:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "189fa526c375dde051a99f28f23db76f80dc2e77"
+      resolved-ref: "922f55d924b848984dbbce5e06bf2040b088bead"
       url: "https://github.com/kumsumit/local_auth_darwin.git"
     source: git
-    version: "1.2.2"
+    version: "1.4.2"
   local_auth_platform_interface:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "6ba0d621fe1ad0ae312f0e41261872af584ab65f"
+      resolved-ref: "13607da3bb93e0f58e82287c4c088a5af7d310f9"
       url: "https://github.com/kumsumit/local_auth_platform_interface.git"
     source: git
     version: "1.0.10"
@@ -923,7 +923,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "2af72aa7b0bae84fcf5d0bc8f0069bef8fd9f6d3"
+      resolved-ref: "6e34ccf85d851f1e30ddc6c9f06cfc0496e2de6c"
       url: "https://github.com/kumsumit/local_auth_windows.git"
     source: git
     version: "1.0.11"
@@ -1522,4 +1522,4 @@ packages:
     version: "3.1.2"
 sdks:
   dart: ">=3.6.0-0 <4.0.0"
-  flutter: ">=3.24.3"
+  flutter: ">=3.24.0"

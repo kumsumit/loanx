@@ -119,7 +119,8 @@ class FastDB {
   }
 
   static double getInterestRate() {
-    return flatDbBuilder.interestRate ?? 2.5;
+    return double.tryParse(flatDbBuilder.interestRate!.toStringAsFixed(2)) ??
+        2.5;
   }
 
   static int getInterestType() {

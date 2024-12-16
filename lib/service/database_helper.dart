@@ -1009,7 +1009,7 @@ class DatabaseHelper {
            relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, interestType INTEGER,
            interestFrequency INTEGER, additionalDetails TEXT,
            dateCreated TEXT, dateFinished TEXT, mortgageId INTEGER, familyRelationId INTEGER, mortgageMaterialId INTEGER,
-           FOREIGN KEY (itemId) REFERENCES items (id),
+           FOREIGN KEY (mortgageId) REFERENCES mortgages (id),
            FOREIGN KEY (familyRelationId) REFERENCES familyRelations (id),
            FOREIGN KEY (mortgageMaterialId) REFERENCES mortgageMaterials (id),
            UNIQUE(depositorName, relativeName, address, loanAmount, mortgageId, familyRelationId) )''');

@@ -397,6 +397,7 @@ class FamilyRelationList extends _$FamilyRelationList {
       throw Exception('ID $id not found');
     }
   }
+
   Future<int> add(String name) async {
     final currentState = state.value;
 
@@ -420,7 +421,7 @@ class FamilyRelationList extends _$FamilyRelationList {
 
     return -1;
   }
-       
+
   Future<void> delete(int id) async {
     final rid = await db.delete(
       FamilyRelation.tableName,
@@ -605,7 +606,7 @@ class MortgageList extends _$MortgageList {
     }
   }
 
-   Future<int> add(String name) async {
+  Future<int> add(String name) async {
     final currentState = state.value;
 
     if (currentState != null &&
@@ -614,10 +615,8 @@ class MortgageList extends _$MortgageList {
       return -1;
     }
 
-    Mortgage mortgage =
-        Mortgage(name: name, isAddedByUser: 1);
-    final id =
-        await db.insert(Mortgage.tableName, mortgage.toJson());
+    Mortgage mortgage = Mortgage(name: name, isAddedByUser: 1);
+    final id = await db.insert(Mortgage.tableName, mortgage.toJson());
 
     if (id > 0) {
       mortgage = mortgage.copy(id: id);
@@ -628,6 +627,7 @@ class MortgageList extends _$MortgageList {
 
     return -1;
   }
+
   Future<void> bulkDelete(List<int> ids) async {
     final batch = db.batch();
     for (int id in ids) {
@@ -685,6 +685,7 @@ class LoanList extends _$LoanList {
     db = ref.watch(dBProvider).value!;
     final orderBy = '${LoanFields.dateCreated} DESC';
     final result = await db.query(Loan.tableName, orderBy: orderBy);
+    debugPrint(result.toString());
     return result.map((json) => Loan.fromJson(json)).toList();
   }
 
@@ -725,11 +726,11 @@ class LoanList extends _$LoanList {
         .toList();
   }
 
-  Future<List<Loan>> searchLoansByMortgageIdDB(int itemId) async {
+  Future<List<Loan>> searchLoansByMortgageIdDB(int mortgageId) async {
     final orderBy = '${LoanFields.id} ASC';
     final result = await db.query(Loan.tableName,
         where: '${LoanFields.mortgageId} = ?',
-        whereArgs: [itemId],
+        whereArgs: [mortgageId],
         orderBy: orderBy);
     return result.map((json) => Loan.fromJson(json)).toList();
   }
@@ -842,6 +843,7 @@ class LoanList extends _$LoanList {
   }
 
   Future<int> add(
+    Loan? oldLoan,
     String depositorName,
     String relativeName,
     String address,
@@ -851,11 +853,11 @@ class LoanList extends _$LoanList {
     int interestType,
     int interestFrequency,
     String additionalDetails,
-    int itemId,
+    int mortgageId,
     int familyRelationId,
     int mortgageMaterialId,
   ) async {
-    Loan mortgage = Loan(
+    Loan loan = Loan(
       depositorName: depositorName,
       relativeName: relativeName,
       address: address,
@@ -865,34 +867,50 @@ class LoanList extends _$LoanList {
       interestFrequency: interestFrequency,
       additionalDetails: additionalDetails,
       interestRate: interestRate,
-      mortgageId: itemId,
+      mortgageId: mortgageId,
       familyRelationId: familyRelationId,
       mortgageMaterialId: mortgageMaterialId,
     );
-    final id = await db.insert(Loan.tableName, mortgage.toJson());
-    if (id > 0) {
+    if (oldLoan != null) {
+      loan.copy(id: oldLoan.id);
+      final id = await db.update(
+        Loan.tableName,
+        loan.toJson(),
+        where: '${LoanFields.id} = ?',
+        whereArgs: [loan.id],
+      );
       await updateDBTime();
-      mortgage = mortgage.copy(id: id);
-      if (state.value == null) {
-        state = AsyncData([mortgage]);
-      } else {
-        state = AsyncData([mortgage, ...state.value!]);
+      if (id > 0) {
+        state = AsyncData([
+          for (final s in state.value!)
+            if (s.id == loan.id) loan else s
+        ]);
       }
-      return id;
+    } else {
+      final id = await db.insert(Loan.tableName, loan.toJson());
+      if (id > 0) {
+        await updateDBTime();
+        loan = loan.copy(id: id);
+        if (state.value == null) {
+          state = AsyncData([loan]);
+        } else {
+          state = AsyncData([loan, ...state.value!]);
+        }
+        return id;
+      }
     }
     return -1;
   }
 
   Future<void> updateLoan(Loan loan) async {
-    if (state.value == null) return;
     final id = await db.update(
       Loan.tableName,
       loan.toJson(),
       where: '${LoanFields.id} = ?',
       whereArgs: [loan.id],
     );
-    await updateDBTime();
     if (id > 0) {
+      await updateDBTime();
       state = AsyncData([
         for (final s in state.value!)
           if (s.id == loan.id) loan else s

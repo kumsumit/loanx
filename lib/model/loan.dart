@@ -19,7 +19,7 @@ class LoanFields {
   static final String dateFinished = 'dateFinished';
   static final String mortgageId = 'mortgageId';
   static final String familyRelationId = "familyRelationId";
-  static final String mortgageMaterialId = "MortgageMaterialId";
+  static final String mortgageMaterialId = "mortgageMaterialId";
 }
 
 class Loan {

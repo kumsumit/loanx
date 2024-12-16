@@ -103,13 +103,7 @@ class AskBackupScreen extends HookWidget {
                           final backupRegistered =
                               ref.read(backUpRegisteredProvider.notifier);
                           final db = ref.read(dBProvider);
-                          final mortgageList = ref.read(mortgageListProvider.notifier);
-                          final familyRelationList =
-                              ref.read(familyRelationListProvider.notifier);
-                          final mortgageMaterialList =
-                              ref.read(mortgageMaterialListProvider.notifier);
-                          final loanList =
-                              ref.read(loanListProvider.notifier);
+                    
                           return OutlinedButton(
                             onPressed: () async {
                               networkStatus.when(
@@ -138,12 +132,12 @@ class AskBackupScreen extends HookWidget {
                                       await FastDB.flush();
                                       db.when(
                                           data: (data) async {
-                                            mortgageList.readAllMortgages();
-                                            mortgageMaterialList
+                                            ref.read(mortgageListProvider.notifier).readAllMortgages();
+                                           ref.read(mortgageMaterialListProvider.notifier)
                                                 .readAllMortgageMaterials();
-                                            familyRelationList
+                                            ref.read(familyRelationListProvider.notifier)
                                                 .readAllFamilyRelations();
-                                            loanList.readAllLoans();
+                                              ref.read(loanListProvider.notifier).readAllLoans();
                                           },
                                           error: (_, __) {
                                             if (!FastDB.getIsTableCreated()) {

@@ -38,7 +38,7 @@ class LoanInput extends HookConsumerWidget {
     final mortgages = ref.watch(mortgageListProvider);
     final familyRelations = ref.watch(familyRelationListProvider);
     final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
-    final currentItem = useState<Mortgage?>(null);
+    final currentMortgage = useState<Mortgage?>(null);
     final currentFamilyRelation = useState<FamilyRelation?>(null);
     final currentMortgageMaterial = useState<MortgageMaterial?>(null);
     final interestType = useState<InterestType>(InterestType.values[
@@ -82,12 +82,13 @@ class LoanInput extends HookConsumerWidget {
                     if (data.isEmpty) {
                       return SizedBox();
                     }
+                    currentMortgage.value = data[loan == null ? 0 : loan!.mortgageId];
                     return StyledDropdown<Mortgage>(
-                      selectedValue: currentItem.value,
+                      selectedValue: currentMortgage.value,
                       items: buildMenuItems(data, context),
                       onChanged: (value) {
                         if (value != null) {
-                          currentItem.value = value;
+                          currentMortgage.value = value;
                         }
                       },
                       hintText: "Mortgage Name",
@@ -109,6 +110,10 @@ class LoanInput extends HookConsumerWidget {
                   loading: () => Center(child: CircularProgressIndicator())),
               mortgageMaterials.when(
                 data: (data) {
+                  if (data.isEmpty) {
+                    return SizedBox();
+                  }
+                  currentMortgageMaterial.value = data[loan == null ? 0 : loan!.mortgageMaterialId];
                   return StyledDropdown<MortgageMaterial>(
                     selectedValue: currentMortgageMaterial.value,
                     items: buildMenuMortgageMaterials(data, context),
@@ -162,6 +167,10 @@ class LoanInput extends HookConsumerWidget {
               ),
               familyRelations.when(
                 data: (data) {
+                  if (data.isEmpty) {
+                    return SizedBox();
+                  }
+                  currentFamilyRelation.value = data[loan == null ? 0 : loan!.familyRelationId];
                   return StyledDropdown<FamilyRelation>(
                     selectedValue: currentFamilyRelation.value,
                     items: buildMenuRelationTypes(data, context),
@@ -276,6 +285,7 @@ class LoanInput extends HookConsumerWidget {
                       if (formKey.currentState != null &&
                           formKey.currentState!.validate()) {
                         await ref.read(loanListProvider.notifier).add(
+                          loan,
                             depositorController.text,
                             relativeNameController.text,
                             addressController.text,
@@ -285,7 +295,7 @@ class LoanInput extends HookConsumerWidget {
                             interestType.value.index,
                             interestFrequency.value.index,
                             additionalDetailsController.text,
-                            currentItem.value!.id!,
+                            currentMortgage.value!.id!,
                             currentFamilyRelation.value!.id!,
                             currentMortgageMaterial.value!.id!);
                         if (context.mounted) {
