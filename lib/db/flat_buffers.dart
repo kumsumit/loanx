@@ -1347,13 +1347,13 @@ class _FbUint8List extends _FbList<int> {
 }
 
 /// List backed by 8-bit signed integers.
-class _FbInt8List extends _FbList<int> {
-  _FbInt8List(super.bc, super.offset);
+// class _FbInt8List extends _FbList<int> {
+//   _FbInt8List(super.bc, super.offset);
 
-  @override
-  @pragma('vm:prefer-inline')
-  int operator [](int i) => bc._getInt8(offset + 4 + i);
-}
+//   @override
+//   @pragma('vm:prefer-inline')
+//   int operator [](int i) => bc._getInt8(offset + 4 + i);
+// }
 
 /// List backed by 8-bit unsigned integers.
 class _FbBoolList extends _FbList<bool> {
