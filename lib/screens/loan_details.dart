@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/extension/string.dart';
-import 'package:loanx/model/mortgage.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 
 class MortgageDetails extends ConsumerWidget {
-  const MortgageDetails({super.key, required this.loan, required this.mortgage});
+  const MortgageDetails({super.key, required this.loan});
   final Loan loan;
-  final Mortgage mortgage;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -77,14 +75,11 @@ class MortgageDetails extends ConsumerWidget {
                                     .values[loan.interestFrequency].name
                                     .toSentenceCase()),
                           buildDataRow(
-                              context, 'Weight', loan.weight.toString()),
-                          buildDataRow(context, 'Additional Details',
-                              loan.additionalDetails),
-                          buildDataRow(context, 'Mortgage', mortgage.name),
-                          buildDataRow(
                               context, 'Family Relation', familyRelation.name),
                           buildDataRow(context, 'Mortgage Material',
                               mortgageMaterial.name),
+                          buildDataRow(context, 'Additional Details',
+                              loan.additionalDetails),    
                         ],
                       ),
                     ),

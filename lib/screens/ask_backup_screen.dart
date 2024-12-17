@@ -20,10 +20,10 @@ class AskBackupScreen extends HookWidget {
       isLoading: isLoading.value,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/background.png"),
-            fit: BoxFit.cover,
-          ),
+          // image: DecorationImage(
+          //   image: AssetImage("assets/background.png"),
+          //   fit: BoxFit.cover,
+          // ),
         ),
         child: Center(
           child: Padding(
@@ -132,7 +132,6 @@ class AskBackupScreen extends HookWidget {
                                       await FastDB.flush();
                                       db.when(
                                           data: (data) async {
-                                            ref.read(mortgageListProvider.notifier).readAllMortgages();
                                            ref.read(mortgageMaterialListProvider.notifier)
                                                 .readAllMortgageMaterials();
                                             ref.read(familyRelationListProvider.notifier)
@@ -192,6 +191,7 @@ class AskBackupScreen extends HookWidget {
                         }),
                       ],
                     ),
+                    SizedBox(height: 10,)
                   ],
                 ),
               ),

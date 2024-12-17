@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-// import 'package:loanx/extension/string.dart';
-import 'package:loanx/model/mortgage.dart';
-// import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan.dart';
+import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/loan_details.dart';
 import 'package:loanx/widget/snackbar.dart';
@@ -11,23 +9,18 @@ import 'package:loanx/widget/snackbar.dart';
 class MortgageListView extends StatelessWidget {
   const MortgageListView({super.key});
 
-  Widget _mortgageBuilder(
-    BuildContext context,
-    Loan mortgage,
-    Mortgage item,
-  ) {
+  Widget _mortgageBuilder(BuildContext context, Loan loan, MortgageMaterial mortgageMaterial) {
     return Consumer(builder: (context, ref, child) {
       final loanSelectionList = ref.read(loanSelectionListProvider);
       return GestureDetector(
         onHorizontalDragEnd: (details) async {
-          if (details.velocity.pixelsPerSecond.dx > 0 &&
-              !mortgage.isFinished()) {
+          if (details.velocity.pixelsPerSecond.dx > 0 && !loan.isFinished()) {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
                 title: Text("Confirmation"),
                 content: Text(
-                    "Are you sure want you have returned this mortgage to the borrower?"),
+                    "Are you sure want you have returned this mortgage to the borrower and clear the loan?"),
                 actionsAlignment: MainAxisAlignment.spaceEvenly,
                 actions: [
                   OutlinedButton(
@@ -35,60 +28,46 @@ class MortgageListView extends StatelessWidget {
                         Navigator.pop(context);
                       },
                       child: Text("Cancel")),
-                  Consumer(builder: (context, ref, child) {
-                    return OutlinedButton(
+                  OutlinedButton(
                       child: const Text('Ok'),
                       onPressed: () async {
-                        await ref.read(appColorProvider.notifier).set();
+                        loan.toggleFinished();
+                        await ref
+                            .read(loanListProvider.notifier)
+                            .updateLoan(loan);
                         if (context.mounted) {
                           Navigator.of(context).pop();
                           showSnackBar(context,
                               "Now, you can give mortgage to the borrower");
                         }
-                      },
-                    );
-                  }),
+                      }),
                 ],
               ),
             );
-            mortgage.toggleFinished();
-            await ref
-                .read(loanListProvider.notifier)
-                .updateLoan(mortgage);
           }
         },
         onDoubleTap: () {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      MortgageDetails(loan: mortgage, mortgage: item)));
+                  builder: (context) => MortgageDetails(loan: loan)));
         },
         onLongPress: () {
-          if (loanSelectionList.contains(mortgage.id)) {
-            ref
-                .read(loanSelectionListProvider.notifier)
-                .remove(mortgage.id ?? 0);
+          debugPrint(loan.id.toString());
+          debugPrint(loanSelectionList.length.toString());
+          debugPrint(loanSelectionList.contains(loan.id).toString());
+          if (loanSelectionList.contains(loan.id)) {
+            ref.read(loanSelectionListProvider.notifier).remove(loan.id ?? 0);
           } else {
-            ref
-                .read(loanSelectionListProvider.notifier)
-                .add(mortgage.id ?? 0);
+            ref.read(loanSelectionListProvider.notifier).add(loan.id ?? 0);
           }
         },
         child: ColoredBox(
-          color: loanSelectionList.contains(mortgage.id)
+          color: loanSelectionList.contains(loan.id)
               ? Theme.of(context).colorScheme.primaryContainer
               : Colors.transparent,
           child: Row(
             children: <Widget>[
-              // Checkbox(
-              //     value: loanx.isFinished(),
-              //     onChanged: (bool? value) async {
-              //       loanx.toggleFinished();
-              //     await  ref
-              //           .read(loanxListProvider.notifier)
-              //           .updateloanx(loanx);
-              //     }),
               Expanded(
                 child: DecoratedBox(
                   decoration: const BoxDecoration(
@@ -101,19 +80,19 @@ class MortgageListView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          '${mortgage.depositorName} (item: ${item.name})',
-                          style: mortgage.isFinished()
+                          '${loan.depositorName} (mortgage: ${mortgageMaterial.name})',
+                          style: loan.isFinished()
                               ? const TextStyle(
                                   color: Colors.grey,
                                   decoration: TextDecoration.lineThrough)
                               : const TextStyle(fontSize: 15.0),
                           // Provide a Key for the integration test
-                          key: Key('list_item_${mortgage.id}'),
+                          key: Key('list_item_${loan.id}'),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 5.0),
                           child: Text(
-                            mortgage.getStateText(),
+                            loan.getStateText(),
                             style: const TextStyle(
                               fontSize: 12.0,
                             ),
@@ -134,11 +113,11 @@ class MortgageListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(child: Consumer(builder: (context, ref, child) {
-      final mortgages = ref.watch(mortgageListProvider);
       final loans = ref.watch(loanListProvider);
-      return mortgages.when(
-          data: (itemList) {
-            if (itemList.isEmpty) {
+      final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
+      return mortgageMaterials.when(
+          data: (mortgageMaterialList) {
+            if (mortgageMaterialList.isEmpty) {
               return Center(
                   child: Text(
                 "No data found",
@@ -164,9 +143,9 @@ class MortgageListView extends StatelessWidget {
                       itemCount: loanList.length,
                       itemBuilder: (context, index) {
                         final loan = loanList[index];
-                        final item = itemList
-                            .firstWhere((item) => item.id == loan.mortgageId);
-                        return _mortgageBuilder(context, loan, item);
+                        final mortgageMaterial = mortgageMaterialList
+                            .firstWhere((item) => item.id == loan.mortgageMaterialId);
+                        return _mortgageBuilder(context, loan, mortgageMaterial);
                       });
                 },
                 error: (e, b) => Center(

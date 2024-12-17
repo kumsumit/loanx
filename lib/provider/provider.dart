@@ -11,7 +11,6 @@ import 'package:local_auth/local_auth.dart';
 import 'package:loanx/algo/damerau_lavenstien.dart';
 import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/model/family_relation.dart';
-import 'package:loanx/model/mortgage.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
@@ -562,7 +561,7 @@ class MortgageMaterialList extends _$MortgageMaterialList {
     final id = await db.update(
       MortgageMaterial.tableName,
       mortgageMaterial.toJson(),
-      where: '${MortgageFields.id} = ?',
+      where: '${MortgageMaterialFields.id} = ?',
       whereArgs: [mortgageMaterial.id],
     );
     if (id > 0) {
@@ -575,102 +574,6 @@ class MortgageMaterialList extends _$MortgageMaterialList {
   }
 }
 
-@Riverpod(keepAlive: true)
-class MortgageList extends _$MortgageList {
-  late Database db;
-
-  @override
-  Future<List<Mortgage>> build() async {
-    return await readAllMortgages();
-  }
-
-  Future<List<Mortgage>> readAllMortgages() async {
-    db = ref.watch(dBProvider).value!;
-    final orderBy = MortgageFields.name;
-    final result = await db.query(Mortgage.tableName, orderBy: orderBy);
-    return result.map((json) => Mortgage.fromJson(json)).toList();
-  }
-
-  Future<Mortgage> readMortgage(int id) async {
-    final maps = await db.query(
-      Mortgage.tableName,
-      columns: MortgageFields.values,
-      where: '${MortgageFields.id} = ?',
-      whereArgs: [id],
-    );
-
-    if (maps.isNotEmpty) {
-      return Mortgage.fromJson(maps.first);
-    } else {
-      throw Exception('ID $id not found');
-    }
-  }
-
-  Future<int> add(String name) async {
-    final currentState = state.value;
-
-    if (currentState != null &&
-        currentState.any(
-            (element) => element.name.toLowerCase() == name.toLowerCase())) {
-      return -1;
-    }
-
-    Mortgage mortgage = Mortgage(name: name, isAddedByUser: 1);
-    final id = await db.insert(Mortgage.tableName, mortgage.toJson());
-
-    if (id > 0) {
-      mortgage = mortgage.copy(id: id);
-      await updateDBTime();
-      state = AsyncData([mortgage, ...?currentState]);
-      return id;
-    }
-
-    return -1;
-  }
-
-  Future<void> bulkDelete(List<int> ids) async {
-    final batch = db.batch();
-    for (int id in ids) {
-      batch.delete(
-        Mortgage.tableName,
-        where: '${MortgageFields.id} = ?',
-        whereArgs: [id],
-      );
-    }
-    final results = await batch.commit();
-    await updateDBTime();
-    state = AsyncData(
-        state.value!.where((item) => !results.contains(item.id)).toList());
-  }
-
-  Future<void> updateItem(Mortgage item) async {
-    final id = await db.update(
-      Mortgage.tableName,
-      item.toJson(),
-      where: '${MortgageFields.id} = ?',
-      whereArgs: [item.id],
-    );
-    if (id > 0) {
-      await updateDBTime();
-      state = AsyncData([
-        for (final s in state.value!)
-          if (s.id == item.id) item else s
-      ]);
-    }
-  }
-
-  Future<void> delete(int id) async {
-    final rid = await db.delete(
-      Mortgage.tableName,
-      where: '${MortgageFields.id} = ?',
-      whereArgs: [id],
-    );
-    if (rid > 0) {
-      await updateDBTime();
-      state = AsyncData(state.value!.where((item) => item.id != id).toList());
-    }
-  }
-}
 
 @Riverpod(keepAlive: true)
 class LoanList extends _$LoanList {
@@ -687,17 +590,6 @@ class LoanList extends _$LoanList {
     final result = await db.query(Loan.tableName, orderBy: orderBy);
     debugPrint(result.toString());
     return result.map((json) => Loan.fromJson(json)).toList();
-  }
-
-  List<Loan> searchLoansByMortgageId(int mortgageId) {
-    if (state.value == null) return [];
-    debugPrint("====================");
-    debugPrint(mortgageId.toString());
-    final mor = state.value!
-        .where((mortgage) => mortgage.mortgageId == mortgageId)
-        .toList();
-    debugPrint(mor.length.toString());
-    return mor;
   }
 
   List<Loan> searchLoansByMortgageMaterialId(int mortgageMaterialId) {
@@ -724,15 +616,6 @@ class LoanList extends _$LoanList {
             item.dateCreated.isAfter(dateTimeRange.start) &&
             item.dateCreated.isBefore(dateTimeRange.end.add(Duration(days: 1))))
         .toList();
-  }
-
-  Future<List<Loan>> searchLoansByMortgageIdDB(int mortgageId) async {
-    final orderBy = '${LoanFields.id} ASC';
-    final result = await db.query(Loan.tableName,
-        where: '${LoanFields.mortgageId} = ?',
-        whereArgs: [mortgageId],
-        orderBy: orderBy);
-    return result.map((json) => Loan.fromJson(json)).toList();
   }
 
   Future<List<Loan>> readAllLoansByMortgageMaterialId(
@@ -845,29 +728,27 @@ class LoanList extends _$LoanList {
   Future<int> add(
     Loan? oldLoan,
     String depositorName,
+    String phoneNumber,
     String relativeName,
     String address,
     double loanAmount,
     double interestRate,
-    double weight,
     int interestType,
     int interestFrequency,
     String additionalDetails,
-    int mortgageId,
     int familyRelationId,
     int mortgageMaterialId,
   ) async {
     Loan loan = Loan(
       depositorName: depositorName,
+      phoneNumber: phoneNumber,
       relativeName: relativeName,
       address: address,
       loanAmount: loanAmount,
-      weight: weight,
       interestType: interestType,
       interestFrequency: interestFrequency,
       additionalDetails: additionalDetails,
       interestRate: interestRate,
-      mortgageId: mortgageId,
       familyRelationId: familyRelationId,
       mortgageMaterialId: mortgageMaterialId,
     );

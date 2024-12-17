@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:loanx/model/family_relation.dart';
-import 'package:loanx/model/mortgage.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -982,7 +981,7 @@ class DatabaseHelper {
     // final itemIds = List.generate(10, (index) => index + 1);
     // final materialFamily = [1, 2, 3];
 
-    final mortgages = [
+    final mortgageMaterials = [
       'Ring',
       'Anklet',
       'Bracelet',
@@ -995,29 +994,21 @@ class DatabaseHelper {
       'Locket',
       'Neck band'
     ];
-    final mortgageMaterials = ['Gold', 'Silver', 'Bronze'];
     final familyRelations = ['Husband', 'Father', 'Wife'];
     final batch = db.batch();
-    batch.execute(
-        'CREATE TABLE IF NOT EXISTS mortgages(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
     batch.execute(
         'CREATE TABLE IF NOT EXISTS mortgageMaterials(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
     batch.execute(
         'CREATE TABLE IF NOT EXISTS familyRelations(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
     batch.execute(
-        '''CREATE TABLE IF NOT EXISTS loans(id INTEGER PRIMARY KEY, depositorName TEXT,
+        '''CREATE TABLE IF NOT EXISTS loans(id INTEGER PRIMARY KEY, depositorName TEXT, phoneNumber TEXT, email TEXT,
            relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, interestType INTEGER,
            interestFrequency INTEGER, additionalDetails TEXT,
-           dateCreated TEXT, dateFinished TEXT, mortgageId INTEGER, familyRelationId INTEGER, mortgageMaterialId INTEGER,
-           FOREIGN KEY (mortgageId) REFERENCES mortgages (id),
+           dateCreated TEXT, dateFinished TEXT, familyRelationId INTEGER, mortgageMaterialId INTEGER,
            FOREIGN KEY (familyRelationId) REFERENCES familyRelations (id),
            FOREIGN KEY (mortgageMaterialId) REFERENCES mortgageMaterials (id),
-           UNIQUE(depositorName, relativeName, address, loanAmount, mortgageId, familyRelationId) )''');
-    for (final mortgage in mortgages) {
-      batch.insert(
-          Mortgage.tableName, {MortgageFields.name: mortgage, MortgageFields.isAddedByUser: 0});
-    }
-
+           UNIQUE(depositorName, relativeName, address, loanAmount, familyRelationId) )''');
+   
     for (final mortgageMaterial in mortgageMaterials) {
       batch.insert(MortgageMaterial.tableName, {
         MortgageMaterialFields.name: mortgageMaterial,
@@ -1061,7 +1052,6 @@ class DatabaseHelper {
     // Fetch records from the second database
     final List<Map<String, dynamic>> familyRelations =
         await db2.query(FamilyRelation.tableName);
-    final List<Map<String, dynamic>> mortgages = await db2.query(Mortgage.tableName);
     final List<Map<String, dynamic>> mortgageMaterials =
         await db2.query(MortgageMaterial.tableName);
     final List<Map<String, dynamic>> loans =
@@ -1075,14 +1065,6 @@ class DatabaseHelper {
         batch.insert(
           FamilyRelation.tableName,
           familyRelation,
-          conflictAlgorithm: ConflictAlgorithm.ignore,
-        );
-      }
-
-      for (final mortgage in mortgages) {
-        batch.insert(
-          Mortgage.tableName,
-          mortgage,
           conflictAlgorithm: ConflictAlgorithm.ignore,
         );
       }

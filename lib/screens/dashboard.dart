@@ -1,19 +1,16 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-// import 'package:loanx/db/fastdb.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/home.dart';
 import 'package:loanx/screens/manage.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/update_service.dart';
 import 'package:loanx/widget/styled_text.dart';
-// import 'package:loanx/service/backup_service.dart';
-// import 'package:loanx/service/database_helper.dart';
-// import 'package:loanx/widget/snackbar.dart';
 
 import 'drawer.dart';
 
@@ -28,9 +25,12 @@ class DashBoard extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = useState<int>(0);
-    final title = useState<String>("Loanx");
+    final title = useState<String>(AppLocalizations.of(context)!.loanx);
     if (Platform.isAndroid) {
       useEffect(() {
+        if(kDebugMode) {
+          return null;
+        }
         checkForUpdates(context, false);
         return null;
       }, []);
@@ -60,6 +60,8 @@ class DashBoard extends HookWidget {
                           IconButton(
                             icon: Icon(Icons.edit),
                             onPressed: () {
+                              debugPrint(loanSelectionList.first.toString());
+                             debugPrint( ref.read(loanListProvider).toString());
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -67,7 +69,7 @@ class DashBoard extends HookWidget {
                                           loan: ref
                                                   .read(loanListProvider)
                                                   .value![
-                                              loanSelectionList.first])));
+                                              loanSelectionList.first-1])));
                             },
                           ),
                         if (loanSelectionList.isNotEmpty)

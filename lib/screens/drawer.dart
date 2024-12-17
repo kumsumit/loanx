@@ -646,7 +646,6 @@ class MyDrawer extends HookWidget {
                                         onSelectedItemChanged: (val) {
                                           interestRateString[0] =
                                               val.toString();
-                                          // debugPrint(val.toString());
                                         },
                                         children: List.generate(
                                           51,
@@ -703,7 +702,6 @@ class MyDrawer extends HookWidget {
                                         onSelectedItemChanged: (val) {
                                           interestRateString[1] =
                                               val.toString();
-                                          // debugPrint(val.toString());
                                         },
                                         children: List.generate(
                                           100,
@@ -730,27 +728,9 @@ class MyDrawer extends HookWidget {
                                   ),
                                 ],
                               ),
-                              // Consumer(builder: (context, ref, child) {
-                              //   final interestRate =
-                              //       ref.watch(interestRateProvider);
-                              //   return Slider(
-                              //     value: interestRate,
-                              //     min: 0.0,
-                              //     max: 50.0,
-                              //     divisions: 200,
-                              //     label: interestRate.toStringAsFixed(2),
-                              //     onChanged: (value) {
-                              //       ref
-                              //           .read(interestRateProvider.notifier)
-                              //           .set(value);
-                              //     },
-                              //   );
-                              // }),
                               Consumer(builder: (context, ref, child) {
                                 final interestRate =
                                     ref.watch(interestRateProvider);
-                                    debugPrint("=[================^&*%%===================================================]");
-                                    debugPrint(interestRate.toString());
                                 return StyledSubtitle(
                                   "Current Interest rate is $interestRate %",
                                 );

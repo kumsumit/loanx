@@ -1,12 +1,9 @@
-// import 'package:flutter/foundation.dart';
-// import 'color_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/loan_details.dart';
 
 class SearchAppBar extends HookWidget {
   const SearchAppBar({super.key});
@@ -22,76 +19,8 @@ class SearchAppBar extends HookWidget {
           child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(child: Consumer(builder: (context, ref, child) {
-            return TypeAheadField<Loan>(
-              suggestionsController: suggestionsController,
-              suggestionsCallback: (searchTerm) =>
-                  suggestionsCallback(searchTerm, filter.value, ref),
-              builder: (context, controller, focusNode) {
-                return TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Search Mortgage',
-                      suffixIcon: Icon(Icons.search),
-                    ));
-              },
-              emptyBuilder: (context) {
-                return ListTile(
-                  tileColor: Theme.of(context).colorScheme.surfaceContainer,
-                  title: Text(
-                    "No data found",
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary),
-                  ),
-                );
-              },
-              errorBuilder: (context, error) {
-                return ListTile(
-                  title: Text(
-                    "An error occurred",
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary),
-                  ),
-                );
-              },
-              itemBuilder: (context, mortgage) {
-                final m = ref.watch(mortgageListProvider);
-                return m.when(
-                    data: (data) {
-                      if (data.isEmpty) {
-                        return Center(child: Text("No data found"));
-                      }
-                      return ListTile(
-                        title: Text(mortgage.depositorName),
-                        leading: Text(data
-                            .firstWhere((mo) => mo.id == mortgage.mortgageId)
-                            .name),
-                      );
-                    },
-                    error: (_, o) => Center(child: Text("An error occurred")),
-                    loading: () => Center(child: CircularProgressIndicator()));
-              },
-              onSelected: (mortgage) {
-                ref.read(mortgageListProvider).when(
-                    data: (data) {
-                      final item =
-                          data.firstWhere((item) => item.id == mortgage.mortgageId);
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => MortgageDetails(
-                                  loan: mortgage, mortgage: item)));
-                    },
-                    error: (_, e) {},
-                    loading: () {});
-              },
-            );
-          })),
           Consumer(builder: (context, ref, child) {
-           final loanListNotifier=  ref.read(loanListProvider.notifier);
+            final loanListNotifier = ref.read(loanListProvider.notifier);
             return PopupMenuButton<int>(
               icon: Icon(Icons.filter_alt_outlined,
                   color: Theme.of(context).colorScheme.secondary),
@@ -99,32 +28,23 @@ class SearchAppBar extends HookWidget {
                 if (value == 3) {
                   final date = await showDateSelectorDialog(context);
                   if (date != null) {
-                    suggestionsController.suggestions = loanListNotifier
-                        .searchLoansByDateCreated(date);
+                    suggestionsController.suggestions =
+                        loanListNotifier.searchLoansByDateCreated(date);
                     suggestionsController.open();
                   }
                 } else if (value == 4) {
                   final dateRange = await showDateRangeSelectorDialog(context);
                   if (dateRange != null) {
-                    suggestionsController.suggestions = loanListNotifier
-                        .searchLoansByDateRange(dateRange);
+                    suggestionsController.suggestions =
+                        loanListNotifier.searchLoansByDateRange(dateRange);
                     suggestionsController.open();
                   }
-                } else if (value == 5) {
-                  final itemType = await showItemTypeSelectorDialog(context);
-                  debugPrint(itemType.toString());
-                  if (itemType != null) {
-                    suggestionsController.suggestions = loanListNotifier
-                        .searchLoansByMortgageId(itemType);
-                    suggestionsController.open();
-                  }
-                } else if (value == 6) {
+                }  else if (value == 5) {
                   final mortgageMaterialType =
                       await showMortageMaterialTypeSelectorDialog(context);
                   if (mortgageMaterialType != null) {
                     suggestionsController.suggestions = loanListNotifier
-                        .searchLoansByMortgageMaterialId(
-                            mortgageMaterialType);
+                        .searchLoansByMortgageMaterialId(mortgageMaterialType);
                     suggestionsController.open();
                   }
                 }
@@ -175,41 +95,6 @@ class SearchAppBar extends HookWidget {
     DateTime fiveYearsAhead = DateTime(now.year + 5, now.month, now.day);
     return await showDateRangePicker(
         context: context, firstDate: fiveYearsBack, lastDate: fiveYearsAhead);
-  }
-
-  Future<int?> showItemTypeSelectorDialog(BuildContext context) async {
-    return await showDialog<int>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Select an Item Type'),
-          content: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * .75,
-            child: Consumer(builder: (context, ref, child) {
-              final mortgages = ref.watch(mortgageListProvider);
-              return mortgages.when(
-                  data: (data) {
-                    if (data.isEmpty) return SizedBox();
-                    return ListView.builder(
-                      itemCount: data.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(data[index].name),
-                          onTap: () {
-                            Navigator.of(context).pop(index);
-                          },
-                        );
-                      },
-                    );
-                  },
-                  error: (_, __) => Center(child: Text("An error occurred")),
-                  loading: () => Center(child: CircularProgressIndicator()));
-            }),
-          ),
-        );
-      },
-    );
   }
 
   Future<int?> showMortageMaterialTypeSelectorDialog(

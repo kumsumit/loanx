@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'family_relation.dart';
-import 'mortgage.dart';
 import 'mortgage_material.dart';
 
 class Manage extends StatelessWidget {
@@ -13,7 +12,6 @@ class Manage extends StatelessWidget {
       child: Column(children: [
         TabBar(
           tabs: [
-            Tab(icon: Text("Mortgage")),
             Tab(icon: Text("Mortgage Material")),
             Tab(icon: Text("Family Relation")),
           ],
@@ -21,7 +19,6 @@ class Manage extends StatelessWidget {
         Expanded(
           child: TabBarView(
             children: [
-              MortgageView(),
               MortgageMaterialView(),
               FamilyRelationView()
             ],
