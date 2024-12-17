@@ -33,7 +33,14 @@ class StyledTextField extends StatelessWidget {
         controller: textEditingController,
         decoration: InputDecoration(
           hintText: hintText,
+          hintStyle: TextStyle(
+              color: Theme.of(context)
+                  .colorScheme
+                  .secondary
+                  .withValues(alpha: 0.5),
+              fontSize: 14),
           labelText: labelText,
+          labelStyle: TextStyle(color: Theme.of(context).colorScheme.secondary),
           border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.0),
               borderSide: BorderSide(
@@ -52,9 +59,9 @@ class StyledTextField extends StatelessWidget {
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),
-        keyboardType: keyboardType, style: TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
-            fontSize: 16),
+        keyboardType: keyboardType,
+        style: TextStyle(
+            color: Theme.of(context).colorScheme.secondary, fontSize: 16),
       ),
     );
   }

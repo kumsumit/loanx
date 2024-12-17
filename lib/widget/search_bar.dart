@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/loan_details.dart';
+import 'package:loanx/widget/styled_text.dart';
 
 class SearchAppBar extends HookWidget {
   const SearchAppBar({super.key});
@@ -20,20 +21,35 @@ class SearchAppBar extends HookWidget {
           child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-            Expanded(child: Consumer(builder: (context, ref, child) {
+          Expanded(child: Consumer(builder: (context, ref, child) {
             return TypeAheadField<Loan>(
               suggestionsController: suggestionsController,
               suggestionsCallback: (searchTerm) =>
                   suggestionsCallback(searchTerm, filter.value, ref),
               builder: (context, controller, focusNode) {
                 return TextField(
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
                     controller: controller,
                     focusNode: focusNode,
                     autofocus: true,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Search Loan',
-                      suffixIcon: Icon(Icons.search),
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary),
+                      hintText: 'Search Loan',
+                      hintStyle: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withValues(alpha: 0.5),
+                          fontSize: 14),
+                      suffixIcon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
                     ));
               },
               emptyBuilder: (context) {
@@ -65,7 +81,8 @@ class SearchAppBar extends HookWidget {
                       return ListTile(
                         title: Text(loan.depositorName),
                         leading: Text(data
-                            .firstWhere((mo) => mo.id == loan.mortgageMaterialId)
+                            .firstWhere(
+                                (mo) => mo.id == loan.mortgageMaterialId)
                             .name),
                       );
                     },
@@ -78,8 +95,7 @@ class SearchAppBar extends HookWidget {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => LoanDetails(
-                                  loan: loan)));
+                              builder: (context) => LoanDetails(loan: loan)));
                     },
                     error: (_, e) {},
                     loading: () {});
@@ -115,25 +131,23 @@ class SearchAppBar extends HookWidget {
                     suggestionsController.open();
                   }
                 }
-
                 filter.value = value;
               },
               itemBuilder: (BuildContext context) {
                 return [
                   PopupMenuItem<int>(
                     value: 1,
-                    child: Text('Depositor Name'),
+                    child: StyledSubtitle('Depositor Name'),
                   ),
                   PopupMenuItem<int>(
                     value: 2,
-                    child: Text('Relative Name'),
+                    child: StyledSubtitle('Relative Name'),
                   ),
-                  PopupMenuItem<int>(value: 3, child: Text('Date Of Loan')),
+                  PopupMenuItem<int>(value: 3, child: StyledSubtitle('Date Of Loan')),
                   PopupMenuItem<int>(
-                      value: 4, child: Text('Date Range Of Loan')),
-                  PopupMenuItem<int>(value: 5, child: Text('Item Type')),
+                      value: 4, child: StyledSubtitle('Date Range Of Loan')),    
                   PopupMenuItem<int>(
-                      value: 6, child: Text('Mortgage Material Type')),
+                      value: 5, child: StyledSubtitle('Mortgage Material Type')),
                 ];
               },
             );

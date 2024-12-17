@@ -32,9 +32,15 @@ class StyledDropdown<T> extends StatelessWidget {
         hint: Text(hintText),
         decoration: InputDecoration(
           suffixIcon: onAddPressed != null
-              ? IconButton(onPressed: onAddPressed, icon: const Icon(Icons.add))
+              ? IconButton(
+                  onPressed: onAddPressed,
+                  icon: Icon(
+                    Icons.add,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ))
               : null,
           labelText: labelText,
+          labelStyle: TextStyle(color: Theme.of(context).colorScheme.secondary),
           border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.0),
               borderSide: BorderSide(
@@ -57,9 +63,9 @@ class StyledDropdown<T> extends StatelessWidget {
         onChanged: onChanged,
         icon: Icon(
           Icons.arrow_drop_down,
+          color: Theme.of(context).colorScheme.secondary,
         ),
-        style: TextStyle(
-            fontSize: 16),
+        style: TextStyle(fontSize: 16),
       ),
     );
   }
