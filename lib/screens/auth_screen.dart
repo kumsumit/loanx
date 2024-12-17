@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/provider/provider.dart';
@@ -9,6 +10,19 @@ class AuthScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          statusBarColor: theme.scaffoldBackgroundColor,
+          statusBarIconBrightness: theme.brightness,
+          systemNavigationBarColor: theme.scaffoldBackgroundColor,
+          systemNavigationBarIconBrightness: theme.brightness
+        ));
+      });
+      return;
+    }, const []);
+
     final controller = useAnimationController(
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);

@@ -71,17 +71,18 @@ class MyApp extends ConsumerWidget {
         brightness: Brightness.dark,
       ),
       debugShowCheckedModeBanner: false,
-      home: authenticate.when(
-          data: (data) {
-            return data
-                ? FastDB.getIsTableCreated()
-                    ? const DashBoard()
-                    : const AskBackupScreen()
-                : const AuthFailurePage();
-          },
-          error: (err, obj) => ErrorPage(),
-          loading: () => AuthScreen()),
-      locale: const Locale('hi', 'IN'),
+      home: authenticate.when(data: (data) {
+        return data
+            ? FastDB.getIsTableCreated()
+                ? const DashBoard()
+                : const AskBackupScreen()
+            : const AuthFailurePage();
+      }, error: (err, obj) {
+        return ErrorPage();
+      }, loading: () {
+        return AuthScreen();
+      }),
+      locale: const Locale('en', 'IN'),
       localizationsDelegates: [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -91,7 +92,7 @@ class MyApp extends ConsumerWidget {
       supportedLocales: [
         const Locale('en', 'IN'),
         const Locale('hi', 'IN'),
-        const Locale('bn', 'IN'),
+        // const Locale('bn', 'IN'),
         // const Locale('mr', 'in'),
         // const Locale('ta', 'in'),
         // const Locale('te', 'in'),

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -26,14 +27,23 @@ class DashBoard extends HookWidget {
   Widget build(BuildContext context) {
     final currentIndex = useState<int>(0);
     final title = useState<String>(AppLocalizations.of(context)!.loanx);
+    final theme = Theme.of(context);
     if (Platform.isAndroid) {
       useEffect(() {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+            statusBarColor: theme.scaffoldBackgroundColor,
+            statusBarIconBrightness: Brightness.dark,
+            systemNavigationBarColor: theme.scaffoldBackgroundColor,
+            systemNavigationBarIconBrightness: Brightness.dark
+          ));
+        });
         if (kDebugMode) {
           return null;
         }
         checkForUpdates(context, false);
-        return null;
-      }, []);
+        return;
+      }, const []);
     }
 
     return Scaffold(

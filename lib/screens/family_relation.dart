@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
+import 'package:loanx/widget/styled_text.dart';
 
 class FamilyRelationView extends StatelessWidget {
   const FamilyRelationView({super.key});
@@ -24,7 +25,7 @@ class FamilyRelationView extends StatelessWidget {
                             ? () =>
                                 familyDeleteDialog(context, ref, data[index])
                             : null,
-                        title: Text(data[index].name),
+                        title: StyledSubtitle(data[index].name),
                       ),
                     );
             },

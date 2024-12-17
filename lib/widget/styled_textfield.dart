@@ -52,7 +52,9 @@ class StyledTextField extends StatelessWidget {
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),
-        keyboardType: keyboardType,
+        keyboardType: keyboardType, style: TextStyle(
+          color: Theme.of(context).colorScheme.secondary,
+            fontSize: 16),
       ),
     );
   }

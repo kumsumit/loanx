@@ -10,6 +10,18 @@ class AuthFailurePage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+       useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          statusBarColor: theme.scaffoldBackgroundColor,
+          statusBarIconBrightness: theme.brightness,
+          systemNavigationBarColor: theme.scaffoldBackgroundColor,
+          systemNavigationBarIconBrightness: theme.brightness
+        ));
+      });
+      return;
+    }, const []);
     final controller = useAnimationController(
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);

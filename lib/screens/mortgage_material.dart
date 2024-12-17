@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
+import 'package:loanx/widget/styled_text.dart';
 
 class MortgageMaterialView extends StatelessWidget {
   const MortgageMaterialView({super.key});
@@ -25,7 +26,7 @@ class MortgageMaterialView extends StatelessWidget {
                             ? () =>
                                 mortgageDeleteDialog(context, ref, data[index])
                             : null,
-                        title: Text(data[index].name),
+                        title: StyledSubtitle(data[index].name),
                       ),
                     );
             },

@@ -7,7 +7,6 @@ class StyledDropdown<T> extends StatelessWidget {
   final String hintText;
   final String labelText;
   final VoidCallback? onAddPressed;
-  // final VoidCallback onTap;
   const StyledDropdown({
     super.key,
     this.selectedValue,
@@ -16,7 +15,6 @@ class StyledDropdown<T> extends StatelessWidget {
     required this.hintText,
     required this.labelText,
     this.onAddPressed,
-    // required this.onTap
   });
 
   @override
@@ -32,7 +30,6 @@ class StyledDropdown<T> extends StatelessWidget {
         },
         value: selectedValue,
         hint: Text(hintText),
-        // onTap: onTap,
         decoration: InputDecoration(
           suffixIcon: onAddPressed != null
               ? IconButton(onPressed: onAddPressed, icon: const Icon(Icons.add))
@@ -61,9 +58,7 @@ class StyledDropdown<T> extends StatelessWidget {
         icon: Icon(
           Icons.arrow_drop_down,
         ),
-        // dropdownColor: Colors.white,
         style: TextStyle(
-            // color: Colors.blue,
             fontSize: 16),
       ),
     );

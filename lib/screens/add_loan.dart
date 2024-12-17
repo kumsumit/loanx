@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/db/fastdb.dart';
@@ -9,6 +10,7 @@ import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_dropdown.dart';
+import 'package:loanx/widget/styled_text.dart';
 import 'package:loanx/widget/styled_textfield.dart';
 
 class LoanInput extends HookConsumerWidget {
@@ -67,6 +69,7 @@ class LoanInput extends HookConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
         title: Text(appBarTitle),
         foregroundColor: Theme.of(context).colorScheme.primary,
       ),
@@ -87,7 +90,7 @@ class LoanInput extends HookConsumerWidget {
                       }
                     },
                   ),
-                  Text('Simple'),
+                  StyledSubtitle('Simple'),
                   SizedBox(width: 20),
                   Radio<InterestType>(
                     value: InterestType.compound,
@@ -98,7 +101,7 @@ class LoanInput extends HookConsumerWidget {
                       }
                     },
                   ),
-                  Text('Compound'),
+                  StyledSubtitle('Compound'),
                 ],
               ),
               Row(
@@ -125,7 +128,7 @@ class LoanInput extends HookConsumerWidget {
                         },
                         children: List.generate(
                           51,
-                          (index) => Text(index.toString()),
+                          (index) => StyledSubtitle(index.toString()),
                         ),
                       ),
                     ),
@@ -134,11 +137,8 @@ class LoanInput extends HookConsumerWidget {
                     width: 5,
                   ),
                   Center(
-                    child: Text(
-                      ".",
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 20),
+                    child: StyledSubtitle(
+                      ".",fontSize: 20,
                     ),
                   ),
                   SizedBox(
@@ -172,7 +172,7 @@ class LoanInput extends HookConsumerWidget {
                         },
                         children: List.generate(
                           100,
-                          (index) => Text(index.toString()),
+                          (index) => StyledSubtitle(index.toString()),
                         ),
                       ),
                     ),
@@ -181,11 +181,8 @@ class LoanInput extends HookConsumerWidget {
                     width: 5,
                   ),
                   Center(
-                    child: Text(
-                      "%",
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 20),
+                    child: StyledSubtitle(
+                      "%",fontSize: 20,
                     ),
                   ),
                   SizedBox(
@@ -215,7 +212,7 @@ class LoanInput extends HookConsumerWidget {
                           }
                         },
                       ),
-                      Text('Monthly'),
+                      StyledSubtitle('Monthly'),
                       SizedBox(width: 20),
                       Radio<InterestFrequency>(
                         value: InterestFrequency.quarterly,
@@ -226,7 +223,7 @@ class LoanInput extends HookConsumerWidget {
                           }
                         },
                       ),
-                      Text('Half-Yearly'),
+                      StyledSubtitle('Half-Yearly'),
                     ]),
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       Radio<InterestFrequency>(
@@ -238,7 +235,7 @@ class LoanInput extends HookConsumerWidget {
                           }
                         },
                       ),
-                      Text('Quarterly'),
+                      StyledSubtitle('Quarterly'),
                       SizedBox(width: 20),
                       Radio<InterestFrequency>(
                         value: InterestFrequency.halfYearly,
@@ -249,7 +246,7 @@ class LoanInput extends HookConsumerWidget {
                           }
                         },
                       ),
-                      Text('Yearly'),
+                      StyledSubtitle('Yearly'),
                     ])
                   ],
                 ),

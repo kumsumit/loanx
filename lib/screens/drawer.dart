@@ -650,7 +650,7 @@ class MyDrawer extends HookWidget {
                                         },
                                         children: List.generate(
                                           51,
-                                          (index) => Text(index.toString()),
+                                          (index) => StyledSubtitle(index.toString()),
                                         ),
                                       );
                                     }),
@@ -659,14 +659,7 @@ class MyDrawer extends HookWidget {
                                     width: 5,
                                   ),
                                   Center(
-                                    child: Text(
-                                      ".",
-                                      style: TextStyle(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                          fontSize: 20),
-                                    ),
+                                    child: StyledSubtitle(".", fontSize: 20),
                                   ),
                                   SizedBox(
                                     width: 5,
@@ -674,30 +667,17 @@ class MyDrawer extends HookWidget {
                                   Expanded(
                                     child: Consumer(
                                         builder: (context, ref, child) {
-                                      final interestRate =
-                                          ref.watch(interestRateProvider);
-                                      String numberStr =
-                                          interestRate.toString();
-                                      debugPrint(numberStr);
-                                      int dotIndex = numberStr.indexOf('.');
-                                      String decimalPart =
-                                          numberStr.substring(dotIndex + 1);
-                                      if (decimalPart.length > 2) {
-                                        decimalPart =
-                                            decimalPart.substring(0, 2);
-                                      } else if (decimalPart.length == 1) {
-                                        decimalPart = "${decimalPart}0";
-                                      }
-                                      debugPrint(decimalPart);
                                       return CupertinoPicker(
                                         itemExtent: 32,
                                         scrollController:
                                             FixedExtentScrollController(
-                                                initialItem:
-                                                    int.tryParse(decimalPart) ??
-                                                        0),
+                                                initialItem: int.tryParse(
+                                                        interestRateString[
+                                                            1]) ??
+                                                    0),
                                         selectionOverlay:
-                                            const CupertinoPickerDefaultSelectionOverlay(
+                                             CupertinoPickerDefaultSelectionOverlay(
+                                              // background: Theme.of(context).colorScheme.primary,
                                           capStartEdge: false,
                                         ),
                                         onSelectedItemChanged: (val) {
@@ -706,7 +686,8 @@ class MyDrawer extends HookWidget {
                                         },
                                         children: List.generate(
                                           100,
-                                          (index) => Text(index.toString()),
+                                          (index) =>
+                                              StyledSubtitle(index.toString()),
                                         ),
                                       );
                                     }),
@@ -715,13 +696,9 @@ class MyDrawer extends HookWidget {
                                     width: 5,
                                   ),
                                   Center(
-                                    child: Text(
+                                    child: StyledSubtitle(
                                       "%",
-                                      style: TextStyle(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                          fontSize: 20),
+                                      fontSize: 20,
                                     ),
                                   ),
                                   SizedBox(
@@ -761,16 +738,6 @@ class MyDrawer extends HookWidget {
                                           interestRateString[1] =
                                               "0${interestRateString[1]}";
                                         }
-                                        debugPrint("====================");
-                                        debugPrint(interestRateString[0]);
-                                        debugPrint(interestRateString[1]);
-                                        debugPrint(
-                                            "=[===================================================================]");
-                                        debugPrint(
-                                            '${interestRateString[0]}.${interestRateString[1]}');
-                                        debugPrint(double.parse(
-                                                '${interestRateString[0]}.${interestRateString[1]}')
-                                            .toString());
                                         ref
                                             .read(interestRateProvider.notifier)
                                             .set(double.parse(

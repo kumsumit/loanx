@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/db/fastdb.dart';
@@ -14,6 +15,19 @@ class AskBackupScreen extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+   final theme = Theme.of(context);
+      useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          statusBarColor: theme.scaffoldBackgroundColor,
+          statusBarIconBrightness: theme.brightness,
+          systemNavigationBarColor: theme.scaffoldBackgroundColor,
+          systemNavigationBarIconBrightness: theme.brightness
+        ));
+      });
+      return;
+    }, const []);
+
     final isLoading = useState(false);
     return Material(
         child: LoadingOverlay(
