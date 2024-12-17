@@ -39,7 +39,7 @@ class SearchAppBar extends HookWidget {
                         loanListNotifier.searchLoansByDateRange(dateRange);
                     suggestionsController.open();
                   }
-                }  else if (value == 5) {
+                } else if (value == 5) {
                   final mortgageMaterialType =
                       await showMortageMaterialTypeSelectorDialog(context);
                   if (mortgageMaterialType != null) {

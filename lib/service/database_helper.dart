@@ -1008,7 +1008,7 @@ class DatabaseHelper {
            FOREIGN KEY (familyRelationId) REFERENCES familyRelations (id),
            FOREIGN KEY (mortgageMaterialId) REFERENCES mortgageMaterials (id),
            UNIQUE(depositorName, relativeName, address, loanAmount, familyRelationId) )''');
-   
+
     for (final mortgageMaterial in mortgageMaterials) {
       batch.insert(MortgageMaterial.tableName, {
         MortgageMaterialFields.name: mortgageMaterial,
@@ -1054,8 +1054,7 @@ class DatabaseHelper {
         await db2.query(FamilyRelation.tableName);
     final List<Map<String, dynamic>> mortgageMaterials =
         await db2.query(MortgageMaterial.tableName);
-    final List<Map<String, dynamic>> loans =
-        await db2.query(Loan.tableName);
+    final List<Map<String, dynamic>> loans = await db2.query(Loan.tableName);
 
     if (_database != null) {
       final batch = _database!.batch();

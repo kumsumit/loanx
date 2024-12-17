@@ -44,8 +44,9 @@ class LoanInput extends HookConsumerWidget {
             : loan!.interestFrequency]);
     final depositorController =
         useTextEditingController(text: loan?.depositorName ?? '');
-    final phoneNumberController = useTextEditingController();
-    final addressController = 
+    final phoneNumberController =
+        useTextEditingController(text: loan?.phoneNumber ?? '');
+    final addressController =
         useTextEditingController(text: loan?.address ?? '');
     final relativeNameController =
         useTextEditingController(text: loan?.relativeName ?? '');
@@ -204,8 +205,7 @@ class LoanInput extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Row(  mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       Radio<InterestFrequency>(
                         value: InterestFrequency.monthly,
                         groupValue: interestFrequency.value,
@@ -228,9 +228,7 @@ class LoanInput extends HookConsumerWidget {
                       ),
                       Text('Half-Yearly'),
                     ]),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       Radio<InterestFrequency>(
                         value: InterestFrequency.yearly,
                         groupValue: interestFrequency.value,
@@ -288,8 +286,10 @@ class LoanInput extends HookConsumerWidget {
                   if (data.isEmpty) {
                     return SizedBox();
                   }
-                  currentFamilyRelation.value =
-                      data[loan == null ? 0 : loan!.familyRelationId];
+                  currentFamilyRelation.value = loan == null
+                      ? data[0]
+                      : data.firstWhere(
+                          (item) => item.id == loan!.familyRelationId);
                   return StyledDropdown<FamilyRelation>(
                     selectedValue: currentFamilyRelation.value,
                     items: buildMenuRelationTypes(data, context),
@@ -328,8 +328,10 @@ class LoanInput extends HookConsumerWidget {
                   if (data.isEmpty) {
                     return SizedBox();
                   }
-                  currentMortgageMaterial.value =
-                      data[loan == null ? 0 : loan!.mortgageMaterialId];
+                  currentMortgageMaterial.value = loan == null
+                      ? data[0]
+                      : data.firstWhere(
+                          (item) => item.id == loan!.mortgageMaterialId);
                   return StyledDropdown<MortgageMaterial>(
                     selectedValue: currentMortgageMaterial.value,
                     items: buildMenuMortgageMaterials(data, context),
@@ -368,22 +370,35 @@ class LoanInput extends HookConsumerWidget {
                     onPressed: () async {
                       if (formKey.currentState != null &&
                           formKey.currentState!.validate()) {
-                        await ref.read(loanListProvider.notifier).add(
-                            loan,
-                            depositorController.text,
-                            phoneNumberController.text,
-                            relativeNameController.text,
-                            addressController.text,
-                            _parseDouble(loanAmountController.text),
-                            _parseDouble(interestRateString.join(".")),
-                            interestType.value.index,
-                            interestFrequency.value.index,
-                            additionalDetailsController.text,
-                            currentFamilyRelation.value!.id!,
-                            currentMortgageMaterial.value!.id!);
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          showSnackBar(context, "Record Added Successfully");
+                        final status = await ref
+                            .read(loanListProvider.notifier)
+                            .add(
+                                loan,
+                                depositorController.text,
+                                phoneNumberController.text,
+                                relativeNameController.text,
+                                addressController.text,
+                                _parseDouble(loanAmountController.text),
+                                _parseDouble(interestRateString.join(".")),
+                                interestType.value.index,
+                                interestFrequency.value.index,
+                                additionalDetailsController.text,
+                                currentFamilyRelation.value!.id!,
+                                currentMortgageMaterial.value!.id!);
+                        if (status > 0) {
+                          ref
+                              .read(loanSelectionListProvider.notifier)
+                              .remove(loan!.id ?? 0);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            if (loan == null) {
+                              showSnackBar(
+                                  context, "Record Added Successfully");
+                            } else {
+                              showSnackBar(
+                                  context, "Record Updated Successfully");
+                            }
+                          }
                         }
                       }
                     },

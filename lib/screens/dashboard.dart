@@ -28,7 +28,7 @@ class DashBoard extends HookWidget {
     final title = useState<String>(AppLocalizations.of(context)!.loanx);
     if (Platform.isAndroid) {
       useEffect(() {
-        if(kDebugMode) {
+        if (kDebugMode) {
           return null;
         }
         checkForUpdates(context, false);
@@ -60,16 +60,13 @@ class DashBoard extends HookWidget {
                           IconButton(
                             icon: Icon(Icons.edit),
                             onPressed: () {
-                              debugPrint(loanSelectionList.first.toString());
-                             debugPrint( ref.read(loanListProvider).toString());
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => LoanInput(
                                           loan: ref
-                                                  .read(loanListProvider)
-                                                  .value![
-                                              loanSelectionList.first-1])));
+                                              .read(loanListProvider)
+                                              .value![0])));
                             },
                           ),
                         if (loanSelectionList.isNotEmpty)
@@ -103,8 +100,8 @@ class DashBoard extends HookWidget {
                                           TextButton(
                                             onPressed: () {
                                               ref
-                                                  .read(loanListProvider
-                                                      .notifier)
+                                                  .read(
+                                                      loanListProvider.notifier)
                                                   .bulkDelete(
                                                       loanSelectionList);
                                               Navigator.of(context).pop();

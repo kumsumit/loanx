@@ -132,7 +132,7 @@ class Loan {
   Map<String, Object?> toJson() => {
         LoanFields.id: id,
         LoanFields.depositorName: depositorName,
-        LoanFields.phoneNumber:phoneNumber,
+        LoanFields.phoneNumber: phoneNumber,
         LoanFields.relativeName: relativeName,
         LoanFields.address: address,
         LoanFields.loanAmount: loanAmount,

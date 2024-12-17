@@ -19,12 +19,7 @@ class AskBackupScreen extends HookWidget {
         child: LoadingOverlay(
       isLoading: isLoading.value,
       child: DecoratedBox(
-        decoration: BoxDecoration(
-          // image: DecorationImage(
-          //   image: AssetImage("assets/background.png"),
-          //   fit: BoxFit.cover,
-          // ),
-        ),
+        decoration: BoxDecoration(),
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -103,7 +98,7 @@ class AskBackupScreen extends HookWidget {
                           final backupRegistered =
                               ref.read(backUpRegisteredProvider.notifier);
                           final db = ref.read(dBProvider);
-                    
+
                           return OutlinedButton(
                             onPressed: () async {
                               networkStatus.when(
@@ -132,11 +127,18 @@ class AskBackupScreen extends HookWidget {
                                       await FastDB.flush();
                                       db.when(
                                           data: (data) async {
-                                           ref.read(mortgageMaterialListProvider.notifier)
+                                            ref
+                                                .read(
+                                                    mortgageMaterialListProvider
+                                                        .notifier)
                                                 .readAllMortgageMaterials();
-                                            ref.read(familyRelationListProvider.notifier)
+                                            ref
+                                                .read(familyRelationListProvider
+                                                    .notifier)
                                                 .readAllFamilyRelations();
-                                              ref.read(loanListProvider.notifier).readAllLoans();
+                                            ref
+                                                .read(loanListProvider.notifier)
+                                                .readAllLoans();
                                           },
                                           error: (_, __) {
                                             if (!FastDB.getIsTableCreated()) {
@@ -191,7 +193,9 @@ class AskBackupScreen extends HookWidget {
                         }),
                       ],
                     ),
-                    SizedBox(height: 10,)
+                    SizedBox(
+                      height: 10,
+                    )
                   ],
                 ),
               ),

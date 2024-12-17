@@ -18,10 +18,7 @@ class Manage extends StatelessWidget {
         ),
         Expanded(
           child: TabBarView(
-            children: [
-              MortgageMaterialView(),
-              FamilyRelationView()
-            ],
+            children: [MortgageMaterialView(), FamilyRelationView()],
           ),
         ),
       ]),

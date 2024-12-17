@@ -574,7 +574,6 @@ class MortgageMaterialList extends _$MortgageMaterialList {
   }
 }
 
-
 @Riverpod(keepAlive: true)
 class LoanList extends _$LoanList {
   late Database db;
@@ -739,6 +738,7 @@ class LoanList extends _$LoanList {
     int familyRelationId,
     int mortgageMaterialId,
   ) async {
+    int id = -1;
     Loan loan = Loan(
       depositorName: depositorName,
       phoneNumber: phoneNumber,
@@ -753,8 +753,8 @@ class LoanList extends _$LoanList {
       mortgageMaterialId: mortgageMaterialId,
     );
     if (oldLoan != null) {
-      loan.copy(id: oldLoan.id);
-      final id = await db.update(
+      loan = loan.copy(id: oldLoan.id);
+      id = await db.update(
         Loan.tableName,
         loan.toJson(),
         where: '${LoanFields.id} = ?',
@@ -768,7 +768,7 @@ class LoanList extends _$LoanList {
         ]);
       }
     } else {
-      final id = await db.insert(Loan.tableName, loan.toJson());
+      id = await db.insert(Loan.tableName, loan.toJson());
       if (id > 0) {
         await updateDBTime();
         loan = loan.copy(id: id);
@@ -777,10 +777,9 @@ class LoanList extends _$LoanList {
         } else {
           state = AsyncData([loan, ...state.value!]);
         }
-        return id;
       }
     }
-    return -1;
+    return id;
   }
 
   Future<void> updateLoan(Loan loan) async {

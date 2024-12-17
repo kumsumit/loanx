@@ -79,7 +79,7 @@ class MortgageDetails extends ConsumerWidget {
                           buildDataRow(context, 'Mortgage Material',
                               mortgageMaterial.name),
                           buildDataRow(context, 'Additional Details',
-                              loan.additionalDetails),    
+                              loan.additionalDetails),
                         ],
                       ),
                     ),

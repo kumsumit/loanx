@@ -608,7 +608,8 @@ class MyDrawer extends HookWidget {
                 title: StyledText('Interest Rate'),
                 subtitle: Consumer(builder: (context, ref, child) {
                   final interestRate = ref.watch(interestRateProvider);
-                  return StyledSubtitle("Default Interest Rate is $interestRate %");
+                  return StyledSubtitle(
+                      "Default Interest Rate is $interestRate %");
                 }),
                 onTap: () {
                   List<String> interestRateString = [];
@@ -763,10 +764,13 @@ class MyDrawer extends HookWidget {
                                         debugPrint("====================");
                                         debugPrint(interestRateString[0]);
                                         debugPrint(interestRateString[1]);
-                                        debugPrint("=[===================================================================]");
+                                        debugPrint(
+                                            "=[===================================================================]");
                                         debugPrint(
                                             '${interestRateString[0]}.${interestRateString[1]}');
-                                            debugPrint(double.parse( '${interestRateString[0]}.${interestRateString[1]}').toString());
+                                        debugPrint(double.parse(
+                                                '${interestRateString[0]}.${interestRateString[1]}')
+                                            .toString());
                                         ref
                                             .read(interestRateProvider.notifier)
                                             .set(double.parse(

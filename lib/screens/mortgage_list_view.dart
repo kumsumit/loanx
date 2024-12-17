@@ -9,9 +9,10 @@ import 'package:loanx/widget/snackbar.dart';
 class MortgageListView extends StatelessWidget {
   const MortgageListView({super.key});
 
-  Widget _mortgageBuilder(BuildContext context, Loan loan, MortgageMaterial mortgageMaterial) {
+  Widget _mortgageBuilder(
+      BuildContext context, Loan loan, MortgageMaterial mortgageMaterial) {
     return Consumer(builder: (context, ref, child) {
-      final loanSelectionList = ref.read(loanSelectionListProvider);
+      final loanSelectionList = ref.watch(loanSelectionListProvider);
       return GestureDetector(
         onHorizontalDragEnd: (details) async {
           if (details.velocity.pixelsPerSecond.dx > 0 && !loan.isFinished()) {
@@ -53,9 +54,6 @@ class MortgageListView extends StatelessWidget {
                   builder: (context) => MortgageDetails(loan: loan)));
         },
         onLongPress: () {
-          debugPrint(loan.id.toString());
-          debugPrint(loanSelectionList.length.toString());
-          debugPrint(loanSelectionList.contains(loan.id).toString());
           if (loanSelectionList.contains(loan.id)) {
             ref.read(loanSelectionListProvider.notifier).remove(loan.id ?? 0);
           } else {
@@ -86,7 +84,6 @@ class MortgageListView extends StatelessWidget {
                                   color: Colors.grey,
                                   decoration: TextDecoration.lineThrough)
                               : const TextStyle(fontSize: 15.0),
-                          // Provide a Key for the integration test
                           key: Key('list_item_${loan.id}'),
                         ),
                         Padding(
@@ -143,9 +140,11 @@ class MortgageListView extends StatelessWidget {
                       itemCount: loanList.length,
                       itemBuilder: (context, index) {
                         final loan = loanList[index];
-                        final mortgageMaterial = mortgageMaterialList
-                            .firstWhere((item) => item.id == loan.mortgageMaterialId);
-                        return _mortgageBuilder(context, loan, mortgageMaterial);
+                        final mortgageMaterial =
+                            mortgageMaterialList.firstWhere(
+                                (item) => item.id == loan.mortgageMaterialId);
+                        return _mortgageBuilder(
+                            context, loan, mortgageMaterial);
                       });
                 },
                 error: (e, b) => Center(

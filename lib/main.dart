@@ -57,32 +57,32 @@ class MyApp extends ConsumerWidget {
     final appColor = ref.watch(appColorProvider);
     final authenticate = ref.watch(authenticateProvider);
     return MaterialApp(
-        // useInheritedMediaQuery: true,
-        // locale: DevicePreview.locale(context),
-        // builder: DevicePreview.appBuilder,
-        themeMode: themeMode,
-        theme: ThemeData(
-          colorSchemeSeed:
-              Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
-        ),
-        darkTheme: ThemeData(
-          colorSchemeSeed:
-              Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
-          brightness: Brightness.dark,
-        ),
-        debugShowCheckedModeBanner: false,
-        home: authenticate.when(
-            data: (data) {
-              return data
-                  ? FastDB.getIsTableCreated()
-                      ? const DashBoard()
-                      : const AskBackupScreen()
-                  : const AuthFailurePage();
-            },
-            error: (err, obj) => ErrorPage(),
-            loading: () => AuthScreen()),
-            locale:  const Locale('hi', 'IN'),
-            localizationsDelegates: [
+      // useInheritedMediaQuery: true,
+      // locale: DevicePreview.locale(context),
+      // builder: DevicePreview.appBuilder,
+      themeMode: themeMode,
+      theme: ThemeData(
+        colorSchemeSeed:
+            Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
+      ),
+      darkTheme: ThemeData(
+        colorSchemeSeed:
+            Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
+        brightness: Brightness.dark,
+      ),
+      debugShowCheckedModeBanner: false,
+      home: authenticate.when(
+          data: (data) {
+            return data
+                ? FastDB.getIsTableCreated()
+                    ? const DashBoard()
+                    : const AskBackupScreen()
+                : const AuthFailurePage();
+          },
+          error: (err, obj) => ErrorPage(),
+          loading: () => AuthScreen()),
+      locale: const Locale('hi', 'IN'),
+      localizationsDelegates: [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -96,7 +96,7 @@ class MyApp extends ConsumerWidget {
         // const Locale('ta', 'in'),
         // const Locale('te', 'in'),
       ],
-            );
+    );
     // errorMessage: err.toString() + obj.toString(),
   }
 }
