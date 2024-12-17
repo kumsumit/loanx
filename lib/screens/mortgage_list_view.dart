@@ -51,7 +51,7 @@ class MortgageListView extends StatelessWidget {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => MortgageDetails(loan: loan)));
+                  builder: (context) => LoanDetails(loan: loan)));
         },
         onLongPress: () {
           if (loanSelectionList.contains(loan.id)) {

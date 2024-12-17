@@ -4,6 +4,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
+import 'package:loanx/screens/loan_details.dart';
 
 class SearchAppBar extends HookWidget {
   const SearchAppBar({super.key});
@@ -19,6 +20,72 @@ class SearchAppBar extends HookWidget {
           child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+            Expanded(child: Consumer(builder: (context, ref, child) {
+            return TypeAheadField<Loan>(
+              suggestionsController: suggestionsController,
+              suggestionsCallback: (searchTerm) =>
+                  suggestionsCallback(searchTerm, filter.value, ref),
+              builder: (context, controller, focusNode) {
+                return TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Search Loan',
+                      suffixIcon: Icon(Icons.search),
+                    ));
+              },
+              emptyBuilder: (context) {
+                return ListTile(
+                  tileColor: Theme.of(context).colorScheme.surfaceContainer,
+                  title: Text(
+                    "No data found",
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary),
+                  ),
+                );
+              },
+              errorBuilder: (context, error) {
+                return ListTile(
+                  title: Text(
+                    "An error occurred",
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary),
+                  ),
+                );
+              },
+              itemBuilder: (context, loan) {
+                final m = ref.watch(mortgageMaterialListProvider);
+                return m.when(
+                    data: (data) {
+                      if (data.isEmpty) {
+                        return Center(child: Text("No data found"));
+                      }
+                      return ListTile(
+                        title: Text(loan.depositorName),
+                        leading: Text(data
+                            .firstWhere((mo) => mo.id == loan.mortgageMaterialId)
+                            .name),
+                      );
+                    },
+                    error: (_, o) => Center(child: Text("An error occurred")),
+                    loading: () => Center(child: CircularProgressIndicator()));
+              },
+              onSelected: (loan) {
+                ref.read(mortgageMaterialListProvider).when(
+                    data: (data) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => LoanDetails(
+                                  loan: loan)));
+                    },
+                    error: (_, e) {},
+                    loading: () {});
+              },
+            );
+          })),
           Consumer(builder: (context, ref, child) {
             final loanListNotifier = ref.read(loanListProvider.notifier);
             return PopupMenuButton<int>(

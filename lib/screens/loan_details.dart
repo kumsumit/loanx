@@ -4,8 +4,8 @@ import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 
-class MortgageDetails extends ConsumerWidget {
-  const MortgageDetails({super.key, required this.loan});
+class LoanDetails extends ConsumerWidget {
+  const LoanDetails({super.key, required this.loan});
   final Loan loan;
 
   @override
