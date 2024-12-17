@@ -11,6 +11,8 @@ class Manage extends StatelessWidget {
       length: 2,
       child: Column(children: [
         TabBar(
+          labelColor: Theme.of(context).colorScheme.primary,
+          unselectedLabelColor: Theme.of(context).colorScheme.secondary,
           tabs: [
             Tab(icon: Text("Mortgage Material")),
             Tab(icon: Text("Family Relation")),

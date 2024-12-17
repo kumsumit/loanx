@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
@@ -46,10 +47,12 @@ class MortgageMaterialView extends StatelessWidget {
       BuildContext context, WidgetRef ref, MortgageMaterial mortgageMaterial) {
     showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (context) => AlertDialog(
-              title: Text('Delete Mortgage Material'),
-              content: Text(
+              title: StyledHeading('Delete Mortgage Material'),
+              content: StyledSubtitle(
                   'Are you sure you want to delete this mortgage material?'),
+              actionsAlignment: MainAxisAlignment.spaceEvenly,
               actions: [
                 TextButton(
                   onPressed: () {
@@ -78,15 +81,19 @@ class MortgageMaterialView extends StatelessWidget {
       BuildContext context, MortgageMaterial? mortgageMaterial) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         final mortgageMaterialInputController =
             TextEditingController(text: mortgageMaterial?.name);
         final formKey = GlobalKey<FormState>();
         return AlertDialog(
-          title: Text('Add Mortgage Material'),
+          title: StyledHeading('Add Mortgage Material'),
           content: Form(
             key: formKey,
             child: TextFormField(
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.secondary,
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().isEmpty) {
                   return 'Mortgage Material cannot be empty';
@@ -94,12 +101,26 @@ class MortgageMaterialView extends StatelessWidget {
                 return null;
               },
               autofocus: true,
-              decoration: const InputDecoration(
-                  hintText: 'Enter the Mortgage Material'),
+              decoration: InputDecoration(
+                hintText: 'Enter the Mortgage Material',
+                hintStyle: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondary
+                        .withValues(alpha: 0.5),
+                    fontSize: 14),
+              ),
               controller: mortgageMaterialInputController,
             ),
           ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
           actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
             Consumer(builder: (context, ref, child) {
               return TextButton(
                 child: const Text('Submit'),
@@ -108,14 +129,16 @@ class MortgageMaterialView extends StatelessWidget {
                       formKey.currentState!.validate()) {
                     final status = await ref
                         .read(mortgageMaterialListProvider.notifier)
-                        .add(mortgageMaterialInputController.text);
+                        .add(mortgageMaterialInputController.text
+                            .toSentenceCase());
                     if (context.mounted) {
                       Navigator.of(context).pop();
                       if (status > 0) {
                         showSnackBar(
-                            context, 'loanx Material added successfully');
+                            context, 'Mortgage Material added successfully');
                       } else {
-                        showSnackBar(context, 'loanx Material already exists');
+                        showSnackBar(
+                            context, 'Mortgage Material already exists');
                       }
                     }
                   }

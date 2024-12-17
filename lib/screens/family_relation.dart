@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
@@ -16,7 +17,7 @@ class FamilyRelationView extends StatelessWidget {
         return familyRelations.when(
             data: (data) {
               return data.isEmpty
-                  ? Center(child: Text('No family relation found'))
+                  ? Center(child: StyledHeading('No family relation found'))
                   : ListView.builder(
                       itemCount: data.length,
                       itemBuilder: (context, index) => ListTile(
@@ -45,10 +46,12 @@ class FamilyRelationView extends StatelessWidget {
       BuildContext context, WidgetRef ref, FamilyRelation familyRelation) {
     showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (context) => AlertDialog(
-              title: Text('Delete Family Relation'),
-              content:
-                  Text('Are you sure you want to delete this family relation?'),
+              title: StyledHeading('Delete Family Relation'),
+              content: StyledSubtitle(
+                  'Are you sure you want to delete this family relation?'),
+              actionsAlignment: MainAxisAlignment.spaceEvenly,
               actions: [
                 TextButton(
                   onPressed: () {
@@ -76,15 +79,19 @@ class FamilyRelationView extends StatelessWidget {
   void familyDialog(BuildContext context, FamilyRelation? familyRelation) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         final familyInputController =
             TextEditingController(text: familyRelation?.name);
         final formKey = GlobalKey<FormState>();
         return AlertDialog(
-          title: Text('Add Family Relation'),
+          title: StyledHeading('Add Family Relation'),
           content: Form(
             key: formKey,
             child: TextFormField(
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.secondary,
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().isEmpty) {
                   return 'Family Relation cannot be empty';
@@ -92,12 +99,26 @@ class FamilyRelationView extends StatelessWidget {
                 return null;
               },
               autofocus: true,
-              decoration:
-                  const InputDecoration(hintText: 'Enter the Family Relation'),
+              decoration: InputDecoration(
+                hintText: 'Enter the Family Relation',
+                hintStyle: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondary
+                        .withValues(alpha: 0.5),
+                    fontSize: 14),
+              ),
               controller: familyInputController,
             ),
           ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
           actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
             Consumer(builder: (context, ref, child) {
               return TextButton(
                 child: const Text('Submit'),
@@ -106,7 +127,7 @@ class FamilyRelationView extends StatelessWidget {
                       formKey.currentState!.validate()) {
                     final status = await ref
                         .read(familyRelationListProvider.notifier)
-                        .add(familyInputController.text);
+                        .add(familyInputController.text.toSentenceCase());
                     if (context.mounted) {
                       Navigator.of(context).pop();
                       if (status > 0) {

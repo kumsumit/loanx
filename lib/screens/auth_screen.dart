@@ -14,11 +14,11 @@ class AuthScreen extends HookConsumerWidget {
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-          statusBarColor: theme.scaffoldBackgroundColor,
-          statusBarIconBrightness: theme.brightness,
-          systemNavigationBarColor: theme.scaffoldBackgroundColor,
-          systemNavigationBarIconBrightness: theme.brightness
-        ));
+            statusBarColor: theme.scaffoldBackgroundColor,
+            statusBarIconBrightness: theme.brightness,
+            systemNavigationBarColor: theme.scaffoldBackgroundColor,
+            systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
+            systemNavigationBarIconBrightness: theme.brightness));
       });
       return;
     }, const []);

@@ -16,6 +16,7 @@ class ErrorPage extends HookWidget {
           statusBarColor: theme.scaffoldBackgroundColor,
           statusBarIconBrightness: theme.brightness,
           systemNavigationBarColor: theme.scaffoldBackgroundColor,
+             systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
           systemNavigationBarIconBrightness: theme.brightness
         ));
       });

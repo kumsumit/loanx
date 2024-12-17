@@ -35,6 +35,7 @@ class DashBoard extends HookWidget {
             statusBarColor: theme.scaffoldBackgroundColor,
             statusBarIconBrightness: Brightness.dark,
             systemNavigationBarColor: theme.scaffoldBackgroundColor,
+            systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
             systemNavigationBarIconBrightness: Brightness.dark
           ));
         });
