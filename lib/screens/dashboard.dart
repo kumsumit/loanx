@@ -6,12 +6,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/home.dart';
 import 'package:loanx/screens/manage.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/update_service.dart';
+import 'package:loanx/widget/k_icon.dart';
 import 'package:loanx/widget/styled_text.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'drawer.dart';
 
@@ -32,12 +36,11 @@ class DashBoard extends HookWidget {
       useEffect(() {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-            statusBarColor: theme.scaffoldBackgroundColor,
-            statusBarIconBrightness: Brightness.dark,
-            systemNavigationBarColor: theme.scaffoldBackgroundColor,
-            systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
-            systemNavigationBarIconBrightness: Brightness.dark
-          ));
+              statusBarColor: theme.scaffoldBackgroundColor,
+              statusBarIconBrightness: Brightness.dark,
+              systemNavigationBarColor: theme.scaffoldBackgroundColor,
+              systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
+              systemNavigationBarIconBrightness: Brightness.dark));
         });
         if (kDebugMode) {
           return null;
@@ -124,6 +127,151 @@ class DashBoard extends HookWidget {
                                       ));
                             },
                           ),
+                        if (loanSelectionList.isNotEmpty)
+                          IconButton(
+                              icon: Icon(Icons.share),
+                              onPressed: () {
+                                String formattedText = "";
+                                final loanList = ref.read(loanListProvider);
+                                final familyRelationList =
+                                    ref.read(familyRelationListProvider);
+                                final mortgageMaterialList =
+                                    ref.read(mortgageMaterialListProvider);
+                                familyRelationList.when(
+                                    data: (familyRelations) {
+                                      mortgageMaterialList.when(
+                                          data: (mortgageMaterials) {
+                                            loanList.when(
+                                                data: (data) {
+                                                  List<Loan> filteredLoans =
+                                                      data
+                                                          .where((loan) =>
+                                                              loanSelectionList
+                                                                  .contains(
+                                                                      loan.id))
+                                                          .toList();
+                                                  for (Loan loan
+                                                      in filteredLoans) {
+                                                    formattedText += """
+Name: ${loan.depositorName}
+Phone Number: ${loan.phoneNumber}
+Address: ${loan.address}
+Relative Name: ${loan.relativeName} (${familyRelations.firstWhere((familyRelation) => familyRelation.id == loan.familyRelationId).name})
+Loan Amount: ${loan.loanAmount}
+Additional Details: ${loan.additionalDetails}
+Mortgage Material: ${mortgageMaterials.firstWhere((mortgageMaterial) => mortgageMaterial.id == loan.mortgageMaterialId).name}
+
+""";
+                                                  }
+                                                  formattedText += "Sent with Love via LoanX";
+                                                  Share.share(formattedText);
+                                                },
+                                                error: (_, __) {},
+                                                loading: () {});
+                                          },
+                                          error: (_, __) {},
+                                          loading: () {});
+                                    },
+                                    error: (_, __) {},
+                                    loading: () {});
+                              }),
+                        if (loanSelectionList.length == 1)
+                          IconButton(
+                            onPressed: () {
+                              final loan = ref.read(loanListProvider).value![0];
+                              final familyRelationList =
+                                  ref.read(familyRelationListProvider);
+                              final mortgageMaterialList =
+                                  ref.read(mortgageMaterialListProvider);
+                              familyRelationList.when(
+                                  data: (familyRelations) {
+                                    mortgageMaterialList.when(
+                                        data: (mortgageMaterials) {
+                                          final formattedText = """
+Name: ${loan.depositorName}
+Phone Number: ${loan.phoneNumber}
+Address: ${loan.address}
+Relative Name: ${loan.relativeName} (${familyRelations.firstWhere((familyRelation) => familyRelation.id == loan.familyRelationId).name})
+Loan Amount: ${loan.loanAmount}
+Additional Details: ${loan.additionalDetails}
+Mortgage Material: ${mortgageMaterials.firstWhere((mortgageMaterial) => mortgageMaterial.id == loan.mortgageMaterialId).name}
+
+Sent with Love via LoanX
+""";
+                                          showDialog(
+                                              context: context,
+                                              barrierDismissible: false,
+                                              builder: (context) => Dialog(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        StyledHeading("Sent via :"),
+                                                        OutlinedButton.icon(
+                                                          label: const Text(
+                                                              'SMS'),
+                                                          icon: Icon(Icons.sms),
+                                                          onPressed: () async {
+                                                            final whatsappUrl =
+                                                                "sms:${loan.phoneNumber}?body=${Uri.encodeFull(formattedText)}";
+                                                            await launchUrl(
+                                                                Uri.parse(
+                                                                    whatsappUrl));
+                                                            if (context
+                                                                .mounted) {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop();
+                                                            }
+                                                          },
+                                                        ),
+                                                        OutlinedButton.icon(
+                                                          label: const Text(
+                                                              'Whatsapp'),
+                                                          icon:
+                                                              Icon(K.whatsapp),
+                                                          onPressed: () async {
+                                                            String whatsappUrl =
+                                                                "https://wa.me/${loan.phoneNumber}?text=${Uri.encodeComponent(formattedText)}";
+                                                            await launchUrl(
+                                                                Uri.parse(
+                                                                    whatsappUrl));
+                                                            if (context
+                                                                .mounted) {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop();
+                                                            }
+                                                          },
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context)
+                                                                .pop();
+                                                          },
+                                                          child: const Text(
+                                                              'Cancel'),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ));
+                                        },
+                                        error: (_, q) {},
+                                        loading: () {});
+                                  },
+                                  error: (_, q) {},
+                                  loading: () {});
+                            },
+                            icon: Icon(Icons.forward_to_inbox),
+                          ),
+                          if (loanSelectionList.length == 1)
+                            IconButton(
+                              icon: Icon(Icons.print),
+                              onPressed:(){
+                                
+                              }
+                            )
                       ],
                     );
                   })

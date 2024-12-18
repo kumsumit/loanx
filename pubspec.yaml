@@ -44,6 +44,10 @@ dependencies:
   riverpod: ^2.6.1
   hooks_riverpod: ^2.6.1
   flutter_hooks: ^0.20.5
+  printing:
+    git: https://github.com/kumsumit/printing.git
+  pdf:
+    git: https://github.com/kumsumit/pdf.git  
   # fluttertoast:
   #   git: https://github.com/sumitsharansatsangi/fluttertoast.git
   fuzzywuzzy: ^1.2.0
@@ -94,6 +98,10 @@ flutter:
   generate: true
   assets:
     - assets/
+  fonts:
+    - family: K
+      fonts:
+        - asset: assets/fonts/K.ttf
 
 flutter_native_splash: 
   color: '#a0d1a0'
