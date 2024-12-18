@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grouped_list/grouped_list.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/family_relation.dart';
@@ -16,19 +17,31 @@ class FamilyRelationView extends StatelessWidget {
         final familyRelations = ref.watch(familyRelationListProvider);
         return familyRelations.when(
             data: (data) {
-              return data.isEmpty
-                  ? Center(child: StyledHeading('No family relation found'))
-                  : ListView.builder(
-                      itemCount: data.length,
-                      itemBuilder: (context, index) => ListTile(
-                        onTap: () => familyDialog(context, data[index]),
-                        onLongPress: data[index].isAddedByUser == 1
-                            ? () =>
-                                familyDeleteDialog(context, ref, data[index])
-                            : null,
-                        title: StyledSubtitle(data[index].name),
-                      ),
-                    );
+              if (data.isEmpty) {
+                return Center(child: StyledHeading('No family relation found'));
+              }
+              final jsonList = data.map((e) => e.toJson()).toList();
+              return GroupedListView<dynamic, String>(
+                elements: jsonList,
+                groupBy: (element) => element['isAddedByUser'] == 1
+                    ? 'Added By You'
+                    : 'Added By System',
+                groupSeparatorBuilder: (String groupByValue) =>
+                    StyledHeading(groupByValue),
+                itemBuilder: (context, dynamic element) =>
+                    ListTile(title: Text(element['name']),
+                      onTap: () => familyDialog(context, element["name"]),
+                      onLongPress: element['isAddedByUser'] == 1
+                          ? () =>
+                              familyDeleteDialog(context, ref, element["id"])
+                          : null,
+                    ),
+                itemComparator: (item1, item2) =>
+                    item1['name'].compareTo(item2['name']), // optional
+                useStickyGroupSeparators: true, // optional
+                floatingHeader: true, // optional
+                order: GroupedListOrder.ASC, // optional
+              );
             },
             error: (_, __) {
               return Center(child: Text("An error occurred"));

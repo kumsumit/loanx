@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:grouped_list/grouped_list.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/extension/string.dart';
-import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_text.dart';
@@ -14,22 +14,33 @@ class MortgageMaterialView extends StatelessWidget {
     return Scaffold(
       body: Consumer(builder: (context, ref, child) {
         final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
-
         return mortgageMaterials.when(
             data: (data) {
-              return data.isEmpty
-                  ? Center(child: Text('No mortgage material found'))
-                  : ListView.builder(
-                      itemCount: data.length,
-                      itemBuilder: (context, index) => ListTile(
-                        onTap: () => mortgageDialog(context, data[index]),
-                        onLongPress: data[index].isAddedByUser == 1
-                            ? () =>
-                                mortgageDeleteDialog(context, ref, data[index])
-                            : null,
-                        title: StyledSubtitle(data[index].name),
-                      ),
-                    );
+              if (data.isEmpty) {
+                return Center(child: Text('No mortgage material found'));
+              }
+              final jsonList = data.map((e) => e.toJson()).toList();
+              return GroupedListView<dynamic, String>(
+                elements: jsonList,
+                groupBy: (element) => element['isAddedByUser'] == 1
+                    ? 'Added By You'
+                    : 'Added By System',
+                groupSeparatorBuilder: (String groupByValue) =>
+                    StyledHeading(groupByValue),
+                itemBuilder: (context, dynamic element) =>
+                    ListTile(title: Text(element['name']),
+                      onTap: () => mortgageDialog(context, element["name"]),
+                      onLongPress: element['isAddedByUser'] == 1
+                          ? () =>
+                              mortgageDeleteDialog(context, ref, element["id"])
+                          : null,
+                    ),
+                itemComparator: (item1, item2) =>
+                    item1['name'].compareTo(item2['name']), // optional
+                useStickyGroupSeparators: true, // optional
+                floatingHeader: true, // optional
+                order: GroupedListOrder.ASC, // optional
+              );
             },
             error: (_, __) {
               return Center(child: Text("An error occurred"));
@@ -44,7 +55,7 @@ class MortgageMaterialView extends StatelessWidget {
   }
 
   void mortgageDeleteDialog(
-      BuildContext context, WidgetRef ref, MortgageMaterial mortgageMaterial) {
+      BuildContext context, WidgetRef ref, int id) {
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -64,7 +75,7 @@ class MortgageMaterialView extends StatelessWidget {
                   onPressed: () async {
                     await ref
                         .read(mortgageMaterialListProvider.notifier)
-                        .delete(mortgageMaterial.id!);
+                        .delete(id);
                     if (context.mounted) {
                       Navigator.of(context).pop();
                       showSnackBar(
@@ -78,13 +89,13 @@ class MortgageMaterialView extends StatelessWidget {
   }
 
   void mortgageDialog(
-      BuildContext context, MortgageMaterial? mortgageMaterial) {
+      BuildContext context, String? name) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         final mortgageMaterialInputController =
-            TextEditingController(text: mortgageMaterial?.name);
+            TextEditingController(text: name);
         final formKey = GlobalKey<FormState>();
         return AlertDialog(
           title: StyledHeading('Add Mortgage Material'),

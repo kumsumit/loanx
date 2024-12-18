@@ -53,6 +53,7 @@ class DashBoard extends HookWidget {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            SizedBox(),
             StyledHeading(title.value),
             currentIndex.value == 0
                 ? Consumer(builder: (context, ref, child) {

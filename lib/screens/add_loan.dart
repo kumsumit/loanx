@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
+import 'package:loanx/widget/phone.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_dropdown.dart';
 import 'package:loanx/widget/styled_text.dart';
@@ -258,14 +260,18 @@ class LoanInput extends HookConsumerWidget {
                 hintText: "Depositor Name",
                 labelText: "Depositor Name",
               ),
-              StyledTextField(
-                failedValidationMessage:
-                    "Depositor Mobile Number can't be empty",
-                textEditingController: phoneNumberController,
-                hintText: "Depositor Mobile Number",
-                labelText: "Depositor Mobile Number",
-                keyboardType: TextInputType.phone,
-              ),
+              PhoneWidget(labelText: "Depositor Mobile Number",
+              textEditingController: phoneNumberController,
+               hint: "Depositor Mobile Number",
+                initialValue: PhoneNumber(isoCode: IsoCode.IN, nsn: "")),
+              // StyledTextField(
+              //   failedValidationMessage:
+              //       "Depositor Mobile Number can't be empty",
+              //   textEditingController: phoneNumberController,
+              //   hintText: "Depositor Mobile Number",
+              //   labelText: "Depositor Mobile Number",
+              //   keyboardType: TextInputType.phone,
+              // ),
               StyledTextField(
                 failedValidationMessage: "Address can't be empty",
                 textEditingController: addressController,
@@ -383,9 +389,11 @@ class LoanInput extends HookConsumerWidget {
                                 currentFamilyRelation.value!.id!,
                                 currentMortgageMaterial.value!.id!);
                         if (status > 0) {
+                          if (loan != null) {
                           ref
                               .read(loanSelectionListProvider.notifier)
                               .remove(loan!.id ?? 0);
+                          }
                           if (context.mounted) {
                             Navigator.pop(context);
                             if (loan == null) {

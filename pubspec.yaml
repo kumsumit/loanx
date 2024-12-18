@@ -12,6 +12,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter  
   intl: ^0.19.0
+  intl_phone_number_input:
+    git: https://github.com/kumsumit/intl_phone_number_input.git
   sqflite_sqlcipher:
     git: https://github.com/kumsumit/sqflite_sqlcipher.git
   flutter_secure_storage:
@@ -62,6 +64,7 @@ dependencies:
     git: https://github.com/kumsumit/share_plus.git
   in_app_update:
     git: https://github.com/sumitsharansatsangi/flutter_in_app_update.git
+  grouped_list: ^6.0.0  
   # device_preview:
   #   git: https://github.com/sumitsharansatsangi/device_preview.git
 
@@ -74,7 +77,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  build_runner: ^2.4.13
+  build_runner: ^2.4.14
   riverpod_generator: ^2.6.3
   riverpod_lint: ^2.6.2
   custom_lint: ^0.7.0
