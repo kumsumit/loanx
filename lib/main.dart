@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:loanx/l10n/app_localizations.dart';
 import 'package:loanx/screens/ask_backup_screen.dart';
 import 'package:loanx/screens/error.dart';
 import 'package:loanx/screens/unauthorized.dart';
@@ -14,8 +15,6 @@ import 'package:loanx/screens/auth_screen.dart';
 import 'package:loanx/screens/dashboard.dart';
 import 'package:loanx/service/backup_service.dart';
 import 'package:workmanager/workmanager.dart';
-// import 'flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
 

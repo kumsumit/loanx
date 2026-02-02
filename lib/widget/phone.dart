@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +11,7 @@ class PhoneWidget extends StatelessWidget {
   final FocusNode? focusNode;
   final void Function()? onTap;
   final void Function()? onSubmit;
-  const PhoneWidget(
+   PhoneWidget(
       {super.key,
       this.focusNode,
       this.onChanged,
@@ -24,13 +22,18 @@ class PhoneWidget extends StatelessWidget {
       this.onTap,
       this.onSubmit,
       this.autovalidateMode = AutovalidateMode.onUserInteraction});
-
+   final List<Country> countries = [Country(name: "India", alpha2Code: "IN", alpha3Code: "IND", dialCode: "+91"),
+     Country(name: "Nepal", alpha2Code: "NP", alpha3Code: "NPL", dialCode: "+977"),
+     Country(name: "Bangladesh", alpha2Code: "BD", alpha3Code: "BGD", dialCode: "+880"),
+     Country(name: "Bhutan", alpha2Code: "BT", alpha3Code: "BTN", dialCode: "+975"),
+   ];
   @override
   Widget build(BuildContext context) {
     return InternationalPhoneNumberInput(
-      isFlagEmoji: Platform.isLinux || Platform.isWindows || Platform.isMacOS
-          ? false
-          : true,
+      defaultCountry: countries.first , filterFunction: (value) {
+        return countries.where((country) => country.name.toLowerCase().contains(value.toLowerCase())).toList();
+      },
+      countries: [Country(name: "India", alpha2Code: "IN", alpha3Code: "IND", dialCode: "+91")], 
       onTap: onTap,
       onSubmit: onSubmit,
       focusNode: focusNode,

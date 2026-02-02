@@ -262,7 +262,7 @@ class LoanInput extends HookConsumerWidget {
               PhoneWidget(labelText: "Depositor Mobile Number",
               textEditingController: phoneNumberController,
                hint: "Depositor Mobile Number",
-                initialValue: PhoneNumber(isoCode: IsoCode.IN, nsn: "")),
+                initialValue: PhoneNumber(isoCode: "IN", nsn: "")),
               // StyledTextField(
               //   failedValidationMessage:
               //       "Depositor Mobile Number can't be empty",

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:loanx/l10n/app_localizations.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/home.dart';
@@ -166,10 +166,10 @@ Mortgage Material: ${mortgageMaterials.firstWhere((mortgageMaterial) => mortgage
                                                   formattedText += "Sent with Love via LoanX";
                                                   Share.share(formattedText);
                                                 },
-                                                error: (_, __) {},
+                                                error: (_, _) {},
                                                 loading: () {});
                                           },
-                                          error: (_, __) {},
+                                          error: (_, _) {},
                                           loading: () {});
                                     },
                                     error: (_, __) {},
