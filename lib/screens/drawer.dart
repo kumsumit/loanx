@@ -1159,7 +1159,7 @@ class MyDrawer extends HookWidget {
                 _launchURL('https://loanx.kumpali.com/privacy.html');
               },
             ),
-            if (Platform.isAndroid)
+            if (Platform.isAndroid || Platform.isIOS)
               ListTile(
                 leading: StyledIcon(Icons.update),
                 title: StyledText('Check for Update'),

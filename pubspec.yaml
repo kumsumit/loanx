@@ -71,7 +71,8 @@ dependencies:
     git: https://github.com/kumsumit/share_plus.git
   in_app_update:
     git: https://github.com/sumitsharansatsangi/flutter_in_app_update.git
-  grouped_list: ^6.0.0  
+  grouped_list: ^6.0.0 
+  shorebird_code_push: ^2.0.7 
   # device_preview:
   #   git: https://github.com/sumitsharansatsangi/device_preview.git
 
@@ -89,6 +90,8 @@ dev_dependencies:
     git: https://github.com/kumsumit/riverpod_generator.git
   riverpod_lint:
     git: https://github.com/kumsumit/riverpod_lint.git
+  icons_launcher:
+    git: "https://github.com/kumsumit/icons_launcher.git"    
   
 
 dependency_overrides: 
@@ -118,8 +121,12 @@ flutter_native_splash:
   image_dark_ios: 'logo_dark.png'
   android_gravity: center
   ios_content_mode: center
-  android_12: 
-    image: 'logo_light.png'
-    image_dark: 'logo_dark.png'
-    color: '#a0d1a0'
-    color_dark: '#000000'
+
+
+icons_launcher:
+  image_path: "assets/logo.png"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true

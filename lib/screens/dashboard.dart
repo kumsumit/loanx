@@ -29,7 +29,7 @@ class DashBoard extends HookWidget {
     final currentIndex = useState<int>(0);
     final title = useState<String>(AppLocalizations.of(context)!.loanx);
     final theme = Theme.of(context);
-    if (Platform.isAndroid) {
+    if (Platform.isAndroid || Platform.isIOS) {
       useEffect(() {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           SystemChrome.setSystemUIOverlayStyle(
