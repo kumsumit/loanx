@@ -11,14 +11,20 @@ class MortgageMaterialView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mortgage Materials'),
+        elevation: 0,
+        scrolledUnderElevation: 1,
+      ),
       body: Consumer(
         builder: (context, ref, child) {
           final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
           return mortgageMaterials.when(
             data: (data) {
               if (data.isEmpty) {
-                return Center(child: Text('No mortgage material found'));
+                return _EmptyState(theme: theme);
               }
               final jsonList = data.map((e) => e.toJson()).toList();
               return GroupedListView<dynamic, String>(
@@ -26,54 +32,129 @@ class MortgageMaterialView extends StatelessWidget {
                 groupBy: (element) => element['isAddedByUser'] == 1
                     ? 'Added By You'
                     : 'Added By System',
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-                separator: const SizedBox(height: 8),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                separator: const SizedBox(height: 10),
                 groupSeparatorBuilder: (String groupByValue) => Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 18, 4, 10),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      groupByValue,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
+                  padding: const EdgeInsets.fromLTRB(4, 20, 4, 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        groupByValue == 'Added By You'
+                            ? Icons.person_outline_rounded
+                            : Icons.settings_suggest_outlined,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        groupByValue,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                itemBuilder: (context, dynamic element) => Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Icon(Icons.inventory_2_outlined),
+                itemBuilder: (context, dynamic element) {
+                  final isCustom = element['isAddedByUser'] == 1;
+                  return Material(
+                    color: theme.colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => mortgageDialog(context, element['name']),
+                      onLongPress: isCustom
+                          ? () => mortgageDeleteDialog(
+                              context,
+                              ref,
+                              element['id'],
+                            )
+                          : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: isCustom
+                                  ? theme.colorScheme.primaryContainer
+                                  : theme.colorScheme.secondaryContainer,
+                              child: Icon(
+                                Icons.inventory_2_outlined,
+                                size: 20,
+                                color: isCustom
+                                    ? theme.colorScheme.onPrimaryContainer
+                                    : theme.colorScheme.onSecondaryContainer,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    element['name'],
+                                    style: theme.textTheme.bodyLarge
+                                        ?.copyWith(fontWeight: FontWeight.w500),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    isCustom
+                                        ? 'Custom material'
+                                        : 'System material',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isCustom)
+                              IconButton(
+                                tooltip: 'Delete',
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 20,
+                                ),
+                                color: theme.colorScheme.error,
+                                onPressed: () => mortgageDeleteDialog(
+                                  context,
+                                  ref,
+                                  element['id'],
+                                ),
+                              )
+                            else
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
-                    title: Text(element['name']),
-                    subtitle: Text(
-                      element['isAddedByUser'] == 1
-                          ? 'Custom material'
-                          : 'System material',
-                    ),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => mortgageDialog(context, element["name"]),
-                    onLongPress: element['isAddedByUser'] == 1
-                        ? () =>
-                              mortgageDeleteDialog(context, ref, element["id"])
-                        : null,
-                  ),
-                ),
+                  );
+                },
                 itemComparator: (item1, item2) =>
-                    item1['name'].compareTo(item2['name']), // optional
-                useStickyGroupSeparators: true, // optional
-                floatingHeader: true, // optional
-                order: GroupedListOrder.ASC, // optional
+                    item1['name'].compareTo(item2['name']),
+                useStickyGroupSeparators: true,
+                floatingHeader: true,
+                order: GroupedListOrder.ASC,
               );
             },
-            error: (_, _) {
-              return Center(child: Text("An error occurred"));
-            },
-            loading: () => Center(child: CircularProgressIndicator()),
+            error: (_, _) => _ErrorState(theme: theme),
+            loading: () => const Center(child: CircularProgressIndicator()),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => mortgageDialog(context, null),
-        child: Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Add material'),
       ),
     );
   }
@@ -83,19 +164,26 @@ class MortgageMaterialView extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        icon: Icon(
+          Icons.delete_outline_rounded,
+          color: Theme.of(context).colorScheme.error,
+          size: 32,
+        ),
         title: StyledHeading('Delete Mortgage Material'),
         content: StyledSubtitle(
-          'Are you sure you want to delete this mortgage material?',
+          'Are you sure you want to delete this mortgage material? This action cannot be undone.',
         ),
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          FilledButton.tonal(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+            ),
             onPressed: () async {
               await ref.read(mortgageMaterialListProvider.notifier).delete(id);
               if (context.mounted) {
@@ -120,7 +208,14 @@ class MortgageMaterialView extends StatelessWidget {
         );
         final formKey = GlobalKey<FormState>();
         return AlertDialog(
-          title: StyledHeading('Add Mortgage Material'),
+          icon: Icon(
+            Icons.inventory_2_outlined,
+            color: Theme.of(context).colorScheme.primary,
+            size: 32,
+          ),
+          title: StyledHeading(
+            name == null ? 'Add Mortgage Material' : 'Edit Mortgage Material',
+          ),
           content: Form(
             key: formKey,
             child: TextFormField(
@@ -132,6 +227,7 @@ class MortgageMaterialView extends StatelessWidget {
                 return null;
               },
               autofocus: true,
+              textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: 'Enter the Mortgage Material',
                 hintStyle: TextStyle(
@@ -140,6 +236,10 @@ class MortgageMaterialView extends StatelessWidget {
                   ).colorScheme.secondary.withValues(alpha: 0.5),
                   fontSize: 14,
                 ),
+                prefixIcon: const Icon(Icons.edit_outlined, size: 20),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               controller: mortgageMaterialInputController,
             ),
@@ -147,14 +247,12 @@ class MortgageMaterialView extends StatelessWidget {
           actionsAlignment: MainAxisAlignment.spaceEvenly,
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancel'),
             ),
             Consumer(
               builder: (context, ref, child) {
-                return TextButton(
+                return FilledButton(
                   child: const Text('Submit'),
                   onPressed: () async {
                     if (formKey.currentState != null &&
@@ -187,6 +285,82 @@ class MortgageMaterialView extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.theme});
+
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 56,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No mortgage materials yet',
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Tap "Add material" to create your first one.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.theme});
+
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: 48,
+              color: theme.colorScheme.error,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Something went wrong',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Please try again in a moment.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

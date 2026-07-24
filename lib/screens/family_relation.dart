@@ -12,14 +12,19 @@ class FamilyRelationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Family Relations'),
+        centerTitle: false,
+      ),
       body: Consumer(
         builder: (context, ref, child) {
           final familyRelations = ref.watch(familyRelationListProvider);
           return familyRelations.when(
             data: (data) {
               if (data.isEmpty) {
-                return Center(child: StyledHeading('No family relation found'));
+                return _EmptyState(onAdd: () => familyDialog(context, null));
               }
               final jsonList = data.map((e) => e.toJson()).toList();
               return GroupedListView<dynamic, String>(
@@ -27,60 +32,129 @@ class FamilyRelationView extends StatelessWidget {
                 groupBy: (element) => element['isAddedByUser'] == 1
                     ? 'Added By You'
                     : 'Added By System',
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-                separator: const SizedBox(height: 8),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                separator: const SizedBox(height: 10),
                 groupSeparatorBuilder: (String groupByValue) => Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 18, 4, 10),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      groupByValue,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
+                  padding: const EdgeInsets.fromLTRB(4, 20, 4, 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        groupByValue == 'Added By You'
+                            ? Icons.person_outline_rounded
+                            : Icons.verified_outlined,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        groupByValue,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.primary,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                itemBuilder: (context, dynamic element) => Card(
-                  child: ListTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.people_outline_rounded),
+                itemBuilder: (context, dynamic element) {
+                  final isCustom = element['isAddedByUser'] == 1;
+                  return Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 0,
+                    color: theme.colorScheme.surfaceContainerLow,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: theme.colorScheme.outlineVariant.withValues(
+                          alpha: 0.4,
+                        ),
+                      ),
                     ),
-                    title: Text(element['name']),
-                    subtitle: Text(
-                      element['isAddedByUser'] == 1
-                          ? 'Custom relation'
-                          : 'System relation',
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      leading: CircleAvatar(
+                        backgroundColor: isCustom
+                            ? theme.colorScheme.primaryContainer
+                            : theme.colorScheme.secondaryContainer,
+                        child: Icon(
+                          Icons.people_outline_rounded,
+                          color: isCustom
+                              ? theme.colorScheme.onPrimaryContainer
+                              : theme.colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                      title: Text(
+                        element['name'],
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        isCustom ? 'Custom relation' : 'System relation',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      trailing: isCustom
+                          ? const Icon(Icons.chevron_right_rounded)
+                          : Icon(
+                              Icons.lock_outline_rounded,
+                              size: 18,
+                              color: theme.colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.6),
+                            ),
+                      onTap: () => familyDialog(
+                        context,
+                        data.firstWhere((item) => item.id == element["id"]),
+                      ),
+                      onLongPress: isCustom
+                          ? () => familyDeleteDialog(
+                              context,
+                              ref,
+                              data.firstWhere(
+                                (item) => item.id == element["id"],
+                              ),
+                            )
+                          : null,
                     ),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => familyDialog(
-                      context,
-                      data.firstWhere((item) => item.id == element["id"]),
-                    ),
-                    onLongPress: element['isAddedByUser'] == 1
-                        ? () => familyDeleteDialog(
-                            context,
-                            ref,
-                            data.firstWhere((item) => item.id == element["id"]),
-                          )
-                        : null,
-                  ),
-                ),
+                  );
+                },
                 itemComparator: (item1, item2) =>
-                    item1['name'].compareTo(item2['name']), // optional
-                useStickyGroupSeparators: true, // optional
-                floatingHeader: true, // optional
-                order: GroupedListOrder.ASC, // optional
+                    item1['name'].compareTo(item2['name']),
+                useStickyGroupSeparators: true,
+                floatingHeader: true,
+                order: GroupedListOrder.ASC,
               );
             },
-            error: (_, _) {
-              return Center(child: Text("An error occurred"));
-            },
-            loading: () => Center(child: CircularProgressIndicator()),
+            error: (_, _) => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    size: 40,
+                    color: theme.colorScheme.error,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('Something went wrong'),
+                ],
+              ),
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => familyDialog(context, null),
-        child: Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Add Relation'),
       ),
     );
   }
@@ -90,23 +164,38 @@ class FamilyRelationView extends StatelessWidget {
     WidgetRef ref,
     FamilyRelation familyRelation,
   ) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: StyledHeading('Delete Family Relation'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        icon: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.errorContainer,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.delete_outline_rounded,
+            color: theme.colorScheme.onErrorContainer,
+          ),
+        ),
+        title: StyledHeading('Delete "${familyRelation.name}"?'),
         content: StyledSubtitle(
-          'Are you sure you want to delete this family relation?',
+          'This family relation will be removed permanently. This action cannot be undone.',
         ),
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          FilledButton.tonal(
+            style: FilledButton.styleFrom(
+              backgroundColor: theme.colorScheme.errorContainer,
+              foregroundColor: theme.colorScheme.onErrorContainer,
+            ),
             onPressed: () async {
               await ref
                   .read(familyRelationListProvider.notifier)
@@ -124,20 +213,38 @@ class FamilyRelationView extends StatelessWidget {
   }
 
   void familyDialog(BuildContext context, FamilyRelation? familyRelation) {
+    final isEditing = familyRelation != null;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        final theme = Theme.of(context);
         final familyInputController = TextEditingController(
           text: familyRelation?.name,
         );
         final formKey = GlobalKey<FormState>();
         return AlertDialog(
-          title: StyledHeading('Add Family Relation'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          icon: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isEditing
+                  ? Icons.edit_outlined
+                  : Icons.person_add_alt_1_outlined,
+              color: theme.colorScheme.onPrimaryContainer,
+            ),
+          ),
+          title: StyledHeading(
+            isEditing ? 'Edit Family Relation' : 'Add Family Relation',
+          ),
           content: Form(
             key: formKey,
             child: TextFormField(
-              style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+              style: TextStyle(color: theme.colorScheme.secondary),
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().isEmpty) {
                   return 'Family Relation cannot be empty';
@@ -145,13 +252,16 @@ class FamilyRelationView extends StatelessWidget {
                 return null;
               },
               autofocus: true,
+              textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
                 hintText: 'Enter the Family Relation',
                 hintStyle: TextStyle(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.secondary.withValues(alpha: 0.5),
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.5),
                   fontSize: 14,
+                ),
+                prefixIcon: const Icon(Icons.people_outline_rounded),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
               controller: familyInputController,
@@ -160,14 +270,12 @@ class FamilyRelationView extends StatelessWidget {
           actionsAlignment: MainAxisAlignment.spaceEvenly,
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancel'),
             ),
             Consumer(
               builder: (context, ref, child) {
-                return TextButton(
+                return FilledButton(
                   child: const Text('Submit'),
                   onPressed: () async {
                     if (formKey.currentState != null &&
@@ -197,6 +305,56 @@ class FamilyRelationView extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final VoidCallback onAdd;
+  const _EmptyState({required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(
+                  alpha: 0.5,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.family_restroom_rounded,
+                size: 40,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            StyledHeading('No family relations yet'),
+            const SizedBox(height: 8),
+            Text(
+              'Add relations like Father, Mother, or Sibling to get started.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Relation'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
