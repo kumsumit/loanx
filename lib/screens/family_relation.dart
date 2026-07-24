@@ -43,7 +43,7 @@ class FamilyRelationView extends StatelessWidget {
                 order: GroupedListOrder.ASC, // optional
               );
             },
-            error: (_, __) {
+            error: (_, _) {
               return Center(child: Text("An error occurred"));
             },
             loading: () => Center(child: CircularProgressIndicator()));

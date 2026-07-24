@@ -40,7 +40,7 @@ final class AuthenticateProvider
   }
 }
 
-String _$authenticateHash() => r'f98a0ad121a1d7c3ea0fabc99d8e6afe4df3964e';
+String _$authenticateHash() => r'a5030fab53fcbd07bee823c0841ff22600f995a1';
 
 @ProviderFor(Secure)
 final secureProvider = SecureProvider._();
@@ -79,7 +79,7 @@ abstract class _$Secure extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -89,7 +89,7 @@ abstract class _$Secure extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -131,7 +131,7 @@ abstract class _$DriveAccessToken extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -141,7 +141,7 @@ abstract class _$DriveAccessToken extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -183,7 +183,7 @@ abstract class _$BackUpRegistered extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -193,7 +193,7 @@ abstract class _$BackUpRegistered extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -234,7 +234,7 @@ abstract class _$DisplayName extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -244,7 +244,7 @@ abstract class _$DisplayName extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -285,7 +285,7 @@ abstract class _$PhotoUrl extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -295,7 +295,7 @@ abstract class _$PhotoUrl extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -336,7 +336,7 @@ abstract class _$Email extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -346,7 +346,7 @@ abstract class _$Email extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -388,7 +388,7 @@ abstract class _$ThemeModeManager extends $Notifier<ThemeMode> {
   ThemeMode build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ThemeMode, ThemeMode>;
     final element =
         ref.element
@@ -398,7 +398,7 @@ abstract class _$ThemeModeManager extends $Notifier<ThemeMode> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -440,7 +440,7 @@ abstract class _$HoldingPeriod extends $Notifier<int> {
   int build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<int, int>;
     final element =
         ref.element
@@ -450,7 +450,7 @@ abstract class _$HoldingPeriod extends $Notifier<int> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -493,7 +493,7 @@ abstract class _$ScheduledBackUpTimeHour extends $Notifier<int> {
   int build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<int, int>;
     final element =
         ref.element
@@ -503,7 +503,7 @@ abstract class _$ScheduledBackUpTimeHour extends $Notifier<int> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -546,7 +546,7 @@ abstract class _$ScheduledBackUpTimeMinute extends $Notifier<int> {
   int build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<int, int>;
     final element =
         ref.element
@@ -556,7 +556,7 @@ abstract class _$ScheduledBackUpTimeMinute extends $Notifier<int> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -599,7 +599,7 @@ abstract class _$InterestTypeStatus extends $Notifier<InterestType> {
   InterestType build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<InterestType, InterestType>;
     final element =
         ref.element
@@ -609,7 +609,7 @@ abstract class _$InterestTypeStatus extends $Notifier<InterestType> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -651,7 +651,7 @@ abstract class _$InterestRate extends $Notifier<double> {
   double build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<double, double>;
     final element =
         ref.element
@@ -661,7 +661,7 @@ abstract class _$InterestRate extends $Notifier<double> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -704,7 +704,7 @@ abstract class _$InterestFrequencyStatus extends $Notifier<InterestFrequency> {
   InterestFrequency build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<InterestFrequency, InterestFrequency>;
     final element =
         ref.element
@@ -714,7 +714,7 @@ abstract class _$InterestFrequencyStatus extends $Notifier<InterestFrequency> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -755,7 +755,7 @@ abstract class _$BackupStatus extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -765,7 +765,7 @@ abstract class _$BackupStatus extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -808,7 +808,7 @@ abstract class _$BackupDownloadStatus extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -818,7 +818,7 @@ abstract class _$BackupDownloadStatus extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -860,7 +860,7 @@ abstract class _$LoanSelectionList extends $Notifier<List<int>> {
   List<int> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<List<int>, List<int>>;
     final element =
         ref.element
@@ -870,7 +870,7 @@ abstract class _$LoanSelectionList extends $Notifier<List<int>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -912,7 +912,7 @@ abstract class _$SearchBarStatus extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -922,7 +922,7 @@ abstract class _$SearchBarStatus extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -963,7 +963,7 @@ abstract class _$AppColor extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -973,7 +973,7 @@ abstract class _$AppColor extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -1014,7 +1014,7 @@ abstract class _$PickerColor extends $Notifier<String> {
   String build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String, String>;
     final element =
         ref.element
@@ -1024,7 +1024,7 @@ abstract class _$PickerColor extends $Notifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -1090,7 +1090,7 @@ abstract class _$DB extends $AsyncNotifier<Database> {
   FutureOr<Database> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<Database>, Database>;
     final element =
         ref.element
@@ -1100,7 +1100,7 @@ abstract class _$DB extends $AsyncNotifier<Database> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -1136,7 +1136,7 @@ abstract class _$FamilyRelationList
   FutureOr<List<FamilyRelation>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<List<FamilyRelation>>, List<FamilyRelation>>;
@@ -1151,7 +1151,7 @@ abstract class _$FamilyRelationList
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -1188,7 +1188,7 @@ abstract class _$MortgageMaterialList
   FutureOr<List<MortgageMaterial>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<AsyncValue<List<MortgageMaterial>>, List<MortgageMaterial>>;
@@ -1203,7 +1203,7 @@ abstract class _$MortgageMaterialList
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -1237,7 +1237,7 @@ abstract class _$LoanList extends $AsyncNotifier<List<Loan>> {
   FutureOr<List<Loan>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Loan>>, List<Loan>>;
     final element =
         ref.element
@@ -1247,6 +1247,6 @@ abstract class _$LoanList extends $AsyncNotifier<List<Loan>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

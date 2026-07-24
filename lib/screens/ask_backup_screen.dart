@@ -92,7 +92,7 @@ class AskBackupScreen extends HookWidget {
                                       await DatabaseHelper.instance
                                           .onCreate(data, 1);
                                     },
-                                    error: (_, __) {
+                                    error: (_, _) {
                                       showSnackBar(context,
                                           "An Error occured, Please try again later");
                                     },
@@ -128,7 +128,7 @@ class AskBackupScreen extends HookWidget {
                                               await DatabaseHelper.instance
                                                   .onCreate(data, 1);
                                             },
-                                            error: (_, __) {
+                                            error: (_, _) {
                                               showSnackBar(context,
                                                   "An Error occured, Please try again later");
                                             },
@@ -155,7 +155,7 @@ class AskBackupScreen extends HookWidget {
                                                 .read(loanListProvider.notifier)
                                                 .readAllLoans();
                                           },
-                                          error: (_, __) {
+                                          error: (_, _) {
                                             if (!FastDB.getIsTableCreated()) {
                                               db.when(
                                                   data: (data) async {
@@ -163,7 +163,7 @@ class AskBackupScreen extends HookWidget {
                                                         .instance
                                                         .onCreate(data, 1);
                                                   },
-                                                  error: (_, __) {
+                                                  error: (_, _) {
                                                     showSnackBar(context,
                                                         "An Error occured, Please try again later");
                                                   },
@@ -180,7 +180,7 @@ class AskBackupScreen extends HookWidget {
                                               await DatabaseHelper.instance
                                                   .onCreate(data, 1);
                                             },
-                                            error: (_, __) {
+                                            error: (_, _) {
                                               showSnackBar(context,
                                                   "An Error occured, Please try again later");
                                             },
@@ -188,7 +188,7 @@ class AskBackupScreen extends HookWidget {
                                       }
                                     }
                                   },
-                                  error: (_, __) {
+                                  error: (_, _) {
                                     showSnackBar(context,
                                         "An Error occured, Please try again later");
                                   },

@@ -4,14 +4,14 @@ publish_to: "none"
 version: 1.0.1+1
 
 environment:
-  sdk: ^3.10.7
+  sdk: ^3.12.0
 
 dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter  
-  intl: ^0.20.2
+  intl: ^0.20.3
   intl_phone_number_input:
     git: https://github.com/kumsumit/intl_phone_number_input.git
   sqflite_sqlcipher:
@@ -21,12 +21,13 @@ dependencies:
   auto_size_text:
     git: https://github.com/sumitsharansatsangi/auto_size_text.git
   encrypt: ^5.0.3
-  archive: ^4.0.7
+  archive: ^4.0.9
   # faker: ^2.2.0
   path: ^1.9.1
   path_provider:
     git: https://github.com/kumsumit/path_provider.git
-  flutter_native_splash: ^2.4.7
+  flutter_native_splash: 
+    git: https://github.com/sumitsharansatsangi/flutter_native_splash.git
   url_launcher:
     git: https://github.com/kumsumit/url_launcher.git
   # flutter_screenutil:
@@ -38,11 +39,13 @@ dependencies:
   # flutter_exif_rotation: ^0.5.2
   google_sign_in:
     git: https://github.com/kumsumit/google_sign_in.git
-  googleapis: ^15.0.0
+  googleapis: ^16.0.0
   # googleapis_auth: ^1.6.0
   http: ^1.6.0
-  hooks_riverpod: ^3.1.0
-  flutter_hooks: ^0.21.3
+  hooks_riverpod: 
+    git: https://github.com/kumsumit/hooks_riverpod.git
+  flutter_hooks:
+    git: https://github.com/kumsumit/flutter_hooks.git
   printing:
     git: https://github.com/kumsumit/printing.git
   pdf:
@@ -50,7 +53,8 @@ dependencies:
   # fluttertoast:
   #   git: https://github.com/sumitsharansatsangi/fluttertoast.git
   fuzzywuzzy: ^1.2.0
-  riverpod_annotation: ^4.0.0
+  riverpod_annotation: 
+    git: https://github.com/kumsumit/riverpod_annotation.git
   # extension_google_sign_in_as_googleapis_auth: ^2.0.12
   # flex_color_picker: ^3.6.0
   flutter_color_picker_plus:
@@ -60,7 +64,7 @@ dependencies:
   local_auth:
     git: https://github.com/kumsumit/local_auth.git  
   workmanager:
-    git: https://github.com/sumitsharansatsangi/workmanager.git
+    git: https://github.com/kumsumit/workmanager.git
   internet_connection_checker_plus:
     git: https://github.com/sumitsharansatsangi/internet_connection_checker_plus.git
   share_plus:
@@ -80,10 +84,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  build_runner: ^2.10.5
-  riverpod_generator: ^4.0.0
-  riverpod_lint: ^3.1.0
-  custom_lint: ^0.8.0
+  build_runner: ^2.15.2
+  riverpod_generator:
+    git: https://github.com/kumsumit/riverpod_generator.git
+  riverpod_lint:
+    git: https://github.com/kumsumit/riverpod_lint.git
   
 
 dependency_overrides: 

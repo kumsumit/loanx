@@ -12,150 +12,188 @@ class SearchAppBar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final SuggestionsController<Loan> suggestionsController =
-        useMemoized(() => SuggestionsController<Loan>());
+    final SuggestionsController<Loan> suggestionsController = useMemoized(
+      () => SuggestionsController<Loan>(),
+    );
     final filter = useState<int>(1);
     return Padding(
       padding: EdgeInsets.only(left: 20.0, bottom: 10.0),
       child: Center(
-          child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(child: Consumer(builder: (context, ref, child) {
-            return TypeAheadField<Loan>(
-              suggestionsController: suggestionsController,
-              suggestionsCallback: (searchTerm) =>
-                  suggestionsCallback(searchTerm, filter.value, ref),
-              builder: (context, controller, focusNode) {
-                return TextField(
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                    controller: controller,
-                    focusNode: focusNode,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Search Loan',
-                      labelStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary),
-                      hintText: 'Search Loan',
-                      hintStyle: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .secondary
-                              .withValues(alpha: 0.5),
-                          fontSize: 14),
-                      suffixIcon: Icon(
-                        Icons.search,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    ));
-              },
-              emptyBuilder: (context) {
-                return ListTile(
-                  tileColor: Theme.of(context).colorScheme.surfaceContainer,
-                  title: Text(
-                    "No data found",
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary),
-                  ),
-                );
-              },
-              errorBuilder: (context, error) {
-                return ListTile(
-                  title: Text(
-                    "An error occurred",
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary),
-                  ),
-                );
-              },
-              itemBuilder: (context, loan) {
-                final m = ref.watch(mortgageMaterialListProvider);
-                return m.when(
-                    data: (data) {
-                      if (data.isEmpty) {
-                        return Center(child: Text("No data found"));
-                      }
-                      return ListTile(
-                        title: Text(loan.depositorName),
-                        leading: Text(data
-                            .firstWhere(
-                                (mo) => mo.id == loan.mortgageMaterialId)
-                            .name),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Consumer(
+                builder: (context, ref, child) {
+                  return TypeAheadField<Loan>(
+                    suggestionsController: suggestionsController,
+                    suggestionsCallback: (searchTerm) =>
+                        suggestionsCallback(searchTerm, filter.value, ref),
+                    builder: (context, controller, focusNode) {
+                      return TextField(
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        controller: controller,
+                        focusNode: focusNode,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Search Loan',
+                          labelStyle: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                          hintText: 'Search Loan',
+                          hintStyle: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.secondary.withValues(alpha: 0.5),
+                            fontSize: 14,
+                          ),
+                          suffixIcon: Icon(
+                            Icons.search,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
                       );
                     },
-                    error: (_, o) => Center(child: Text("An error occurred")),
-                    loading: () => Center(child: CircularProgressIndicator()));
-              },
-              onSelected: (loan) {
-                ref.read(mortgageMaterialListProvider).when(
-                    data: (data) {
-                      Navigator.push(
+                    emptyBuilder: (context) {
+                      return ListTile(
+                        tileColor: Theme.of(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => LoanDetails(loan: loan)));
+                        ).colorScheme.surfaceContainer,
+                        title: Text(
+                          "No data found",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      );
                     },
-                    error: (_, e) {},
-                    loading: () {});
-              },
-            );
-          })),
-          Consumer(builder: (context, ref, child) {
-            final loanListNotifier = ref.read(loanListProvider.notifier);
-            return PopupMenuButton<int>(
-              icon: Icon(Icons.filter_alt_outlined,
-                  color: Theme.of(context).colorScheme.secondary),
-              onSelected: (value) async {
-                if (value == 3) {
-                  final date = await showDateSelectorDialog(context);
-                  if (date != null) {
-                    suggestionsController.suggestions =
-                        loanListNotifier.searchLoansByDateCreated(date);
-                    suggestionsController.open();
-                  }
-                } else if (value == 4) {
-                  final dateRange = await showDateRangeSelectorDialog(context);
-                  if (dateRange != null) {
-                    suggestionsController.suggestions =
-                        loanListNotifier.searchLoansByDateRange(dateRange);
-                    suggestionsController.open();
-                  }
-                } else if (value == 5) {
-                  final mortgageMaterialType =
-                      await showMortageMaterialTypeSelectorDialog(context);
-                  if (mortgageMaterialType != null) {
-                    suggestionsController.suggestions = loanListNotifier
-                        .searchLoansByMortgageMaterialId(mortgageMaterialType);
-                    suggestionsController.open();
-                  }
-                }
-                filter.value = value;
-              },
-              itemBuilder: (BuildContext context) {
-                return [
-                  PopupMenuItem<int>(
-                    value: 1,
-                    child: StyledSubtitle('Depositor Name'),
+                    errorBuilder: (context, error) {
+                      return ListTile(
+                        title: Text(
+                          "An error occurred",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      );
+                    },
+                    itemBuilder: (context, loan) {
+                      final m = ref.watch(mortgageMaterialListProvider);
+                      return m.when(
+                        data: (data) {
+                          if (data.isEmpty) {
+                            return Center(child: Text("No data found"));
+                          }
+                          return ListTile(
+                            title: Text(loan.depositorName),
+                            leading: Text(
+                              data
+                                  .firstWhere(
+                                    (mo) => mo.id == loan.mortgageMaterialId,
+                                  )
+                                  .name,
+                            ),
+                          );
+                        },
+                        error: (_, o) =>
+                            Center(child: Text("An error occurred")),
+                        loading: () =>
+                            Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                    onSelected: (loan) {
+                      ref
+                          .read(mortgageMaterialListProvider)
+                          .when(
+                            data: (data) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LoanDetails(loan: loan),
+                                ),
+                              );
+                            },
+                            error: (_, e) {},
+                            loading: () {},
+                          );
+                    },
+                  );
+                },
+              ),
+            ),
+            Consumer(
+              builder: (context, ref, child) {
+                final loanListNotifier = ref.read(loanListProvider.notifier);
+                return PopupMenuButton<int>(
+                  icon: Icon(
+                    Icons.filter_alt_outlined,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
-                  PopupMenuItem<int>(
-                    value: 2,
-                    child: StyledSubtitle('Relative Name'),
-                  ),
-                  PopupMenuItem<int>(value: 3, child: StyledSubtitle('Date Of Loan')),
-                  PopupMenuItem<int>(
-                      value: 4, child: StyledSubtitle('Date Range Of Loan')),    
-                  PopupMenuItem<int>(
-                      value: 5, child: StyledSubtitle('Mortgage Material Type')),
-                ];
+                  onSelected: (value) async {
+                    if (value == 3) {
+                      final date = await showDateSelectorDialog(context);
+                      if (date != null) {
+                        suggestionsController.suggestions = loanListNotifier
+                            .searchLoansByDateCreated(date);
+                        suggestionsController.open();
+                      }
+                    } else if (value == 4) {
+                      final dateRange = await showDateRangeSelectorDialog(
+                        context,
+                      );
+                      if (dateRange != null) {
+                        suggestionsController.suggestions = loanListNotifier
+                            .searchLoansByDateRange(dateRange);
+                        suggestionsController.open();
+                      }
+                    } else if (value == 5) {
+                      final mortgageMaterialType =
+                          await showMortageMaterialTypeSelectorDialog(context);
+                      if (mortgageMaterialType != null) {
+                        suggestionsController.suggestions = loanListNotifier
+                            .searchLoansByMortgageMaterialId(
+                              mortgageMaterialType,
+                            );
+                        suggestionsController.open();
+                      }
+                    }
+                    filter.value = value;
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      PopupMenuItem<int>(
+                        value: 1,
+                        child: StyledSubtitle('Depositor Name'),
+                      ),
+                      PopupMenuItem<int>(
+                        value: 2,
+                        child: StyledSubtitle('Relative Name'),
+                      ),
+                      PopupMenuItem<int>(
+                        value: 3,
+                        child: StyledSubtitle('Date Of Loan'),
+                      ),
+                      PopupMenuItem<int>(
+                        value: 4,
+                        child: StyledSubtitle('Date Range Of Loan'),
+                      ),
+                      PopupMenuItem<int>(
+                        value: 5,
+                        child: StyledSubtitle('Mortgage Material Type'),
+                      ),
+                    ];
+                  },
+                );
               },
-            );
-          }),
-          //   if(kDebugMode)
-          //  ColorButton()
-        ],
-      )),
+            ),
+            //   if(kDebugMode)
+            //  ColorButton()
+          ],
+        ),
+      ),
     );
   }
 
@@ -170,48 +208,57 @@ class SearchAppBar extends HookWidget {
   }
 
   Future<DateTimeRange?> showDateRangeSelectorDialog(
-      BuildContext context) async {
+    BuildContext context,
+  ) async {
     DateTime now = DateTime.now();
     DateTime fiveYearsBack = DateTime(now.year - 5, now.month, now.day);
     DateTime fiveYearsAhead = DateTime(now.year + 5, now.month, now.day);
     return await showDateRangePicker(
-        context: context, firstDate: fiveYearsBack, lastDate: fiveYearsAhead);
+      context: context,
+      firstDate: fiveYearsBack,
+      lastDate: fiveYearsAhead,
+    );
   }
 
   Future<int?> showMortageMaterialTypeSelectorDialog(
-      BuildContext context) async {
+    BuildContext context,
+  ) async {
     return await showDialog<int>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Select an Mortgagae Material Type'),
           content: SingleChildScrollView(
-            child: Consumer(builder: (context, ref, child) {
-              final mortgageMaterialTypes =
-                  ref.watch(mortgageMaterialListProvider);
+            child: Consumer(
+              builder: (context, ref, child) {
+                final mortgageMaterialTypes = ref.watch(
+                  mortgageMaterialListProvider,
+                );
 
-              return mortgageMaterialTypes.when(
+                return mortgageMaterialTypes.when(
                   data: (data) => ListView.builder(
-                        itemCount: data.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            title: Text(data[index].name),
-                            onTap: () {
-                              Navigator.of(context).pop(index);
-                            },
-                          );
+                    itemCount: data.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(data[index].name),
+                        onTap: () {
+                          Navigator.of(context).pop(index);
                         },
-                      ),
-                  error: (_, __) => Center(child: Text("An error occurred")),
-                  loading: () => Center(child: CircularProgressIndicator()));
-            }),
+                      );
+                    },
+                  ),
+                  error: (_, _) => Center(child: Text("An error occurred")),
+                  loading: () => Center(child: CircularProgressIndicator()),
+                );
+              },
+            ),
           ),
         );
       },
     );
   }
 
-  suggestionsCallback(String searchTerm, int filter, WidgetRef ref) {
+  List<Loan> suggestionsCallback(String searchTerm, int filter, WidgetRef ref) {
     debugPrint(searchTerm);
     switch (filter) {
       case 1:

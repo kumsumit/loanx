@@ -39,29 +39,39 @@ class LoanInput extends HookConsumerWidget {
     final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
     final currentFamilyRelation = useState<FamilyRelation?>(null);
     final currentMortgageMaterial = useState<MortgageMaterial?>(null);
-    final interestType = useState<InterestType>(InterestType
-        .values[loan == null ? FastDB.getInterestType() : loan!.interestType]);
+    final interestType = useState<InterestType>(
+      InterestType.values[loan == null
+          ? FastDB.getInterestType()
+          : loan!.interestType],
+    );
     final interestFrequency = useState<InterestFrequency>(
-        InterestFrequency.values[loan == null
-            ? FastDB.getInterestFrequency()
-            : loan!.interestFrequency]);
-    final depositorController =
-        useTextEditingController(text: loan?.depositorName ?? '');
-    final phoneNumberController =
-        useTextEditingController(text: loan?.phoneNumber ?? '');
-    final addressController =
-        useTextEditingController(text: loan?.address ?? '');
-    final relativeNameController =
-        useTextEditingController(text: loan?.relativeName ?? '');
-    final loanAmountController =
-        useTextEditingController(text: loan?.loanAmount.toString() ?? '');
-    final additionalDetailsController =
-        useTextEditingController(text: loan?.additionalDetails ?? '');
+      InterestFrequency.values[loan == null
+          ? FastDB.getInterestFrequency()
+          : loan!.interestFrequency],
+    );
+    final depositorController = useTextEditingController(
+      text: loan?.depositorName ?? '',
+    );
+    final phoneNumberController = useTextEditingController(
+      text: loan?.phoneNumber ?? '',
+    );
+    final addressController = useTextEditingController(
+      text: loan?.address ?? '',
+    );
+    final relativeNameController = useTextEditingController(
+      text: loan?.relativeName ?? '',
+    );
+    final loanAmountController = useTextEditingController(
+      text: loan?.loanAmount.toString() ?? '',
+    );
+    final additionalDetailsController = useTextEditingController(
+      text: loan?.additionalDetails ?? '',
+    );
     final scrollController = useScrollController();
     List<String> interestRateString =
-        (loan?.interestRate ?? ref.read(interestRateProvider))
-            .toString()
-            .split(".");
+        (loan?.interestRate ?? ref.read(interestRateProvider)).toString().split(
+          ".",
+        );
     if (interestRateString[1].length > 2) {
       interestRateString[1] = interestRateString[1].substring(0, 2);
     } else if (interestRateString[1].length == 1) {
@@ -75,55 +85,48 @@ class LoanInput extends HookConsumerWidget {
         foregroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Padding(
-          padding: EdgeInsets.only(left: 20, right: 20),
-          child: Form(
-            key: formKey,
-            child: ListView(controller: scrollController, children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Radio<InterestType>(
-                    value: InterestType.simple,
-                    groupValue: interestType.value,
-                    onChanged: (InterestType? value) {
-                      if (value != null) {
-                        interestType.value = value;
-                      }
-                    },
-                  ),
-                  StyledSubtitle('Simple'),
-                  SizedBox(width: 20),
-                  Radio<InterestType>(
-                    value: InterestType.compound,
-                    groupValue: interestType.value,
-                    onChanged: (InterestType? value) {
-                      if (value != null) {
-                        interestType.value = value;
-                      }
-                    },
-                  ),
-                  StyledSubtitle('Compound'),
-                ],
+        padding: EdgeInsets.only(left: 20, right: 20),
+        child: Form(
+          key: formKey,
+          child: ListView(
+            controller: scrollController,
+            children: <Widget>[
+              RadioGroup<InterestType>(
+                groupValue: interestType.value,
+                onChanged: (value) {
+                  if (value != null) interestType.value = value;
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Radio<InterestType>(value: InterestType.simple),
+                    StyledSubtitle('Simple'),
+                    SizedBox(width: 20),
+                    Radio<InterestType>(value: InterestType.compound),
+                    StyledSubtitle('Compound'),
+                  ],
+                ),
               ),
               Row(
                 children: [
                   Expanded(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10.0),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.secondary,
-                          )),
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
                       child: CupertinoPicker(
                         itemExtent: 32,
                         scrollController: FixedExtentScrollController(
-                            initialItem:
-                                int.tryParse(interestRateString[0]) ?? 2),
+                          initialItem: int.tryParse(interestRateString[0]) ?? 2,
+                        ),
                         selectionOverlay:
                             const CupertinoPickerDefaultSelectionOverlay(
-                          background: Colors.transparent,
-                          capEndEdge: false,
-                        ),
+                              background: Colors.transparent,
+                              capEndEdge: false,
+                            ),
                         onSelectedItemChanged: (val) {
                           interestRateString[0] = val.toString();
                         },
@@ -134,24 +137,17 @@ class LoanInput extends HookConsumerWidget {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Center(
-                    child: StyledSubtitle(
-                      ".",fontSize: 20,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
+                  SizedBox(width: 5),
+                  Center(child: StyledSubtitle(".", fontSize: 20)),
+                  SizedBox(width: 5),
                   Expanded(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10.0),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.secondary,
-                          )),
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
                       child: CupertinoPicker(
                         itemExtent: 32,
                         scrollController: FixedExtentScrollController(
@@ -160,9 +156,9 @@ class LoanInput extends HookConsumerWidget {
                         ),
                         selectionOverlay:
                             const CupertinoPickerDefaultSelectionOverlay(
-                          background: Colors.transparent,
-                          capStartEdge: false,
-                        ),
+                              background: Colors.transparent,
+                              capStartEdge: false,
+                            ),
                         onSelectedItemChanged: (val) {
                           final valStr = val.toString();
                           if (valStr.length > 2) {
@@ -178,17 +174,9 @@ class LoanInput extends HookConsumerWidget {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Center(
-                    child: StyledSubtitle(
-                      "%",fontSize: 20,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
+                  SizedBox(width: 5),
+                  Center(child: StyledSubtitle("%", fontSize: 20)),
+                  SizedBox(width: 5),
                 ],
               ),
               SizedBox(height: 10),
@@ -200,56 +188,44 @@ class LoanInput extends HookConsumerWidget {
                     width: 1,
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Radio<InterestFrequency>(
-                        value: InterestFrequency.monthly,
-                        groupValue: interestFrequency.value,
-                        onChanged: (InterestFrequency? value) {
-                          if (value != null) {
-                            interestFrequency.value = value;
-                          }
-                        },
+                child: RadioGroup<InterestFrequency>(
+                  groupValue: interestFrequency.value,
+                  onChanged: (value) {
+                    if (value != null) interestFrequency.value = value;
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Radio<InterestFrequency>(
+                            value: InterestFrequency.monthly,
+                          ),
+                          StyledSubtitle('Monthly'),
+                          SizedBox(width: 20),
+                          Radio<InterestFrequency>(
+                            value: InterestFrequency.quarterly,
+                          ),
+                          StyledSubtitle('Half-Yearly'),
+                        ],
                       ),
-                      StyledSubtitle('Monthly'),
-                      SizedBox(width: 20),
-                      Radio<InterestFrequency>(
-                        value: InterestFrequency.quarterly,
-                        groupValue: interestFrequency.value,
-                        onChanged: (InterestFrequency? value) {
-                          if (value != null) {
-                            interestFrequency.value = value;
-                          }
-                        },
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Radio<InterestFrequency>(
+                            value: InterestFrequency.yearly,
+                          ),
+                          StyledSubtitle('Quarterly'),
+                          SizedBox(width: 20),
+                          Radio<InterestFrequency>(
+                            value: InterestFrequency.halfYearly,
+                          ),
+                          StyledSubtitle('Yearly'),
+                        ],
                       ),
-                      StyledSubtitle('Half-Yearly'),
-                    ]),
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Radio<InterestFrequency>(
-                        value: InterestFrequency.yearly,
-                        groupValue: interestFrequency.value,
-                        onChanged: (InterestFrequency? value) {
-                          if (value != null) {
-                            interestFrequency.value = value;
-                          }
-                        },
-                      ),
-                      StyledSubtitle('Quarterly'),
-                      SizedBox(width: 20),
-                      Radio<InterestFrequency>(
-                        value: InterestFrequency.halfYearly,
-                        groupValue: interestFrequency.value,
-                        onChanged: (InterestFrequency? value) {
-                          if (value != null) {
-                            interestFrequency.value = value;
-                          }
-                        },
-                      ),
-                      StyledSubtitle('Yearly'),
-                    ])
-                  ],
+                    ],
+                  ),
                 ),
               ),
               SizedBox(height: 10),
@@ -259,10 +235,12 @@ class LoanInput extends HookConsumerWidget {
                 hintText: "Depositor Name",
                 labelText: "Depositor Name",
               ),
-              PhoneWidget(labelText: "Depositor Mobile Number",
-              textEditingController: phoneNumberController,
-               hint: "Depositor Mobile Number",
-                initialValue: PhoneNumber(isoCode: "IN", nsn: "")),
+              PhoneWidget(
+                labelText: "Depositor Mobile Number",
+                textEditingController: phoneNumberController,
+                hint: "Depositor Mobile Number",
+                initialValue: PhoneNumber(isoCode: "IN", nsn: ""),
+              ),
               // StyledTextField(
               //   failedValidationMessage:
               //       "Depositor Mobile Number can't be empty",
@@ -291,7 +269,8 @@ class LoanInput extends HookConsumerWidget {
                   currentFamilyRelation.value = loan == null
                       ? data[0]
                       : data.firstWhere(
-                          (item) => item.id == loan!.familyRelationId);
+                          (item) => item.id == loan!.familyRelationId,
+                        );
                   return StyledDropdown<FamilyRelation>(
                     selectedValue: currentFamilyRelation.value,
                     items: buildMenuRelationTypes(data, context),
@@ -305,15 +284,16 @@ class LoanInput extends HookConsumerWidget {
                     onAddPressed: () {
                       isDialogOpen.value = true;
                       showAddDialog(
-                          context,
-                          ref,
-                          'Add Family Relation',
-                          'Enter the family relation',
-                          ref.read(familyRelationListProvider.notifier).add);
+                        context,
+                        ref,
+                        'Add Family Relation',
+                        'Enter the family relation',
+                        ref.read(familyRelationListProvider.notifier).add,
+                      );
                     },
                   );
                 },
-                error: (_, __) {
+                error: (_, _) {
                   return const SizedBox();
                 },
                 loading: () => const SizedBox(),
@@ -333,7 +313,8 @@ class LoanInput extends HookConsumerWidget {
                   currentMortgageMaterial.value = loan == null
                       ? data[0]
                       : data.firstWhere(
-                          (item) => item.id == loan!.mortgageMaterialId);
+                          (item) => item.id == loan!.mortgageMaterialId,
+                        );
                   return StyledDropdown<MortgageMaterial>(
                     selectedValue: currentMortgageMaterial.value,
                     items: buildMenuMortgageMaterials(data, context),
@@ -347,15 +328,16 @@ class LoanInput extends HookConsumerWidget {
                     onAddPressed: () {
                       isDialogOpen.value = true;
                       showAddDialog(
-                          context,
-                          ref,
-                          'Add Mortgage Material',
-                          'Enter the mortgage material',
-                          ref.read(mortgageMaterialListProvider.notifier).add);
+                        context,
+                        ref,
+                        'Add Mortgage Material',
+                        'Enter the mortgage material',
+                        ref.read(mortgageMaterialListProvider.notifier).add,
+                      );
                     },
                   );
                 },
-                error: (_, __) {
+                error: (_, _) {
                   return const SizedBox();
                 },
                 loading: () => const SizedBox(),
@@ -366,15 +348,16 @@ class LoanInput extends HookConsumerWidget {
                 labelText: "Additional Details",
                 maxLines: 3,
               ),
-              Consumer(builder: (context, ref, child) {
-                return Center(
-                  child: OutlinedButton(
-                    onPressed: () async {
-                      if (formKey.currentState != null &&
-                          formKey.currentState!.validate()) {
-                        final status = await ref
-                            .read(loanListProvider.notifier)
-                            .add(
+              Consumer(
+                builder: (context, ref, child) {
+                  return Center(
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        if (formKey.currentState != null &&
+                            formKey.currentState!.validate()) {
+                          final status = await ref
+                              .read(loanListProvider.notifier)
+                              .add(
                                 loan,
                                 depositorController.text,
                                 phoneNumberController.text,
@@ -386,71 +369,86 @@ class LoanInput extends HookConsumerWidget {
                                 interestFrequency.value.index,
                                 additionalDetailsController.text,
                                 currentFamilyRelation.value!.id!,
-                                currentMortgageMaterial.value!.id!);
-                        if (status > 0) {
-                          if (loan != null) {
-                          ref
-                              .read(loanSelectionListProvider.notifier)
-                              .remove(loan!.id ?? 0);
-                          }
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                            if (loan == null) {
-                              showSnackBar(
-                                  context, "Record Added Successfully");
-                            } else {
-                              showSnackBar(
-                                  context, "Record Updated Successfully");
+                                currentMortgageMaterial.value!.id!,
+                              );
+                          if (status > 0) {
+                            if (loan != null) {
+                              ref
+                                  .read(loanSelectionListProvider.notifier)
+                                  .remove(loan!.id ?? 0);
+                            }
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              if (loan == null) {
+                                showSnackBar(
+                                  context,
+                                  "Record Added Successfully",
+                                );
+                              } else {
+                                showSnackBar(
+                                  context,
+                                  "Record Updated Successfully",
+                                );
+                              }
                             }
                           }
                         }
-                      }
-                    },
-                    child: const Text('Save'),
-                  ),
-                );
-              }),
+                      },
+                      child: const Text('Save'),
+                    ),
+                  );
+                },
+              ),
               SizedBox(height: 10),
-            ]),
-          )),
+            ],
+          ),
+        ),
+      ),
       // resizeToAvoidBottomInset: true,
     );
   }
 
   List<DropdownMenuItem<MortgageMaterial>> buildMenuMortgageMaterials(
-          List<MortgageMaterial> mortgageMaterials, BuildContext context) =>
-      [
-        for (var mortgageMaterial in mortgageMaterials)
-          DropdownMenuItem(
-              value: mortgageMaterial,
-              child: Text(
-                mortgageMaterial.name,
-                style: TextStyle(
-                    fontSize: 15.0,
-                    color: Theme.of(context).colorScheme.secondary),
-              ))
-      ];
+    List<MortgageMaterial> mortgageMaterials,
+    BuildContext context,
+  ) => [
+    for (var mortgageMaterial in mortgageMaterials)
+      DropdownMenuItem(
+        value: mortgageMaterial,
+        child: Text(
+          mortgageMaterial.name,
+          style: TextStyle(
+            fontSize: 15.0,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
+      ),
+  ];
 
   List<DropdownMenuItem<FamilyRelation>> buildMenuRelationTypes(
-          List<FamilyRelation> familyRelations, BuildContext context) =>
-      [
-        for (var familyRelation in familyRelations)
-          DropdownMenuItem(
-              value: familyRelation,
-              child: Text(
-                familyRelation.name,
-                style: TextStyle(
-                    fontSize: 15.0,
-                    color: Theme.of(context).colorScheme.secondary),
-              ))
-      ];
+    List<FamilyRelation> familyRelations,
+    BuildContext context,
+  ) => [
+    for (var familyRelation in familyRelations)
+      DropdownMenuItem(
+        value: familyRelation,
+        child: Text(
+          familyRelation.name,
+          style: TextStyle(
+            fontSize: 15.0,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
+      ),
+  ];
 
   Future<void> showAddDialog(
-      BuildContext context,
-      WidgetRef ref,
-      String heading,
-      String hintText,
-      void Function(String text) onAddPressed) async {
+    BuildContext context,
+    WidgetRef ref,
+    String heading,
+    String hintText,
+    void Function(String text) onAddPressed,
+  ) async {
     final controller = TextEditingController();
     await showDialog(
       context: context,

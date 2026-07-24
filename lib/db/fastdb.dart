@@ -29,11 +29,12 @@ class FastDB {
 
   static Future<void> init() async {
     const FlutterSecureStorage secureStorage = FlutterSecureStorage(
-        aOptions: AndroidOptions(
-            encryptedSharedPreferences: true, resetOnError: true));
+      aOptions: AndroidOptions(resetOnError: true),
+    );
     await _initializeKeys(secureStorage);
-    _encrypter =
-        encrypt.Encrypter(encrypt.AES(_key, mode: encrypt.AESMode.cbc));
+    _encrypter = encrypt.Encrypter(
+      encrypt.AES(_key, mode: encrypt.AESMode.cbc),
+    );
     final directory = await getApplicationSupportDirectory();
     _file = File('${directory.path}/fastDB.bin');
     if (await _file.exists()) {
@@ -45,7 +46,8 @@ class FastDB {
   }
 
   static Future<void> _initializeKeys(
-      FlutterSecureStorage secureStorage) async {
+    FlutterSecureStorage secureStorage,
+  ) async {
     final encryptedSSData = await secureStorage.read(key: _ssKey);
     final encryptedSVData = await secureStorage.read(key: _svKey);
     if (encryptedSSData == null) {
@@ -67,8 +69,9 @@ class FastDB {
       final bytes = Inflate(await _file.readAsBytes()).getBytes();
       if (bytes.isNotEmpty) {
         final decrypted = _encrypter.decryptBytes(
-            encrypt.Encrypted(Uint8List.fromList(bytes)),
-            iv: _iv);
+          encrypt.Encrypted(Uint8List.fromList(bytes)),
+          iv: _iv,
+        );
         db.FlatDb flatDb = db.FlatDb(decrypted);
         flatDbBuilder = db.FlatDbObjectBuilder(
           isTableCreated: flatDb.isTableCreated,
@@ -277,9 +280,11 @@ class FastDB {
     final originalBytes = flatDbBuilder.toBytes();
     if (originalBytes.isNotEmpty) {
       await _file.writeAsBytes(
-          Deflate(_encrypter.encryptBytes(originalBytes, iv: _iv).bytes)
-              .getBytes(),
-          flush: true);
+        Deflate(
+          _encrypter.encryptBytes(originalBytes, iv: _iv).bytes,
+        ).getBytes(),
+        flush: true,
+      );
     }
   }
 

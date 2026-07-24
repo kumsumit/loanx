@@ -26,15 +26,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_24
     }
 
-    kotlinOptions {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_24)
-        }
-    }
-
     defaultConfig {
         applicationId = "com.kumpali.loanx"
-        minSdk = 21
+        minSdk = flutter.minSdkVersion
         targetSdk = 36
         versionCode = 1 // flutter.versionCode
         versionName = "1.0.1" // flutter.versionName
@@ -72,6 +66,12 @@ android {
             )
             // signingConfig = signingConfigs.getByName("debug")
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_24)
     }
 }
 

@@ -23,7 +23,7 @@ import 'db/fastdb.dart';
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+  await Workmanager().initialize(callbackDispatcher);
   await FastDB.init();
   if (!FastDB.getIsTableCreated()) {
     FastDB.putHoldingPeriod(5);
@@ -35,9 +35,12 @@ void main() async {
 
   // final directory = await getApplicationSupportDirectory();
   FlutterNativeSplash.remove();
-  runApp(ProviderScope(
+  runApp(
+    ProviderScope(
       // overrides: [databaseProvider.overrideWithValue(database)],
-      child: const MyApp()));
+      child: const MyApp(),
+    ),
+  );
   // runApp(DevicePreview(
   //     storage: FileDevicePreviewStorage(
   //         filePath: join(directory.path, 'device_preview.json')),
@@ -61,26 +64,32 @@ class MyApp extends ConsumerWidget {
       // builder: DevicePreview.appBuilder,
       themeMode: themeMode,
       theme: ThemeData(
-        colorSchemeSeed:
-            Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
+        colorSchemeSeed: Color(
+          int.parse('FF${appColor.substring(1)}', radix: 16),
+        ),
       ),
       darkTheme: ThemeData(
-        colorSchemeSeed:
-            Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
+        colorSchemeSeed: Color(
+          int.parse('FF${appColor.substring(1)}', radix: 16),
+        ),
         brightness: Brightness.dark,
       ),
       debugShowCheckedModeBanner: false,
-      home: authenticate.when(data: (data) {
-        return data
-            ? FastDB.getIsTableCreated()
-                ? const DashBoard()
-                : const AskBackupScreen()
-            : const AuthFailurePage();
-      }, error: (err, obj) {
-        return ErrorPage();
-      }, loading: () {
-        return AuthScreen();
-      }),
+      home: authenticate.when(
+        data: (data) {
+          return data
+              ? FastDB.getIsTableCreated()
+                    ? const DashBoard()
+                    : const AskBackupScreen()
+              : const AuthFailurePage();
+        },
+        error: (err, obj) {
+          return ErrorPage();
+        },
+        loading: () {
+          return AuthScreen();
+        },
+      ),
       locale: const Locale('en', 'IN'),
       localizationsDelegates: [
         AppLocalizations.delegate,
@@ -100,4 +109,5 @@ class MyApp extends ConsumerWidget {
     // errorMessage: err.toString() + obj.toString(),
   }
 }
+
 // isAuthenticated ? DashBoard() : AuthScreen()

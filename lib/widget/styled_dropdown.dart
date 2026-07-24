@@ -28,7 +28,7 @@ class StyledDropdown<T> extends StatelessWidget {
           }
           return null;
         },
-        value: selectedValue,
+        initialValue: selectedValue,
         hint: Text(hintText),
         decoration: InputDecoration(
           suffixIcon: onAddPressed != null

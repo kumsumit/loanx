@@ -45,19 +45,11 @@ Future<bool> authenticate(Ref ref) async {
     if (canAuthenticateWithBiometrics) {
       return await localAuthentication.authenticate(
         localizedReason: 'Please authenticate to access the app',
-        options: const AuthenticationOptions(
-          useErrorDialogs: true,
-          stickyAuth: true,
-          // biometricOnly: true,
-        ),
+        persistAcrossBackgrounding: true,
       );
     } else if (await localAuthentication.isDeviceSupported()) {
       return await localAuthentication.authenticate(
         localizedReason: 'Please authenticate to access the app',
-        options: const AuthenticationOptions(
-          useErrorDialogs: true,
-          stickyAuth: false,
-        ),
       );
     }
   } on PlatformException catch (e) {
@@ -402,14 +394,19 @@ class FamilyRelationList extends _$FamilyRelationList {
 
     if (currentState != null &&
         currentState.any(
-            (element) => element.name.toLowerCase() == name.toLowerCase())) {
+          (element) => element.name.toLowerCase() == name.toLowerCase(),
+        )) {
       return -1;
     }
 
-    FamilyRelation familyRelation =
-        FamilyRelation(name: name, isAddedByUser: 1);
-    final id =
-        await db.insert(FamilyRelation.tableName, familyRelation.toJson());
+    FamilyRelation familyRelation = FamilyRelation(
+      name: name,
+      isAddedByUser: 1,
+    );
+    final id = await db.insert(
+      FamilyRelation.tableName,
+      familyRelation.toJson(),
+    );
 
     if (id > 0) {
       familyRelation = familyRelation.copy(id: id);
@@ -430,9 +427,11 @@ class FamilyRelationList extends _$FamilyRelationList {
     if (rid > 0) {
       await updateDBTime();
       if (state.value != null) {
-        state = AsyncData(state.value!
-            .where((familyRelation) => familyRelation.id != id)
-            .toList());
+        state = AsyncData(
+          state.value!
+              .where((familyRelation) => familyRelation.id != id)
+              .toList(),
+        );
       }
     }
   }
@@ -449,9 +448,11 @@ class FamilyRelationList extends _$FamilyRelationList {
     final results = await batch.commit();
     await updateDBTime();
     if (state.value != null) {
-      state = AsyncData(state.value!
-          .where((familyRelation) => !results.contains(familyRelation.id))
-          .toList());
+      state = AsyncData(
+        state.value!
+            .where((familyRelation) => !results.contains(familyRelation.id))
+            .toList(),
+      );
     }
   }
 
@@ -466,7 +467,7 @@ class FamilyRelationList extends _$FamilyRelationList {
       await updateDBTime();
       state = AsyncData([
         for (final s in state.value!)
-          if (s.id == familyRelation.id) familyRelation else s
+          if (s.id == familyRelation.id) familyRelation else s,
       ]);
     }
   }
@@ -508,14 +509,19 @@ class MortgageMaterialList extends _$MortgageMaterialList {
 
     if (currentState != null &&
         currentState.any(
-            (element) => element.name.toLowerCase() == name.toLowerCase())) {
+          (element) => element.name.toLowerCase() == name.toLowerCase(),
+        )) {
       return -1;
     }
 
-    MortgageMaterial mortgageMaterial =
-        MortgageMaterial(name: name, isAddedByUser: 1);
-    final id =
-        await db.insert(MortgageMaterial.tableName, mortgageMaterial.toJson());
+    MortgageMaterial mortgageMaterial = MortgageMaterial(
+      name: name,
+      isAddedByUser: 1,
+    );
+    final id = await db.insert(
+      MortgageMaterial.tableName,
+      mortgageMaterial.toJson(),
+    );
 
     if (id > 0) {
       mortgageMaterial = mortgageMaterial.copy(id: id);
@@ -535,9 +541,11 @@ class MortgageMaterialList extends _$MortgageMaterialList {
     );
     if (rid > 0) {
       await updateDBTime();
-      state = AsyncData(state.value!
-          .where((mortgageMaterial) => mortgageMaterial.id != id)
-          .toList());
+      state = AsyncData(
+        state.value!
+            .where((mortgageMaterial) => mortgageMaterial.id != id)
+            .toList(),
+      );
     }
   }
 
@@ -553,11 +561,13 @@ class MortgageMaterialList extends _$MortgageMaterialList {
     final results = await batch.commit();
     await updateDBTime();
     state = AsyncData(
-        state.value!.where((item) => !results.contains(item.id)).toList());
+      state.value!.where((item) => !results.contains(item.id)).toList(),
+    );
   }
 
   Future<void> updateMortagageMaterial(
-      MortgageMaterial mortgageMaterial) async {
+    MortgageMaterial mortgageMaterial,
+  ) async {
     final id = await db.update(
       MortgageMaterial.tableName,
       mortgageMaterial.toJson(),
@@ -568,7 +578,7 @@ class MortgageMaterialList extends _$MortgageMaterialList {
       await updateDBTime();
       state = AsyncData([
         for (final s in state.value!)
-          if (s.id == mortgageMaterial.id) mortgageMaterial else s
+          if (s.id == mortgageMaterial.id) mortgageMaterial else s,
       ]);
     }
   }
@@ -601,29 +611,38 @@ class LoanList extends _$LoanList {
   List<Loan> searchLoansByDateCreated(DateTime dateCreated) {
     if (state.value == null) return [];
     return state.value!
-        .where((item) =>
-            item.dateCreated.year == dateCreated.year &&
-            item.dateCreated.month == dateCreated.month &&
-            item.dateCreated.day == dateCreated.day)
+        .where(
+          (item) =>
+              item.dateCreated.year == dateCreated.year &&
+              item.dateCreated.month == dateCreated.month &&
+              item.dateCreated.day == dateCreated.day,
+        )
         .toList();
   }
 
   List<Loan> searchLoansByDateRange(DateTimeRange dateTimeRange) {
     if (state.value == null) return [];
     return state.value!
-        .where((item) =>
-            item.dateCreated.isAfter(dateTimeRange.start) &&
-            item.dateCreated.isBefore(dateTimeRange.end.add(Duration(days: 1))))
+        .where(
+          (item) =>
+              item.dateCreated.isAfter(dateTimeRange.start) &&
+              item.dateCreated.isBefore(
+                dateTimeRange.end.add(Duration(days: 1)),
+              ),
+        )
         .toList();
   }
 
   Future<List<Loan>> readAllLoansByMortgageMaterialId(
-      int mortgageMaterialId) async {
+    int mortgageMaterialId,
+  ) async {
     final orderBy = '${LoanFields.id} ASC';
-    final result = await db.query(Loan.tableName,
-        where: '${LoanFields.mortgageMaterialId} = ?',
-        whereArgs: [mortgageMaterialId],
-        orderBy: orderBy);
+    final result = await db.query(
+      Loan.tableName,
+      where: '${LoanFields.mortgageMaterialId} = ?',
+      whereArgs: [mortgageMaterialId],
+      orderBy: orderBy,
+    );
     return result.map((json) => Loan.fromJson(json)).toList();
   }
 
@@ -708,19 +727,23 @@ class LoanList extends _$LoanList {
 
   Future<List<Loan>> searchLoansByDepositorNameDB(String searchTerm) async {
     final orderBy = '${LoanFields.id} ASC';
-    final result = await db.query(Loan.tableName,
-        where: '${LoanFields.depositorName} LIKE ?',
-        whereArgs: ['%$searchTerm%'],
-        orderBy: orderBy);
+    final result = await db.query(
+      Loan.tableName,
+      where: '${LoanFields.depositorName} LIKE ?',
+      whereArgs: ['%$searchTerm%'],
+      orderBy: orderBy,
+    );
     return result.map((json) => Loan.fromJson(json)).toList();
   }
 
   Future<List<Loan>> searchMortgagesByRelativeNameDB(String searchTerm) async {
     final orderBy = '${LoanFields.id} ASC';
-    final result = await db.query(Loan.tableName,
-        where: '${LoanFields.relativeName} LIKE ?',
-        whereArgs: ['%$searchTerm%'],
-        orderBy: orderBy);
+    final result = await db.query(
+      Loan.tableName,
+      where: '${LoanFields.relativeName} LIKE ?',
+      whereArgs: ['%$searchTerm%'],
+      orderBy: orderBy,
+    );
     return result.map((json) => Loan.fromJson(json)).toList();
   }
 
@@ -764,7 +787,7 @@ class LoanList extends _$LoanList {
       if (id > 0) {
         state = AsyncData([
           for (final s in state.value!)
-            if (s.id == loan.id) loan else s
+            if (s.id == loan.id) loan else s,
         ]);
       }
     } else {
@@ -793,7 +816,7 @@ class LoanList extends _$LoanList {
       await updateDBTime();
       state = AsyncData([
         for (final s in state.value!)
-          if (s.id == loan.id) loan else s
+          if (s.id == loan.id) loan else s,
       ]);
     }
   }
@@ -824,7 +847,8 @@ class LoanList extends _$LoanList {
     await batch.commit(continueOnError: true);
     await updateDBTime();
     state = AsyncData(
-        state.value!.where((loan) => !ids.contains(loan.id)).toList());
+      state.value!.where((loan) => !ids.contains(loan.id)).toList(),
+    );
   }
 }
 
