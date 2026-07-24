@@ -16,16 +16,18 @@ class BulletPoint extends StatelessWidget {
           Text(
             '•',
             style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary),
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           SizedBox(width: 8), // Space between bullet and text
           Expanded(
             child: Text(
               text,
               style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                  fontStyle: italic ? FontStyle.italic : FontStyle.normal),
+                color: Theme.of(context).colorScheme.secondary,
+                fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+              ),
             ),
           ),
         ],

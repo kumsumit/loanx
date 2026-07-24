@@ -38,21 +38,21 @@ class Loan {
   int familyRelationId;
   int mortgageMaterialId;
 
-  Loan(
-      {this.id,
-      required this.depositorName,
-      required this.phoneNumber,
-      required this.relativeName,
-      required this.address,
-      required this.loanAmount,
-      required this.interestRate,
-      required this.interestType,
-      required this.interestFrequency,
-      required this.additionalDetails,
-      required this.familyRelationId,
-      required this.mortgageMaterialId,
-      DateTime? dateCreated})
-      : dateCreated = dateCreated ?? DateTime.now();
+  Loan({
+    this.id,
+    required this.depositorName,
+    required this.phoneNumber,
+    required this.relativeName,
+    required this.address,
+    required this.loanAmount,
+    required this.interestRate,
+    required this.interestType,
+    required this.interestFrequency,
+    required this.additionalDetails,
+    required this.familyRelationId,
+    required this.mortgageMaterialId,
+    DateTime? dateCreated,
+  }) : dateCreated = dateCreated ?? DateTime.now();
 
   String get dateCreatedFormat =>
       DateFormat('dd.MM.yy HH:mm:ss').format(dateCreated);
@@ -83,68 +83,71 @@ class Loan {
     return text;
   }
 
-  Loan copy(
-          {int? id,
-          String? depositorName,
-          String? phoneNumber,
-          String? relativeName,
-          String? address,
-          double? loanAmount,
-          double? interestRate,
-          double? weight,
-          int? interestType,
-          int? interestFrequency,
-          String? additionalDetails,
-          DateTime? dateCreated,
-          int? mortgageId,
-          int? familyRelationId,
-          int? mortgageMaterialId}) =>
-      Loan(
-          id: id ?? this.id,
-          depositorName: depositorName ?? this.depositorName,
-          phoneNumber: phoneNumber ?? this.phoneNumber,
-          relativeName: relativeName ?? this.relativeName,
-          address: address ?? this.address,
-          loanAmount: loanAmount ?? this.loanAmount,
-          interestRate: interestRate ?? this.interestRate,
-          interestType: interestType ?? this.interestType,
-          interestFrequency: interestFrequency ?? this.interestFrequency,
-          additionalDetails: additionalDetails ?? this.additionalDetails,
-          dateCreated: dateCreated ?? this.dateCreated,
-          familyRelationId: familyRelationId ?? this.familyRelationId,
-          mortgageMaterialId: mortgageMaterialId ?? this.mortgageMaterialId);
+  Loan copy({
+    int? id,
+    String? depositorName,
+    String? phoneNumber,
+    String? relativeName,
+    String? address,
+    double? loanAmount,
+    double? interestRate,
+    double? weight,
+    int? interestType,
+    int? interestFrequency,
+    String? additionalDetails,
+    DateTime? dateCreated,
+    int? mortgageId,
+    int? familyRelationId,
+    int? mortgageMaterialId,
+  }) => Loan(
+    id: id ?? this.id,
+    depositorName: depositorName ?? this.depositorName,
+    phoneNumber: phoneNumber ?? this.phoneNumber,
+    relativeName: relativeName ?? this.relativeName,
+    address: address ?? this.address,
+    loanAmount: loanAmount ?? this.loanAmount,
+    interestRate: interestRate ?? this.interestRate,
+    interestType: interestType ?? this.interestType,
+    interestFrequency: interestFrequency ?? this.interestFrequency,
+    additionalDetails: additionalDetails ?? this.additionalDetails,
+    dateCreated: dateCreated ?? this.dateCreated,
+    familyRelationId: familyRelationId ?? this.familyRelationId,
+    mortgageMaterialId: mortgageMaterialId ?? this.mortgageMaterialId,
+  );
 
   static Loan fromJson(Map<String, Object?> json) => Loan(
-      id: json[LoanFields.id] as int,
-      depositorName: json[LoanFields.depositorName] as String,
-      phoneNumber: json[LoanFields.phoneNumber] as String,
-      relativeName: json[LoanFields.relativeName] as String,
-      address: json[LoanFields.address] as String,
-      loanAmount: json[LoanFields.loanAmount] as double,
-      interestRate: json[LoanFields.interestRate] as double,
-      interestType: json[LoanFields.interestType] as int,
-      interestFrequency: json[LoanFields.interestFrequency] as int,
-      additionalDetails: json[LoanFields.additionalDetails] as String,
-      dateCreated: DateTime.parse(json[LoanFields.dateCreated] as String),
-      familyRelationId: json[LoanFields.familyRelationId] as int,
-      mortgageMaterialId: json[LoanFields.mortgageMaterialId] as int);
+    id: json[LoanFields.id] as int,
+    depositorName: json[LoanFields.depositorName] as String,
+    phoneNumber: json[LoanFields.phoneNumber] as String,
+    relativeName: json[LoanFields.relativeName] as String,
+    address: json[LoanFields.address] as String,
+    loanAmount: json[LoanFields.loanAmount] as double,
+    interestRate: json[LoanFields.interestRate] as double,
+    interestType: json[LoanFields.interestType] as int,
+    interestFrequency: json[LoanFields.interestFrequency] as int,
+    additionalDetails: json[LoanFields.additionalDetails] as String,
+    dateCreated: DateTime.parse(json[LoanFields.dateCreated] as String),
+    familyRelationId: json[LoanFields.familyRelationId] as int,
+    mortgageMaterialId: json[LoanFields.mortgageMaterialId] as int,
+  );
 
   Map<String, Object?> toJson() => {
-        LoanFields.id: id,
-        LoanFields.depositorName: depositorName,
-        LoanFields.phoneNumber: phoneNumber,
-        LoanFields.relativeName: relativeName,
-        LoanFields.address: address,
-        LoanFields.loanAmount: loanAmount,
-        LoanFields.interestRate: interestRate,
-        LoanFields.interestType: interestType,
-        LoanFields.interestFrequency: interestFrequency,
-        LoanFields.additionalDetails: additionalDetails,
-        LoanFields.dateCreated:
-            DateFormat('yyyy-MM-dd kk:mm:ss').format(dateCreated),
-        LoanFields.familyRelationId: familyRelationId,
-        LoanFields.mortgageMaterialId: mortgageMaterialId
-      };
+    LoanFields.id: id,
+    LoanFields.depositorName: depositorName,
+    LoanFields.phoneNumber: phoneNumber,
+    LoanFields.relativeName: relativeName,
+    LoanFields.address: address,
+    LoanFields.loanAmount: loanAmount,
+    LoanFields.interestRate: interestRate,
+    LoanFields.interestType: interestType,
+    LoanFields.interestFrequency: interestFrequency,
+    LoanFields.additionalDetails: additionalDetails,
+    LoanFields.dateCreated: DateFormat(
+      'yyyy-MM-dd kk:mm:ss',
+    ).format(dateCreated),
+    LoanFields.familyRelationId: familyRelationId,
+    LoanFields.mortgageMaterialId: mortgageMaterialId,
+  };
 
   double calculateCollectable() {
     final duration = DateTime.now().difference(dateCreated).inDays;
@@ -171,14 +174,6 @@ class Loan {
   }
 }
 
-enum InterestType {
-  simple,
-  compound,
-}
+enum InterestType { simple, compound }
 
-enum InterestFrequency {
-  monthly,
-  quarterly,
-  halfYearly,
-  yearly,
-}
+enum InterestFrequency { monthly, quarterly, halfYearly, yearly }

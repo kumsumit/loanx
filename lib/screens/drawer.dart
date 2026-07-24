@@ -36,7 +36,14 @@ class MyDrawer extends HookWidget {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary,
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.tertiary,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,9 +54,9 @@ class MyDrawer extends HookWidget {
                       Text(
                         'LoanX',
                         style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).colorScheme.onSecondary,
-                          fontSize: 25,
+                          fontWeight: FontWeight.w800,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontSize: 26,
                         ),
                       ),
                       // Column(
@@ -114,7 +121,7 @@ class MyDrawer extends HookWidget {
                                     fontSize: 13,
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSecondary,
+                                    ).colorScheme.onPrimary,
                                   ),
                                   minFontSize: 10,
                                 );
@@ -128,7 +135,7 @@ class MyDrawer extends HookWidget {
                                     fontSize: 13,
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSecondary,
+                                    ).colorScheme.onPrimary,
                                   ),
                                   maxLines:
                                       3, // Set the maximum number of lines
@@ -154,13 +161,13 @@ class MyDrawer extends HookWidget {
                                     Icons.light_mode,
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSecondary,
+                                    ).colorScheme.onPrimary,
                                   )
                                 : Icon(
                                     Icons.dark_mode,
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSecondary,
+                                    ).colorScheme.onPrimary,
                                   ),
                           );
                         },

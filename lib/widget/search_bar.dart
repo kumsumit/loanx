@@ -17,7 +17,7 @@ class SearchAppBar extends HookWidget {
     );
     final filter = useState<int>(1);
     return Padding(
-      padding: EdgeInsets.only(left: 20.0, bottom: 10.0),
+      padding: const EdgeInsets.fromLTRB(20, 16, 8, 0),
       child: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -38,22 +38,9 @@ class SearchAppBar extends HookWidget {
                         focusNode: focusNode,
                         autofocus: true,
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(),
                           labelText: 'Search Loan',
-                          labelStyle: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                          hintText: 'Search Loan',
-                          hintStyle: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.secondary.withValues(alpha: 0.5),
-                            fontSize: 14,
-                          ),
-                          suffixIcon: Icon(
-                            Icons.search,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
+                          hintText: 'Name, relation, or material',
+                          prefixIcon: const Icon(Icons.search_rounded),
                         ),
                       );
                     },
@@ -128,10 +115,8 @@ class SearchAppBar extends HookWidget {
               builder: (context, ref, child) {
                 final loanListNotifier = ref.read(loanListProvider.notifier);
                 return PopupMenuButton<int>(
-                  icon: Icon(
-                    Icons.filter_alt_outlined,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
+                  tooltip: 'Search filters',
+                  icon: const Icon(Icons.tune_rounded),
                   onSelected: (value) async {
                     if (value == 3) {
                       final date = await showDateSelectorDialog(context);
@@ -202,7 +187,7 @@ class SearchAppBar extends HookWidget {
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2022),
-      lastDate: DateTime(2025),
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
       initialEntryMode: DatePickerEntryMode.calendar,
     );
   }
@@ -237,12 +222,13 @@ class SearchAppBar extends HookWidget {
 
                 return mortgageMaterialTypes.when(
                   data: (data) => ListView.builder(
+                    shrinkWrap: true,
                     itemCount: data.length,
                     itemBuilder: (context, index) {
                       return ListTile(
                         title: Text(data[index].name),
                         onTap: () {
-                          Navigator.of(context).pop(index);
+                          Navigator.of(context).pop(data[index].id);
                         },
                       );
                     },

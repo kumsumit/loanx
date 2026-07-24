@@ -25,10 +25,14 @@ class ProfilePicture extends StatelessWidget {
                 width: 70,
                 height: 70,
                 fit: BoxFit.cover,
-                errorBuilder: (BuildContext context, Object exception,
-                    StackTrace? stackTrace) {
-                  return _buildInitialsAvatar();
-                },
+                errorBuilder:
+                    (
+                      BuildContext context,
+                      Object exception,
+                      StackTrace? stackTrace,
+                    ) {
+                      return _buildInitialsAvatar();
+                    },
               ),
             )
           : _buildInitialsAvatar(),
@@ -38,9 +42,7 @@ class ProfilePicture extends StatelessWidget {
   Widget _buildInitialsAvatar() {
     String initials = "";
     if (displayName.isEmpty) {
-      return Icon(
-        Icons.person,
-      );
+      return Icon(Icons.person);
     } else if (displayName.length < 2) {
       initials = displayName.toUpperCase();
     } else if (displayName.split(' ').length == 1) {
@@ -63,36 +65,32 @@ class ProfilePicture extends StatelessWidget {
 
 class LocalProfilePicture extends StatelessWidget {
   final String displayName;
-  const LocalProfilePicture({
-    super.key,
-    required this.displayName,
-  });
+  const LocalProfilePicture({super.key, required this.displayName});
 
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-        radius: 35,
-        backgroundColor: Theme.of(context).colorScheme.onPrimary,
-        child: ClipOval(
-          child: Image.memory(
-            Uint8List.fromList(FastDB.getPhoto()),
-            width: 70,
-            height: 70,
-            fit: BoxFit.cover,
-            errorBuilder: (BuildContext context, Object exception,
-                StackTrace? stackTrace) {
-              return _buildInitialsAvatar();
-            },
-          ),
-        ));
+      radius: 35,
+      backgroundColor: Theme.of(context).colorScheme.onPrimary,
+      child: ClipOval(
+        child: Image.memory(
+          Uint8List.fromList(FastDB.getPhoto()),
+          width: 70,
+          height: 70,
+          fit: BoxFit.cover,
+          errorBuilder:
+              (BuildContext context, Object exception, StackTrace? stackTrace) {
+                return _buildInitialsAvatar();
+              },
+        ),
+      ),
+    );
   }
 
   Widget _buildInitialsAvatar() {
     String initials = "";
     if (displayName.isEmpty) {
-      return Icon(
-        Icons.person,
-      );
+      return Icon(Icons.person);
     } else if (displayName.length < 2) {
       initials = displayName.toUpperCase();
     } else if (displayName.split(' ').length == 1) {

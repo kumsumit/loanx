@@ -5,31 +5,45 @@ import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/loan_details.dart';
 import 'package:loanx/widget/snackbar.dart';
+import 'package:intl/intl.dart';
 
 class MortgageListView extends StatelessWidget {
   const MortgageListView({super.key});
 
   Widget _mortgageBuilder(
-      BuildContext context, Loan loan, MortgageMaterial mortgageMaterial) {
-    return Consumer(builder: (context, ref, child) {
-      final loanSelectionList = ref.watch(loanSelectionListProvider);
-      return GestureDetector(
-        onHorizontalDragEnd: (details) async {
-          if (details.velocity.pixelsPerSecond.dx > 0 && !loan.isFinished()) {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text("Confirmation"),
-                content: Text(
-                    "Are you sure want you have returned this mortgage to the borrower and clear the loan?"),
-                actionsAlignment: MainAxisAlignment.spaceEvenly,
-                actions: [
-                  OutlinedButton(
+    BuildContext context,
+    Loan loan,
+    MortgageMaterial mortgageMaterial,
+  ) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final loanSelectionList = ref.watch(loanSelectionListProvider);
+        final selected = loanSelectionList.contains(loan.id);
+        final colors = Theme.of(context).colorScheme;
+        final amount = NumberFormat.currency(
+          locale: 'en_IN',
+          symbol: '₹',
+          decimalDigits: 0,
+        ).format(loan.loanAmount);
+        return GestureDetector(
+          onHorizontalDragEnd: (details) async {
+            if (details.velocity.pixelsPerSecond.dx > 0 && !loan.isFinished()) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text("Confirmation"),
+                  content: Text(
+                    "Are you sure want you have returned this mortgage to the borrower and clear the loan?",
+                  ),
+                  actionsAlignment: MainAxisAlignment.spaceEvenly,
+                  actions: [
+                    OutlinedButton(
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: Text("Cancel")),
-                  OutlinedButton(
+                      child: Text("Cancel"),
+                    ),
+                    OutlinedButton(
                       child: const Text('Ok'),
                       onPressed: () async {
                         loan.toggleFinished();
@@ -38,135 +52,216 @@ class MortgageListView extends StatelessWidget {
                             .updateLoan(loan);
                         if (context.mounted) {
                           Navigator.of(context).pop();
-                          showSnackBar(context,
-                              "Now, you can give mortgage to the borrower");
+                          showSnackBar(
+                            context,
+                            "Now, you can give mortgage to the borrower",
+                          );
                         }
-                      }),
-                ],
-              ),
-            );
-          }
-        },
-        onDoubleTap: () {
-          Navigator.push(
+                      },
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
+          onTap: () {
+            Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) => LoanDetails(loan: loan)));
-        },
-        onLongPress: () {
-          if (loanSelectionList.contains(loan.id)) {
-            ref.read(loanSelectionListProvider.notifier).remove(loan.id ?? 0);
-          } else {
-            ref.read(loanSelectionListProvider.notifier).add(loan.id ?? 0);
-          }
-        },
-        child: ColoredBox(
-          color: loanSelectionList.contains(loan.id)
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Colors.transparent,
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: DecoratedBox(
-                  decoration: const BoxDecoration(
-                      border:
-                          Border(bottom: BorderSide(color: Colors.black12))),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 18.0, horizontal: 10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          '${loan.depositorName} (mortgage: ${mortgageMaterial.name})',
-                          style: loan.isFinished()
-                              ? const TextStyle(
-                                  color: Colors.grey,
-                                  decoration: TextDecoration.lineThrough)
-                              : const TextStyle(fontSize: 15.0),
-                          key: Key('list_item_${loan.id}'),
+              MaterialPageRoute(builder: (context) => LoanDetails(loan: loan)),
+            );
+          },
+          onLongPress: () {
+            if (loanSelectionList.contains(loan.id)) {
+              ref.read(loanSelectionListProvider.notifier).remove(loan.id ?? 0);
+            } else {
+              ref.read(loanSelectionListProvider.notifier).add(loan.id ?? 0);
+            }
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: selected
+                  ? colors.primaryContainer
+                  : colors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selected ? colors.primary : colors.outlineVariant,
+                width: selected ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: loan.isFinished()
+                      ? colors.surfaceContainerHighest
+                      : colors.secondaryContainer,
+                  foregroundColor: loan.isFinished()
+                      ? colors.onSurfaceVariant
+                      : colors.onSecondaryContainer,
+                  child: selected
+                      ? const Icon(Icons.check_rounded)
+                      : Text(
+                          loan.depositorName.trim().isEmpty
+                              ? '?'
+                              : loan.depositorName.trim()[0].toUpperCase(),
+                          style: const TextStyle(fontWeight: FontWeight.w800),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 5.0),
-                          child: Text(
-                            loan.getStateText(),
-                            style: const TextStyle(
-                              fontSize: 12.0,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        loan.depositorName,
+                        key: Key('list_item_${loan.id}'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              decoration: loan.isFinished()
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        mortgageMaterial.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: colors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            loan.isFinished()
+                                ? Icons.check_circle_rounded
+                                : Icons.schedule_rounded,
+                            size: 15,
+                            color: loan.isFinished()
+                                ? colors.onSurfaceVariant
+                                : colors.primary,
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              loan.isFinished()
+                                  ? 'Completed'
+                                  : DateFormat(
+                                      'd MMM yyyy',
+                                    ).format(loan.dateCreated),
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelMedium
+                                  ?.copyWith(color: colors.onSurfaceVariant),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      amount,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(child: Consumer(builder: (context, ref, child) {
-      final loans = ref.watch(loanListProvider);
-      final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
-      return mortgageMaterials.when(
-          data: (mortgageMaterialList) {
-            if (mortgageMaterialList.isEmpty) {
-              return Center(
+    return Expanded(
+      child: Consumer(
+        builder: (context, ref, child) {
+          final loans = ref.watch(loanListProvider);
+          final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
+          return mortgageMaterials.when(
+            data: (mortgageMaterialList) {
+              if (mortgageMaterialList.isEmpty) {
+                return Center(
                   child: Text(
-                "No data found",
-                style: TextStyle(
-                    fontSize: 20,
-                    color: Theme.of(context).colorScheme.secondary),
-              ));
-            }
-            return loans.when(
+                    "No data found",
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                );
+              }
+              return loans.when(
                 data: (loanList) {
                   if (loanList.isEmpty) {
                     return Center(
-                        child: Text(
-                      "No data found",
-                      style: TextStyle(
+                      child: Text(
+                        "No data found",
+                        style: TextStyle(
                           fontSize: 20,
-                          color: Theme.of(context).colorScheme.secondary),
-                    ));
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
+                    );
                   }
                   return ListView.builder(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      itemCount: loanList.length,
-                      itemBuilder: (context, index) {
-                        final loan = loanList[index];
-                        final mortgageMaterial =
-                            mortgageMaterialList.firstWhere(
-                                (item) => item.id == loan.mortgageMaterialId);
-                        return _mortgageBuilder(
-                            context, loan, mortgageMaterial);
-                      });
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                    itemCount: loanList.length,
+                    itemBuilder: (context, index) {
+                      final loan = loanList[index];
+                      final mortgageMaterial = mortgageMaterialList.firstWhere(
+                        (item) => item.id == loan.mortgageMaterialId,
+                      );
+                      return _mortgageBuilder(context, loan, mortgageMaterial);
+                    },
+                  );
                 },
                 error: (e, b) => Center(
-                        child: Text(
-                      "An Error occurred",
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: Theme.of(context).colorScheme.secondary),
-                    )),
-                loading: () => Center(child: CircularProgressIndicator()));
-          },
-          error: (e, b) => Center(
                   child: Text(
+                    "An Error occurred",
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                ),
+                loading: () => Center(child: CircularProgressIndicator()),
+              );
+            },
+            error: (e, b) => Center(
+              child: Text(
                 "Loading ...",
                 style: TextStyle(
-                    fontSize: 20,
-                    color: Theme.of(context).colorScheme.secondary),
-              )),
-          loading: () => Center(
-                child: CircularProgressIndicator(),
-              ));
-    }));
+                  fontSize: 20,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+            ),
+            loading: () => Center(child: CircularProgressIndicator()),
+          );
+        },
+      ),
+    );
   }
 }
 

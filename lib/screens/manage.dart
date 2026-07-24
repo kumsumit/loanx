@@ -9,21 +9,31 @@ class Manage extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
-      child: Column(children: [
-        TabBar(
-          labelColor: Theme.of(context).colorScheme.primary,
-          unselectedLabelColor: Theme.of(context).colorScheme.secondary,
-          tabs: [
-            Tab(icon: Text("Mortgage Material")),
-            Tab(icon: Text("Family Relation")),
-          ],
-        ),
-        Expanded(
-          child: TabBarView(
-            children: [MortgageMaterialView(), FamilyRelationView()],
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const TabBar(
+                tabs: [
+                  Tab(text: "Materials"),
+                  Tab(text: "Relations"),
+                ],
+              ),
+            ),
           ),
-        ),
-      ]),
+          const Expanded(
+            child: TabBarView(
+              children: [MortgageMaterialView(), FamilyRelationView()],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

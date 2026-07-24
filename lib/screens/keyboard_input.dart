@@ -7,8 +7,10 @@ class KeyboardAwareListView extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final scrollController = useScrollController();
-    final focusNodes =
-        useMemoized(() => List.generate(5, (_) => FocusNode()), []);
+    final focusNodes = useMemoized(
+      () => List.generate(5, (_) => FocusNode()),
+      [],
+    );
 
     // Example list of items
     final items = List.generate(5, (index) => 'Item ${index + 1}');
@@ -30,12 +32,14 @@ class KeyboardAwareListView extends HookWidget {
       }
 
       WidgetsBinding.instance.addObserver(
-        LifecycleEventHandler(onDidChangeMetrics: () {
-          // Check if the keyboard is visible
-          if (View.of(context).viewInsets.bottom > 0.0) {
-            scrollToFocusedTextField();
-          }
-        }),
+        LifecycleEventHandler(
+          onDidChangeMetrics: () {
+            // Check if the keyboard is visible
+            if (View.of(context).viewInsets.bottom > 0.0) {
+              scrollToFocusedTextField();
+            }
+          },
+        ),
       );
 
       // Cleanup function to remove observer

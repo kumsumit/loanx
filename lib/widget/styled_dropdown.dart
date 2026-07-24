@@ -20,7 +20,7 @@ class StyledDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(bottom: 14),
       child: DropdownButtonFormField<T>(
         validator: (value) {
           if (value == null) {
@@ -34,38 +34,14 @@ class StyledDropdown<T> extends StatelessWidget {
           suffixIcon: onAddPressed != null
               ? IconButton(
                   onPressed: onAddPressed,
-                  icon: Icon(
-                    Icons.add,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ))
+                  icon: const Icon(Icons.add_rounded),
+                )
               : null,
           labelText: labelText,
-          labelStyle: TextStyle(color: Theme.of(context).colorScheme.secondary),
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.0),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.secondary,
-              )),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.0),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.secondary,
-              )),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.primaryFixedDim,
-              width: 2.0,
-            ),
-            borderRadius: BorderRadius.circular(10.0),
-          ),
         ),
         items: items,
         onChanged: onChanged,
-        icon: Icon(
-          Icons.arrow_drop_down,
-          color: Theme.of(context).colorScheme.secondary,
-        ),
-        style: TextStyle(fontSize: 16),
+        icon: const Icon(Icons.keyboard_arrow_down_rounded),
       ),
     );
   }

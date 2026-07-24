@@ -16,7 +16,7 @@ int damerauLevenshteinDistance(String firstString, String secondString) {
       curr[j] = [
         prev[j] + 1, // Deletion
         curr[j - 1] + 1, // Insertion
-        prev[j - 1] + cost // Substitution
+        prev[j - 1] + cost, // Substitution
       ].reduce((a, b) => a < b ? a : b);
 
       if (i > 1 &&

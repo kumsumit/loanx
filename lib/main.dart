@@ -14,6 +14,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/auth_screen.dart';
 import 'package:loanx/screens/dashboard.dart';
 import 'package:loanx/service/backup_service.dart';
+import 'package:loanx/theme/app_theme.dart';
 import 'package:workmanager/workmanager.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
@@ -63,17 +64,8 @@ class MyApp extends ConsumerWidget {
       // locale: DevicePreview.locale(context),
       // builder: DevicePreview.appBuilder,
       themeMode: themeMode,
-      theme: ThemeData(
-        colorSchemeSeed: Color(
-          int.parse('FF${appColor.substring(1)}', radix: 16),
-        ),
-      ),
-      darkTheme: ThemeData(
-        colorSchemeSeed: Color(
-          int.parse('FF${appColor.substring(1)}', radix: 16),
-        ),
-        brightness: Brightness.dark,
-      ),
+      theme: AppTheme.light(AppTheme.parseSeed(appColor)),
+      darkTheme: AppTheme.dark(AppTheme.parseSeed(appColor)),
       debugShowCheckedModeBanner: false,
       home: authenticate.when(
         data: (data) {

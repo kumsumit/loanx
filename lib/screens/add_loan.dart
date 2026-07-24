@@ -79,11 +79,7 @@ class LoanInput extends HookConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
-        title: Text(appBarTitle),
-        foregroundColor: Theme.of(context).colorScheme.primary,
-      ),
+      appBar: AppBar(title: Text(appBarTitle)),
       body: Padding(
         padding: EdgeInsets.only(left: 20, right: 20),
         child: Form(
@@ -91,6 +87,47 @@ class LoanInput extends HookConsumerWidget {
           child: ListView(
             controller: scrollController,
             children: <Widget>[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      loan == null
+                          ? Icons.add_card_rounded
+                          : Icons.edit_note_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 32,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            loan == null
+                                ? 'Create a new loan'
+                                : 'Update record',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Add the terms and borrower information below.',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text('Loan terms', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 10),
               RadioGroup<InterestType>(
                 groupValue: interestType.value,
                 onChanged: (value) {
@@ -207,7 +244,7 @@ class LoanInput extends HookConsumerWidget {
                           Radio<InterestFrequency>(
                             value: InterestFrequency.quarterly,
                           ),
-                          StyledSubtitle('Half-Yearly'),
+                          StyledSubtitle('Quarterly'),
                         ],
                       ),
                       Row(
@@ -216,19 +253,24 @@ class LoanInput extends HookConsumerWidget {
                           Radio<InterestFrequency>(
                             value: InterestFrequency.yearly,
                           ),
-                          StyledSubtitle('Quarterly'),
+                          StyledSubtitle('Yearly'),
                           SizedBox(width: 20),
                           Radio<InterestFrequency>(
                             value: InterestFrequency.halfYearly,
                           ),
-                          StyledSubtitle('Yearly'),
+                          StyledSubtitle('Half-Yearly'),
                         ],
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 24),
+              Text(
+                'Borrower information',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 10),
               StyledTextField(
                 failedValidationMessage: "Depositor Name can't be empty",
                 textEditingController: depositorController,
@@ -353,8 +395,9 @@ class LoanInput extends HookConsumerWidget {
               ),
               Consumer(
                 builder: (context, ref, child) {
-                  return Center(
-                    child: OutlinedButton(
+                  return SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
                       onPressed: () async {
                         if (formKey.currentState != null &&
                             formKey.currentState!.validate()) {
@@ -397,12 +440,15 @@ class LoanInput extends HookConsumerWidget {
                           }
                         }
                       },
-                      child: const Text('Save'),
+                      icon: const Icon(Icons.check_rounded),
+                      label: Text(
+                        loan == null ? 'Create loan' : 'Save changes',
+                      ),
                     ),
                   );
                 },
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 32),
             ],
           ),
         ),

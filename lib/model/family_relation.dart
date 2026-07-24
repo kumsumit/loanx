@@ -12,17 +12,9 @@ class FamilyRelation {
   final String name;
   final int isAddedByUser;
 
-  const FamilyRelation({
-    this.id,
-    required this.name,
-    this.isAddedByUser = 0,
-  });
+  const FamilyRelation({this.id, required this.name, this.isAddedByUser = 0});
 
-  FamilyRelation copy({
-    int? id,
-    String? name,
-    int? isAddedByUser,
-  }) =>
+  FamilyRelation copy({int? id, String? name, int? isAddedByUser}) =>
       FamilyRelation(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -30,14 +22,14 @@ class FamilyRelation {
       );
 
   static FamilyRelation fromJson(Map<String, Object?> json) => FamilyRelation(
-        id: json[FamilyRelationFields.id] as int,
-        name: json[FamilyRelationFields.name] as String,
-        isAddedByUser: json[FamilyRelationFields.isAddedByUser] as int,
-      );
+    id: json[FamilyRelationFields.id] as int,
+    name: json[FamilyRelationFields.name] as String,
+    isAddedByUser: json[FamilyRelationFields.isAddedByUser] as int,
+  );
 
   Map<String, Object?> toJson() => {
-        FamilyRelationFields.id: id,
-        FamilyRelationFields.name: name,
-        FamilyRelationFields.isAddedByUser: isAddedByUser,
-      };
+    FamilyRelationFields.id: id,
+    FamilyRelationFields.name: name,
+    FamilyRelationFields.isAddedByUser: isAddedByUser,
+  };
 }

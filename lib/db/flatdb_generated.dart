@@ -119,23 +119,30 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
   /// Finish building, and store into the [fbBuilder].
   @override
   int finish(fb.Builder fbBuilder) {
-    final int? appColorOffset =
-        appColor == null ? null : fbBuilder.writeString(appColor!);
+    final int? appColorOffset = appColor == null
+        ? null
+        : fbBuilder.writeString(appColor!);
     final int? driveAccessTokenOffset = driveAccessToken == null
         ? null
         : fbBuilder.writeString(driveAccessToken!);
-    final int? driveFileIdOffset =
-        driveFileId == null ? null : fbBuilder.writeString(driveFileId!);
-    final int? displayNameOffset =
-        displayName == null ? null : fbBuilder.writeString(displayName!);
-    final int? emailOffset =
-        email == null ? null : fbBuilder.writeString(email!);
-    final int? photourlOffset =
-        photourl == null ? null : fbBuilder.writeString(photourl!);
-    final int? backupTaskIdOffset =
-        backupTaskId == null ? null : fbBuilder.writeString(backupTaskId!);
-    final int? photoOffset =
-        photo == null ? null : fbBuilder.writeListUint8(photo!);
+    final int? driveFileIdOffset = driveFileId == null
+        ? null
+        : fbBuilder.writeString(driveFileId!);
+    final int? displayNameOffset = displayName == null
+        ? null
+        : fbBuilder.writeString(displayName!);
+    final int? emailOffset = email == null
+        ? null
+        : fbBuilder.writeString(email!);
+    final int? photourlOffset = photourl == null
+        ? null
+        : fbBuilder.writeString(photourl!);
+    final int? backupTaskIdOffset = backupTaskId == null
+        ? null
+        : fbBuilder.writeString(backupTaskId!);
+    final int? photoOffset = photo == null
+        ? null
+        : fbBuilder.writeListUint8(photo!);
     fbBuilder.startTable(21);
     fbBuilder.addBool(0, isTableCreated);
     fbBuilder.addInt8(1, themeMode);

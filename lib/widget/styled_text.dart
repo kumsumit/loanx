@@ -7,14 +7,7 @@ class StyledText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text,
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.primary,
-        )
-        // style: TextStyle(
-        //             color: Theme.of(context).colorScheme.onSurface,
-        //           )
-        );
+    return Text(text, maxLines: maxLines);
   }
 }
 
@@ -27,31 +20,34 @@ class StyledHeading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style:
-          TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 20),
+      style: Theme.of(context).textTheme.titleLarge,
       textAlign: TextAlign.center,
       maxLines: maxLines,
-      // style: TextStyle(
-      //             color: Theme.of(context).colorScheme.onSurface,
-      //           )
     );
   }
 }
 
 class StyledSubtitle extends StatelessWidget {
-  const StyledSubtitle(this.text,
-      {super.key, this.fontSize, this.maxLines = 1});
+  const StyledSubtitle(
+    this.text, {
+    super.key,
+    this.fontSize,
+    this.maxLines = 1,
+  });
   final String text;
   final double? fontSize;
   final int maxLines;
 
   @override
   Widget build(BuildContext context) {
-    return Text(text,
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
-          fontSize: fontSize,
-        ));
+    return Text(
+      text,
+      maxLines: maxLines,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        fontSize: fontSize,
+      ),
+    );
   }
 }
 

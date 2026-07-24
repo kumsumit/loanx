@@ -15,209 +15,251 @@ class AskBackupScreen extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-   final theme = Theme.of(context);
-      useEffect(() {
+    final theme = Theme.of(context);
+    useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-          statusBarColor: theme.scaffoldBackgroundColor,
-          statusBarIconBrightness: theme.brightness,
-          systemNavigationBarColor: theme.scaffoldBackgroundColor,
-             systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
-          systemNavigationBarIconBrightness: theme.brightness
-        ));
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: theme.scaffoldBackgroundColor,
+            statusBarIconBrightness: theme.brightness,
+            systemNavigationBarColor: theme.scaffoldBackgroundColor,
+            systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
+            systemNavigationBarIconBrightness: theme.brightness,
+          ),
+        );
       });
       return;
     }, const []);
 
     final isLoading = useState(false);
     return Material(
-        child: LoadingOverlay(
-      isLoading: isLoading.value,
-      child: DecoratedBox(
-        decoration: BoxDecoration(),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black38.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(12.0),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Backup',
-                        style: TextStyle(
+      child: LoadingOverlay(
+        isLoading: isLoading.value,
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.cloud_sync_outlined,
+                          size: 34,
                           color: Theme.of(context).colorScheme.primary,
-                          fontSize: Theme.of(context)
-                              .textTheme
-                              .headlineMedium!
-                              .fontSize,
-                        )),
-                    Image.asset(
-                      "assets/backup.png",
-                      height: 200,
-                      width: 200,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                      child: Text(
-                        'Do you want to backup your Loanx data from/to Google Drive?',
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Theme.of(context).colorScheme.primary),
-                        textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Consumer(builder: (context, ref, child) {
-                          return OutlinedButton(
-                            onPressed: () async {
-                              isLoading.value = true;
-                              if (!FastDB.getIsTableCreated()) {
-                                ref.read(dBProvider).when(
-                                    data: (data) async {
-                                      await DatabaseHelper.instance
-                                          .onCreate(data, 1);
-                                    },
-                                    error: (_, _) {
-                                      showSnackBar(context,
-                                          "An Error occured, Please try again later");
-                                    },
-                                    loading: () {});
-                              }
-                              isLoading.value = false;
-                              Navigator.pushReplacement(
+                      const SizedBox(height: 18),
+                      Text(
+                        'Restore your backup?',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Image.asset("assets/backup.png", height: 140, width: 140),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                        child: Text(
+                          'Bring back your previous LoanX records from Google Drive, or start with a fresh workspace.',
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: Theme.of(
                                   context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const DashBoard()));
-                            },
-                            child: const Text('No'),
-                          );
-                        }),
-                        Consumer(builder: (context, ref, child) {
-                          final networkStatus =
-                              ref.watch(networkCheckerProvider);
-                          final backupRegistered =
-                              ref.read(backUpRegisteredProvider.notifier);
-                          final db = ref.read(dBProvider);
-
-                          return OutlinedButton(
-                            onPressed: () async {
-                              networkStatus.when(
-                                  data: (data) async {
-                                    if (data) {
-                                      isLoading.value = true;
-                                      await BackupService
-                                          .downloadFileToDevice();
-                                      if (!FastDB.getIsTableCreated()) {
-                                        ref.read(dBProvider).when(
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Consumer(
+                            builder: (context, ref, child) {
+                              return Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () async {
+                                    isLoading.value = true;
+                                    if (!FastDB.getIsTableCreated()) {
+                                      ref
+                                          .read(dBProvider)
+                                          .when(
                                             data: (data) async {
                                               await DatabaseHelper.instance
                                                   .onCreate(data, 1);
                                             },
                                             error: (_, _) {
-                                              showSnackBar(context,
-                                                  "An Error occured, Please try again later");
+                                              showSnackBar(
+                                                context,
+                                                "An Error occured, Please try again later",
+                                              );
                                             },
-                                            loading: () {});
-                                      }
-                                      FastDB.putScheduledBackUpTimeHour(02);
-                                      FastDB.putScheduledBackUpTimeMinute(00);
-                                      await registerBackUp();
-                                      backupRegistered.set(true);
-                                      FastDB.putIsTableCreated(true);
-                                      await FastDB.flush();
-                                      db.when(
-                                          data: (data) async {
+                                            loading: () {},
+                                          );
+                                    }
+                                    isLoading.value = false;
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const DashBoard(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Start fresh'),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 12),
+                          Consumer(
+                            builder: (context, ref, child) {
+                              final networkStatus = ref.watch(
+                                networkCheckerProvider,
+                              );
+                              final backupRegistered = ref.read(
+                                backUpRegisteredProvider.notifier,
+                              );
+                              final db = ref.read(dBProvider);
+
+                              return Expanded(
+                                child: FilledButton(
+                                  onPressed: () async {
+                                    networkStatus.when(
+                                      data: (data) async {
+                                        if (data) {
+                                          isLoading.value = true;
+                                          await BackupService.downloadFileToDevice();
+                                          if (!FastDB.getIsTableCreated()) {
                                             ref
-                                                .read(
-                                                    mortgageMaterialListProvider
-                                                        .notifier)
-                                                .readAllMortgageMaterials();
-                                            ref
-                                                .read(familyRelationListProvider
-                                                    .notifier)
-                                                .readAllFamilyRelations();
-                                            ref
-                                                .read(loanListProvider.notifier)
-                                                .readAllLoans();
-                                          },
-                                          error: (_, _) {
-                                            if (!FastDB.getIsTableCreated()) {
-                                              db.when(
+                                                .read(dBProvider)
+                                                .when(
                                                   data: (data) async {
                                                     await DatabaseHelper
                                                         .instance
                                                         .onCreate(data, 1);
                                                   },
                                                   error: (_, _) {
-                                                    showSnackBar(context,
-                                                        "An Error occured, Please try again later");
+                                                    showSnackBar(
+                                                      context,
+                                                      "An Error occured, Please try again later",
+                                                    );
                                                   },
-                                                  loading: () {});
-                                            }
-                                            showSnackBar(context,
-                                                "An Error occured During Back Up, Please try again later");
-                                          },
-                                          loading: () {});
-                                    } else {
-                                      if (!FastDB.getIsTableCreated()) {
-                                        db.when(
+                                                  loading: () {},
+                                                );
+                                          }
+                                          FastDB.putScheduledBackUpTimeHour(02);
+                                          FastDB.putScheduledBackUpTimeMinute(
+                                            00,
+                                          );
+                                          await registerBackUp();
+                                          backupRegistered.set(true);
+                                          FastDB.putIsTableCreated(true);
+                                          await FastDB.flush();
+                                          db.when(
                                             data: (data) async {
-                                              await DatabaseHelper.instance
-                                                  .onCreate(data, 1);
+                                              ref
+                                                  .read(
+                                                    mortgageMaterialListProvider
+                                                        .notifier,
+                                                  )
+                                                  .readAllMortgageMaterials();
+                                              ref
+                                                  .read(
+                                                    familyRelationListProvider
+                                                        .notifier,
+                                                  )
+                                                  .readAllFamilyRelations();
+                                              ref
+                                                  .read(
+                                                    loanListProvider.notifier,
+                                                  )
+                                                  .readAllLoans();
                                             },
                                             error: (_, _) {
-                                              showSnackBar(context,
-                                                  "An Error occured, Please try again later");
+                                              if (!FastDB.getIsTableCreated()) {
+                                                db.when(
+                                                  data: (data) async {
+                                                    await DatabaseHelper
+                                                        .instance
+                                                        .onCreate(data, 1);
+                                                  },
+                                                  error: (_, _) {
+                                                    showSnackBar(
+                                                      context,
+                                                      "An Error occured, Please try again later",
+                                                    );
+                                                  },
+                                                  loading: () {},
+                                                );
+                                              }
+                                              showSnackBar(
+                                                context,
+                                                "An Error occured During Back Up, Please try again later",
+                                              );
                                             },
-                                            loading: () {});
-                                      }
+                                            loading: () {},
+                                          );
+                                        } else {
+                                          if (!FastDB.getIsTableCreated()) {
+                                            db.when(
+                                              data: (data) async {
+                                                await DatabaseHelper.instance
+                                                    .onCreate(data, 1);
+                                              },
+                                              error: (_, _) {
+                                                showSnackBar(
+                                                  context,
+                                                  "An Error occured, Please try again later",
+                                                );
+                                              },
+                                              loading: () {},
+                                            );
+                                          }
+                                        }
+                                      },
+                                      error: (_, _) {
+                                        showSnackBar(
+                                          context,
+                                          "An Error occured, Please try again later",
+                                        );
+                                      },
+                                      loading: () {},
+                                    );
+
+                                    isLoading.value = false;
+                                    if (context.mounted) {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const DashBoard(),
+                                        ),
+                                      );
                                     }
                                   },
-                                  error: (_, _) {
-                                    showSnackBar(context,
-                                        "An Error occured, Please try again later");
-                                  },
-                                  loading: () {});
-
-                              isLoading.value = false;
-                              if (context.mounted) {
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const DashBoard()));
-                              }
+                                  child: const Text('Restore'),
+                                ),
+                              );
                             },
-                            child: const Text('Yes'),
-                          );
-                        }),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10,
-                    )
-                  ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ),
-    ));
+    );
   }
 }

@@ -6,5 +6,9 @@ class K {
   static const _kFontFam = 'K';
   static const String? _kFontPkg = null;
 
-  static const IconData whatsapp = IconData(0xf232, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData whatsapp = IconData(
+    0xf232,
+    fontFamily: _kFontFam,
+    fontPackage: _kFontPkg,
+  );
 }

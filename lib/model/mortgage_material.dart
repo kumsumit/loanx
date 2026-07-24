@@ -12,17 +12,9 @@ class MortgageMaterial {
   final String name;
   final int isAddedByUser;
 
-  const MortgageMaterial({
-    this.id,
-    required this.name,
-    this.isAddedByUser = 0,
-  });
+  const MortgageMaterial({this.id, required this.name, this.isAddedByUser = 0});
 
-  MortgageMaterial copy({
-    int? id,
-    String? name,
-    int? isAddedByUser,
-  }) =>
+  MortgageMaterial copy({int? id, String? name, int? isAddedByUser}) =>
       MortgageMaterial(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -37,8 +29,8 @@ class MortgageMaterial {
       );
 
   Map<String, Object?> toJson() => {
-        MortgageMaterialFields.id: id,
-        MortgageMaterialFields.name: name,
-        MortgageMaterialFields.isAddedByUser: isAddedByUser,
-      };
+    MortgageMaterialFields.id: id,
+    MortgageMaterialFields.name: name,
+    MortgageMaterialFields.isAddedByUser: isAddedByUser,
+  };
 }

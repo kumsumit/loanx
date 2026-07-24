@@ -35,10 +35,15 @@ class DashBoard extends HookWidget {
           SystemChrome.setSystemUIOverlayStyle(
             SystemUiOverlayStyle(
               statusBarColor: theme.scaffoldBackgroundColor,
-              statusBarIconBrightness: Brightness.dark,
+              statusBarIconBrightness: theme.brightness == Brightness.dark
+                  ? Brightness.light
+                  : Brightness.dark,
               systemNavigationBarColor: theme.scaffoldBackgroundColor,
               systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
-              systemNavigationBarIconBrightness: Brightness.dark,
+              systemNavigationBarIconBrightness:
+                  theme.brightness == Brightness.dark
+                  ? Brightness.light
+                  : Brightness.dark,
             ),
           );
         });
@@ -52,12 +57,10 @@ class DashBoard extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
-        foregroundColor: Theme.of(context).colorScheme.primary,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(),
             StyledHeading(title.value),
+            const Spacer(),
             currentIndex.value == 0
                 ? Consumer(
                     builder: (context, ref, child) {
@@ -302,17 +305,23 @@ Sent with Love via LoanX
       ),
       drawer: MyDrawer(),
       body: _pages[currentIndex.value],
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Theme.of(context).colorScheme.secondary,
-        currentIndex: currentIndex.value,
-        onTap: (index) {
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: currentIndex.value,
+        onDestinationSelected: (index) {
           currentIndex.value = index;
-          title.value = index == 0 ? "Loanx" : "Manage";
+          title.value = index == 0 ? "LoanX" : "Manage";
         },
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Manage'),
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home_rounded),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.tune_outlined),
+            selectedIcon: Icon(Icons.tune_rounded),
+            label: 'Manage',
+          ),
         ],
       ),
     );

@@ -24,15 +24,19 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), 'loanx.db');
     if (await File(path).exists()) {
-      return await openDatabase(path,
-          version: 1,
-          // onCreate: onCreate,
-          password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf');
-    }
-    return await openDatabase(path,
+      return await openDatabase(
+        path,
         version: 1,
-        onCreate: onCreate,
-        password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf');
+        // onCreate: onCreate,
+        password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
+      );
+    }
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: onCreate,
+      password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
+    );
   }
 
   Future onCreate(Database db, int version) async {
@@ -992,34 +996,37 @@ class DatabaseHelper {
       'Medal',
       'Necklace',
       'Locket',
-      'Neck band'
+      'Neck band',
     ];
     final familyRelations = ['Husband', 'Father', 'Wife'];
     final batch = db.batch();
     batch.execute(
-        'CREATE TABLE IF NOT EXISTS mortgageMaterials(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
+      'CREATE TABLE IF NOT EXISTS mortgageMaterials(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)',
+    );
     batch.execute(
-        'CREATE TABLE IF NOT EXISTS familyRelations(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)');
+      'CREATE TABLE IF NOT EXISTS familyRelations(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)',
+    );
     batch.execute(
-        '''CREATE TABLE IF NOT EXISTS loans(id INTEGER PRIMARY KEY, depositorName TEXT, phoneNumber TEXT, email TEXT,
+      '''CREATE TABLE IF NOT EXISTS loans(id INTEGER PRIMARY KEY, depositorName TEXT, phoneNumber TEXT, email TEXT,
            relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, interestType INTEGER,
            interestFrequency INTEGER, additionalDetails TEXT,
            dateCreated TEXT, dateFinished TEXT, familyRelationId INTEGER, mortgageMaterialId INTEGER,
            FOREIGN KEY (familyRelationId) REFERENCES familyRelations (id),
            FOREIGN KEY (mortgageMaterialId) REFERENCES mortgageMaterials (id),
-           UNIQUE(depositorName, relativeName, address, loanAmount, familyRelationId) )''');
+           UNIQUE(depositorName, relativeName, address, loanAmount, familyRelationId) )''',
+    );
 
     for (final mortgageMaterial in mortgageMaterials) {
       batch.insert(MortgageMaterial.tableName, {
         MortgageMaterialFields.name: mortgageMaterial,
-        MortgageMaterialFields.isAddedByUser: 0
+        MortgageMaterialFields.isAddedByUser: 0,
       });
     }
 
     for (final familyRelation in familyRelations) {
       batch.insert(FamilyRelation.tableName, {
         FamilyRelationFields.name: familyRelation,
-        FamilyRelationFields.isAddedByUser: 0
+        FamilyRelationFields.isAddedByUser: 0,
       });
     }
 
@@ -1050,10 +1057,12 @@ class DatabaseHelper {
 
   static Future<void> mergeTables(Database db2) async {
     // Fetch records from the second database
-    final List<Map<String, dynamic>> familyRelations =
-        await db2.query(FamilyRelation.tableName);
-    final List<Map<String, dynamic>> mortgageMaterials =
-        await db2.query(MortgageMaterial.tableName);
+    final List<Map<String, dynamic>> familyRelations = await db2.query(
+      FamilyRelation.tableName,
+    );
+    final List<Map<String, dynamic>> mortgageMaterials = await db2.query(
+      MortgageMaterial.tableName,
+    );
     final List<Map<String, dynamic>> loans = await db2.query(Loan.tableName);
 
     if (_database != null) {

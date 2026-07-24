@@ -105,6 +105,7 @@ flutter:
   generate: true
   assets:
     - assets/
+    - shorebird.yaml
   fonts:
     - family: K
       fonts:

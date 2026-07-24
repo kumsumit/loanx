@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/service/eye_rolling.dart';
 
 class AuthScreen extends HookConsumerWidget {
   const AuthScreen({super.key});
@@ -13,12 +12,15 @@ class AuthScreen extends HookConsumerWidget {
     final theme = Theme.of(context);
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
             statusBarColor: theme.scaffoldBackgroundColor,
             statusBarIconBrightness: theme.brightness,
             systemNavigationBarColor: theme.scaffoldBackgroundColor,
             systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
-            systemNavigationBarIconBrightness: theme.brightness));
+            systemNavigationBarIconBrightness: theme.brightness,
+          ),
+        );
       });
       return;
     }, const []);
@@ -32,40 +34,76 @@ class AuthScreen extends HookConsumerWidget {
       curve: Curves.easeInOut,
     );
 
-    final appColor = ref.watch(appColorProvider);
+    ref.watch(appColorProvider);
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor:
-          Color(int.parse('FF${appColor.substring(1)}', radix: 16)),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                EyeRollingIcon(animation: animation),
-                SizedBox(width: 20),
-                EyeRollingIcon(animation: animation),
-              ],
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                  image: DecorationImage(
-                      image: AssetImage("assets/logo.png"), fit: BoxFit.cover)),
-              child: SizedBox(
-                width: 250,
-                height: 250,
-                child: FadeTransition(
-                  opacity: animation,
-                  child: Icon(
-                    Icons.lock_outline,
-                    color: Colors.red,
-                    size: 100,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [colors.primary, colors.tertiary],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: FadeTransition(
+              opacity: Tween<double>(begin: .65, end: 1).animate(animation),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 112,
+                    height: 112,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: colors.surface,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 30,
+                          offset: Offset(0, 12),
+                        ),
+                      ],
+                    ),
+                    child: Image.asset("assets/logo.png"),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'LoanX',
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: colors.onPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Your lending workspace',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: colors.onPrimary.withValues(alpha: .8),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: colors.onPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Securing your data…',
+                    style: TextStyle(
+                      color: colors.onPrimary.withValues(alpha: .75),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

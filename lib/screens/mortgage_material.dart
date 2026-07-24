@@ -12,9 +12,10 @@ class MortgageMaterialView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Consumer(builder: (context, ref, child) {
-        final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
-        return mortgageMaterials.when(
+      body: Consumer(
+        builder: (context, ref, child) {
+          final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
+          return mortgageMaterials.when(
             data: (data) {
               if (data.isEmpty) {
                 return Center(child: Text('No mortgage material found'));
@@ -25,16 +26,37 @@ class MortgageMaterialView extends StatelessWidget {
                 groupBy: (element) => element['isAddedByUser'] == 1
                     ? 'Added By You'
                     : 'Added By System',
-                groupSeparatorBuilder: (String groupByValue) =>
-                    StyledHeading(groupByValue),
-                itemBuilder: (context, dynamic element) =>
-                    ListTile(title: Text(element['name']),
-                      onTap: () => mortgageDialog(context, element["name"]),
-                      onLongPress: element['isAddedByUser'] == 1
-                          ? () =>
-                              mortgageDeleteDialog(context, ref, element["id"])
-                          : null,
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                separator: const SizedBox(height: 8),
+                groupSeparatorBuilder: (String groupByValue) => Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 18, 4, 10),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      groupByValue,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
+                  ),
+                ),
+                itemBuilder: (context, dynamic element) => Card(
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Icon(Icons.inventory_2_outlined),
+                    ),
+                    title: Text(element['name']),
+                    subtitle: Text(
+                      element['isAddedByUser'] == 1
+                          ? 'Custom material'
+                          : 'System material',
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => mortgageDialog(context, element["name"]),
+                    onLongPress: element['isAddedByUser'] == 1
+                        ? () =>
+                              mortgageDeleteDialog(context, ref, element["id"])
+                        : null,
+                  ),
+                ),
                 itemComparator: (item1, item2) =>
                     item1['name'].compareTo(item2['name']), // optional
                 useStickyGroupSeparators: true, // optional
@@ -45,8 +67,10 @@ class MortgageMaterialView extends StatelessWidget {
             error: (_, _) {
               return Center(child: Text("An error occurred"));
             },
-            loading: () => Center(child: CircularProgressIndicator()));
-      }),
+            loading: () => Center(child: CircularProgressIndicator()),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => mortgageDialog(context, null),
         child: Icon(Icons.add),
@@ -54,57 +78,53 @@ class MortgageMaterialView extends StatelessWidget {
     );
   }
 
-  void mortgageDeleteDialog(
-      BuildContext context, WidgetRef ref, int id) {
+  void mortgageDeleteDialog(BuildContext context, WidgetRef ref, int id) {
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-              title: StyledHeading('Delete Mortgage Material'),
-              content: StyledSubtitle(
-                  'Are you sure you want to delete this mortgage material?'),
-              actionsAlignment: MainAxisAlignment.spaceEvenly,
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    await ref
-                        .read(mortgageMaterialListProvider.notifier)
-                        .delete(id);
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      showSnackBar(
-                          context, 'Mortgage Material deleted successfully');
-                    }
-                  },
-                  child: const Text('Delete'),
-                ),
-              ],
-            ));
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: StyledHeading('Delete Mortgage Material'),
+        content: StyledSubtitle(
+          'Are you sure you want to delete this mortgage material?',
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await ref.read(mortgageMaterialListProvider.notifier).delete(id);
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                showSnackBar(context, 'Mortgage Material deleted successfully');
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 
-  void mortgageDialog(
-      BuildContext context, String? name) {
+  void mortgageDialog(BuildContext context, String? name) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        final mortgageMaterialInputController =
-            TextEditingController(text: name);
+        final mortgageMaterialInputController = TextEditingController(
+          text: name,
+        );
         final formKey = GlobalKey<FormState>();
         return AlertDialog(
           title: StyledHeading('Add Mortgage Material'),
           content: Form(
             key: formKey,
             child: TextFormField(
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.secondary),
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().isEmpty) {
                   return 'Mortgage Material cannot be empty';
@@ -115,11 +135,11 @@ class MortgageMaterialView extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Enter the Mortgage Material',
                 hintStyle: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .secondary
-                        .withValues(alpha: 0.5),
-                    fontSize: 14),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.secondary.withValues(alpha: 0.5),
+                  fontSize: 14,
+                ),
               ),
               controller: mortgageMaterialInputController,
             ),
@@ -132,30 +152,38 @@ class MortgageMaterialView extends StatelessWidget {
               },
               child: const Text('Cancel'),
             ),
-            Consumer(builder: (context, ref, child) {
-              return TextButton(
-                child: const Text('Submit'),
-                onPressed: () async {
-                  if (formKey.currentState != null &&
-                      formKey.currentState!.validate()) {
-                    final status = await ref
-                        .read(mortgageMaterialListProvider.notifier)
-                        .add(mortgageMaterialInputController.text
-                            .toSentenceCase());
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      if (status > 0) {
-                        showSnackBar(
-                            context, 'Mortgage Material added successfully');
-                      } else {
-                        showSnackBar(
-                            context, 'Mortgage Material already exists');
+            Consumer(
+              builder: (context, ref, child) {
+                return TextButton(
+                  child: const Text('Submit'),
+                  onPressed: () async {
+                    if (formKey.currentState != null &&
+                        formKey.currentState!.validate()) {
+                      final status = await ref
+                          .read(mortgageMaterialListProvider.notifier)
+                          .add(
+                            mortgageMaterialInputController.text
+                                .toSentenceCase(),
+                          );
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                        if (status > 0) {
+                          showSnackBar(
+                            context,
+                            'Mortgage Material added successfully',
+                          );
+                        } else {
+                          showSnackBar(
+                            context,
+                            'Mortgage Material already exists',
+                          );
+                        }
                       }
                     }
-                  }
-                },
-              );
-            }),
+                  },
+                );
+              },
+            ),
           ],
         );
       },

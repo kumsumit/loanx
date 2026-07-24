@@ -38,8 +38,9 @@ class LoadingOverlay extends HookWidget {
     final controller = useAnimationController(
       duration: const Duration(milliseconds: 300),
     );
-    final animation =
-        useMemoized(() => Tween(begin: 0.0, end: 1.0).animate(controller));
+    final animation = useMemoized(
+      () => Tween(begin: 0.0, end: 1.0).animate(controller),
+    );
 
     useEffect(() {
       void listener(AnimationStatus status) {

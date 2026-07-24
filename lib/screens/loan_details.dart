@@ -1,124 +1,334 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 
 class LoanDetails extends ConsumerWidget {
   const LoanDetails({super.key, required this.loan});
+
   final Loan loan;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(familyRelationListProvider).when(
-        data: (familyRelationList) {
-          return ref.watch(mortgageMaterialListProvider).when(
-              data: (mortgageMaterialList) {
-                final familyRelation = familyRelationList.firstWhere(
-                    (familyRelation) =>
-                        familyRelation.id == loan.familyRelationId);
-                final mortgageMaterial = mortgageMaterialList.firstWhere(
-                    (mortgageMaterial) =>
-                        mortgageMaterial.id == loan.mortgageMaterialId);
-                final double collectable = loan.calculateCollectable();
-                return Scaffold(
-                  appBar: AppBar(
-                    title: Text('Loan Details'),
-                    centerTitle: true,
-                  ),
-                  body: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SingleChildScrollView(
-                      child: Table(
-                        border: TableBorder.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        children: [
-                          buildDataRow(
-                              context, 'Depositor Name', loan.depositorName),
-                          buildDataRow(
-                              context, 'Relative Name', loan.relativeName),
-                          buildDataRow(context, 'Address', loan.address),
-                          buildDataRow(context, 'Loan Amount',
-                              loan.loanAmount.toStringAsFixed(2)),
-                          loan.interestType == InterestType.compound.index
-                              ? buildDataRow(
-                                  context,
-                                  'Interest',
-                                  (collectable - loan.loanAmount)
-                                      .toStringAsFixed(2))
-                              : buildDataRow(context, 'Interest',
-                                  collectable.toStringAsFixed(2)),
-                          loan.interestType == InterestType.compound.index
-                              ? buildDataRow(context, 'Collectable Amount',
-                                  collectable.toStringAsFixed(2))
-                              : buildDataRow(
-                                  context,
-                                  'Collectable Amount',
-                                  (loan.loanAmount + collectable)
-                                      .toStringAsFixed(2)),
-                          buildDataRow(context, 'Interest Rate',
-                              loan.interestRate.toString()),
-                          buildDataRow(
-                              context,
-                              'Interest Type',
-                              InterestType.values[loan.interestType].name
-                                  .toSentenceCase()),
-                          if (InterestType.values[loan.interestType] ==
-                              InterestType.compound)
-                            buildDataRow(
-                                context,
-                                'Interest Frequency',
-                                InterestFrequency
-                                    .values[loan.interestFrequency].name
-                                    .toSentenceCase()),
-                          buildDataRow(
-                              context, 'Family Relation', familyRelation.name),
-                          buildDataRow(context, 'Mortgage Material',
-                              mortgageMaterial.name),
-                          buildDataRow(context, 'Additional Details',
-                              loan.additionalDetails),
-                        ],
-                      ),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Loan details')),
+      body: ref
+          .watch(familyRelationListProvider)
+          .when(
+            data: (relations) => ref
+                .watch(mortgageMaterialListProvider)
+                .when(
+                  data: (materials) {
+                    final relation = relations.firstWhere(
+                      (item) => item.id == loan.familyRelationId,
+                    );
+                    final material = materials.firstWhere(
+                      (item) => item.id == loan.mortgageMaterialId,
+                    );
+                    return _DetailsContent(
+                      loan: loan,
+                      relation: relation.name,
+                      material: material.name,
+                    );
+                  },
+                  error: (_, _) => const _LoadError(),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                ),
+            error: (_, _) => const _LoadError(),
+            loading: () => const Center(child: CircularProgressIndicator()),
+          ),
+    );
+  }
+}
+
+class _DetailsContent extends StatelessWidget {
+  const _DetailsContent({
+    required this.loan,
+    required this.relation,
+    required this.material,
+  });
+
+  final Loan loan;
+  final String relation;
+  final String material;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final currency = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 0,
+    );
+    final calculated = loan.calculateCollectable();
+    final interest = loan.interestType == InterestType.compound.index
+        ? calculated - loan.loanAmount
+        : calculated;
+    final collectable = loan.interestType == InterestType.compound.index
+        ? calculated
+        : loan.loanAmount + calculated;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colors.primary, colors.tertiary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      loan.depositorName,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(color: colors.onPrimary),
                     ),
                   ),
-                );
-              },
-              error: (_, q) => Center(
-                    child: Text("An error occurred"),
+                  _StatusPill(completed: loan.isFinished()),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'COLLECTABLE AMOUNT',
+                style: TextStyle(
+                  color: colors.onPrimary.withValues(alpha: .7),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                currency.format(collectable),
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  color: colors.onPrimary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: _AmountMetric(
+                      label: 'Principal',
+                      value: currency.format(loan.loanAmount),
+                    ),
                   ),
-              loading: () => Center(
-                    child: CircularProgressIndicator(),
-                  ));
-        },
-        error: (_, q) => Center(
-              child: Text("An error occurred"),
-            ),
-        loading: () => Center(
-              child: CircularProgressIndicator(),
-            ));
-  }
-
-  TableRow buildDataRow(BuildContext context, String title, String value) {
-    return TableRow(
-      // cells:
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(title,
-              style: TextStyle(
-                  fontSize: 15, color: Theme.of(context).colorScheme.primary)),
+                  Expanded(
+                    child: _AmountMetric(
+                      label: 'Interest',
+                      value: currency.format(interest),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(value,
-              style: TextStyle(
-                  fontSize: 15,
-                  color: Theme.of(context).colorScheme.secondary)),
+        const SizedBox(height: 24),
+        const _SectionTitle('Loan information'),
+        const SizedBox(height: 10),
+        Card(
+          child: Column(
+            children: [
+              _DetailRow(
+                icon: Icons.percent_rounded,
+                label: 'Interest',
+                value:
+                    '${loan.interestRate}% · ${InterestType.values[loan.interestType].name.toSentenceCase()}',
+              ),
+              if (loan.interestType == InterestType.compound.index)
+                _DetailRow(
+                  icon: Icons.calendar_month_outlined,
+                  label: 'Frequency',
+                  value: InterestFrequency.values[loan.interestFrequency].name
+                      .toSentenceCase(),
+                ),
+              _DetailRow(
+                icon: Icons.inventory_2_outlined,
+                label: 'Mortgage material',
+                value: material,
+              ),
+              _DetailRow(
+                icon: Icons.event_outlined,
+                label: 'Created',
+                value: DateFormat(
+                  'd MMM yyyy, h:mm a',
+                ).format(loan.dateCreated),
+                last: true,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        const _SectionTitle('Borrower information'),
+        const SizedBox(height: 10),
+        Card(
+          child: Column(
+            children: [
+              _DetailRow(
+                icon: Icons.phone_outlined,
+                label: 'Phone',
+                value: loan.phoneNumber,
+              ),
+              _DetailRow(
+                icon: Icons.people_outline_rounded,
+                label: relation,
+                value: loan.relativeName,
+              ),
+              _DetailRow(
+                icon: Icons.location_on_outlined,
+                label: 'Address',
+                value: loan.address,
+              ),
+              _DetailRow(
+                icon: Icons.notes_rounded,
+                label: 'Additional details',
+                value: loan.additionalDetails.trim().isEmpty
+                    ? 'No additional details'
+                    : loan.additionalDetails,
+                last: true,
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.completed});
+
+  final bool completed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: colors.onPrimary.withValues(alpha: .14),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        completed ? 'Completed' : 'Active',
+        style: TextStyle(
+          color: colors.onPrimary,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+}
+
+class _AmountMetric extends StatelessWidget {
+  const _AmountMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onPrimary;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(color: color.withValues(alpha: .7))),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          style: TextStyle(color: color, fontWeight: FontWeight.w700),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(text, style: Theme.of(context).textTheme.titleMedium);
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.last = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: colors.primary, size: 20),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(value, style: Theme.of(context).textTheme.bodyLarge),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (!last) const Divider(indent: 58),
+      ],
+    );
+  }
+}
+
+class _LoadError extends StatelessWidget {
+  const _LoadError();
+
+  @override
+  Widget build(BuildContext context) =>
+      const Center(child: Text('Unable to load loan details'));
 }
