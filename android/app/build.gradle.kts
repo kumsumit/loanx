@@ -18,18 +18,18 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.kumpali.loanx"
-    compileSdk = 35
-    ndkVersion = "29.0.14206865"
+    compileSdk = 37
+    ndkVersion = "30.0.15729638"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_24
-        targetCompatibility = JavaVersion.VERSION_24
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     defaultConfig {
         applicationId = "com.kumpali.loanx"
         minSdk = flutter.minSdkVersion
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1 // flutter.versionCode
         versionName = "1.0.1" // flutter.versionName
     }
@@ -71,7 +71,7 @@ android {
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_24)
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
