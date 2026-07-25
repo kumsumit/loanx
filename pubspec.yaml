@@ -112,17 +112,21 @@ flutter:
         - asset: assets/fonts/K.ttf
 
 flutter_native_splash: 
-  color: '#ffffff'
-  color_dark: '#000000'
+  color: '#9fd09f'
+  color_dark: '#000f0f'
   android: true
   ios: true
-  image_android: 'loanx.png'
-  image_dark_android: 'loanx.png'
-  image_ios: 'loanx.png'
-  image_dark_ios: 'loanx.png'
+  image_android: 'logo_light.png'
+  image_dark_android: 'logo_dark.png'
+  image_ios: 'logo_light.png'
+  image_dark_ios: 'logo_dark.png'
   android_gravity: center
   ios_content_mode: center
-
+  android_12:
+    color: '#9fd09f'
+    color_dark: '#000f0f'
+    image: 'android_12_light.png'
+    image_dark: 'android_12_dark.png'
 
 icons_launcher:
   image_path: "assets/logo.png"

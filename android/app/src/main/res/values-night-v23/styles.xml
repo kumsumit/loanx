@@ -9,7 +9,7 @@
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-        <item name="android:statusBarColor">#000000</item>
+        <item name="android:statusBarColor">#000f0f</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
