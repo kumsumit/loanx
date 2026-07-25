@@ -59,9 +59,9 @@ class AuthScreen extends HookConsumerWidget {
                     decoration: BoxDecoration(
                       color: colors.surface,
                       borderRadius: BorderRadius.circular(30),
-                      boxShadow: const [
+                      boxShadow: [
                         BoxShadow(
-                          color: Colors.black26,
+                          color: colors.onSurface.withValues(alpha: 0.12),
                           blurRadius: 30,
                           offset: Offset(0, 12),
                         ),

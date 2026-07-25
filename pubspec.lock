@@ -1430,7 +1430,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "6de6ae7668f96df7ae72989fb9bda5e8710b4205"
+      resolved-ref: a110865216418fc44ba022f335fdd2f8594d8e14
       url: "https://github.com/kumsumit/riverpod_lint.git"
     source: git
     version: "3.1.4"

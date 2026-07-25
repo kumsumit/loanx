@@ -20,21 +20,20 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 class LoadingOverlay extends HookWidget {
   final bool isLoading;
   final Color? color;
-  final Widget progressIndicator;
+  final Widget? progressIndicator;
   final Widget child;
 
   const LoadingOverlay({
     super.key,
     required this.isLoading,
     required this.child,
-    this.progressIndicator = const CircularProgressIndicator(
-      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-    ),
+    this.progressIndicator,
     this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final controller = useAnimationController(
       duration: const Duration(milliseconds: 300),
     );
@@ -71,10 +70,16 @@ class LoadingOverlay extends HookWidget {
           children: <Widget>[
             SizedBox.expand(
               child: ColoredBox(
-                color: color ?? Colors.black.withValues(alpha: 0.5),
+                color: color ?? colors.onSurface.withValues(alpha: 0.5),
               ),
             ),
-            Center(child: progressIndicator),
+            Center(
+              child: progressIndicator ??
+                  CircularProgressIndicator(
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(colors.onPrimary),
+              ),
+            ),
           ],
         ),
       );

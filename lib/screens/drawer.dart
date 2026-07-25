@@ -937,7 +937,7 @@ class MyDrawer extends HookWidget {
                                 "Backup in progress, Please wait ...",
                                 style: TextStyle(
                                   fontSize: 15,
-                                  color: Colors.red,
+                                  color: Theme.of(context).colorScheme.error,
                                 ),
                               )
                             : null,
@@ -1014,7 +1014,7 @@ class MyDrawer extends HookWidget {
                                 "Downloading in progress, Please wait ...",
                                 style: TextStyle(
                                   fontSize: 15,
-                                  color: Colors.red,
+                                  color: Theme.of(context).colorScheme.error,
                                 ),
                               )
                             : null,

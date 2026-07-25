@@ -23,8 +23,8 @@ void showErrorSnackBar(BuildContext context, String message) {
         color: Colors.transparent,
         child: SlideInSnackbar(
           message: message,
-          color: Colors.white,
-          backgroundColor: Colors.red,
+          color: Theme.of(context).colorScheme.onError,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       ),
     ),
@@ -75,6 +75,7 @@ class SlideInSnackbar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final controller = useAnimationController(
       duration: const Duration(milliseconds: 300),
     )..forward();
@@ -93,7 +94,7 @@ class SlideInSnackbar extends HookWidget {
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black26,
+                color: colors.onSurface.withValues(alpha: 0.12),
               blurRadius: 10,
               offset: Offset(0, 2),
             ),
