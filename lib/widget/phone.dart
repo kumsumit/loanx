@@ -1,7 +1,7 @@
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:flutter/material.dart';
 
-class PhoneWidget extends StatelessWidget {
+class PhoneWidget extends StatefulWidget {
   final void Function(PhoneNumber)? onChanged;
   final String labelText;
   final TextEditingController? textEditingController;
@@ -11,7 +11,8 @@ class PhoneWidget extends StatelessWidget {
   final FocusNode? focusNode;
   final void Function()? onTap;
   final void Function()? onSubmit;
-  PhoneWidget({
+
+  const PhoneWidget({
     super.key,
     this.focusNode,
     this.onChanged,
@@ -23,6 +24,49 @@ class PhoneWidget extends StatelessWidget {
     this.onSubmit,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
   });
+
+  @override
+  State<PhoneWidget> createState() => _PhoneWidgetState();
+}
+
+class _PhoneWidgetState extends State<PhoneWidget> {
+  final TextEditingController _fallbackController = TextEditingController();
+
+  TextEditingController get _effectiveController =>
+      widget.textEditingController ?? _fallbackController;
+
+  void _syncController(String value) {
+    final controller = _effectiveController;
+    if (controller.text == value) return;
+
+    controller.value = TextEditingValue(
+      text: value,
+      selection: TextSelection.collapsed(offset: value.length),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _syncController(widget.initialValue.nsn);
+  }
+
+  @override
+  void didUpdateWidget(covariant PhoneWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final previousPhone = oldWidget.initialValue.nsn;
+    final currentPhone = widget.initialValue.nsn;
+    if (previousPhone != currentPhone && currentPhone.isNotEmpty) {
+      _syncController(currentPhone);
+    }
+  }
+
+  @override
+  void dispose() {
+    _fallbackController.dispose();
+    super.dispose();
+  }
+
   final List<Country> countries = [
     Country(
       name: "India",
@@ -69,10 +113,10 @@ class PhoneWidget extends StatelessWidget {
           dialCode: "+91",
         ),
       ],
-      onTap: onTap,
-      onSubmit: onSubmit,
-      focusNode: focusNode,
-      textFieldController: textEditingController,
+      onTap: widget.onTap,
+      onSubmit: widget.onSubmit,
+      focusNode: widget.focusNode,
+      textFieldController: _effectiveController,
       keyboardAction: TextInputAction.done,
       searchBoxDecoration: InputDecoration(
         isDense: true,
@@ -92,14 +136,14 @@ class PhoneWidget extends StatelessWidget {
         //   horizontal: 5,
         //   vertical: 5,
         // ),
-        hintText: hint,
+        hintText: widget.hint,
         hintStyle: TextStyle(
           color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.5),
           fontSize: 14,
         ),
         label: FittedBox(
           child: Text(
-            labelText,
+            widget.labelText,
             maxLines: 2,
             style: TextStyle(color: Theme.of(context).colorScheme.secondary),
           ),
@@ -126,7 +170,9 @@ class PhoneWidget extends StatelessWidget {
         errorStyle: TextStyle(fontSize: 11),
       ),
       errorMessage: "Provide a valid number",
-      onInputChanged: onChanged,
+      onInputChanged: (phoneNumber) {
+        widget.onChanged?.call(phoneNumber);
+      },
       // locale: Get.locale!.languageCode,
       selectorConfig: SelectorConfig(
         // trailingPadding: 5,
@@ -139,8 +185,8 @@ class PhoneWidget extends StatelessWidget {
         ),
       ),
       ignoreBlank: false,
-      autoValidateMode: autovalidateMode,
-      flagStyle: TextStyle(fontSize: 200),
+      autoValidateMode: widget.autovalidateMode,
+      flagStyle: TextStyle(fontSize: 20),
       textStyle: TextStyle(
         color: Theme.of(context).colorScheme.secondary,
         fontSize: 16,
@@ -148,12 +194,9 @@ class PhoneWidget extends StatelessWidget {
       selectorTextStyle: TextStyle(
         color: Theme.of(context).colorScheme.secondary,
       ),
-      initialValue: initialValue,
+      initialValue: widget.initialValue,
       formatInput: true,
-      keyboardType: const TextInputType.numberWithOptions(
-        signed: true,
-        decimal: true,
-      ),
+      keyboardType: TextInputType.phone,
       inputBorder: const OutlineInputBorder(),
     );
   }
