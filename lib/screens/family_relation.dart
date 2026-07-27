@@ -14,10 +14,7 @@ class FamilyRelationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Family Relations'),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: const Text('Family Relations'), centerTitle: false),
       body: Consumer(
         builder: (context, ref, child) {
           final familyRelations = ref.watch(familyRelationListProvider);
@@ -128,8 +125,11 @@ class FamilyRelationView extends StatelessWidget {
                 },
                 itemComparator: (item1, item2) =>
                     item1['name'].compareTo(item2['name']),
+                // Keep the current group's label visible without letting it
+                // float over a relation card.
                 useStickyGroupSeparators: true,
-                floatingHeader: true,
+                floatingHeader: false,
+                stickyHeaderBackgroundColor: theme.scaffoldBackgroundColor,
                 order: GroupedListOrder.ASC,
               );
             },
@@ -224,7 +224,9 @@ class FamilyRelationView extends StatelessWidget {
         );
         final formKey = GlobalKey<FormState>();
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           icon: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -232,9 +234,7 @@ class FamilyRelationView extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isEditing
-                  ? Icons.edit_outlined
-                  : Icons.person_add_alt_1_outlined,
+              isEditing ? Icons.edit_outlined : Icons.person_add_alt_1_outlined,
               color: theme.colorScheme.onPrimaryContainer,
             ),
           ),

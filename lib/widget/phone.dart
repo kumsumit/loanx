@@ -105,14 +105,7 @@ class _PhoneWidgetState extends State<PhoneWidget> {
             )
             .toList();
       },
-      countries: [
-        Country(
-          name: "India",
-          alpha2Code: "IN",
-          alpha3Code: "IND",
-          dialCode: "+91",
-        ),
-      ],
+      countries: countries,
       onTap: widget.onTap,
       onSubmit: widget.onSubmit,
       focusNode: widget.focusNode,

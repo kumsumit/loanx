@@ -776,7 +776,11 @@ class LoanList extends _$LoanList {
       mortgageMaterialId: mortgageMaterialId,
     );
     if (oldLoan != null) {
-      loan = loan.copy(id: oldLoan.id);
+      loan = loan.copy(
+        id: oldLoan.id,
+        dateCreated: oldLoan.dateCreated,
+        dateFinished: oldLoan.dateFinished,
+      );
       id = await db.update(
         Loan.tableName,
         loan.toJson(),

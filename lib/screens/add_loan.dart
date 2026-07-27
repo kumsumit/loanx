@@ -286,14 +286,6 @@ class LoanInput extends HookConsumerWidget {
                   nsn: loan?.phoneNumber ?? "",
                 ),
               ),
-              // StyledTextField(
-              //   failedValidationMessage:
-              //       "Depositor Mobile Number can't be empty",
-              //   textEditingController: phoneNumberController,
-              //   hintText: "Depositor Mobile Number",
-              //   labelText: "Depositor Mobile Number",
-              //   keyboardType: TextInputType.phone,
-              // ),
               StyledTextField(
                 failedValidationMessage: "Address can't be empty",
                 textEditingController: addressController,

@@ -4,6 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
+import 'package:loanx/screens/add_loan.dart';
+import 'package:loanx/widget/snackbar.dart';
+import 'package:share_plus/share_plus.dart';
 
 class LoanDetails extends ConsumerWidget {
   const LoanDetails({super.key, required this.loan});
@@ -12,8 +15,58 @@ class LoanDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentLoan = ref
+        .watch(loanListProvider)
+        .maybeWhen(
+          data: (loans) => loans.firstWhere(
+            (item) => item.id == loan.id,
+            orElse: () => loan,
+          ),
+          orElse: () => loan,
+        );
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Loan details')),
+      appBar: AppBar(
+        title: const Text('Loan details'),
+        actions: [
+          IconButton(
+            tooltip: 'Share loan details',
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () {
+              final box = context.findRenderObject() as RenderBox?;
+              SharePlus.instance.share(
+                ShareParams(
+                  subject: 'Loan details for ${currentLoan.depositorName}',
+                  text: _shareText(currentLoan),
+                  sharePositionOrigin: box == null
+                      ? null
+                      : box.localToGlobal(Offset.zero) & box.size,
+                ),
+              );
+            },
+          ),
+          IconButton(
+            tooltip: 'Edit loan',
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => LoanInput(loan: currentLoan),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            tooltip: currentLoan.isFinished()
+                ? 'Loan already completed'
+                : 'Mark as complete',
+            icon: const Icon(Icons.task_alt_outlined),
+            onPressed: currentLoan.isFinished()
+                ? null
+                : () => _markComplete(context, ref, currentLoan),
+          ),
+        ],
+      ),
       body: ref
           .watch(familyRelationListProvider)
           .when(
@@ -22,13 +75,13 @@ class LoanDetails extends ConsumerWidget {
                 .when(
                   data: (materials) {
                     final relation = relations.firstWhere(
-                      (item) => item.id == loan.familyRelationId,
+                      (item) => item.id == currentLoan.familyRelationId,
                     );
                     final material = materials.firstWhere(
-                      (item) => item.id == loan.mortgageMaterialId,
+                      (item) => item.id == currentLoan.mortgageMaterialId,
                     );
                     return _DetailsContent(
-                      loan: loan,
+                      loan: currentLoan,
                       relation: relation.name,
                       material: material.name,
                     );
@@ -41,6 +94,64 @@ class LoanDetails extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
           ),
     );
+  }
+
+  String _shareText(Loan loan) {
+    final currency = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 0,
+    );
+    final calculated = loan.calculateCollectable();
+    final collectable = loan.interestType == InterestType.compound.index
+        ? calculated
+        : loan.loanAmount + calculated;
+    return '''Loan details
+
+Borrower: ${loan.depositorName}
+Phone: ${loan.phoneNumber}
+Address: ${loan.address}
+Loan amount: ${currency.format(loan.loanAmount)}
+Interest: ${loan.interestRate}% (${InterestType.values[loan.interestType].name.toSentenceCase()})
+Collectable amount: ${currency.format(collectable)}
+Status: ${loan.isFinished() ? 'Completed' : 'Active'}
+Created: ${DateFormat('d MMM yyyy').format(loan.dateCreated)}
+${loan.additionalDetails.trim().isEmpty ? '' : 'Additional details: ${loan.additionalDetails}'}
+
+Sent via LoanX''';
+  }
+
+  Future<void> _markComplete(
+    BuildContext context,
+    WidgetRef ref,
+    Loan loan,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Mark loan as complete?'),
+        content: const Text(
+          'This records that the mortgage has been returned and the loan is cleared.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Mark complete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    loan.toggleFinished();
+    await ref.read(loanListProvider.notifier).updateLoan(loan);
+    if (context.mounted) {
+      showSnackBar(context, 'Loan marked as complete');
+    }
   }
 }
 

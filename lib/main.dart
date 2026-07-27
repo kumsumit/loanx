@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/l10n/app_localizations.dart';
 import 'package:loanx/screens/ask_backup_screen.dart';
 import 'package:loanx/screens/error.dart';
@@ -31,6 +32,11 @@ void main() async {
     FastDB.putInterestRate(2.5);
     FastDB.putScheduledBackUpTimeHour(2);
     await FastDB.flush();
+  }
+  try {
+    await PhoneMetadataBootstrap.ensureInitialized();
+  } catch (e) {
+    debugPrint('Phone metadata initialization failed: $e');
   }
   // await Firebase.initializeApp();
 

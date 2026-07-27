@@ -52,6 +52,7 @@ class Loan {
     required this.familyRelationId,
     required this.mortgageMaterialId,
     DateTime? dateCreated,
+    this.dateFinished,
   }) : dateCreated = dateCreated ?? DateTime.now();
 
   String get dateCreatedFormat =>
@@ -96,6 +97,7 @@ class Loan {
     int? interestFrequency,
     String? additionalDetails,
     DateTime? dateCreated,
+    DateTime? dateFinished,
     int? mortgageId,
     int? familyRelationId,
     int? mortgageMaterialId,
@@ -111,6 +113,7 @@ class Loan {
     interestFrequency: interestFrequency ?? this.interestFrequency,
     additionalDetails: additionalDetails ?? this.additionalDetails,
     dateCreated: dateCreated ?? this.dateCreated,
+    dateFinished: dateFinished ?? this.dateFinished,
     familyRelationId: familyRelationId ?? this.familyRelationId,
     mortgageMaterialId: mortgageMaterialId ?? this.mortgageMaterialId,
   );
@@ -127,6 +130,9 @@ class Loan {
     interestFrequency: json[LoanFields.interestFrequency] as int,
     additionalDetails: json[LoanFields.additionalDetails] as String,
     dateCreated: DateTime.parse(json[LoanFields.dateCreated] as String),
+    dateFinished: json[LoanFields.dateFinished] == null
+        ? null
+        : DateTime.parse(json[LoanFields.dateFinished] as String),
     familyRelationId: json[LoanFields.familyRelationId] as int,
     mortgageMaterialId: json[LoanFields.mortgageMaterialId] as int,
   );
@@ -145,12 +151,17 @@ class Loan {
     LoanFields.dateCreated: DateFormat(
       'yyyy-MM-dd kk:mm:ss',
     ).format(dateCreated),
+    LoanFields.dateFinished: dateFinished == null
+        ? null
+        : DateFormat('yyyy-MM-dd kk:mm:ss').format(dateFinished!),
     LoanFields.familyRelationId: familyRelationId,
     LoanFields.mortgageMaterialId: mortgageMaterialId,
   };
 
   double calculateCollectable() {
-    final duration = DateTime.now().difference(dateCreated).inDays;
+    final duration = (dateFinished ?? DateTime.now())
+        .difference(dateCreated)
+        .inDays;
     int n;
     switch (InterestFrequency.values[interestFrequency]) {
       case InterestFrequency.monthly:

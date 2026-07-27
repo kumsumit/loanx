@@ -35,8 +35,8 @@ android {
         applicationId = "com.kumpali.loanx"
         minSdk = flutter.minSdkVersion
         targetSdk = 37
-        versionCode = 1 // flutter.versionCode
-        versionName = "1.0.1" // flutter.versionName
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     signingConfigs {

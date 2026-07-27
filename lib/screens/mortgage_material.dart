@@ -97,8 +97,9 @@ class MortgageMaterialView extends StatelessWidget {
                                 children: [
                                   Text(
                                     element['name'],
-                                    style: theme.textTheme.bodyLarge
-                                        ?.copyWith(fontWeight: FontWeight.w500),
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -141,8 +142,11 @@ class MortgageMaterialView extends StatelessWidget {
                 },
                 itemComparator: (item1, item2) =>
                     item1['name'].compareTo(item2['name']),
+                // Keep the current group's label visible without letting it
+                // float over a material card.
                 useStickyGroupSeparators: true,
-                floatingHeader: true,
+                floatingHeader: false,
+                stickyHeaderBackgroundColor: theme.scaffoldBackgroundColor,
                 order: GroupedListOrder.ASC,
               );
             },
@@ -347,10 +351,7 @@ class _ErrorState extends StatelessWidget {
               color: theme.colorScheme.error,
             ),
             const SizedBox(height: 12),
-            Text(
-              'Something went wrong',
-              style: theme.textTheme.titleMedium,
-            ),
+            Text('Something went wrong', style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
               'Please try again in a moment.',
