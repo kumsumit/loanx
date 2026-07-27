@@ -912,30 +912,77 @@ class LoanList extends _$LoanList {
 
   String _describeChanges(Loan before, Loan after) {
     final changes = <String>[];
-    if (before.depositorName != after.depositorName) changes.add('borrower');
-    if (before.phoneNumber != after.phoneNumber) changes.add('phone number');
-    if (before.relativeName != after.relativeName) changes.add('relative name');
-    if (before.address != after.address) changes.add('address');
-    if (before.loanAmount != after.loanAmount) changes.add('loan amount');
-    if (before.interestRate != after.interestRate) changes.add('interest rate');
-    if (before.interestType != after.interestType) changes.add('interest type');
+    void record(String field, String oldValue, String newValue) {
+      if (oldValue != newValue) {
+        changes.add(
+          '$field: ${_displayValue(oldValue)} → ${_displayValue(newValue)}',
+        );
+      }
+    }
+
+    record('Borrower', before.depositorName, after.depositorName);
+    record('Phone number', before.phoneNumber, after.phoneNumber);
+    record('Relative name', before.relativeName, after.relativeName);
+    record('Address', before.address, after.address);
+    record(
+      'Loan amount',
+      before.loanAmount.toStringAsFixed(2),
+      after.loanAmount.toStringAsFixed(2),
+    );
+    record(
+      'Interest rate',
+      '${before.interestRate}%',
+      '${after.interestRate}%',
+    );
+    record(
+      'Interest type',
+      InterestType.values[before.interestType].name,
+      InterestType.values[after.interestType].name,
+    );
     if (before.interestFrequency != after.interestFrequency) {
-      changes.add('interest frequency');
+      record(
+        'Interest frequency',
+        InterestFrequency.values[before.interestFrequency].name,
+        InterestFrequency.values[after.interestFrequency].name,
+      );
     }
-    if (before.additionalDetails != after.additionalDetails) {
-      changes.add('notes');
-    }
+    record('Notes', before.additionalDetails, after.additionalDetails);
     if (before.familyRelationId != after.familyRelationId) {
-      changes.add('family relation');
+      record(
+        'Family relation ID',
+        before.familyRelationId.toString(),
+        after.familyRelationId.toString(),
+      );
     }
     if (before.mortgageMaterialId != after.mortgageMaterialId) {
-      changes.add('mortgage material');
+      record(
+        'Mortgage material ID',
+        before.mortgageMaterialId.toString(),
+        after.mortgageMaterialId.toString(),
+      );
     }
     if (before.dateFinished == null && after.dateFinished != null) {
-      return 'Loan marked as completed';
+      record('Status', 'Active', 'Completed');
+      record('Item received by', before.completedBy, after.completedBy);
+      record(
+        'Amount received',
+        before.settlementAmount?.toStringAsFixed(2) ?? '',
+        after.settlementAmount?.toStringAsFixed(2) ?? '',
+      );
+      record(
+        'Reference number',
+        before.completionReference,
+        after.completionReference,
+      );
+      record('Settlement notes', before.completionNotes, after.completionNotes);
     }
     if (changes.isEmpty) return 'Loan record updated';
-    return 'Updated ${changes.join(', ')}';
+    return 'Updated\n${changes.join('\n')}';
+  }
+
+  String _displayValue(String value) {
+    final normalized = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+    return normalized.isEmpty ? '(empty)' : normalized;
   }
 }
 
