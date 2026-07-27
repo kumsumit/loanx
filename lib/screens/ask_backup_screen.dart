@@ -16,6 +16,9 @@ class AskBackupScreen extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isLoading = useState(false);
+
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         SystemChrome.setSystemUIOverlayStyle(
@@ -28,231 +31,239 @@ class AskBackupScreen extends HookWidget {
           ),
         );
       });
-      return;
-    }, const []);
+      return null;
+    }, [theme]);
 
-    final isLoading = useState(false);
-    return Material(
-      child: LoadingOverlay(
+    return Scaffold(
+      body: LoadingOverlay(
         isLoading: isLoading.value,
         child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.cloud_sync_outlined,
-                          size: 34,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Text(
-                        'Restore your backup?',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Image.asset("assets/backup.png", height: 140, width: 140),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                        child: Text(
-                          'Bring back your previous LoanX records from Google Drive, or start with a fresh workspace.',
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 480),
+                    child: Card(
+                      clipBehavior: Clip.antiAlias,
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: colors.primaryContainer,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.cloud_sync_outlined,
+                                  size: 32,
+                                  color: colors.primary,
+                                ),
                               ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Consumer(
-                            builder: (context, ref, child) {
-                              return Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () async {
-                                    isLoading.value = true;
-                                    if (!FastDB.getIsTableCreated()) {
-                                      ref
-                                          .read(dBProvider)
-                                          .when(
-                                            data: (data) async {
-                                              await DatabaseHelper.instance
-                                                  .onCreate(data, 1);
-                                            },
-                                            error: (_, _) {
-                                              showSnackBar(
-                                                context,
-                                                "An Error occured, Please try again later",
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Welcome to LoanX',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: colors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Restore your loan records',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'If you have used LoanX before, bring your saved records back from Google Drive. Otherwise, start with a new workspace.',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: colors.onSurfaceVariant,
+                                height: 1.4,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: colors.secondaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline_rounded,
+                                    color: colors.onSecondaryContainer,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Restoring replaces the records currently on this device.',
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: colors.onSecondaryContainer,
+                                            height: 1.35,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Consumer(
+                              builder: (context, ref, child) => FilledButton.icon(
+                                onPressed: () async {
+                                  final networkStatus = ref.read(
+                                    networkCheckerProvider,
+                                  );
+                                  final backupRegistered = ref.read(
+                                    backUpRegisteredProvider.notifier,
+                                  );
+                                  final db = ref.read(dBProvider);
+
+                                  networkStatus.when(
+                                    data: (connected) async {
+                                      if (connected) {
+                                        isLoading.value = true;
+                                        await BackupService.downloadFileToDevice();
+                                        if (!FastDB.getIsTableCreated()) {
+                                          ref
+                                              .read(dBProvider)
+                                              .when(
+                                                data: (data) async {
+                                                  await DatabaseHelper.instance
+                                                      .onCreate(data, 1);
+                                                },
+                                                error: (_, _) => showSnackBar(
+                                                  context,
+                                                  'Something went wrong. Please try again.',
+                                                ),
+                                                loading: () {},
                                               );
-                                            },
-                                            loading: () {},
-                                          );
-                                    }
-                                    isLoading.value = false;
+                                        }
+                                        FastDB.putScheduledBackUpTimeHour(02);
+                                        FastDB.putScheduledBackUpTimeMinute(00);
+                                        await registerBackUp();
+                                        backupRegistered.set(true);
+                                        FastDB.putIsTableCreated(true);
+                                        await FastDB.flush();
+                                        db.when(
+                                          data: (data) async {
+                                            ref
+                                                .read(
+                                                  mortgageMaterialListProvider
+                                                      .notifier,
+                                                )
+                                                .readAllMortgageMaterials();
+                                            ref
+                                                .read(
+                                                  familyRelationListProvider
+                                                      .notifier,
+                                                )
+                                                .readAllFamilyRelations();
+                                            ref
+                                                .read(loanListProvider.notifier)
+                                                .readAllLoans();
+                                          },
+                                          error: (_, _) => showSnackBar(
+                                            context,
+                                            'Could not restore your backup. Please try again.',
+                                          ),
+                                          loading: () {},
+                                        );
+                                      } else {
+                                        showSnackBar(
+                                          context,
+                                          'Connect to the internet to restore a backup.',
+                                        );
+                                        return;
+                                      }
+                                      isLoading.value = false;
+                                      if (context.mounted) {
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const DashBoard(),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    error: (_, _) => showSnackBar(
+                                      context,
+                                      'Could not check your connection. Please try again.',
+                                    ),
+                                    loading: () {},
+                                  );
+                                },
+                                icon: const Icon(Icons.cloud_download_outlined),
+                                label: const Text('Restore from Google Drive'),
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(52),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Consumer(
+                              builder: (context, ref, child) => OutlinedButton.icon(
+                                onPressed: () async {
+                                  isLoading.value = true;
+                                  if (!FastDB.getIsTableCreated()) {
+                                    ref
+                                        .read(dBProvider)
+                                        .when(
+                                          data: (data) async {
+                                            await DatabaseHelper.instance
+                                                .onCreate(data, 1);
+                                          },
+                                          error: (_, _) => showSnackBar(
+                                            context,
+                                            'Something went wrong. Please try again.',
+                                          ),
+                                          loading: () {},
+                                        );
+                                  }
+                                  isLoading.value = false;
+                                  if (context.mounted) {
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => const DashBoard(),
                                       ),
                                     );
-                                  },
-                                  child: const Text('Start fresh'),
+                                  }
+                                },
+                                icon: const Icon(Icons.add_circle_outline),
+                                label: const Text('Start with a new workspace'),
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(52),
                                 ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 12),
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final networkStatus = ref.watch(
-                                networkCheckerProvider,
-                              );
-                              final backupRegistered = ref.read(
-                                backUpRegisteredProvider.notifier,
-                              );
-                              final db = ref.read(dBProvider);
-
-                              return Expanded(
-                                child: FilledButton(
-                                  onPressed: () async {
-                                    networkStatus.when(
-                                      data: (data) async {
-                                        if (data) {
-                                          isLoading.value = true;
-                                          await BackupService.downloadFileToDevice();
-                                          if (!FastDB.getIsTableCreated()) {
-                                            ref
-                                                .read(dBProvider)
-                                                .when(
-                                                  data: (data) async {
-                                                    await DatabaseHelper
-                                                        .instance
-                                                        .onCreate(data, 1);
-                                                  },
-                                                  error: (_, _) {
-                                                    showSnackBar(
-                                                      context,
-                                                      "An Error occured, Please try again later",
-                                                    );
-                                                  },
-                                                  loading: () {},
-                                                );
-                                          }
-                                          FastDB.putScheduledBackUpTimeHour(02);
-                                          FastDB.putScheduledBackUpTimeMinute(
-                                            00,
-                                          );
-                                          await registerBackUp();
-                                          backupRegistered.set(true);
-                                          FastDB.putIsTableCreated(true);
-                                          await FastDB.flush();
-                                          db.when(
-                                            data: (data) async {
-                                              ref
-                                                  .read(
-                                                    mortgageMaterialListProvider
-                                                        .notifier,
-                                                  )
-                                                  .readAllMortgageMaterials();
-                                              ref
-                                                  .read(
-                                                    familyRelationListProvider
-                                                        .notifier,
-                                                  )
-                                                  .readAllFamilyRelations();
-                                              ref
-                                                  .read(
-                                                    loanListProvider.notifier,
-                                                  )
-                                                  .readAllLoans();
-                                            },
-                                            error: (_, _) {
-                                              if (!FastDB.getIsTableCreated()) {
-                                                db.when(
-                                                  data: (data) async {
-                                                    await DatabaseHelper
-                                                        .instance
-                                                        .onCreate(data, 1);
-                                                  },
-                                                  error: (_, _) {
-                                                    showSnackBar(
-                                                      context,
-                                                      "An Error occured, Please try again later",
-                                                    );
-                                                  },
-                                                  loading: () {},
-                                                );
-                                              }
-                                              showSnackBar(
-                                                context,
-                                                "An Error occured During Back Up, Please try again later",
-                                              );
-                                            },
-                                            loading: () {},
-                                          );
-                                        } else {
-                                          if (!FastDB.getIsTableCreated()) {
-                                            db.when(
-                                              data: (data) async {
-                                                await DatabaseHelper.instance
-                                                    .onCreate(data, 1);
-                                              },
-                                              error: (_, _) {
-                                                showSnackBar(
-                                                  context,
-                                                  "An Error occured, Please try again later",
-                                                );
-                                              },
-                                              loading: () {},
-                                            );
-                                          }
-                                        }
-                                      },
-                                      error: (_, _) {
-                                        showSnackBar(
-                                          context,
-                                          "An Error occured, Please try again later",
-                                        );
-                                      },
-                                      loading: () {},
-                                    );
-
-                                    isLoading.value = false;
-                                    if (context.mounted) {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const DashBoard(),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: const Text('Restore'),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'You can manage backups later from Settings.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(height: 10),
-                    ],
+                    ),
                   ),
                 ),
               ),
