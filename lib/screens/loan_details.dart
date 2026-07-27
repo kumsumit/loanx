@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/loan.dart';
+import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/widget/snackbar.dart';
@@ -233,7 +234,7 @@ Sent via LoanX''';
   }
 }
 
-class _DetailsContent extends StatelessWidget {
+class _DetailsContent extends ConsumerWidget {
   const _DetailsContent({
     required this.loan,
     required this.relation,
@@ -245,7 +246,7 @@ class _DetailsContent extends StatelessWidget {
   final String material;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final currency = NumberFormat.currency(
       locale: 'en_IN',
@@ -440,9 +441,51 @@ class _DetailsContent extends StatelessWidget {
             ),
           ),
         ],
+        const SizedBox(height: 24),
+        const _SectionTitle('Activity history'),
+        const SizedBox(height: 10),
+        ref
+            .watch(loanChangesProvider(loan.id!))
+            .when(
+              data: (changes) => changes.isEmpty
+                  ? const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('No activity has been recorded yet.'),
+                      ),
+                    )
+                  : Card(
+                      child: Column(
+                        children: [
+                          for (var index = 0; index < changes.length; index++)
+                            _ChangeRow(
+                              change: changes[index],
+                              last: index == changes.length - 1,
+                            ),
+                        ],
+                      ),
+                    ),
+              error: (_, _) => const SizedBox(),
+              loading: () => const Center(child: CircularProgressIndicator()),
+            ),
       ],
     );
   }
+}
+
+class _ChangeRow extends StatelessWidget {
+  const _ChangeRow({required this.change, required this.last});
+
+  final LoanChange change;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) => _DetailRow(
+    icon: Icons.history_rounded,
+    label: DateFormat('d MMM yyyy, h:mm a').format(change.createdAt),
+    value: change.description,
+    last: last,
+  );
 }
 
 class _StatusPill extends StatelessWidget {

@@ -13,6 +13,7 @@ import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:loanx/model/loan.dart';
+import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/service/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -21,6 +22,20 @@ part 'provider.g.dart';
 
 final dailyBackUpUpload = 'dailyBackupUpload';
 // final dailyBackUpDownload = 'dailyBackupDownload';
+
+final loanChangesProvider = FutureProvider.family<List<LoanChange>, int>((
+  ref,
+  loanId,
+) async {
+  final db = await DatabaseHelper.instance.database;
+  final rows = await db.query(
+    LoanChange.tableName,
+    where: '${LoanChangeFields.loanId} = ?',
+    whereArgs: [loanId],
+    orderBy: '${LoanChangeFields.createdAt} DESC',
+  );
+  return rows.map(LoanChange.fromJson).toList();
+});
 
 final networkCheckerProvider = StreamProvider<bool>((ref) {
   final internetChecker = InternetConnection.createInstance(
@@ -795,8 +810,9 @@ class LoanList extends _$LoanList {
         where: '${LoanFields.id} = ?',
         whereArgs: [loan.id],
       );
-      await updateDBTime();
       if (id > 0) {
+        await _recordChange(loan.id!, _describeChanges(oldLoan, loan));
+        await updateDBTime();
         state = AsyncData([
           for (final s in state.value!)
             if (s.id == loan.id) loan else s,
@@ -805,6 +821,7 @@ class LoanList extends _$LoanList {
     } else {
       id = await db.insert(Loan.tableName, loan.toJson());
       if (id > 0) {
+        await _recordChange(id, 'Loan record created');
         await updateDBTime();
         loan = loan.copy(id: id);
         if (state.value == null) {
@@ -818,6 +835,9 @@ class LoanList extends _$LoanList {
   }
 
   Future<void> updateLoan(Loan loan) async {
+    final previousLoan = state.value
+        ?.where((item) => item.id == loan.id)
+        .firstOrNull;
     final id = await db.update(
       Loan.tableName,
       loan.toJson(),
@@ -825,6 +845,11 @@ class LoanList extends _$LoanList {
       whereArgs: [loan.id],
     );
     if (id > 0) {
+      if (previousLoan != null) {
+        await _recordChange(loan.id!, _describeChanges(previousLoan, loan));
+      } else {
+        await _recordChange(loan.id!, 'Loan record updated');
+      }
       await updateDBTime();
       state = AsyncData([
         for (final s in state.value!)
@@ -835,6 +860,11 @@ class LoanList extends _$LoanList {
 
   Future<void> delete(int id) async {
     if (state.value == null) return;
+    await db.delete(
+      LoanChange.tableName,
+      where: '${LoanChangeFields.loanId} = ?',
+      whereArgs: [id],
+    );
     final rid = await db.delete(
       Loan.tableName,
       where: '${LoanFields.id} = ?',
@@ -851,6 +881,11 @@ class LoanList extends _$LoanList {
     final batch = db.batch();
     for (int id in ids) {
       batch.delete(
+        LoanChange.tableName,
+        where: '${LoanChangeFields.loanId} = ?',
+        whereArgs: [id],
+      );
+      batch.delete(
         Loan.tableName,
         where: '${LoanFields.id} = ?',
         whereArgs: [id],
@@ -861,6 +896,46 @@ class LoanList extends _$LoanList {
     state = AsyncData(
       state.value!.where((loan) => !ids.contains(loan.id)).toList(),
     );
+  }
+
+  Future<void> _recordChange(int loanId, String description) async {
+    await db.insert(
+      LoanChange.tableName,
+      LoanChange(
+        loanId: loanId,
+        description: description,
+        createdAt: DateTime.now(),
+      ).toJson(),
+    );
+    ref.invalidate(loanChangesProvider(loanId));
+  }
+
+  String _describeChanges(Loan before, Loan after) {
+    final changes = <String>[];
+    if (before.depositorName != after.depositorName) changes.add('borrower');
+    if (before.phoneNumber != after.phoneNumber) changes.add('phone number');
+    if (before.relativeName != after.relativeName) changes.add('relative name');
+    if (before.address != after.address) changes.add('address');
+    if (before.loanAmount != after.loanAmount) changes.add('loan amount');
+    if (before.interestRate != after.interestRate) changes.add('interest rate');
+    if (before.interestType != after.interestType) changes.add('interest type');
+    if (before.interestFrequency != after.interestFrequency) {
+      changes.add('interest frequency');
+    }
+    if (before.additionalDetails != after.additionalDetails) {
+      changes.add('notes');
+    }
+    if (before.familyRelationId != after.familyRelationId) {
+      changes.add('family relation');
+    }
+    if (before.mortgageMaterialId != after.mortgageMaterialId) {
+      changes.add('mortgage material');
+    }
+    if (before.dateFinished == null && after.dateFinished != null) {
+      return 'Loan marked as completed';
+    }
+    if (changes.isEmpty) return 'Loan record updated';
+    return 'Updated ${changes.join(', ')}';
   }
 }
 

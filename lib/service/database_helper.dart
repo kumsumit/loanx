@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/model/loan.dart';
+import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path/path.dart';
@@ -26,7 +27,7 @@ class DatabaseHelper {
     if (await File(path).exists()) {
       return await openDatabase(
         path,
-        version: 2,
+        version: 3,
         onCreate: onCreate,
         onUpgrade: onUpgrade,
         password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
@@ -34,7 +35,7 @@ class DatabaseHelper {
     }
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: onCreate,
       onUpgrade: onUpgrade,
       password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
@@ -60,7 +61,19 @@ class DatabaseHelper {
         'completionNotes TEXT NOT NULL DEFAULT \'\'',
       );
     }
+    if (oldVersion < 3) {
+      await _createLoanChangesTable(db);
+    }
   }
+
+  Future<void> _createLoanChangesTable(Database db) =>
+      db.execute('''CREATE TABLE IF NOT EXISTS ${LoanChange.tableName}(
+      id INTEGER PRIMARY KEY,
+      loanId INTEGER NOT NULL,
+      description TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      FOREIGN KEY (loanId) REFERENCES loans (id)
+    )''');
 
   Future<void> _addColumnIfMissing(
     Database db,
@@ -1053,6 +1066,11 @@ class DatabaseHelper {
            FOREIGN KEY (familyRelationId) REFERENCES familyRelations (id),
            FOREIGN KEY (mortgageMaterialId) REFERENCES mortgageMaterials (id),
            UNIQUE(depositorName, relativeName, address, loanAmount, familyRelationId) )''',
+    );
+    batch.execute(
+      '''CREATE TABLE IF NOT EXISTS loanChanges(id INTEGER PRIMARY KEY, loanId INTEGER NOT NULL,
+           description TEXT NOT NULL, createdAt TEXT NOT NULL,
+           FOREIGN KEY (loanId) REFERENCES loans (id))''',
     );
 
     for (final mortgageMaterial in mortgageMaterials) {
