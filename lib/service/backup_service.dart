@@ -15,6 +15,13 @@ import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:workmanager/workmanager.dart';
 
+GoogleSignIn _googleSignIn() => GoogleSignIn(
+  scopes: [drive.DriveApi.driveAppdataScope],
+  clientId: Platform.isIOS
+      ? '971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug.apps.googleusercontent.com'
+      : null,
+);
+
 class BackupService {
   static Future<bool> performBackup() async {
     try {
@@ -26,7 +33,9 @@ class BackupService {
     } catch (e) {
       FastDB.putDriveAccessToken("");
       await FastDB.flush();
-      return await performBackup();
+      // Retrying here recursively never gives control back to the UI when
+      // Google Drive is unavailable or the authorization has expired.
+      return false;
     }
   }
 
@@ -61,9 +70,11 @@ class BackupService {
   //  return Isolate.run<bool>(downloadDB);
   // }
 
-  static Future<bool> downloadFileToDevice() async {
+  static Future<bool> downloadFileToDevice({
+    GoogleSignInAccount? account,
+  }) async {
     bool isDownloaded = false;
-    final driveApi = await getDriveApi();
+    final driveApi = await getDriveApi(account: account);
     File saveFile = File(join(await getDatabasesPath(), 'loanx.db'));
     if (driveApi != null) {
       final fileList = (await driveApi.files.list(
@@ -158,19 +169,18 @@ class BackupService {
     return isDownloaded;
   }
 
-  static Future<drive.DriveApi?> getDriveApi() async {
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      scopes: [drive.DriveApi.driveAppdataScope],
-      clientId: Platform.isIOS
-          ? "971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug.apps.googleusercontent.com"
-          : null,
-    );
-    GoogleSignInAccount? account;
-    if (FastDB.getDriveAccessToken().isEmpty) {
+  static Future<drive.DriveApi?> getDriveApi({
+    GoogleSignInAccount? account,
+  }) async {
+    final googleSignIn = _googleSignIn();
+    if (account == null && FastDB.getDriveAccessToken().isEmpty) {
       account = await googleSignIn.signIn();
-    } else if (DateTime.now().isAfter(
-      DateTime.fromMillisecondsSinceEpoch(FastDB.getDriveAccessTokenExpires()),
-    )) {
+    } else if (account == null &&
+        DateTime.now().isAfter(
+          DateTime.fromMillisecondsSinceEpoch(
+            FastDB.getDriveAccessTokenExpires(),
+          ),
+        )) {
       account = await googleSignIn.signInSilently();
     }
 
@@ -277,17 +287,13 @@ void callbackDispatcher() {
 }
 
 Future<void> removeAccount() async {
-  final GoogleSignIn googleSignIn = GoogleSignIn(
-    scopes: [drive.DriveApi.driveAppdataScope],
-  );
+  final googleSignIn = _googleSignIn();
   await googleSignIn.signOut();
   await BackupService.removeData();
 }
 
 Future<List> changeAccount(BuildContext context) async {
-  final GoogleSignIn googleSignIn = GoogleSignIn(
-    scopes: [drive.DriveApi.driveAppdataScope],
-  );
+  final googleSignIn = _googleSignIn();
   await googleSignIn.signOut();
   final account = await googleSignIn.signIn();
   if (account == null) return [];
@@ -295,7 +301,11 @@ Future<List> changeAccount(BuildContext context) async {
   if (context.mounted) {
     showSnackBar(context, " Signed In, Please wait ... \n Download backup now");
   }
-  final status = await BackupService.downloadFileToDevice();
+  // We already have a freshly-authorized account. Passing it through avoids a
+  // second silent Google sign-in immediately after the account chooser closes.
+  final status = await BackupService.downloadFileToDevice(
+    account: account,
+  ).timeout(const Duration(seconds: 60));
   if (status && context.mounted) {
     showSnackBar(context, "Data Downloaded");
   } else if (!status && context.mounted) {

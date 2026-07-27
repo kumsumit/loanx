@@ -11,6 +11,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/home.dart';
 import 'package:loanx/screens/manage.dart';
 import 'package:loanx/screens/add_loan.dart';
+import 'package:loanx/service/printing_service.dart';
 import 'package:loanx/service/update_service.dart';
 import 'package:loanx/widget/k_icon.dart';
 import 'package:loanx/widget/styled_text.dart';
@@ -59,8 +60,10 @@ class DashBoard extends HookWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            StyledHeading(title.value),
-            const Spacer(),
+            // The contextual actions can grow to six buttons when a loan is
+            // selected.  Let the title yield space to them on compact screens
+            // instead of forcing the app bar Row past its right edge.
+            Expanded(child: StyledHeading(title.value)),
             currentIndex.value == 0
                 ? Consumer(
                     builder: (context, ref, child) {
@@ -299,7 +302,77 @@ Shared from LoanX
                           if (loanSelectionList.length == 1)
                             IconButton(
                               icon: Icon(Icons.print),
-                              onPressed: () {},
+                              tooltip: 'Print loan receipt',
+                              onPressed: () async {
+                                final selectedLoan = ref
+                                    .read(loanListProvider)
+                                    .value
+                                    ?.firstWhere(
+                                      (loan) =>
+                                          loan.id == loanSelectionList.single,
+                                    );
+                                if (selectedLoan == null) return;
+
+                                if (!context.mounted) return;
+                                final action =
+                                    await showModalBottomSheet<_ReceiptAction>(
+                                      context: context,
+                                      builder: (context) => SafeArea(
+                                        child: Wrap(
+                                          children: [
+                                            ListTile(
+                                              leading: const Icon(Icons.print),
+                                              title: const Text(
+                                                'Print receipt',
+                                              ),
+                                              subtitle: const Text(
+                                                'Print using a USB or Bluetooth printer',
+                                              ),
+                                              onTap: () => Navigator.pop(
+                                                context,
+                                                _ReceiptAction.print,
+                                              ),
+                                            ),
+                                            ListTile(
+                                              leading: const Icon(
+                                                Icons.picture_as_pdf_outlined,
+                                              ),
+                                              title: const Text('Share PDF'),
+                                              subtitle: const Text(
+                                                'Save or open the receipt as a PDF file',
+                                              ),
+                                              onTap: () => Navigator.pop(
+                                                context,
+                                                _ReceiptAction.sharePdf,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                if (action == null) return;
+
+                                try {
+                                  if (action == _ReceiptAction.print) {
+                                    await LoanPrintingService.printLoan(
+                                      selectedLoan,
+                                    );
+                                  } else {
+                                    await LoanPrintingService.shareLoanPdf(
+                                      selectedLoan,
+                                    );
+                                  }
+                                } catch (_) {
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Unable to create the receipt. Please try again.',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
                             ),
                         ],
                       );
@@ -333,3 +406,5 @@ Shared from LoanX
     );
   }
 }
+
+enum _ReceiptAction { print, sharePdf }

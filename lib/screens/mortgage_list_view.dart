@@ -205,85 +205,83 @@ class MortgageListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Consumer(
-        builder: (context, ref, child) {
-          final loans = ref.watch(loanListProvider);
-          final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
-          return mortgageMaterials.when(
-            data: (mortgageMaterialList) {
-              if (mortgageMaterialList.isEmpty) {
-                return const EmptyState(
-                  icon: Icons.inventory_2_outlined,
-                  title: 'Set up your loan materials',
-                  message:
-                      'Add at least one pledged material in Manage before creating a loan.',
-                );
-              }
-              return loans.when(
-                data: (loanList) {
-                  final filteredLoans = switch (filter) {
-                    LoanStatusFilter.all => loanList,
-                    LoanStatusFilter.active =>
-                      loanList.where((loan) => !loan.isFinished()).toList(),
-                    LoanStatusFilter.completed =>
-                      loanList.where((loan) => loan.isFinished()).toList(),
-                  };
-                  if (filteredLoans.isEmpty) {
-                    final hasLoans = loanList.isNotEmpty;
-                    return EmptyState(
-                      icon: hasLoans
-                          ? Icons.filter_alt_off_outlined
-                          : Icons.receipt_long_outlined,
-                      title: hasLoans
-                          ? 'No ${filter.label.toLowerCase()}'
-                          : 'No loans yet',
-                      message: hasLoans
-                          ? 'Try a different filter to view your loan records.'
-                          : 'Create your first loan to track borrowers, pledged materials, and repayment status.',
-                      action: hasLoans
-                          ? null
-                          : FilledButton.icon(
-                              onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const LoanInput(),
-                                ),
-                              ),
-                              icon: const Icon(Icons.add_rounded),
-                              label: const Text('Create a loan'),
-                            ),
-                    );
-                  }
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-                    itemCount: filteredLoans.length,
-                    itemBuilder: (context, index) {
-                      final loan = filteredLoans[index];
-                      final mortgageMaterial = mortgageMaterialList.firstWhere(
-                        (item) => item.id == loan.mortgageMaterialId,
-                      );
-                      return _mortgageBuilder(context, loan, mortgageMaterial);
-                    },
-                  );
-                },
-                error: (e, b) => const EmptyState(
-                  icon: Icons.error_outline_rounded,
-                  title: 'Loans could not be loaded',
-                  message: 'Please restart the app and try again.',
-                ),
-                loading: () => Center(child: CircularProgressIndicator()),
+    return Consumer(
+      builder: (context, ref, child) {
+        final loans = ref.watch(loanListProvider);
+        final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
+        return mortgageMaterials.when(
+          data: (mortgageMaterialList) {
+            if (mortgageMaterialList.isEmpty) {
+              return const EmptyState(
+                icon: Icons.inventory_2_outlined,
+                title: 'Set up your loan materials',
+                message:
+                    'Add at least one pledged material in Manage before creating a loan.',
               );
-            },
-            error: (e, b) => const EmptyState(
-              icon: Icons.error_outline_rounded,
-              title: 'Materials could not be loaded',
-              message: 'Please restart the app and try again.',
-            ),
-            loading: () => Center(child: CircularProgressIndicator()),
-          );
-        },
-      ),
+            }
+            return loans.when(
+              data: (loanList) {
+                final filteredLoans = switch (filter) {
+                  LoanStatusFilter.all => loanList,
+                  LoanStatusFilter.active =>
+                    loanList.where((loan) => !loan.isFinished()).toList(),
+                  LoanStatusFilter.completed =>
+                    loanList.where((loan) => loan.isFinished()).toList(),
+                };
+                if (filteredLoans.isEmpty) {
+                  final hasLoans = loanList.isNotEmpty;
+                  return EmptyState(
+                    icon: hasLoans
+                        ? Icons.filter_alt_off_outlined
+                        : Icons.receipt_long_outlined,
+                    title: hasLoans
+                        ? 'No ${filter.label.toLowerCase()}'
+                        : 'No loans yet',
+                    message: hasLoans
+                        ? 'Try a different filter to view your loan records.'
+                        : 'Create your first loan to track borrowers, pledged materials, and repayment status.',
+                    action: hasLoans
+                        ? null
+                        : FilledButton.icon(
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const LoanInput(),
+                              ),
+                            ),
+                            icon: const Icon(Icons.add_rounded),
+                            label: const Text('Create a loan'),
+                          ),
+                  );
+                }
+                return ListView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                  itemCount: filteredLoans.length,
+                  itemBuilder: (context, index) {
+                    final loan = filteredLoans[index];
+                    final mortgageMaterial = mortgageMaterialList.firstWhere(
+                      (item) => item.id == loan.mortgageMaterialId,
+                    );
+                    return _mortgageBuilder(context, loan, mortgageMaterial);
+                  },
+                );
+              },
+              error: (e, b) => const EmptyState(
+                icon: Icons.error_outline_rounded,
+                title: 'Loans could not be loaded',
+                message: 'Please restart the app and try again.',
+              ),
+              loading: () => Center(child: CircularProgressIndicator()),
+            );
+          },
+          error: (e, b) => const EmptyState(
+            icon: Icons.error_outline_rounded,
+            title: 'Materials could not be loaded',
+            message: 'Please restart the app and try again.',
+          ),
+          loading: () => Center(child: CircularProgressIndicator()),
+        );
+      },
     );
   }
 }

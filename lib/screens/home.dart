@@ -15,29 +15,34 @@ class Home extends HookWidget {
   Widget build(BuildContext context) {
     final filter = useState(LoanStatusFilter.all);
     return Scaffold(
-      body: Column(
-        children: [
-          _PortfolioSummary(),
-          Consumer(
-            builder: (context, ref, child) => ref.watch(searchBarStatusProvider)
-                ? const SearchAppBar()
-                : const SizedBox(),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
-            child: Row(
-              children: [
-                Text('Loans', style: Theme.of(context).textTheme.titleLarge),
-                const Spacer(),
-                _StatusFilter(
-                  value: filter.value,
-                  onChanged: (value) => filter.value = value,
-                ),
-              ],
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverToBoxAdapter(
+            child: Consumer(
+              builder: (context, ref, child) =>
+                  ref.watch(searchBarStatusProvider)
+                  ? const SearchAppBar()
+                  : const SizedBox(),
             ),
           ),
-          MortgageListView(filter: filter.value),
+          const SliverToBoxAdapter(child: _PortfolioSummary()),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+              child: Row(
+                children: [
+                  Text('Loans', style: Theme.of(context).textTheme.titleLarge),
+                  const Spacer(),
+                  _StatusFilter(
+                    value: filter.value,
+                    onChanged: (value) => filter.value = value,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
+        body: MortgageListView(filter: filter.value),
       ),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('add'),

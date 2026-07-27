@@ -23,6 +23,7 @@ class StyledHeading extends StatelessWidget {
       style: Theme.of(context).textTheme.titleLarge,
       textAlign: TextAlign.center,
       maxLines: maxLines,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

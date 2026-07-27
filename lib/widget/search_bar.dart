@@ -17,7 +17,9 @@ class SearchAppBar extends HookWidget {
     );
     final filter = useState<int>(1);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 8, 0),
+      // Keep the expanded search controls compact so they fit above the
+      // portfolio summary on short screens.
+      padding: const EdgeInsets.fromLTRB(20, 10, 8, 0),
       child: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

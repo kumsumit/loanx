@@ -1068,39 +1068,52 @@ class MyDrawer extends HookWidget {
                   onTap: () async {
                     final isAddingAccount = token.isEmpty;
                     isLoading.value = true;
-                    final chngAccount = await changeAccount(context);
-                    if (chngAccount.length == 2) {
-                      final authentication = chngAccount[0];
-                      final account = chngAccount[1];
-                      if (account != null) {
-                        ref
-                            .read(displayNameProvider.notifier)
-                            .set(account!.displayName ?? "");
-                        ref
-                            .read(photoUrlProvider.notifier)
-                            .set(account!.photoUrl ?? "");
-                        ref.read(emailProvider.notifier).set(account!.email);
-                        ref
-                            .read(driveAccessTokenProvider.notifier)
-                            .set(authentication.accessToken ?? "");
-                        ref.read(backUpRegisteredProvider.notifier).set(true);
-                        await FastDB.flush();
-                      }
-                      if (context.mounted) {
-                        if (isAddingAccount) {
-                          showSnackBar(context, "Account Added");
-                        } else {
-                          showSnackBar(context, "Account Changed");
-                        }
-                      }
-                      isLoading.value = false;
-                    }
-                    if (context.mounted && isLoading.value) {
-                      isLoading.value = false;
-                      showSnackBar(
+                    try {
+                      final chngAccount = await changeAccount(
                         context,
-                        "You have not selected any account.",
-                      );
+                      ).timeout(const Duration(seconds: 90));
+                      if (chngAccount.length == 2) {
+                        final authentication = chngAccount[0];
+                        final account = chngAccount[1];
+                        if (account != null) {
+                          ref
+                              .read(displayNameProvider.notifier)
+                              .set(account.displayName ?? "");
+                          ref
+                              .read(photoUrlProvider.notifier)
+                              .set(account.photoUrl ?? "");
+                          ref.read(emailProvider.notifier).set(account.email);
+                          ref
+                              .read(driveAccessTokenProvider.notifier)
+                              .set(authentication.accessToken ?? "");
+                          ref.read(backUpRegisteredProvider.notifier).set(true);
+                          await FastDB.flush();
+                        }
+                        if (context.mounted) {
+                          showSnackBar(
+                            context,
+                            isAddingAccount
+                                ? "Account Added"
+                                : "Account Changed",
+                          );
+                        }
+                      } else if (context.mounted) {
+                        showSnackBar(
+                          context,
+                          "You have not selected any account.",
+                        );
+                      }
+                    } catch (_) {
+                      if (context.mounted) {
+                        showErrorSnackBar(
+                          context,
+                          "Could not connect to Google Drive. Please try again.",
+                        );
+                      }
+                    } finally {
+                      if (context.mounted) {
+                        isLoading.value = false;
+                      }
                     }
                   },
                 );
