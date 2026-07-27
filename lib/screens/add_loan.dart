@@ -30,6 +30,16 @@ class LoanInput extends HookConsumerWidget {
     }
   }
 
+  String _nationalPhoneNumber(String value) {
+    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
+    // Older records may contain the Indian country code as part of the
+    // display-formatted value. The phone input expects the national number.
+    if (digits.length == 12 && digits.startsWith('91')) {
+      return digits.substring(2);
+    }
+    return digits;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
@@ -110,8 +120,8 @@ class LoanInput extends HookConsumerWidget {
                         children: [
                           Text(
                             loan == null
-                                ? 'Create a new loan'
-                                : 'Update record',
+                                ? 'Create a loan record'
+                                : 'Update loan details',
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 2),
@@ -272,31 +282,32 @@ class LoanInput extends HookConsumerWidget {
               ),
               const SizedBox(height: 10),
               StyledTextField(
-                failedValidationMessage: "Depositor Name can't be empty",
+                failedValidationMessage: "Borrower name can't be empty",
                 textEditingController: depositorController,
-                hintText: "Depositor Name",
-                labelText: "Depositor Name",
+                hintText: "Borrower name",
+                labelText: "Borrower name",
               ),
               PhoneWidget(
-                labelText: "Depositor Mobile Number",
+                key: ValueKey(loan?.id),
+                labelText: "Borrower mobile number",
                 textEditingController: phoneNumberController,
-                hint: "Depositor Mobile Number",
+                hint: "Borrower mobile number",
                 initialValue: PhoneNumber(
                   isoCode: "IN",
-                  nsn: loan?.phoneNumber ?? "",
+                  nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
                 ),
               ),
               StyledTextField(
                 failedValidationMessage: "Address can't be empty",
                 textEditingController: addressController,
-                hintText: "Depositor Address",
-                labelText: "Depositor Address",
+                hintText: "Borrower address",
+                labelText: "Borrower address",
               ),
               StyledTextField(
-                failedValidationMessage: "Relative Name can't be empty",
+                failedValidationMessage: "Reference name can't be empty",
                 textEditingController: relativeNameController,
-                hintText: "Relative Name",
-                labelText: "Relative Name",
+                hintText: "Reference name",
+                labelText: "Reference name",
               ),
               familyRelations.when(
                 data: (data) {
@@ -336,10 +347,10 @@ class LoanInput extends HookConsumerWidget {
                 loading: () => const SizedBox(),
               ),
               StyledTextField(
-                failedValidationMessage: "Loan Amount can't be empty",
+                failedValidationMessage: "Principal amount can't be empty",
                 textEditingController: loanAmountController,
-                hintText: "Loan Amount",
-                labelText: "Loan Amount",
+                hintText: "Principal amount",
+                labelText: "Principal amount",
                 keyboardType: TextInputType.number,
               ),
               mortgageMaterials.when(
@@ -360,15 +371,15 @@ class LoanInput extends HookConsumerWidget {
                         currentMortgageMaterial.value = value;
                       }
                     },
-                    hintText: "Mortgage Material",
-                    labelText: "Mortgage Material",
+                    hintText: "Pledged material",
+                    labelText: "Pledged material",
                     onAddPressed: () {
                       isDialogOpen.value = true;
                       showAddDialog(
                         context,
                         ref,
-                        'Add Mortgage Material',
-                        'Enter the mortgage material',
+                        'Add pledged material',
+                        'Enter the material name',
                         ref.read(mortgageMaterialListProvider.notifier).add,
                       );
                     },
@@ -381,8 +392,8 @@ class LoanInput extends HookConsumerWidget {
               ),
               StyledTextField(
                 textEditingController: additionalDetailsController,
-                hintText: "Additional Details",
-                labelText: "Additional Details",
+                hintText: "Notes (optional)",
+                labelText: "Notes (optional)",
                 maxLines: 3,
               ),
               Consumer(
@@ -420,12 +431,12 @@ class LoanInput extends HookConsumerWidget {
                               if (loan == null) {
                                 showSnackBar(
                                   context,
-                                  "Record Added Successfully",
+                                  "Loan created successfully",
                                 );
                               } else {
                                 showSnackBar(
                                   context,
-                                  "Record Updated Successfully",
+                                  "Loan updated successfully",
                                 );
                               }
                             }

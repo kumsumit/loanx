@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/add_loan.dart';
@@ -8,10 +9,11 @@ import 'package:intl/intl.dart';
 
 // import 'keyboard_input.dart';
 
-class Home extends StatelessWidget {
+class Home extends HookWidget {
   const Home({super.key});
   @override
   Widget build(BuildContext context) {
+    final filter = useState(LoanStatusFilter.all);
     return Scaffold(
       body: Column(
         children: [
@@ -21,14 +23,20 @@ class Home extends StatelessWidget {
                 ? const SearchAppBar()
                 : const SizedBox(),
           ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 18, 20, 10),
-            child: Text(
-              'Recent loans',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+            child: Row(
+              children: [
+                Text('Loans', style: Theme.of(context).textTheme.titleLarge),
+                const Spacer(),
+                _StatusFilter(
+                  value: filter.value,
+                  onChanged: (value) => filter.value = value,
+                ),
+              ],
             ),
           ),
-          const MortgageListView(),
+          MortgageListView(filter: filter.value),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -59,9 +67,13 @@ class _PortfolioSummary extends ConsumerWidget {
         .when(
           data: (loans) {
             final active = loans.where((loan) => !loan.isFinished()).toList();
-            final total = active.fold<double>(
+            final principal = active.fold<double>(
               0,
               (value, loan) => value + loan.loanAmount,
+            );
+            final receivable = active.fold<double>(
+              0,
+              (value, loan) => value + loan.calculateCollectable(),
             );
             final money = NumberFormat.compactCurrency(
               locale: 'en_IN',
@@ -95,7 +107,7 @@ class _PortfolioSummary extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ACTIVE PORTFOLIO',
+                      'ESTIMATED RECEIVABLE',
                       style: TextStyle(
                         color: colors.onPrimary.withValues(alpha: .75),
                         fontSize: 12,
@@ -105,7 +117,7 @@ class _PortfolioSummary extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      money.format(total),
+                      money.format(receivable),
                       style: Theme.of(context).textTheme.headlineLarge
                           ?.copyWith(
                             color: colors.onPrimary,
@@ -113,17 +125,24 @@ class _PortfolioSummary extends ConsumerWidget {
                           ),
                     ),
                     const SizedBox(height: 18),
-                     _SummaryMetric(
-                          icon: Icons.receipt_long_outlined,
-                          value: '${active.length}',
-                          label: 'Active loans',
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _SummaryMetric(
+                            icon: Icons.receipt_long_outlined,
+                            value: '${active.length}',
+                            label: 'Active loans',
+                          ),
                         ),
-                        const SizedBox(width: 28),
-                        _SummaryMetric(
-                          icon: Icons.check_circle_outline_rounded,
-                          value: '${loans.length - active.length}',
-                          label: 'Completed',
+                        Expanded(
+                          child: _SummaryMetric(
+                            icon: Icons.account_balance_wallet_outlined,
+                            value: money.format(principal),
+                            label: 'Principal outstanding',
+                          ),
                         ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -135,6 +154,34 @@ class _PortfolioSummary extends ConsumerWidget {
             child: LinearProgressIndicator(),
           ),
         );
+  }
+}
+
+class _StatusFilter extends StatelessWidget {
+  const _StatusFilter({required this.value, required this.onChanged});
+
+  final LoanStatusFilter value;
+  final ValueChanged<LoanStatusFilter> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<LoanStatusFilter>(
+      tooltip: 'Filter loans',
+      initialValue: value,
+      onSelected: onChanged,
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: LoanStatusFilter.all, child: Text('All loans')),
+        PopupMenuItem(value: LoanStatusFilter.active, child: Text('Active')),
+        PopupMenuItem(
+          value: LoanStatusFilter.completed,
+          child: Text('Completed'),
+        ),
+      ],
+      child: Chip(
+        avatar: const Icon(Icons.filter_list_rounded, size: 18),
+        label: Text(value.label),
+      ),
+    );
   }
 }
 
@@ -153,12 +200,36 @@ class _SummaryMetric extends StatelessWidget {
   Widget build(BuildContext context) {
     final foreground = Theme.of(context).colorScheme.onPrimary;
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, color: foreground.withValues(alpha: .8), size: 20),
         const SizedBox(width: 8),
-        Text(
-          '$value $label',
-          style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: foreground,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: foreground.withValues(alpha: .8),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

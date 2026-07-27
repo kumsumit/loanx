@@ -38,8 +38,8 @@ class SearchAppBar extends HookWidget {
                         focusNode: focusNode,
                         autofocus: true,
                         decoration: InputDecoration(
-                          labelText: 'Search Loan',
-                          hintText: 'Name, relation, or material',
+                          labelText: 'Search loans',
+                          hintText: 'Borrower, reference, or material',
                           prefixIcon: const Icon(Icons.search_rounded),
                         ),
                       );
@@ -50,7 +50,7 @@ class SearchAppBar extends HookWidget {
                           context,
                         ).colorScheme.surfaceContainer,
                         title: Text(
-                          "No data found",
+                          "No matching loans",
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.secondary,
                           ),
@@ -212,7 +212,7 @@ class SearchAppBar extends HookWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Select an Mortgagae Material Type'),
+          title: const Text('Select pledged material'),
           content: SingleChildScrollView(
             child: Consumer(
               builder: (context, ref, child) {

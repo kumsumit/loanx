@@ -81,14 +81,19 @@ class DashBoard extends HookWidget {
                             IconButton(
                               icon: Icon(Icons.edit),
                               onPressed: () {
+                                final selectedId = loanSelectionList.single;
+                                final selectedLoan = ref
+                                    .read(loanListProvider)
+                                    .value
+                                    ?.firstWhere(
+                                      (loan) => loan.id == selectedId,
+                                    );
+                                if (selectedLoan == null) return;
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => LoanInput(
-                                      loan: ref
-                                          .read(loanListProvider)
-                                          .value![0],
-                                    ),
+                                    builder: (context) =>
+                                        LoanInput(loan: selectedLoan),
                                   ),
                                 );
                               },
@@ -97,28 +102,21 @@ class DashBoard extends HookWidget {
                             IconButton(
                               icon: Icon(Icons.delete),
                               onPressed: () {
+                                final selectedLoans = List<int>.from(
+                                  loanSelectionList,
+                                );
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: Text(
-                                      ref
-                                                  .read(
-                                                    loanSelectionListProvider,
-                                                  )
-                                                  .length ==
-                                              1
-                                          ? 'Delete Loan Record'
-                                          : 'Delete Multiple Loan Records',
+                                      selectedLoans.length == 1
+                                          ? 'Delete this loan?'
+                                          : 'Delete ${selectedLoans.length} loans?',
                                     ),
                                     content: Text(
-                                      ref
-                                                  .read(
-                                                    loanSelectionListProvider,
-                                                  )
-                                                  .length ==
-                                              1
-                                          ? 'Are you sure you want to delete this loan record?'
-                                          : 'Are you sure you want to delete these loan records?',
+                                      selectedLoans.length == 1
+                                          ? 'This permanently removes the loan record. This action cannot be undone.'
+                                          : 'This permanently removes the selected loan records. This action cannot be undone.',
                                     ),
                                     actions: [
                                       TextButton(
@@ -128,13 +126,21 @@ class DashBoard extends HookWidget {
                                         child: const Text('Cancel'),
                                       ),
                                       TextButton(
-                                        onPressed: () {
-                                          ref
+                                        onPressed: () async {
+                                          await ref
                                               .read(loanListProvider.notifier)
-                                              .bulkDelete(loanSelectionList);
-                                          Navigator.of(context).pop();
+                                              .bulkDelete(selectedLoans);
+                                          ref
+                                              .read(
+                                                loanSelectionListProvider
+                                                    .notifier,
+                                              )
+                                              .clear();
+                                          if (context.mounted) {
+                                            Navigator.of(context).pop();
+                                          }
                                         },
-                                        child: const Text('Delete'),
+                                        child: const Text('Delete permanently'),
                                       ),
                                     ],
                                   ),
@@ -179,7 +185,7 @@ Mortgage Material: ${mortgageMaterials.firstWhere((mortgageMaterial) => mortgage
 """;
                                             }
                                             formattedText +=
-                                                "Sent with Love via LoanX";
+                                                "Shared from LoanX";
                                             SharePlus.instance.share(
                                               ShareParams(text: formattedText),
                                             );
@@ -223,7 +229,7 @@ Loan Amount: ${loan.loanAmount}
 Additional Details: ${loan.additionalDetails}
 Mortgage Material: ${mortgageMaterials.firstWhere((mortgageMaterial) => mortgageMaterial.id == loan.mortgageMaterialId).name}
 
-Sent with Love via LoanX
+Shared from LoanX
 """;
                                         showDialog(
                                           context: context,

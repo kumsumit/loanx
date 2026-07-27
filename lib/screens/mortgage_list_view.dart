@@ -4,11 +4,24 @@ import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/loan_details.dart';
+import 'package:loanx/screens/add_loan.dart';
+import 'package:loanx/widget/empty_state.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:intl/intl.dart';
 
+enum LoanStatusFilter {
+  all('All loans'),
+  active('Active'),
+  completed('Completed');
+
+  const LoanStatusFilter(this.label);
+  final String label;
+}
+
 class MortgageListView extends StatelessWidget {
-  const MortgageListView({super.key});
+  const MortgageListView({super.key, this.filter = LoanStatusFilter.all});
+
+  final LoanStatusFilter filter;
 
   Widget _mortgageBuilder(
     BuildContext context,
@@ -200,35 +213,53 @@ class MortgageListView extends StatelessWidget {
           return mortgageMaterials.when(
             data: (mortgageMaterialList) {
               if (mortgageMaterialList.isEmpty) {
-                return Center(
-                  child: Text(
-                    "No data found",
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                  ),
+                return const EmptyState(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Set up your loan materials',
+                  message:
+                      'Add at least one pledged material in Manage before creating a loan.',
                 );
               }
               return loans.when(
                 data: (loanList) {
-                  if (loanList.isEmpty) {
-                    return Center(
-                      child: Text(
-                        "No data found",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                      ),
+                  final filteredLoans = switch (filter) {
+                    LoanStatusFilter.all => loanList,
+                    LoanStatusFilter.active =>
+                      loanList.where((loan) => !loan.isFinished()).toList(),
+                    LoanStatusFilter.completed =>
+                      loanList.where((loan) => loan.isFinished()).toList(),
+                  };
+                  if (filteredLoans.isEmpty) {
+                    final hasLoans = loanList.isNotEmpty;
+                    return EmptyState(
+                      icon: hasLoans
+                          ? Icons.filter_alt_off_outlined
+                          : Icons.receipt_long_outlined,
+                      title: hasLoans
+                          ? 'No ${filter.label.toLowerCase()}'
+                          : 'No loans yet',
+                      message: hasLoans
+                          ? 'Try a different filter to view your loan records.'
+                          : 'Create your first loan to track borrowers, pledged materials, and repayment status.',
+                      action: hasLoans
+                          ? null
+                          : FilledButton.icon(
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const LoanInput(),
+                                ),
+                              ),
+                              icon: const Icon(Icons.add_rounded),
+                              label: const Text('Create a loan'),
+                            ),
                     );
                   }
                   return ListView.builder(
                     shrinkWrap: true,
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-                    itemCount: loanList.length,
+                    itemCount: filteredLoans.length,
                     itemBuilder: (context, index) {
-                      final loan = loanList[index];
+                      final loan = filteredLoans[index];
                       final mortgageMaterial = mortgageMaterialList.firstWhere(
                         (item) => item.id == loan.mortgageMaterialId,
                       );
@@ -236,26 +267,18 @@ class MortgageListView extends StatelessWidget {
                     },
                   );
                 },
-                error: (e, b) => Center(
-                  child: Text(
-                    "An Error occurred",
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                  ),
+                error: (e, b) => const EmptyState(
+                  icon: Icons.error_outline_rounded,
+                  title: 'Loans could not be loaded',
+                  message: 'Please restart the app and try again.',
                 ),
                 loading: () => Center(child: CircularProgressIndicator()),
               );
             },
-            error: (e, b) => Center(
-              child: Text(
-                "Loading ...",
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
+            error: (e, b) => const EmptyState(
+              icon: Icons.error_outline_rounded,
+              title: 'Materials could not be loaded',
+              message: 'Please restart the app and try again.',
             ),
             loading: () => Center(child: CircularProgressIndicator()),
           );

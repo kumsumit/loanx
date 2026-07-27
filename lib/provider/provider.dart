@@ -266,6 +266,10 @@ class LoanSelectionList extends _$LoanSelectionList {
   void remove(int id) {
     state = state.where((e) => e != id).toList();
   }
+
+  void clear() {
+    state = [];
+  }
 }
 
 @riverpod
