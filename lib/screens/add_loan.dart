@@ -312,13 +312,28 @@ class LoanInput extends HookConsumerWidget {
               familyRelations.when(
                 data: (data) {
                   if (data.isEmpty) {
-                    return SizedBox();
+                    return const SizedBox();
                   }
-                  currentFamilyRelation.value = loan == null
-                      ? data[0]
-                      : data.firstWhere(
-                          (item) => item.id == loan!.familyRelationId,
-                        );
+
+                  // Keep the user's choice when this widget rebuilds. Previously
+                  // this was reset to the first item on every build, which made
+                  // every selection appear as the first relation (for example,
+                  // "Chacha").
+                  final selectedRelation = data.where(
+                    (item) => item.id == currentFamilyRelation.value?.id,
+                  );
+                  if (selectedRelation.isEmpty) {
+                    currentFamilyRelation.value = loan == null
+                        ? data.first
+                        : data.firstWhere(
+                            (item) => item.id == loan!.familyRelationId,
+                            orElse: () => data.first,
+                          );
+                  } else {
+                    // Use the instance from the current items list, as required
+                    // by DropdownButtonFormField when provider data refreshes.
+                    currentFamilyRelation.value = selectedRelation.first;
+                  }
                   return StyledDropdown<FamilyRelation>(
                     selectedValue: currentFamilyRelation.value,
                     items: buildMenuRelationTypes(data, context),
@@ -356,13 +371,24 @@ class LoanInput extends HookConsumerWidget {
               mortgageMaterials.when(
                 data: (data) {
                   if (data.isEmpty) {
-                    return SizedBox();
+                    return const SizedBox();
                   }
-                  currentMortgageMaterial.value = loan == null
-                      ? data[0]
-                      : data.firstWhere(
-                          (item) => item.id == loan!.mortgageMaterialId,
-                        );
+
+                  // As above, only choose a default when the existing choice is
+                  // unavailable. Do not overwrite a selection on rebuild.
+                  final selectedMaterial = data.where(
+                    (item) => item.id == currentMortgageMaterial.value?.id,
+                  );
+                  if (selectedMaterial.isEmpty) {
+                    currentMortgageMaterial.value = loan == null
+                        ? data.first
+                        : data.firstWhere(
+                            (item) => item.id == loan!.mortgageMaterialId,
+                            orElse: () => data.first,
+                          );
+                  } else {
+                    currentMortgageMaterial.value = selectedMaterial.first;
+                  }
                   return StyledDropdown<MortgageMaterial>(
                     selectedValue: currentMortgageMaterial.value,
                     items: buildMenuMortgageMaterials(data, context),
