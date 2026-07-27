@@ -116,6 +116,7 @@ Interest: ${loan.interestRate}% (${InterestType.values[loan.interestType].name.t
 Collectable amount: ${currency.format(collectable)}
 Status: ${loan.isFinished() ? 'Completed' : 'Active'}
 Created: ${DateFormat('d MMM yyyy').format(loan.dateCreated)}
+${loan.isFinished() ? 'Completed: ${DateFormat('d MMM yyyy, h:mm a').format(loan.dateFinished!)}\nReceived by: ${loan.completedBy.isEmpty ? 'Not recorded' : loan.completedBy}\nAmount received: ${loan.settlementAmount == null ? 'Not recorded' : currency.format(loan.settlementAmount)}' : ''}
 ${loan.additionalDetails.trim().isEmpty ? '' : 'Additional details: ${loan.additionalDetails}'}
 
 Sent via LoanX''';
@@ -126,12 +127,62 @@ Sent via LoanX''';
     WidgetRef ref,
     Loan loan,
   ) async {
+    final receivedByController = TextEditingController();
+    final amountController = TextEditingController(
+      text: loan.calculateCollectable().toStringAsFixed(2),
+    );
+    final referenceController = TextEditingController();
+    final notesController = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Mark loan as complete?'),
-        content: const Text(
-          'This records that the mortgage has been returned and the loan is cleared.',
+        title: const Text('Complete and return item'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Record the handover details for a complete settlement history.',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: receivedByController,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Item received by',
+                  hintText: 'Name of borrower or authorised recipient',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(
+                  labelText: 'Amount received',
+                  prefixText: '₹ ',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: referenceController,
+                decoration: const InputDecoration(
+                  labelText: 'Receipt or reference number (optional)',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: notesController,
+                minLines: 2,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Settlement notes (optional)',
+                  hintText: 'Item condition, witnesses, or other details',
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -139,15 +190,42 @@ Sent via LoanX''';
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Mark complete'),
+            onPressed: () {
+              final amount = double.tryParse(amountController.text.trim());
+              if (receivedByController.text.trim().isEmpty ||
+                  amount == null ||
+                  amount < 0) {
+                showSnackBar(
+                  context,
+                  'Enter the recipient and a valid amount received',
+                );
+                return;
+              }
+              Navigator.of(dialogContext).pop(true);
+            },
+            child: const Text('Complete loan'),
           ),
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true) {
+      receivedByController.dispose();
+      amountController.dispose();
+      referenceController.dispose();
+      notesController.dispose();
+      return;
+    }
 
-    loan.toggleFinished();
+    loan.complete(
+      receivedBy: receivedByController.text.trim(),
+      amountReceived: double.parse(amountController.text.trim()),
+      reference: referenceController.text.trim(),
+      notes: notesController.text.trim(),
+    );
+    receivedByController.dispose();
+    amountController.dispose();
+    referenceController.dispose();
+    notesController.dispose();
     await ref.read(loanListProvider.notifier).updateLoan(loan);
     if (context.mounted) {
       showSnackBar(context, 'Loan marked as complete');
@@ -316,6 +394,52 @@ class _DetailsContent extends StatelessWidget {
             ],
           ),
         ),
+        if (loan.isFinished()) ...[
+          const SizedBox(height: 24),
+          const _SectionTitle('Settlement record'),
+          const SizedBox(height: 10),
+          Card(
+            child: Column(
+              children: [
+                _DetailRow(
+                  icon: Icons.event_available_outlined,
+                  label: 'Completed',
+                  value: DateFormat(
+                    'd MMM yyyy, h:mm a',
+                  ).format(loan.dateFinished!),
+                ),
+                _DetailRow(
+                  icon: Icons.person_outline_rounded,
+                  label: 'Item received by',
+                  value: loan.completedBy.isEmpty
+                      ? 'Not recorded for this older loan'
+                      : loan.completedBy,
+                ),
+                _DetailRow(
+                  icon: Icons.payments_outlined,
+                  label: 'Amount received',
+                  value: loan.settlementAmount == null
+                      ? 'Not recorded for this older loan'
+                      : currency.format(loan.settlementAmount),
+                ),
+                if (loan.completionReference.trim().isNotEmpty)
+                  _DetailRow(
+                    icon: Icons.receipt_long_outlined,
+                    label: 'Reference number',
+                    value: loan.completionReference,
+                  ),
+                _DetailRow(
+                  icon: Icons.notes_rounded,
+                  label: 'Settlement notes',
+                  value: loan.completionNotes.trim().isEmpty
+                      ? 'No notes recorded'
+                      : loan.completionNotes,
+                  last: true,
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

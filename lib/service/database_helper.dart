@@ -26,17 +26,54 @@ class DatabaseHelper {
     if (await File(path).exists()) {
       return await openDatabase(
         path,
-        version: 1,
-        // onCreate: onCreate,
+        version: 2,
+        onCreate: onCreate,
+        onUpgrade: onUpgrade,
         password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
       );
     }
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: onCreate,
+      onUpgrade: onUpgrade,
       password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
     );
+  }
+
+  Future onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _addColumnIfMissing(
+        db,
+        'loans',
+        'completedBy TEXT NOT NULL DEFAULT \'\'',
+      );
+      await _addColumnIfMissing(db, 'loans', 'settlementAmount REAL');
+      await _addColumnIfMissing(
+        db,
+        'loans',
+        'completionReference TEXT NOT NULL DEFAULT \'\'',
+      );
+      await _addColumnIfMissing(
+        db,
+        'loans',
+        'completionNotes TEXT NOT NULL DEFAULT \'\'',
+      );
+    }
+  }
+
+  Future<void> _addColumnIfMissing(
+    Database db,
+    String tableName,
+    String columnDefinition,
+  ) async {
+    final columnName = columnDefinition.split(' ').first;
+    final columns = await db.rawQuery('PRAGMA table_info($tableName)');
+    final columnExists = columns.any((column) => column['name'] == columnName);
+
+    if (!columnExists) {
+      await db.execute('ALTER TABLE $tableName ADD COLUMN $columnDefinition');
+    }
   }
 
   Future onCreate(Database db, int version) async {
@@ -1010,7 +1047,9 @@ class DatabaseHelper {
       '''CREATE TABLE IF NOT EXISTS loans(id INTEGER PRIMARY KEY, depositorName TEXT, phoneNumber TEXT, email TEXT,
            relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, interestType INTEGER,
            interestFrequency INTEGER, additionalDetails TEXT,
-           dateCreated TEXT, dateFinished TEXT, familyRelationId INTEGER, mortgageMaterialId INTEGER,
+           dateCreated TEXT, dateFinished TEXT, completedBy TEXT NOT NULL DEFAULT '', settlementAmount REAL,
+           completionReference TEXT NOT NULL DEFAULT '', completionNotes TEXT NOT NULL DEFAULT '',
+           familyRelationId INTEGER, mortgageMaterialId INTEGER,
            FOREIGN KEY (familyRelationId) REFERENCES familyRelations (id),
            FOREIGN KEY (mortgageMaterialId) REFERENCES mortgageMaterials (id),
            UNIQUE(depositorName, relativeName, address, loanAmount, familyRelationId) )''',

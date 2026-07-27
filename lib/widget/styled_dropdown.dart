@@ -21,27 +21,34 @@ class StyledDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: DropdownButtonFormField<T>(
-        validator: (value) {
-          if (value == null) {
-            return 'Please select an option';
-          }
-          return null;
-        },
-        initialValue: selectedValue,
-        hint: Text(hintText),
-        decoration: InputDecoration(
-          suffixIcon: onAddPressed != null
-              ? IconButton(
-                  onPressed: onAddPressed,
-                  icon: const Icon(Icons.add_rounded),
-                )
-              : null,
-          labelText: labelText,
-        ),
-        items: items,
-        onChanged: onChanged,
-        icon: const Icon(Icons.keyboard_arrow_down_rounded),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: DropdownButtonFormField<T>(
+              validator: (value) {
+                if (value == null) {
+                  return 'Please select an option';
+                }
+                return null;
+              },
+              initialValue: selectedValue,
+              hint: Text(hintText),
+              decoration: InputDecoration(labelText: labelText),
+              items: items,
+              onChanged: onChanged,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded),
+            ),
+          ),
+          if (onAddPressed != null) ...[
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              onPressed: onAddPressed,
+              tooltip: 'Add $labelText',
+              icon: const Icon(Icons.add_rounded),
+            ),
+          ],
+        ],
       ),
     );
   }

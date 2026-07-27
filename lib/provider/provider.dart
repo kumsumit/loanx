@@ -784,6 +784,10 @@ class LoanList extends _$LoanList {
         id: oldLoan.id,
         dateCreated: oldLoan.dateCreated,
         dateFinished: oldLoan.dateFinished,
+        completedBy: oldLoan.completedBy,
+        settlementAmount: oldLoan.settlementAmount,
+        completionReference: oldLoan.completionReference,
+        completionNotes: oldLoan.completionNotes,
       );
       id = await db.update(
         Loan.tableName,

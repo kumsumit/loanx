@@ -17,6 +17,10 @@ class LoanFields {
   static final String additionalDetails = 'additionalDetails';
   static final String dateCreated = 'dateCreated';
   static final String dateFinished = 'dateFinished';
+  static final String completedBy = 'completedBy';
+  static final String settlementAmount = 'settlementAmount';
+  static final String completionReference = 'completionReference';
+  static final String completionNotes = 'completionNotes';
   static final String familyRelationId = "familyRelationId";
   static final String mortgageMaterialId = "mortgageMaterialId";
 }
@@ -35,6 +39,10 @@ class Loan {
   String additionalDetails;
   DateTime dateCreated;
   DateTime? dateFinished;
+  String completedBy;
+  double? settlementAmount;
+  String completionReference;
+  String completionNotes;
   int familyRelationId;
   int mortgageMaterialId;
 
@@ -53,6 +61,10 @@ class Loan {
     required this.mortgageMaterialId,
     DateTime? dateCreated,
     this.dateFinished,
+    this.completedBy = '',
+    this.settlementAmount,
+    this.completionReference = '',
+    this.completionNotes = '',
   }) : dateCreated = dateCreated ?? DateTime.now();
 
   String get dateCreatedFormat =>
@@ -69,9 +81,26 @@ class Loan {
   void toggleFinished() {
     if (isFinished()) {
       dateFinished = null;
+      completedBy = '';
+      settlementAmount = null;
+      completionReference = '';
+      completionNotes = '';
     } else {
       dateFinished = DateTime.now();
     }
+  }
+
+  void complete({
+    required String receivedBy,
+    required double amountReceived,
+    String reference = '',
+    String notes = '',
+  }) {
+    dateFinished = DateTime.now();
+    completedBy = receivedBy;
+    settlementAmount = amountReceived;
+    completionReference = reference;
+    completionNotes = notes;
   }
 
   String getStateText() {
@@ -98,6 +127,10 @@ class Loan {
     String? additionalDetails,
     DateTime? dateCreated,
     DateTime? dateFinished,
+    String? completedBy,
+    double? settlementAmount,
+    String? completionReference,
+    String? completionNotes,
     int? mortgageId,
     int? familyRelationId,
     int? mortgageMaterialId,
@@ -114,6 +147,10 @@ class Loan {
     additionalDetails: additionalDetails ?? this.additionalDetails,
     dateCreated: dateCreated ?? this.dateCreated,
     dateFinished: dateFinished ?? this.dateFinished,
+    completedBy: completedBy ?? this.completedBy,
+    settlementAmount: settlementAmount ?? this.settlementAmount,
+    completionReference: completionReference ?? this.completionReference,
+    completionNotes: completionNotes ?? this.completionNotes,
     familyRelationId: familyRelationId ?? this.familyRelationId,
     mortgageMaterialId: mortgageMaterialId ?? this.mortgageMaterialId,
   );
@@ -133,6 +170,10 @@ class Loan {
     dateFinished: json[LoanFields.dateFinished] == null
         ? null
         : DateTime.parse(json[LoanFields.dateFinished] as String),
+    completedBy: json[LoanFields.completedBy] as String? ?? '',
+    settlementAmount: (json[LoanFields.settlementAmount] as num?)?.toDouble(),
+    completionReference: json[LoanFields.completionReference] as String? ?? '',
+    completionNotes: json[LoanFields.completionNotes] as String? ?? '',
     familyRelationId: json[LoanFields.familyRelationId] as int,
     mortgageMaterialId: json[LoanFields.mortgageMaterialId] as int,
   );
@@ -154,6 +195,10 @@ class Loan {
     LoanFields.dateFinished: dateFinished == null
         ? null
         : DateFormat('yyyy-MM-dd kk:mm:ss').format(dateFinished!),
+    LoanFields.completedBy: completedBy,
+    LoanFields.settlementAmount: settlementAmount,
+    LoanFields.completionReference: completionReference,
+    LoanFields.completionNotes: completionNotes,
     LoanFields.familyRelationId: familyRelationId,
     LoanFields.mortgageMaterialId: mortgageMaterialId,
   };

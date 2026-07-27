@@ -505,7 +505,6 @@ class LoanInput extends HookConsumerWidget {
     await showDialog(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         title: Text(heading),
         content: TextField(
           autofocus: true,
