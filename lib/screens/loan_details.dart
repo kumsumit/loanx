@@ -9,6 +9,7 @@ import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoanDetails extends ConsumerWidget {
   const LoanDetails({super.key, required this.loan});
@@ -42,7 +43,10 @@ class LoanDetails extends ConsumerWidget {
                       phoneNumber: currentLoan.phoneNumber,
                     );
                     if (context.mounted && !opened) {
-                      showSnackBar(context, 'Could not open the contact editor');
+                      showSnackBar(
+                        context,
+                        'Could not open the contact editor',
+                      );
                     }
                   },
           ),
@@ -390,6 +394,41 @@ class _DetailsContent extends ConsumerWidget {
                 label: 'Phone',
                 value: loan.phoneNumber,
               ),
+              if (loan.phoneNumber.trim().isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => _callBorrower(context),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                          child: const _ContactActionLabel(
+                            icon: Icons.call_outlined,
+                            label: 'Call',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () => _showMessageOptions(context),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                          child: const _ContactActionLabel(
+                            icon: Icons.message_outlined,
+                            label: 'Message',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               _DetailRow(
                 icon: Icons.people_outline_rounded,
                 label: relation,
@@ -484,6 +523,98 @@ class _DetailsContent extends ConsumerWidget {
               error: (_, _) => const SizedBox(),
               loading: () => const Center(child: CircularProgressIndicator()),
             ),
+      ],
+    );
+  }
+
+  Future<void> _callBorrower(BuildContext context) async {
+    final launched = await launchUrl(
+      Uri(scheme: 'tel', path: loan.phoneNumber.trim()),
+      mode: LaunchMode.externalApplication,
+    );
+    if (context.mounted && !launched) {
+      showSnackBar(context, 'Could not open the phone app');
+    }
+  }
+
+  void _showMessageOptions(BuildContext context) {
+    final message =
+        'Hello ${loan.depositorName},\n\n'
+        'This is regarding your loan record in LoanX.';
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.sms_outlined),
+              title: const Text('SMS'),
+              onTap: () => _sendMessage(
+                context,
+                sheetContext,
+                Uri(
+                  scheme: 'sms',
+                  path: loan.phoneNumber.trim(),
+                  queryParameters: {'body': message},
+                ),
+                'Could not open the messaging app',
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.chat_outlined),
+              title: const Text('WhatsApp'),
+              onTap: () => _sendMessage(
+                context,
+                sheetContext,
+                Uri.https('wa.me', '/${_whatsAppNumber(loan.phoneNumber)}', {
+                  'text': message,
+                }),
+                'Could not open WhatsApp',
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendMessage(
+    BuildContext context,
+    BuildContext sheetContext,
+    Uri uri,
+    String errorMessage,
+  ) async {
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+    if (context.mounted && !launched) showSnackBar(context, errorMessage);
+  }
+
+  String _whatsAppNumber(String phoneNumber) =>
+      phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+}
+
+class _ContactActionLabel extends StatelessWidget {
+  const _ContactActionLabel({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon),
+        const SizedBox(width: 8),
+        Expanded(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(label, softWrap: false),
+          ),
+        ),
       ],
     );
   }
