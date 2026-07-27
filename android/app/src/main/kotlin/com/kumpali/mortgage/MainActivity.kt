@@ -14,6 +14,8 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import android.content.pm.PackageManager
+import android.content.Intent
+import android.provider.ContactsContract
 //import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 //import com.google.android.play.core.appupdate.AppUpdateOptions
 //import com.google.android.play.core.install.model.AppUpdateType
@@ -37,6 +39,14 @@ class MainActivity : FlutterFragmentActivity() {
                 result.success(android.os.Build.VERSION.RELEASE)
             } else if (call.method.equals("openReview")) {
                 openReview(result)
+            } else if (call.method.equals("createContact")) {
+                val name = call.argument<String>("name")?.trim().orEmpty()
+                val phoneNumber = call.argument<String>("phoneNumber")?.trim().orEmpty()
+                if (name.isEmpty() || phoneNumber.isEmpty()) {
+                    result.error("INVALID_CONTACT", "A name and phone number are required.", null)
+                } else {
+                    createContact(name, phoneNumber, result)
+                }
             }
             else {
                 result.notImplemented()
@@ -62,6 +72,24 @@ class MainActivity : FlutterFragmentActivity() {
             } else {
                 result.error("ERROR", "Request review flow failed.", null)
             }
+        }
+    }
+
+    private fun createContact(name: String, phoneNumber: String, result: Result) {
+        val intent = Intent(ContactsContract.Intents.Insert.ACTION).apply {
+            type = ContactsContract.RawContacts.CONTENT_TYPE
+            putExtra(ContactsContract.Intents.Insert.NAME, name)
+            putExtra(ContactsContract.Intents.Insert.PHONE, phoneNumber)
+            putExtra(
+                ContactsContract.Intents.Insert.PHONE_TYPE,
+                ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
+            )
+        }
+        try {
+            startActivity(intent)
+            result.success(true)
+        } catch (exception: Exception) {
+            result.error("CONTACT_EDITOR_UNAVAILABLE", "No contact editor is available.", null)
         }
     }
 

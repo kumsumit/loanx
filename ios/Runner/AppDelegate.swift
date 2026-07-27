@@ -1,5 +1,7 @@
 import Flutter
 import UIKit
+import Contacts
+import ContactsUI
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -45,7 +47,36 @@ import UIKit
           })
 
     GeneratedPluginRegistrant.register(with: self)
+    let contactChannel = FlutterMethodChannel(name: "loanx", binaryMessenger: controller.binaryMessenger)
+    contactChannel.setMethodCallHandler { [weak self] call, result in
+      guard call.method == "createContact" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let arguments = call.arguments as? [String: Any],
+            let name = arguments["name"] as? String,
+            let phoneNumber = arguments["phoneNumber"] as? String,
+            !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            !phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        result(FlutterError(code: "INVALID_CONTACT", message: "A name and phone number are required.", details: nil))
+        return
+      }
+      self?.showNewContact(name: name, phoneNumber: phoneNumber)
+      result(true)
+    }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  private func showNewContact(name: String, phoneNumber: String) {
+    let contact = CNMutableContact()
+    let nameParts = name.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: " ", maxSplits: 1)
+    contact.givenName = nameParts.first.map(String.init) ?? ""
+    contact.familyName = nameParts.count > 1 ? String(nameParts[1]) : ""
+    contact.phoneNumbers = [CNLabeledValue(label: CNLabelPhoneNumberMobile, value: CNPhoneNumber(stringValue: phoneNumber))]
+    let editor = CNContactViewController(forNewContact: contact)
+    editor.delegate = self
+    let navigationController = UINavigationController(rootViewController: editor)
+    window?.rootViewController?.present(navigationController, animated: true)
   }
 
   private func getAppVersionName() -> String {
@@ -63,4 +94,10 @@ import UIKit
         return -1
     }
 
+}
+
+extension AppDelegate: CNContactViewControllerDelegate {
+  func contactViewController(_ viewController: CNContactViewController, didCompleteWith contact: CNContact?) {
+    viewController.dismiss(animated: true)
+  }
 }

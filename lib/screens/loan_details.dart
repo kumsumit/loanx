@@ -6,6 +6,7 @@ import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/add_loan.dart';
+import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -30,6 +31,21 @@ class LoanDetails extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Loan details'),
         actions: [
+          IconButton(
+            tooltip: 'Save borrower as contact',
+            icon: const Icon(Icons.person_add_alt_1_outlined),
+            onPressed: currentLoan.phoneNumber.trim().isEmpty
+                ? null
+                : () async {
+                    final opened = await ContactService.createContact(
+                      name: currentLoan.depositorName,
+                      phoneNumber: currentLoan.phoneNumber,
+                    );
+                    if (context.mounted && !opened) {
+                      showSnackBar(context, 'Could not open the contact editor');
+                    }
+                  },
+          ),
           IconButton(
             tooltip: 'Share loan details',
             icon: const Icon(Icons.share_outlined),

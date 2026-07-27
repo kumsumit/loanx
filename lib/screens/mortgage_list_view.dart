@@ -5,6 +5,7 @@ import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/loan_details.dart';
 import 'package:loanx/screens/add_loan.dart';
+import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/widget/empty_state.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:intl/intl.dart';
@@ -189,9 +190,25 @@ class MortgageListView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Icon(
-                      Icons.chevron_right_rounded,
+                    IconButton(
+                      tooltip: 'Save contact',
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.person_add_alt_1_outlined),
                       color: colors.onSurfaceVariant,
+                      onPressed: loan.phoneNumber.trim().isEmpty
+                          ? null
+                          : () async {
+                              final opened = await ContactService.createContact(
+                                name: loan.depositorName,
+                                phoneNumber: loan.phoneNumber,
+                              );
+                              if (context.mounted && !opened) {
+                                showSnackBar(
+                                  context,
+                                  'Could not open the contact editor',
+                                );
+                              }
+                            },
                     ),
                   ],
                 ),
