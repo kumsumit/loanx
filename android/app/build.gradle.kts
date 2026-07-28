@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -6,7 +5,7 @@ plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android Gradle plugin.
     id("dev.flutter.flutter-gradle-plugin")
-    // id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
 }
 
 val keystoreProperties = Properties()
@@ -79,12 +78,6 @@ android {
             )
             // signingConfig = signingConfigs.getByName("debug")
         }
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 

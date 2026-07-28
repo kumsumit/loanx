@@ -137,7 +137,18 @@ class AskBackupScreen extends HookWidget {
                                     data: (connected) async {
                                       if (connected) {
                                         isLoading.value = true;
-                                        await BackupService.downloadFileToDevice();
+                                        final restored =
+                                            await BackupService.downloadFileToDevice();
+                                        if (!restored) {
+                                          if (context.mounted) {
+                                            showSnackBar(
+                                              context,
+                                              BackupService.lastError,
+                                            );
+                                          }
+                                          isLoading.value = false;
+                                          return;
+                                        }
                                         if (!FastDB.getIsTableCreated()) {
                                           ref
                                               .read(dBProvider)

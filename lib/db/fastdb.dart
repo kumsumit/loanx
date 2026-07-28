@@ -22,7 +22,7 @@ class FastDB {
   static const _keyLength = 32;
   static const _ivLength = 16;
 
-  static late final db.FlatDbObjectBuilder flatDbBuilder;
+  static late db.FlatDbObjectBuilder flatDbBuilder;
 
   static late File _file;
   static late encrypt.Encrypter _encrypter;
@@ -103,6 +103,74 @@ class FastDB {
       flatDbBuilder = db.FlatDbObjectBuilder();
       debugPrint(e.toString());
     }
+  }
+
+  static db.FlatDbObjectBuilder _builderFromFlatDb(db.FlatDb flatDb) {
+    return db.FlatDbObjectBuilder(
+      isTableCreated: flatDb.isTableCreated,
+      themeMode: flatDb.themeMode,
+      appColor: flatDb.appColor,
+      holdingPeriod: flatDb.holdingPeriod,
+      interestRate: flatDb.interestRate,
+      interestType: flatDb.interestType,
+      interestFrequency: flatDb.interestFrequency,
+      scheduledBackUpTimeHour: flatDb.scheduledBackUpTimeHour,
+      scheduledBackUpTimeMinute: flatDb.scheduledBackUpTimeMinute,
+      driveAccessToken: flatDb.driveAccessToken,
+      driveAccessTokenExpires: flatDb.driveAccessTokenExpires,
+      driveFileId: flatDb.driveFileId,
+      driveUser: flatDb.driveUser,
+      isBackUpRegistered: flatDb.isBackUpRegistered,
+      dbUpdateTime: flatDb.dbUpdateTime,
+      displayName: flatDb.displayName,
+      email: flatDb.email,
+      photourl: flatDb.photourl,
+      backupTaskId: flatDb.backupTaskId,
+      secure: flatDb.secure,
+      photo: flatDb.photo,
+    );
+  }
+
+  /// Returns a portable version of the FlatBuffer settings for a backup.
+  ///
+  /// The on-device file is AES-encrypted with a device-specific key, so it
+  /// cannot be restored directly on another device. Drive credentials and
+  /// Workmanager IDs are local session state and are not exported.
+  static List<int> exportBackupSettings() {
+    final settings = db.FlatDbObjectBuilder(
+      isTableCreated: flatDbBuilder.isTableCreated,
+      themeMode: flatDbBuilder.themeMode,
+      appColor: flatDbBuilder.appColor,
+      holdingPeriod: flatDbBuilder.holdingPeriod,
+      interestRate: flatDbBuilder.interestRate,
+      interestType: flatDbBuilder.interestType,
+      interestFrequency: flatDbBuilder.interestFrequency,
+      scheduledBackUpTimeHour: flatDbBuilder.scheduledBackUpTimeHour,
+      scheduledBackUpTimeMinute: flatDbBuilder.scheduledBackUpTimeMinute,
+      dbUpdateTime: flatDbBuilder.dbUpdateTime,
+      secure: flatDbBuilder.secure,
+      displayName: flatDbBuilder.displayName,
+      email: flatDbBuilder.email,
+      photourl: flatDbBuilder.photourl,
+      photo: flatDbBuilder.photo,
+    );
+    return settings.toBytes();
+  }
+
+  /// Saves portable backup settings using this device's encryption key.
+  static Future<void> restoreBackupSettings(List<int> bytes) async {
+    final restored = _builderFromFlatDb(db.FlatDb(bytes));
+
+    // These are established locally before a Drive restore and must not be
+    // overwritten with stale credentials or task IDs from another device.
+    restored.driveAccessToken = flatDbBuilder.driveAccessToken;
+    restored.driveAccessTokenExpires = flatDbBuilder.driveAccessTokenExpires;
+    restored.driveFileId = flatDbBuilder.driveFileId;
+    restored.driveUser = flatDbBuilder.driveUser;
+    restored.isBackUpRegistered = flatDbBuilder.isBackUpRegistered;
+    restored.backupTaskId = flatDbBuilder.backupTaskId;
+    flatDbBuilder = restored;
+    await flush();
   }
 
   static String getAppColor() {

@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "971184206112",
+    "project_id": "loanx-444705",
+    "storage_bucket": "loanx-444705.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:971184206112:android:2004b940892e7658daa745",
+        "android_client_info": {
+          "package_name": "com.kumpali.loanx"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "971184206112-92vsuh9rr4tmvgvgnik7srm0n36ptrb7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kumpali.loanx",
+            "certificate_hash": "23d18e8502bedf9b1f62f2e840c7e971980d9f5c"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlvV5EwpGoCWYczLJ5LG6G--MWKw9_JQU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -85,7 +85,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  build_runner: ^2.15.2
+  build_runner: ^2.15.3
   riverpod_generator:
     git: https://github.com/kumsumit/riverpod_generator.git
   riverpod_lint:

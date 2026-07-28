@@ -972,7 +972,7 @@ class MyDrawer extends HookWidget {
                                       } else if (!status && context.mounted) {
                                         showErrorSnackBar(
                                           context,
-                                          "Data Backup Failed",
+                                          BackupService.lastError,
                                         );
                                       }
                                       ref
@@ -1032,7 +1032,7 @@ class MyDrawer extends HookWidget {
                                     } else if (!status && context.mounted) {
                                       showErrorSnackBar(
                                         context,
-                                        "Data Download Failed",
+                                        BackupService.lastError,
                                       );
                                     }
                                   } else {
@@ -1103,11 +1103,14 @@ class MyDrawer extends HookWidget {
                           "You have not selected any account.",
                         );
                       }
-                    } catch (_) {
+                    } catch (error, stackTrace) {
+                      debugPrint(
+                        'Google account connection failed: $error\n$stackTrace',
+                      );
                       if (context.mounted) {
                         showErrorSnackBar(
                           context,
-                          "Could not connect to Google Drive. Please try again.",
+                          'Google account connection failed.\n$error',
                         );
                       }
                     } finally {
