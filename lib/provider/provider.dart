@@ -269,6 +269,18 @@ class BackupDownloadStatus extends _$BackupDownloadStatus {
   }
 }
 
+/// Whether the connected Google Drive account has a LoanX backup to restore.
+/// Connecting an account alone does not guarantee that a backup exists.
+@riverpod
+class BackupAvailable extends _$BackupAvailable {
+  @override
+  bool build() => false;
+
+  void set(bool available) {
+    state = available;
+  }
+}
+
 @riverpod
 class LoanSelectionList extends _$LoanSelectionList {
   @override
@@ -366,7 +378,20 @@ class PickerColor extends _$PickerColor {
 
 @riverpod
 Future<String> appVersion(Ref ref) async {
-  return await MethodChannel('loanx').invokeMethod('versionName');
+  final version = await MethodChannel(
+    'loanx',
+  ).invokeMethod<String>('versionName');
+  final versionName = version?.trim();
+  if (versionName == null || versionName.isEmpty) return 'Unavailable';
+
+  try {
+    final buildNumber = await MethodChannel(
+      'loanx',
+    ).invokeMethod<int>('versionCode');
+    return buildNumber == null ? versionName : '$versionName+$buildNumber';
+  } on PlatformException {
+    return versionName;
+  }
 }
 
 @Riverpod(keepAlive: true)

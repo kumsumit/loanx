@@ -10,7 +10,6 @@ import 'package:http/http.dart' as http;
 import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/database_helper.dart';
-import 'package:loanx/widget/snackbar.dart';
 // import 'package:loanx/widget/snackbar.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -78,10 +77,7 @@ class BackupService {
           ),
         )
         ..add(
-          ArchiveFile.bytes(
-            _settingsEntryName,
-            FastDB.exportBackupSettings(),
-          ),
+          ArchiveFile.bytes(_settingsEntryName, FastDB.exportBackupSettings()),
         );
       final backupBytes = ZipEncoder().encodeBytes(archive);
       drive.File result = await driveApi.files.create(
@@ -109,6 +105,24 @@ class BackupService {
     return false;
   }
 
+  /// Checks for a LoanX backup without changing data on this device.
+  static Future<bool> hasBackupOnDrive({GoogleSignInAccount? account}) async {
+    _lastError = null;
+    try {
+      final driveApi = await getDriveApi(account: account);
+      if (driveApi == null) return false;
+      final files = await driveApi.files.list(
+        spaces: 'appDataFolder',
+        q: "name contains '$_backupExtension' and trashed = false",
+        pageSize: 1,
+      );
+      return files.files?.any((file) => file.id != null) ?? false;
+    } catch (e, stackTrace) {
+      _recordError('Google Drive backup check', e, stackTrace);
+      return false;
+    }
+  }
+
   // static Future<bool> downloadFileToDevice() async {
   //   BackgroundIsolateBinaryMessenger.ensureInitialized();
   //  return Isolate.run<bool>(downloadDB);
@@ -125,6 +139,7 @@ class BackupService {
       if (driveApi != null) {
         final fileList = (await driveApi.files.list(
           spaces: 'appDataFolder',
+          q: "name contains '$_backupExtension' and trashed = false",
           orderBy: 'modifiedTime desc',
         )).files;
         if (fileList != null &&
@@ -152,6 +167,8 @@ class BackupService {
                 saveFile,
               );
             }
+          } else {
+            _lastError = 'This device already has the latest backup.';
           }
           if (isDownloaded && fileList.length > 1) {
             for (final file in fileList.sublist(1)) {
@@ -160,6 +177,8 @@ class BackupService {
               }
             }
           }
+        } else {
+          _lastError = 'No LoanX backup is available in Google Drive.';
         }
       }
       return isDownloaded;
@@ -381,22 +400,6 @@ Future<List> changeAccount(BuildContext context) async {
     final account = await googleSignIn.signIn();
     if (account == null) return [];
     final googleSignInAuthentication = await BackupService.saveData(account);
-    if (context.mounted) {
-      showSnackBar(
-        context,
-        " Signed In, Please wait ... \n Download backup now",
-      );
-    }
-    // We already have a freshly-authorized account. Passing it through avoids
-    // a second silent Google sign-in immediately after the chooser closes.
-    final status = await BackupService.downloadFileToDevice(
-      account: account,
-    ).timeout(const Duration(seconds: 60));
-    if (status && context.mounted) {
-      showSnackBar(context, "Data Downloaded");
-    } else if (!status && context.mounted) {
-      showErrorSnackBar(context, BackupService.lastError);
-    }
     return [googleSignInAuthentication, account];
   } catch (e, stackTrace) {
     BackupService._recordError('Google account sign-in', e, stackTrace);

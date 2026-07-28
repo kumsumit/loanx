@@ -49,6 +49,14 @@ import ContactsUI
     GeneratedPluginRegistrant.register(with: self)
     let contactChannel = FlutterMethodChannel(name: "loanx", binaryMessenger: controller.binaryMessenger)
     contactChannel.setMethodCallHandler { [weak self] call, result in
+      if call.method == "versionName" {
+        result(self?.getAppVersionName() ?? "Unavailable")
+        return
+      }
+      if call.method == "versionCode" {
+        result(self?.getAppVersionCode() ?? -1)
+        return
+      }
       guard call.method == "createContact" else {
         result(FlutterMethodNotImplemented)
         return

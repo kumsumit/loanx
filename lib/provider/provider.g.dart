@@ -822,6 +822,68 @@ abstract class _$BackupDownloadStatus extends $Notifier<bool> {
   }
 }
 
+/// Whether the connected Google Drive account has a LoanX backup to restore.
+/// Connecting an account alone does not guarantee that a backup exists.
+
+@ProviderFor(BackupAvailable)
+final backupAvailableProvider = BackupAvailableProvider._();
+
+/// Whether the connected Google Drive account has a LoanX backup to restore.
+/// Connecting an account alone does not guarantee that a backup exists.
+final class BackupAvailableProvider
+    extends $NotifierProvider<BackupAvailable, bool> {
+  /// Whether the connected Google Drive account has a LoanX backup to restore.
+  /// Connecting an account alone does not guarantee that a backup exists.
+  BackupAvailableProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'backupAvailableProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$backupAvailableHash();
+
+  @$internal
+  @override
+  BackupAvailable create() => BackupAvailable();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$backupAvailableHash() => r'1c42ba82502ccdd6c7224d527af11988ae5d8973';
+
+/// Whether the connected Google Drive account has a LoanX backup to restore.
+/// Connecting an account alone does not guarantee that a backup exists.
+
+abstract class _$BackupAvailable extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(LoanSelectionList)
 final loanSelectionListProvider = LoanSelectionListProvider._();
 
@@ -854,7 +916,7 @@ final class LoanSelectionListProvider
   }
 }
 
-String _$loanSelectionListHash() => r'd51feb05f5571703a3d330258c5bb37982578ea4';
+String _$loanSelectionListHash() => r'f85f8fc2ee15a0df2783606e7f32647706261619';
 
 abstract class _$LoanSelectionList extends $Notifier<List<int>> {
   List<int> build();
@@ -1231,7 +1293,7 @@ final class LoanListProvider
   LoanList create() => LoanList();
 }
 
-String _$loanListHash() => r'e0a1035f3eede4b2f9d27b63538c998a96558081';
+String _$loanListHash() => r'e982b7240943689428d8e77589e1f92cb0875e89';
 
 abstract class _$LoanList extends $AsyncNotifier<List<Loan>> {
   FutureOr<List<Loan>> build();
