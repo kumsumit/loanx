@@ -129,16 +129,17 @@ flutter_native_splash:
     image_dark: 'android_12_dark.png'
 
 icons_launcher:
-  image_path: "assets/logo.png"
   platforms:
     android:
       enable: true
+      image_path: "logos/legacy.png"
+      adaptive_background_color: "#9fd09f"
+      adaptive_foreground_image: "logos/adaptive.png"
+      adaptive_round_foreground_image: "logos/circle.png"
+      adaptive_monochrome_image: "logos/monochrome.png"
+
     ios:
       enable: true
-  # adaptive_background_color: '#000f0f'
-  adaptive_foreground_image: 'assets/logo_adaptive.png'
-  adaptive_monochrome_image: 'assets/logo_adaptive.png'
-  adaptive_background_color: '#9fd09f'
-  adaptive_round_image: 'assets/logo_circle.png'
+      image_path: "logos/legacy.png"
              
 #  logo_color: #161f2cff            

@@ -808,7 +808,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "0e238a1b4d457ad8841262179d9b80e45528bcce"
+      resolved-ref: "575ddd0750965f15bd99044cbe2740156b0bef5f"
       url: "https://github.com/kumsumit/icons_launcher.git"
     source: git
     version: "3.1.0"
