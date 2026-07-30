@@ -1,7 +1,7 @@
 name: loanx
 description: "A loanx calculator app that helps you calculate your monthly loanx payments. It also helps you understand the different types of loanxs and how much you can borrow. loanx is available on both Android and iOS platforms, making it accessible to a wide range of users."
 publish_to: "none"
-version: 1.0.1+4
+version: 1.0.1+5
 
 environment:
   sdk: ^3.12.0
@@ -135,7 +135,7 @@ icons_launcher:
       image_path: "logos/legacy.png"
       adaptive_background_color: "#9fd09f"
       adaptive_foreground_image: "logos/adaptive.png"
-      adaptive_round_foreground_image: "logos/circle.png"
+      # adaptive_round_foreground_image: "logos/circle.png"
       adaptive_monochrome_image: "logos/monochrome.png"
 
     ios:
