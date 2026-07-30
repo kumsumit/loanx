@@ -30,16 +30,25 @@ class MyDrawer extends HookConsumerWidget {
     final isLoading = useState(false);
     final driveToken = ref.watch(driveAccessTokenProvider);
     useEffect(() {
-      if (driveToken.isEmpty) {
-        ref.read(backupAvailableProvider.notifier).set(false);
-        return null;
-      }
       var active = true;
-      BackupService.hasBackupOnDrive().then((hasBackup) {
-        if (active) {
+
+      // Hook effects run while the widget tree is still being built. Schedule
+      // provider updates for the next frame so Riverpod never receives a
+      // notification during build.
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!active || !context.mounted) return;
+
+        if (driveToken.isEmpty) {
+          ref.read(backupAvailableProvider.notifier).set(false);
+          return;
+        }
+
+        final hasBackup = await BackupService.hasBackupOnDrive();
+        if (active && context.mounted) {
           ref.read(backupAvailableProvider.notifier).set(hasBackup);
         }
       });
+
       return () {
         active = false;
       };
@@ -52,14 +61,9 @@ class MyDrawer extends HookConsumerWidget {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.tertiary,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                // A solid fill avoids gradient render-target corruption on
+                // older Android GPUs.
+                color: Theme.of(context).colorScheme.primary,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

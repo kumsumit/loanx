@@ -91,22 +91,11 @@ class _PortfolioSummary extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colors.primary,
-                      colors.primary.withValues(alpha: .78),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  // Keep this card on the basic GPU paint path. Combining a
+                  // gradient, rounded corners and a large blurred shadow can
+                  // corrupt the off-screen render target on older Android GPUs.
+                  color: colors.primary,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: .2),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
