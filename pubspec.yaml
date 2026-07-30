@@ -135,5 +135,10 @@ icons_launcher:
       enable: true
     ios:
       enable: true
+  # adaptive_background_color: '#000f0f'
+  adaptive_foreground_image: 'assets/logo_adaptive.png'
+  adaptive_monochrome_image: 'assets/logo_adaptive.png'
+  adaptive_background_color: '#9fd09f'
+  adaptive_round_image: 'assets/logo_circle.png'
              
 #  logo_color: #161f2cff            
