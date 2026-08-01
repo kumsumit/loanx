@@ -162,10 +162,10 @@ packages:
     dependency: transitive
     description:
       name: build
-      sha256: "164cb286486106527dbcf8c76dfd9b7a3661ceb588ce8cda462de787b31fbca5"
+      sha256: b94f5da9ed3d081fd4ecc426c260998b5f4f4eb2f6d89b7e5472edef0b2b2a1b
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.9"
+    version: "4.0.10"
   build_config:
     dependency: transitive
     description:
@@ -186,10 +186,10 @@ packages:
     dependency: "direct dev"
     description:
       name: build_runner
-      sha256: f8f4f8713306287c6b2b69e5d4185e483695157d0d259885ba7c087fddacf08f
+      sha256: "90363d438bd9f84a4d5bbb83352251f57d2d9d771bc95a44e6a33fe25fa52774"
       url: "https://pub.dev"
     source: hosted
-    version: "2.15.3"
+    version: "2.16.0"
   built_collection:
     dependency: transitive
     description:
@@ -542,55 +542,55 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "306cb8898784f0c5e83385d0f2748ed38d5857de"
+      resolved-ref: "81aa58e0736f14bb592bfb1c93817eb8c5e29f70"
       url: "https://github.com/kumsumit/flutter_secure_storage.git"
     source: git
-    version: "10.0.0-beta.6"
+    version: "11.0.0-beta.1"
   flutter_secure_storage_darwin:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: a0128159426e38aafd77e6e75e0624eb4ba50f50
+      resolved-ref: "308955ea009cbfe910a6882e0a290e3246b3a6c3"
       url: "https://github.com/kumsumit/flutter_secure_storage_darwin.git"
     source: git
-    version: "0.1.0"
+    version: "0.4.1"
   flutter_secure_storage_linux:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: a9a925ddd6dcb18d5e7c47eb6eb5cb0153463d2d
+      resolved-ref: e0e5f882ad2e385a360f70cf7eb306b7005b7107
       url: "https://github.com/kumsumit/flutter_secure_storage_linux.git"
     source: git
-    version: "2.0.1"
+    version: "3.0.1"
   flutter_secure_storage_platform_interface:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "293abac64a9b2a8db48a73f325d47c8d9d3f1417"
+      resolved-ref: "27b968dbf00191225e2e1a13acee90770c0fcfb3"
       url: "https://github.com/kumsumit/flutter_secure_storage_platform_interface.git"
     source: git
-    version: "2.0.1"
+    version: "2.0.2"
   flutter_secure_storage_web:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "59e151a95b77266a5090a6d80e7def295ada30a2"
+      resolved-ref: "93df3079cdf89ec362120977c65c57e691c12067"
       url: "https://github.com/kumsumit/flutter_secure_storage_web.git"
     source: git
-    version: "2.0.0"
+    version: "2.1.1"
   flutter_secure_storage_windows:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "9f28541dc8adbce82f737e144bad6d798b59f324"
+      resolved-ref: "3bd878d34dde6b16df79a92dc6ab93c1b7b01e12"
       url: "https://github.com/kumsumit/flutter_secure_storage_windows.git"
     source: git
-    version: "4.2.1"
+    version: "4.2.2"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -1124,10 +1124,10 @@ packages:
     dependency: transitive
     description:
       name: mockito
-      sha256: c8d040d754367108fbe482dcb79dd72b8fe60ac6727abd15b4783c5560297ee6
+      sha256: a9b2bb8762a19c91a5d2f79b4723376648454b7b2b428ad1113151ee79f6f68f
       url: "https://pub.dev"
     source: hosted
-    version: "5.7.0"
+    version: "5.8.0"
   node_preamble:
     dependency: transitive
     description:
@@ -1704,7 +1704,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: be1dee351d0b445f6bf99205d0f99ea7ed72550e
+      resolved-ref: a1b7fa9ff676d9484203146c400545b39348f2b9
       url: "https://github.com/kumsumit/url_launcher_android.git"
     source: git
     version: "6.3.30"
@@ -1774,10 +1774,10 @@ packages:
     dependency: transitive
     description:
       name: vector_math
-      sha256: "99b6fb0d1881dd1302cd42e0f53bcce99ea246e0a85c8aeb79fb38b283852e88"
+      sha256: f36f9f3be64c6198714492bb455c11056e33e2f85d9a0b676a48301e44fdcf47
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.1"
+    version: "2.4.2"
   vm_service:
     dependency: transitive
     description:
