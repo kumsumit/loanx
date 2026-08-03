@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
@@ -16,13 +17,16 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 void showErrorSnackBar(BuildContext context, String message) {
   final overlay = Overlay.of(context);
+  final displayMessage = kReleaseMode
+      ? 'Something went wrong. Please try again.'
+      : message;
   final overlayEntry = OverlayEntry(
     builder: (context) => Align(
       alignment: Alignment.center,
       child: Material(
         color: Colors.transparent,
         child: SlideInSnackbar(
-          message: message,
+          message: displayMessage,
           color: Theme.of(context).colorScheme.onError,
           backgroundColor: Theme.of(context).colorScheme.error,
         ),

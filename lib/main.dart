@@ -29,6 +29,31 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    if (kDebugMode) {
+      debugPrint('FlutterError: ${details.exception}\n${details.stack}');
+    }
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    if (kDebugMode) {
+      debugPrint('PlatformDispatcher error: $error\n$stack');
+    }
+    return true;
+  };
+
+  ErrorWidget.builder = (details) {
+    if (kReleaseMode) {
+      return const Material(
+        child: Center(
+          child: Text('Something went wrong. Please try again.'),
+        ),
+      );
+    }
+    return ErrorWidget(details.exception);
+  };
+
   const String iosClientId =
       '971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug.apps.googleusercontent.com';
   const String androidServerClientId =
