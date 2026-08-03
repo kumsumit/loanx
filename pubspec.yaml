@@ -37,8 +37,7 @@ dependencies:
   # firebase_auth: ^5.3.3
   # firebase_core: ^3.8.0
   # flutter_exif_rotation: ^0.5.2
-  google_sign_in:
-    git: https://github.com/kumsumit/google_sign_in.git
+  google_sign_in: ^7.2.0
   googleapis: ^16.0.0
   # googleapis_auth: ^1.6.0
   http: ^1.6.0
