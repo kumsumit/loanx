@@ -665,46 +665,46 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "32477c06527598dc53ed37060afb52d7dd961a06"
+      resolved-ref: "5aa153be29f17ddfb96dd45e02c7574ea2678e22"
       url: "https://github.com/kumsumit/google_sign_in.git"
     source: git
-    version: "6.2.2"
+    version: "7.2.0"
   google_sign_in_android:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "0922c91f9b0021977399167cea8c209e4c80a276"
+      resolved-ref: d59315fb5611214ba9c67db7faee910b8a587581
       url: "https://github.com/kumsumit/google_sign_in_android.git"
     source: git
-    version: "6.1.34"
+    version: "7.2.16"
   google_sign_in_ios:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "58b5bf8a37a4cc864702aab8dac43defd01387ce"
+      resolved-ref: "11248a284a92194c23219fb26e51dd5900331d72"
       url: "https://github.com/kumsumit/google_sign_in_ios.git"
     source: git
-    version: "5.7.8"
+    version: "6.3.0"
   google_sign_in_platform_interface:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: eb5fa1b78476fdd59bac7a804d7d43260293e86d
+      resolved-ref: "80bfdc1c05a9265219293c45e988f2e15a079ab5"
       url: "https://github.com/kumsumit/google_sign_in_platform_interface.git"
     source: git
-    version: "2.4.5"
+    version: "3.1.0"
   google_sign_in_web:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: bee7a33ab4f3021bdf424a1e52d4402f7256fb76
+      resolved-ref: "9cccd2f0e06badca12fc161675acc2c8cf52d3dd"
       url: "https://github.com/kumsumit/google_sign_in_web.git"
     source: git
-    version: "0.12.4+3"
+    version: "1.1.3"
   googleapis:
     dependency: "direct main"
     description:
@@ -835,7 +835,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: d09d1db5e79eba4297fba99ba66b72241d124072
+      resolved-ref: "8c7086601100131d4e1fec5d9771c4beda3123ae"
       url: "https://github.com/kumsumit/image_picker_android.git"
     source: git
     version: "0.8.13+17"
@@ -1365,14 +1365,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
-  quiver:
-    dependency: transitive
-    description:
-      name: quiver
-      sha256: ea0b925899e64ecdfbf9c7becb60d5b50e706ade44a85b2363be2a22d88117d2
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.2.2"
   recase:
     dependency: transitive
     description:

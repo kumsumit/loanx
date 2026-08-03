@@ -15,12 +15,7 @@ import 'package:path/path.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:workmanager/workmanager.dart';
 
-GoogleSignIn _googleSignIn() => GoogleSignIn(
-  scopes: [drive.DriveApi.driveAppdataScope],
-  clientId: Platform.isIOS
-      ? '971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug.apps.googleusercontent.com'
-      : null,
-);
+GoogleSignIn _googleSignIn() => GoogleSignIn.instance;
 
 class BackupService {
   static const _databaseEntryName = 'loanx.db';
@@ -262,9 +257,11 @@ class BackupService {
       if (FastDB.getDriveAccessToken().isNotEmpty) {
         // Access tokens are short-lived. Re-obtain one from the account on
         // each Drive operation instead of trusting a persisted expiry time.
-        account = await googleSignIn.signInSilently();
+        account = await googleSignIn.attemptLightweightAuthentication();
       } else {
-        account = await googleSignIn.signIn();
+        account = await googleSignIn.authenticate(
+          scopeHint: [drive.DriveApi.driveAppdataScope],
+        );
       }
     }
 
@@ -286,7 +283,7 @@ class BackupService {
     return null;
   }
 
-  static Future<GoogleSignInAuthentication> saveData(
+  static Future<GoogleSignInClientAuthorization> saveData(
     GoogleSignInAccount account,
   ) async {
     FastDB.putDisplayName(account.displayName ?? "");
@@ -300,19 +297,28 @@ class BackupService {
       });
     }
     FastDB.putEmail(account.email);
-    final GoogleSignInAuthentication googleSignInAuthentication =
-        await account.authentication;
+
+    final authorization = await account.authorizationClient.authorizeScopes([
+      drive.DriveApi.driveAppdataScope,
+    ]);
+
     // The plugin refreshes its access token through the signed-in account.
     // Do not store a made-up expiry time; it caused every token to appear
     // expired immediately.
     FastDB.putDriveAccessTokenExpires(0);
-    FastDB.putDriveAccessToken(googleSignInAuthentication.accessToken ?? "");
-    final headers = await account.authHeaders;
-    if (headers["X-Goog-AuthUser"] != null) {
-      FastDB.putDriveUser(int.tryParse(headers["X-Goog-AuthUser"] ?? "") ?? 0);
+    FastDB.putDriveAccessToken(authorization.accessToken);
+
+    final headers = await account.authorizationClient.authorizationHeaders(
+      [drive.DriveApi.driveAppdataScope],
+      promptIfNecessary: false,
+    );
+    if (headers?["X-Goog-AuthUser"] != null) {
+      FastDB.putDriveUser(
+        int.tryParse(headers!["X-Goog-AuthUser"] ?? "") ?? 0,
+      );
     }
     await FastDB.flush();
-    return googleSignInAuthentication;
+    return authorization;
   }
 
   static Future<void> removeData() async {
@@ -397,8 +403,9 @@ Future<List> changeAccount(BuildContext context) async {
   try {
     final googleSignIn = _googleSignIn();
     await googleSignIn.signOut();
-    final account = await googleSignIn.signIn();
-    if (account == null) return [];
+    final account = await googleSignIn.authenticate(
+      scopeHint: [drive.DriveApi.driveAppdataScope],
+    );
     final googleSignInAuthentication = await BackupService.saveData(account);
     return [googleSignInAuthentication, account];
   } catch (e, stackTrace) {

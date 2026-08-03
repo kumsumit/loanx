@@ -74,7 +74,7 @@ class _PortfolioSummary extends ConsumerWidget {
             final active = loans.where((loan) => !loan.isFinished()).toList();
             final principal = active.fold<double>(
               0,
-              (value, loan) => value + loan.loanAmount,
+              (value, loan) => value + loan.loanAmount, 
             );
             final receivable = active.fold<double>(
               0,

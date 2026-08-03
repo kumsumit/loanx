@@ -1,9 +1,12 @@
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:device_preview/device_preview.dart';
 // import 'package:flutter/foundation.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/l10n/app_localizations.dart';
@@ -25,6 +28,11 @@ import 'db/fastdb.dart';
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  await GoogleSignIn.instance.initialize(
+    clientId: Platform.isIOS
+        ? '971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug.apps.googleusercontent.com'
+        : null,
+  );
   await Workmanager().initialize(callbackDispatcher);
   await FastDB.init();
   if (!FastDB.getIsTableCreated()) {
