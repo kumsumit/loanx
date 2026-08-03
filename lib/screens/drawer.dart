@@ -28,31 +28,6 @@ class MyDrawer extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = useState(false);
-    final driveToken = ref.watch(driveAccessTokenProvider);
-    useEffect(() {
-      var active = true;
-
-      // Hook effects run while the widget tree is still being built. Schedule
-      // provider updates for the next frame so Riverpod never receives a
-      // notification during build.
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!active || !context.mounted) return;
-
-        if (driveToken.isEmpty) {
-          ref.read(backupAvailableProvider.notifier).set(false);
-          return;
-        }
-
-        final hasBackup = await BackupService.hasBackupOnDrive();
-        if (active && context.mounted) {
-          ref.read(backupAvailableProvider.notifier).set(hasBackup);
-        }
-      });
-
-      return () {
-        active = false;
-      };
-    }, [driveToken]);
     return LoadingOverlay(
       isLoading: isLoading.value,
       child: Drawer(
@@ -1249,10 +1224,17 @@ class MyDrawer extends HookConsumerWidget {
                             'Google account connection failed: $error\n$stackTrace',
                           );
                           if (context.mounted) {
-                            showErrorSnackBar(
-                              context,
-                              'Google account connection failed.\n$error',
-                            );
+                            final message =
+                                BackupService.userFacingGoogleSignInError(
+                                  error,
+                                );
+                            if (BackupService.isUserCancelledGoogleSignIn(
+                              error,
+                            )) {
+                              showSnackBar(context, message);
+                            } else {
+                              showErrorSnackBar(context, message);
+                            }
                           }
                         } finally {
                           if (context.mounted) {

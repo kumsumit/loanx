@@ -2,8 +2,9 @@ import 'dart:io';
 // import 'dart:isolate';
 
 import 'package:archive/archive.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -36,6 +37,29 @@ class BackupService {
     _lastError = '$operation failed.\n$details';
     // Do not log authorization headers or access tokens.
     debugPrint('$_lastError\n$stackTrace');
+  }
+
+  static bool isUserCancelledGoogleSignIn(Object error) {
+    if (error is PlatformException) {
+      final code = error.code.toLowerCase();
+      final message = error.message?.toLowerCase() ?? '';
+      if (code.contains('cancel') || message.contains('cancel')) {
+        return true;
+      }
+    }
+    final text = error.toString().toLowerCase();
+    return text.contains('cancelled') || text.contains('canceled');
+  }
+
+  static String userFacingGoogleSignInError(Object error) {
+    if (isUserCancelledGoogleSignIn(error)) {
+      return 'No Google account was selected. Please choose an account to continue.';
+    }
+    final fallback = 'Google account connection failed. Please try again.';
+    if (kDebugMode) {
+      return '$fallback\n${error.toString()}';
+    }
+    return fallback;
   }
 
   static Future<bool> performBackup() async {
