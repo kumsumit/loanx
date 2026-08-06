@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/extension/string.dart';
@@ -371,6 +372,7 @@ class LoanInput extends HookConsumerWidget {
                         labelText: 'Lock-in period',
                         helperText:
                             'A fixed charge applies if the item is redeemed early.',
+                        helperMaxLines: 2,
                       ),
                       items: const [
                         DropdownMenuItem(value: 0, child: Text('No lock-in')),
@@ -569,6 +571,45 @@ class LoanInput extends HookConsumerWidget {
                       onPressed: () async {
                         if (formKey.currentState != null &&
                             formKey.currentState!.validate()) {
+                          final relation = currentFamilyRelation.value;
+                          final material = currentMortgageMaterial.value;
+                          if (relation == null ||
+                              relation.id == null ||
+                              material == null ||
+                              material.id == null) {
+                            showSnackBar(
+                              context,
+                              'Select a family relation and pledged material',
+                            );
+                            return;
+                          }
+                          final principal = _parseDouble(
+                            loanAmountController.text,
+                          );
+                          final earlyCharge = lockInDays.value == 0
+                              ? 0.0
+                              : _parseDouble(
+                                  earlyRedemptionChargeController.text,
+                                );
+                          final confirmed = await _confirmSave(
+                            context,
+                            isEditing: loan != null,
+                            borrowerName: depositorController.text.trim(),
+                            phoneNumber: phoneNumberController.text.trim(),
+                            address: addressController.text.trim(),
+                            referenceName: relativeNameController.text.trim(),
+                            relation: relation.name,
+                            principal: principal,
+                            pledgedMaterial: material.name,
+                            mortgageTermYears: mortgageTermYears.value,
+                            interestType: interestType.value,
+                            interestRate: currentInterestRate,
+                            interestFrequency: interestFrequency.value,
+                            lockInDays: lockInDays.value,
+                            earlyRedemptionCharge: earlyCharge,
+                            notes: additionalDetailsController.text.trim(),
+                          );
+                          if (!confirmed || !context.mounted) return;
                           final status = await ref
                               .read(loanListProvider.notifier)
                               .add(
@@ -577,20 +618,16 @@ class LoanInput extends HookConsumerWidget {
                                 phoneNumberController.text,
                                 relativeNameController.text,
                                 addressController.text,
-                                _parseDouble(loanAmountController.text),
+                                principal,
                                 currentInterestRate,
                                 interestType.value.index,
                                 interestFrequency.value.index,
                                 mortgageTermYears.value,
                                 lockInDays.value,
-                                lockInDays.value == 0
-                                    ? 0
-                                    : _parseDouble(
-                                        earlyRedemptionChargeController.text,
-                                      ),
+                                earlyCharge,
                                 additionalDetailsController.text,
-                                currentFamilyRelation.value!.id!,
-                                currentMortgageMaterial.value!.id!,
+                                relation.id!,
+                                material.id!,
                               );
                           if (status > 0) {
                             if (loan != null) {
@@ -630,6 +667,100 @@ class LoanInput extends HookConsumerWidget {
       ),
       // resizeToAvoidBottomInset: true,
     );
+  }
+
+  Future<bool> _confirmSave(
+    BuildContext context, {
+    required bool isEditing,
+    required String borrowerName,
+    required String phoneNumber,
+    required String address,
+    required String referenceName,
+    required String relation,
+    required double principal,
+    required String pledgedMaterial,
+    required int mortgageTermYears,
+    required InterestType interestType,
+    required double interestRate,
+    required InterestFrequency interestFrequency,
+    required int lockInDays,
+    required double earlyRedemptionCharge,
+    required String notes,
+  }) async {
+    final currency = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 2,
+    );
+    final details = <MapEntry<String, String>>[
+      MapEntry('Borrower', borrowerName),
+      MapEntry('Phone', phoneNumber),
+      MapEntry('Address', address),
+      MapEntry('Reference', '$referenceName · $relation'),
+      MapEntry('Principal', currency.format(principal)),
+      MapEntry('Pledged item', pledgedMaterial),
+      MapEntry('Mortgage term', '$mortgageTermYears years'),
+      MapEntry(
+        'Interest',
+        '${interestRate.toStringAsFixed(2)}% · ${interestType.name.toSentenceCase()}',
+      ),
+      MapEntry('Interest frequency', interestFrequency.name.toSentenceCase()),
+      MapEntry(
+        'Lock-in period',
+        lockInDays == 0 ? 'No lock-in' : '$lockInDays days',
+      ),
+      if (lockInDays > 0)
+        MapEntry(
+          'Early redemption charge',
+          currency.format(earlyRedemptionCharge),
+        ),
+      if (notes.isNotEmpty) MapEntry('Notes', notes),
+    ];
+
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            icon: const Icon(Icons.fact_check_outlined),
+            title: Text(
+              isEditing ? 'Verify updated loan details' : 'Verify loan details',
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isEditing
+                          ? 'Review the updated details with the borrower. Save the changes only after both of you agree.'
+                          : 'Review these details with the borrower. Create the record only after both of you agree.',
+                    ),
+                    const SizedBox(height: 16),
+                    for (final detail in details)
+                      _ConfirmationDetail(
+                        label: detail.key,
+                        value: detail.value,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Go back'),
+              ),
+              FilledButton.icon(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                icon: const Icon(Icons.check_rounded),
+                label: Text(isEditing ? 'Confirm & save' : 'Confirm & create'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   List<DropdownMenuItem<MortgageMaterial>> buildMenuMortgageMaterials(
@@ -697,4 +828,29 @@ class LoanInput extends HookConsumerWidget {
     // Clear text after dialog is dismissed.
     controller.clear();
   }
+}
+
+class _ConfirmationDetail extends StatelessWidget {
+  const _ConfirmationDetail({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 2),
+        SelectableText(value, style: Theme.of(context).textTheme.bodyLarge),
+      ],
+    ),
+  );
 }

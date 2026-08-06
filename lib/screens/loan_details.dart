@@ -543,6 +543,7 @@ class _DetailsContent extends ConsumerWidget {
               error: (_, _) => const SizedBox(),
               loading: () => const Center(child: CircularProgressIndicator()),
             ),
+        const SizedBox(height: 32),
       ],
     );
   }

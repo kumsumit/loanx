@@ -15,35 +15,71 @@ class FastDB {
   static final FastDB _instance = FastDB._internal();
   factory FastDB() => _instance;
   FastDB._internal();
-  static late final encrypt.Key _key;
-  static late final encrypt.IV _iv;
+  static late encrypt.Key _key;
+  static late encrypt.IV _iv;
   static const _ssKey = 'ss';
   static const _svKey = 'sv';
   static const _keyLength = 32;
   static const _ivLength = 16;
+  static const _authenticatedFileMagic = <int>[0x4c, 0x58, 0x46, 0x44, 0x32];
+  static const _authenticatedIvLength = 16;
 
   static late db.FlatDbObjectBuilder flatDbBuilder;
 
   static late File _file;
+  static late File _temporaryFile;
+  static late File _backupFile;
   static late encrypt.Encrypter _encrypter;
+  static late encrypt.Encrypter _authenticatedEncrypter;
+  static Future<void> _flushQueue = Future.value();
 
   static Future<void> init() async {
     const FlutterSecureStorage secureStorage = FlutterSecureStorage(
       aOptions: AndroidOptions(resetOnError: true),
     );
     await _initializeKeys(secureStorage);
+    _initializeEncrypters();
+    final directory = await getApplicationSupportDirectory();
+    _initializeFiles(directory);
+    await _loadWithRecovery();
+  }
+
+  static void _initializeEncrypters() {
     _encrypter = encrypt.Encrypter(
       encrypt.AES(_key, mode: encrypt.AESMode.cbc),
     );
-    final directory = await getApplicationSupportDirectory();
-    _file = File('${directory.path}/fastDB.bin');
-    if (await _file.exists()) {
-      await _decryptFile();
-    } else {
-      await _file.create(recursive: true);
-      flatDbBuilder = db.FlatDbObjectBuilder();
-    }
+    _authenticatedEncrypter = encrypt.Encrypter(
+      encrypt.AES(_key, mode: encrypt.AESMode.gcm),
+    );
   }
+
+  static void _initializeFiles(Directory directory) {
+    _file = File('${directory.path}/fastDB.bin');
+    _temporaryFile = File('${_file.path}.tmp');
+    _backupFile = File('${_file.path}.bak');
+  }
+
+  @visibleForTesting
+  static Future<void> initForTesting(Directory directory) async {
+    _key = encrypt.Key(Uint8List.fromList(List<int>.generate(32, (i) => i)));
+    _iv = encrypt.IV(Uint8List.fromList(List<int>.generate(16, (i) => i)));
+    _initializeEncrypters();
+    _initializeFiles(directory);
+    _flushQueue = Future.value();
+    await _loadWithRecovery();
+  }
+
+  @visibleForTesting
+  static Future<void> reloadForTesting() => _loadWithRecovery();
+
+  @visibleForTesting
+  static String get primaryFilePathForTesting => _file.path;
+
+  @visibleForTesting
+  static String get temporaryFilePathForTesting => _temporaryFile.path;
+
+  @visibleForTesting
+  static String get backupFilePathForTesting => _backupFile.path;
 
   static Future<void> _initializeKeys(
     FlutterSecureStorage secureStorage,
@@ -64,46 +100,126 @@ class FastDB {
     }
   }
 
-  static Future<void> _decryptFile() async {
+  static Future<void> _loadWithRecovery() async {
+    final pending = await _tryLoad(_temporaryFile);
+    if (pending != null && await _promoteTemporaryFile()) {
+      flatDbBuilder = pending;
+      debugPrint('FastDB completed recovery of an interrupted write.');
+      return;
+    }
+
+    final primary = await _tryLoad(_file);
+    if (primary != null) {
+      flatDbBuilder = primary;
+      if (await _temporaryFile.exists()) await _temporaryFile.delete();
+      return;
+    }
+
+    final recovered = await _tryLoad(_backupFile);
+    if (recovered != null) {
+      await _preserveCorruptPrimary();
+      await _backupFile.copy(_file.path);
+      flatDbBuilder = recovered;
+      if (await _temporaryFile.exists()) await _temporaryFile.delete();
+      debugPrint('FastDB recovered settings from ${_backupFile.path}');
+      return;
+    }
+
+    await _preserveCorruptPrimary();
+    flatDbBuilder = db.FlatDbObjectBuilder();
+  }
+
+  static Future<bool> _promoteTemporaryFile() async {
+    final primary = await _tryLoad(_file);
     try {
-      final bytes = Inflate(await _file.readAsBytes()).getBytes();
-      if (bytes.isNotEmpty) {
-        final decrypted = _encrypter.decryptBytes(
-          encrypt.Encrypted(Uint8List.fromList(bytes)),
-          iv: _iv,
-        );
-        db.FlatDb flatDb = db.FlatDb(decrypted);
-        flatDbBuilder = db.FlatDbObjectBuilder(
-          isTableCreated: flatDb.isTableCreated,
-          themeMode: flatDb.themeMode,
-          appColor: flatDb.appColor,
-          holdingPeriod: flatDb.holdingPeriod,
-          interestRate: flatDb.interestRate,
-          interestType: flatDb.interestType,
-          interestFrequency: flatDb.interestFrequency,
-          defaultLockInDays: flatDb.defaultLockInDays,
-          defaultEarlyRedemptionCharge: flatDb.defaultEarlyRedemptionCharge,
-          scheduledBackUpTimeHour: flatDb.scheduledBackUpTimeHour,
-          scheduledBackUpTimeMinute: flatDb.scheduledBackUpTimeMinute,
-          driveAccessToken: flatDb.driveAccessToken,
-          driveAccessTokenExpires: flatDb.driveAccessTokenExpires,
-          driveFileId: flatDb.driveFileId,
-          driveUser: flatDb.driveUser,
-          isBackUpRegistered: flatDb.isBackUpRegistered,
-          dbUpdateTime: flatDb.dbUpdateTime,
-          displayName: flatDb.displayName,
-          email: flatDb.email,
-          photourl: flatDb.photourl,
-          backupTaskId: flatDb.backupTaskId,
-          secure: flatDb.secure,
-          photo: flatDb.photo,
-        );
+      if (primary != null) {
+        if (await _backupFile.exists()) await _backupFile.delete();
+        await _file.rename(_backupFile.path);
       } else {
-        flatDbBuilder = db.FlatDbObjectBuilder();
+        await _preserveCorruptPrimary();
       }
-    } catch (e) {
-      flatDbBuilder = db.FlatDbObjectBuilder();
-      debugPrint(e.toString());
+      await _temporaryFile.rename(_file.path);
+      return true;
+    } catch (error) {
+      debugPrint('Could not promote recovered FastDB write: $error');
+      if (!await _file.exists() && await _backupFile.exists()) {
+        await _backupFile.copy(_file.path);
+      }
+      return false;
+    }
+  }
+
+  static Future<db.FlatDbObjectBuilder?> _tryLoad(File source) async {
+    if (!await source.exists()) return null;
+    try {
+      final encoded = await source.readAsBytes();
+      if (encoded.isEmpty) return null;
+      return _decode(encoded);
+    } catch (error) {
+      debugPrint('Could not read FastDB settings from ${source.path}: $error');
+      return null;
+    }
+  }
+
+  static db.FlatDbObjectBuilder _decode(List<int> encoded) {
+    if (_hasAuthenticatedHeader(encoded)) {
+      final minimumLength =
+          _authenticatedFileMagic.length + _authenticatedIvLength + 1;
+      if (encoded.length < minimumLength) {
+        throw const FormatException('Authenticated FastDB file is truncated.');
+      }
+      final ivStart = _authenticatedFileMagic.length;
+      final encryptedStart = ivStart + _authenticatedIvLength;
+      final fileIv = encrypt.IV(
+        Uint8List.fromList(encoded.sublist(ivStart, encryptedStart)),
+      );
+      final compressed = _authenticatedEncrypter.decryptBytes(
+        encrypt.Encrypted(Uint8List.fromList(encoded.sublist(encryptedStart))),
+        iv: fileIv,
+        associatedData: Uint8List.fromList(_authenticatedFileMagic),
+      );
+      return _builderFromFlatDb(db.FlatDb(Inflate(compressed).getBytes()));
+    }
+
+    // Compatibility with settings written before authenticated files were
+    // introduced. A successful future flush migrates them automatically.
+    final encryptedBytes = Inflate(encoded).getBytes();
+    final decrypted = _encrypter.decryptBytes(
+      encrypt.Encrypted(Uint8List.fromList(encryptedBytes)),
+      iv: _iv,
+    );
+    return _builderFromFlatDb(db.FlatDb(decrypted));
+  }
+
+  static bool _hasAuthenticatedHeader(List<int> encoded) {
+    if (encoded.length < _authenticatedFileMagic.length) return false;
+    for (var index = 0; index < _authenticatedFileMagic.length; index++) {
+      if (encoded[index] != _authenticatedFileMagic[index]) return false;
+    }
+    return true;
+  }
+
+  static List<int> _encodeAuthenticated(List<int> originalBytes) {
+    final fileIv = encrypt.IV.fromSecureRandom(_authenticatedIvLength);
+    final compressed = Deflate(originalBytes).getBytes();
+    final encrypted = _authenticatedEncrypter.encryptBytes(
+      compressed,
+      iv: fileIv,
+      associatedData: Uint8List.fromList(_authenticatedFileMagic),
+    );
+    return [..._authenticatedFileMagic, ...fileIv.bytes, ...encrypted.bytes];
+  }
+
+  static Future<void> _preserveCorruptPrimary() async {
+    if (!await _file.exists() || await _file.length() == 0) return;
+    final corruptFile = File(
+      '${_file.path}.corrupt.${DateTime.now().millisecondsSinceEpoch}',
+    );
+    try {
+      await _file.rename(corruptFile.path);
+    } catch (error) {
+      debugPrint('Could not preserve corrupt FastDB file: $error');
+      await _file.delete();
     }
   }
 
@@ -366,21 +482,48 @@ class FastDB {
     await flush();
   }
 
-  static Future<void> flush() async {
+  static Future<void> flush() {
     final originalBytes = flatDbBuilder.toBytes();
-    if (originalBytes.isNotEmpty) {
-      await _file.writeAsBytes(
-        Deflate(
-          _encrypter.encryptBytes(originalBytes, iv: _iv).bytes,
-        ).getBytes(),
-        flush: true,
-      );
+    if (originalBytes.isEmpty) return Future.value();
+
+    // Capture a complete snapshot now so later in-memory changes cannot alter
+    // an already queued write.
+    final encoded = _encodeAuthenticated(originalBytes);
+    final operation = _flushQueue.then((_) => _writeAtomically(encoded));
+
+    // Keep the queue usable after an individual caller observes a write error.
+    _flushQueue = operation.catchError((Object error, StackTrace stackTrace) {
+      debugPrint('FastDB write failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    });
+    return operation;
+  }
+
+  static Future<void> _writeAtomically(List<int> encoded) async {
+    if (await _temporaryFile.exists()) await _temporaryFile.delete();
+    await _temporaryFile.writeAsBytes(encoded, flush: true);
+
+    // Verify that encryption, compression, and FlatBuffer decoding all work
+    // before replacing the last known-good file.
+    _decode(await _temporaryFile.readAsBytes());
+
+    if (await _backupFile.exists()) await _backupFile.delete();
+    if (await _file.exists()) await _file.rename(_backupFile.path);
+
+    try {
+      await _temporaryFile.rename(_file.path);
+    } catch (_) {
+      if (!await _file.exists() && await _backupFile.exists()) {
+        await _backupFile.copy(_file.path);
+      }
+      rethrow;
     }
   }
 
   static Future<void> clearAll() async {
-    if (await _file.exists()) {
-      await _file.delete();
+    await _flushQueue;
+    for (final file in [_file, _temporaryFile, _backupFile]) {
+      if (await file.exists()) await file.delete();
     }
   }
 }

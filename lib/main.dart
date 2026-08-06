@@ -1,5 +1,6 @@
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:device_preview/device_preview.dart';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -46,9 +47,7 @@ void main() async {
   ErrorWidget.builder = (details) {
     if (kReleaseMode) {
       return const Material(
-        child: Center(
-          child: Text('Something went wrong. Please try again.'),
-        ),
+        child: Center(child: Text('Something went wrong. Please try again.')),
       );
     }
     return ErrorWidget(details.exception);
@@ -95,11 +94,40 @@ void main() async {
   //         child: const MyApp())));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      unawaited(
+        FastDB.flush().catchError((Object _, StackTrace _) {
+          // FastDB logs the error and retains the previous valid file.
+        }),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeManagerProvider);
     final appColor = ref.watch(appColorProvider);
     final authenticate = ref.watch(authenticateProvider);
