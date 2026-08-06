@@ -54,18 +54,6 @@ class MyDrawer extends HookConsumerWidget {
                           fontSize: 26,
                         ),
                       ),
-                      // Column(
-                      //   children: [
-                      //     // Text(
-                      //     //   'loanx',
-                      //     //   style: TextStyle(
-                      //     //       color: Theme.of(context).colorScheme.onSecondary,
-                      //     //       fontSize: 20),
-                      //     // ),
-                      //     Image.asset("assets/logo.png", height: 50,),
-                      //   ],
-
-                      // ),
                       Consumer(
                         builder: (context, ref, child) {
                           final networkStatus = ref.watch(
@@ -434,7 +422,7 @@ class MyDrawer extends HookConsumerWidget {
                 const Divider(indent: 16, endIndent: 16),
                 ListTile(
                   leading: StyledIcon(Icons.currency_exchange),
-                  title: StyledText('Default mortgage term'),
+                  title: StyledText('Mortgage term'),
                   subtitle: Consumer(
                     builder: (context, ref, child) {
                       final holdingPeriod = ref.watch(holdingPeriodProvider);
@@ -557,7 +545,7 @@ class MyDrawer extends HookConsumerWidget {
                 ),
                 ListTile(
                   leading: StyledIcon(Icons.input),
-                  title: StyledText('Default interest type'),
+                  title: StyledText('Interest type'),
                   subtitle: Consumer(
                     builder: (context, ref, child) {
                       final interestType = ref.watch(
@@ -671,7 +659,7 @@ class MyDrawer extends HookConsumerWidget {
                     );
                     return ListTile(
                       leading: StyledIcon(Icons.calendar_month_outlined),
-                      title: StyledText('Default interest frequency'),
+                      title: StyledText('Interest frequency'),
                       subtitle: StyledSubtitle(
                         'Default interest frequency is ${interestFrequency.name}',
                       ),
@@ -751,7 +739,7 @@ class MyDrawer extends HookConsumerWidget {
                 ),
                 ListTile(
                   leading: StyledIcon(Icons.percent),
-                  title: StyledText('Default interest rate'),
+                  title: StyledText('Interest rate'),
                   subtitle: Consumer(
                     builder: (context, ref, child) {
                       final interestRate = ref.watch(interestRateProvider);

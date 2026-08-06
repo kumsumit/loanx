@@ -35,6 +35,34 @@ void main() {
       expect(loan.calculateInterest(), closeTo(0, 0.001));
       expect(loan.calculateCollectable(), closeTo(10000, 0.001));
     });
+
+    test('fixed charge applies when an item is redeemed during lock-in', () {
+      final loan = _loan(
+        interestType: InterestType.simple,
+        interestRate: 10,
+        durationInDays: 6,
+        lockInDays: 7,
+        earlyRedemptionCharge: 500,
+      );
+
+      expect(loan.isWithinLockIn(), isTrue);
+      expect(loan.calculateEarlyRedemptionCharge(), 500);
+      expect(loan.calculateCollectable(), closeTo(10700, 0.001));
+    });
+
+    test('fixed charge expires at the end of the lock-in period', () {
+      final loan = _loan(
+        interestType: InterestType.simple,
+        interestRate: 10,
+        durationInDays: 7,
+        lockInDays: 7,
+        earlyRedemptionCharge: 500,
+      );
+
+      expect(loan.isWithinLockIn(), isFalse);
+      expect(loan.calculateEarlyRedemptionCharge(), 0);
+      expect(loan.calculateCollectable(), closeTo(10233.333, 0.001));
+    });
   });
 }
 
@@ -42,6 +70,8 @@ Loan _loan({
   required InterestType interestType,
   required double interestRate,
   required int durationInDays,
+  int lockInDays = 0,
+  double earlyRedemptionCharge = 0,
 }) {
   final created = DateTime(2026, 1, 1);
   return Loan(
@@ -53,6 +83,8 @@ Loan _loan({
     interestRate: interestRate,
     interestType: interestType.index,
     interestFrequency: InterestFrequency.monthly.index,
+    lockInDays: lockInDays,
+    earlyRedemptionCharge: earlyRedemptionCharge,
     additionalDetails: '',
     familyRelationId: 1,
     mortgageMaterialId: 1,

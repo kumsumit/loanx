@@ -36,6 +36,7 @@ class LoanPrintingService {
 
   static pw.Document _buildReceipt(Loan loan) {
     final interest = loan.calculateInterest();
+    final earlyRedemptionCharge = loan.calculateEarlyRedemptionCharge();
     final total = loan.calculateCollectable();
     final isCompleted = loan.isFinished();
     final rows = <List<String>>[
@@ -49,7 +50,20 @@ class LoanPrintingService {
       ['Interest rate', '${loan.interestRate.toStringAsFixed(2)}%'],
       ['Interest type', _interestType(loan.interestType)],
       ['Interest frequency', _interestFrequency(loan.interestFrequency)],
+      if (loan.lockInDays > 0) ...[
+        ['Lock-in period', '${loan.lockInDays} days'],
+        ['Lock-in ends', DateFormat('dd MMM yyyy').format(loan.lockInEndsAt)],
+        [
+          'Early redemption charge',
+          _currency.format(loan.earlyRedemptionCharge),
+        ],
+      ],
       ['Accrued interest', _currency.format(interest)],
+      if (earlyRedemptionCharge > 0)
+        [
+          'Applied early redemption charge',
+          _currency.format(earlyRedemptionCharge),
+        ],
       ['Total due', _currency.format(total)],
       ['Status', isCompleted ? 'Completed' : 'Active'],
       if (isCompleted) ['Completed on', loan.dateFinishedFormat],

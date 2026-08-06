@@ -59,6 +59,7 @@ class LoanInput extends HookConsumerWidget {
           ? FastDB.getInterestFrequency()
           : loan!.interestFrequency],
     );
+    final lockInDays = useState<int>(loan?.lockInDays ?? 0);
     final depositorController = useTextEditingController(
       text: loan?.depositorName ?? '',
     );
@@ -73,6 +74,11 @@ class LoanInput extends HookConsumerWidget {
     );
     final loanAmountController = useTextEditingController(
       text: loan?.loanAmount.toString() ?? '',
+    );
+    final earlyRedemptionChargeController = useTextEditingController(
+      text: (loan?.earlyRedemptionCharge ?? 0) > 0
+          ? loan!.earlyRedemptionCharge.toStringAsFixed(2)
+          : '',
     );
     final additionalDetailsController = useTextEditingController(
       text: loan?.additionalDetails ?? '',
@@ -275,6 +281,48 @@ class LoanInput extends HookConsumerWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 14),
+              DropdownButtonFormField<int>(
+                initialValue: lockInDays.value,
+                decoration: const InputDecoration(
+                  labelText: 'Lock-in period',
+                  helperText:
+                      'A fixed charge applies if the item is redeemed early.',
+                ),
+                items: const [
+                  DropdownMenuItem(value: 0, child: Text('No lock-in')),
+                  DropdownMenuItem(value: 7, child: Text('7 days')),
+                  DropdownMenuItem(value: 15, child: Text('15 days')),
+                ],
+                onChanged: (value) {
+                  lockInDays.value = value ?? 0;
+                  if (lockInDays.value == 0) {
+                    earlyRedemptionChargeController.clear();
+                  }
+                },
+              ),
+              if (lockInDays.value > 0) ...[
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: earlyRedemptionChargeController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Early redemption charge',
+                    hintText: 'Fixed amount',
+                    prefixText: '₹ ',
+                  ),
+                  validator: (value) {
+                    if (lockInDays.value == 0) return null;
+                    final charge = double.tryParse(value?.trim() ?? '');
+                    if (charge == null || charge <= 0) {
+                      return 'Enter a charge greater than zero';
+                    }
+                    return null;
+                  },
+                ),
+              ],
               const SizedBox(height: 24),
               Text(
                 'Borrower information',
@@ -442,6 +490,12 @@ class LoanInput extends HookConsumerWidget {
                                 _parseDouble(interestRateString.join(".")),
                                 interestType.value.index,
                                 interestFrequency.value.index,
+                                lockInDays.value,
+                                lockInDays.value == 0
+                                    ? 0
+                                    : _parseDouble(
+                                        earlyRedemptionChargeController.text,
+                                      ),
                                 additionalDetailsController.text,
                                 currentFamilyRelation.value!.id!,
                                 currentMortgageMaterial.value!.id!,

@@ -14,6 +14,8 @@ class LoanFields {
   static final String interestRate = 'interestRate';
   static final String interestType = 'interestType';
   static final String interestFrequency = 'interestFrequency';
+  static final String lockInDays = 'lockInDays';
+  static final String earlyRedemptionCharge = 'earlyRedemptionCharge';
   static final String additionalDetails = 'additionalDetails';
   static final String dateCreated = 'dateCreated';
   static final String dateFinished = 'dateFinished';
@@ -36,6 +38,8 @@ class Loan {
   double interestRate;
   int interestType;
   int interestFrequency;
+  int lockInDays;
+  double earlyRedemptionCharge;
   String additionalDetails;
   DateTime dateCreated;
   DateTime? dateFinished;
@@ -56,6 +60,8 @@ class Loan {
     required this.interestRate,
     required this.interestType,
     required this.interestFrequency,
+    this.lockInDays = 0,
+    this.earlyRedemptionCharge = 0,
     required this.additionalDetails,
     required this.familyRelationId,
     required this.mortgageMaterialId,
@@ -124,6 +130,8 @@ class Loan {
     double? weight,
     int? interestType,
     int? interestFrequency,
+    int? lockInDays,
+    double? earlyRedemptionCharge,
     String? additionalDetails,
     DateTime? dateCreated,
     DateTime? dateFinished,
@@ -144,6 +152,8 @@ class Loan {
     interestRate: interestRate ?? this.interestRate,
     interestType: interestType ?? this.interestType,
     interestFrequency: interestFrequency ?? this.interestFrequency,
+    lockInDays: lockInDays ?? this.lockInDays,
+    earlyRedemptionCharge: earlyRedemptionCharge ?? this.earlyRedemptionCharge,
     additionalDetails: additionalDetails ?? this.additionalDetails,
     dateCreated: dateCreated ?? this.dateCreated,
     dateFinished: dateFinished ?? this.dateFinished,
@@ -165,6 +175,9 @@ class Loan {
     interestRate: json[LoanFields.interestRate] as double,
     interestType: json[LoanFields.interestType] as int,
     interestFrequency: json[LoanFields.interestFrequency] as int,
+    lockInDays: (json[LoanFields.lockInDays] as num?)?.toInt() ?? 0,
+    earlyRedemptionCharge:
+        (json[LoanFields.earlyRedemptionCharge] as num?)?.toDouble() ?? 0,
     additionalDetails: json[LoanFields.additionalDetails] as String,
     dateCreated: DateTime.parse(json[LoanFields.dateCreated] as String),
     dateFinished: json[LoanFields.dateFinished] == null
@@ -188,6 +201,8 @@ class Loan {
     LoanFields.interestRate: interestRate,
     LoanFields.interestType: interestType,
     LoanFields.interestFrequency: interestFrequency,
+    LoanFields.lockInDays: lockInDays,
+    LoanFields.earlyRedemptionCharge: earlyRedemptionCharge,
     LoanFields.additionalDetails: additionalDetails,
     LoanFields.dateCreated: DateFormat(
       'yyyy-MM-dd kk:mm:ss',
@@ -230,7 +245,19 @@ class Loan {
     return 0.0;
   }
 
-  double calculateCollectable() => loanAmount + calculateInterest();
+  DateTime get lockInEndsAt => dateCreated.add(Duration(days: lockInDays));
+
+  bool isWithinLockIn({DateTime? at}) {
+    if (lockInDays <= 0 || earlyRedemptionCharge <= 0) return false;
+    final effectiveDate = at ?? dateFinished ?? DateTime.now();
+    return effectiveDate.isBefore(lockInEndsAt);
+  }
+
+  double calculateEarlyRedemptionCharge({DateTime? at}) =>
+      isWithinLockIn(at: at) ? earlyRedemptionCharge : 0;
+
+  double calculateCollectable() =>
+      loanAmount + calculateInterest() + calculateEarlyRedemptionCharge();
 }
 
 enum InterestType { simple, compound }

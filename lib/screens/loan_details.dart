@@ -132,7 +132,7 @@ Phone: ${loan.phoneNumber}
 Address: ${loan.address}
 Loan amount: ${currency.format(loan.loanAmount)}
 Interest: ${loan.interestRate}% (${InterestType.values[loan.interestType].name.toSentenceCase()})
-Estimated amount due as of ${DateFormat('d MMM yyyy').format(calculationDate)}: ${currency.format(collectable)}
+${loan.lockInDays > 0 ? 'Lock-in period: ${loan.lockInDays} days (until ${DateFormat('d MMM yyyy').format(loan.lockInEndsAt)})\nEarly redemption charge: ${currency.format(loan.earlyRedemptionCharge)} if redeemed before this date\n' : ''}Estimated amount due as of ${DateFormat('d MMM yyyy').format(calculationDate)}: ${currency.format(collectable)}
 Status: ${loan.isFinished() ? 'Completed' : 'Active'}
 Created: ${DateFormat('d MMM yyyy').format(loan.dateCreated)}
 ${loan.isFinished() ? 'Completed: ${DateFormat('d MMM yyyy, h:mm a').format(loan.dateFinished!)}\nReceived by: ${loan.completedBy.isEmpty ? 'Not recorded' : loan.completedBy}\nAmount received: ${loan.settlementAmount == null ? 'Not recorded' : currency.format(loan.settlementAmount)}' : ''}
@@ -272,6 +272,7 @@ class _DetailsContent extends ConsumerWidget {
       decimalDigits: 0,
     );
     final interest = loan.calculateInterest();
+    final earlyRedemptionCharge = loan.calculateEarlyRedemptionCharge();
     final collectable = loan.calculateCollectable();
 
     return ListView(
@@ -338,6 +339,13 @@ class _DetailsContent extends ConsumerWidget {
                   ),
                 ],
               ),
+              if (earlyRedemptionCharge > 0) ...[
+                const SizedBox(height: 14),
+                _AmountMetric(
+                  label: 'Early redemption charge',
+                  value: currency.format(earlyRedemptionCharge),
+                ),
+              ],
             ],
           ),
         ),
@@ -360,6 +368,19 @@ class _DetailsContent extends ConsumerWidget {
                   value: InterestFrequency.values[loan.interestFrequency].name
                       .toSentenceCase(),
                 ),
+              if (loan.lockInDays > 0) ...[
+                _DetailRow(
+                  icon: Icons.lock_clock_outlined,
+                  label: 'Lock-in period',
+                  value:
+                      '${loan.lockInDays} days · Until ${DateFormat('d MMM yyyy').format(loan.lockInEndsAt)}',
+                ),
+                _DetailRow(
+                  icon: Icons.payments_outlined,
+                  label: 'Early redemption charge',
+                  value: currency.format(loan.earlyRedemptionCharge),
+                ),
+              ],
               _DetailRow(
                 icon: Icons.inventory_2_outlined,
                 label: 'Mortgage material',
