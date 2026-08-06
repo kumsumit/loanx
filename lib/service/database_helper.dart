@@ -27,7 +27,7 @@ class DatabaseHelper {
     if (await File(path).exists()) {
       return await openDatabase(
         path,
-        version: 4,
+        version: 5,
         onCreate: onCreate,
         onUpgrade: onUpgrade,
         password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
@@ -35,7 +35,7 @@ class DatabaseHelper {
     }
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: onCreate,
       onUpgrade: onUpgrade,
       password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
@@ -74,6 +74,13 @@ class DatabaseHelper {
         db,
         'loans',
         'earlyRedemptionCharge REAL NOT NULL DEFAULT 0',
+      );
+    }
+    if (oldVersion < 5) {
+      await _addColumnIfMissing(
+        db,
+        'loans',
+        'mortgageTermYears INTEGER NOT NULL DEFAULT 5',
       );
     }
   }
@@ -1071,7 +1078,8 @@ class DatabaseHelper {
     batch.execute(
       '''CREATE TABLE IF NOT EXISTS loans(id INTEGER PRIMARY KEY, depositorName TEXT, phoneNumber TEXT, email TEXT,
            relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, interestType INTEGER,
-           interestFrequency INTEGER, lockInDays INTEGER NOT NULL DEFAULT 0,
+           interestFrequency INTEGER, mortgageTermYears INTEGER NOT NULL DEFAULT 5,
+           lockInDays INTEGER NOT NULL DEFAULT 0,
            earlyRedemptionCharge REAL NOT NULL DEFAULT 0, additionalDetails TEXT,
            dateCreated TEXT, dateFinished TEXT, completedBy TEXT NOT NULL DEFAULT '', settlementAmount REAL,
            completionReference TEXT NOT NULL DEFAULT '', completionNotes TEXT NOT NULL DEFAULT '',

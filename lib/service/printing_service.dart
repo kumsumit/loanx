@@ -50,6 +50,7 @@ class LoanPrintingService {
       ['Interest rate', '${loan.interestRate.toStringAsFixed(2)}%'],
       ['Interest type', _interestType(loan.interestType)],
       ['Interest frequency', _interestFrequency(loan.interestFrequency)],
+      ['Mortgage term', '${loan.mortgageTermYears} years'],
       if (loan.lockInDays > 0) ...[
         ['Lock-in period', '${loan.lockInDays} days'],
         ['Lock-in ends', DateFormat('dd MMM yyyy').format(loan.lockInEndsAt)],

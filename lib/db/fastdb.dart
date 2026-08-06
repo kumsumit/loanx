@@ -81,6 +81,8 @@ class FastDB {
           interestRate: flatDb.interestRate,
           interestType: flatDb.interestType,
           interestFrequency: flatDb.interestFrequency,
+          defaultLockInDays: flatDb.defaultLockInDays,
+          defaultEarlyRedemptionCharge: flatDb.defaultEarlyRedemptionCharge,
           scheduledBackUpTimeHour: flatDb.scheduledBackUpTimeHour,
           scheduledBackUpTimeMinute: flatDb.scheduledBackUpTimeMinute,
           driveAccessToken: flatDb.driveAccessToken,
@@ -114,6 +116,8 @@ class FastDB {
       interestRate: flatDb.interestRate,
       interestType: flatDb.interestType,
       interestFrequency: flatDb.interestFrequency,
+      defaultLockInDays: flatDb.defaultLockInDays,
+      defaultEarlyRedemptionCharge: flatDb.defaultEarlyRedemptionCharge,
       scheduledBackUpTimeHour: flatDb.scheduledBackUpTimeHour,
       scheduledBackUpTimeMinute: flatDb.scheduledBackUpTimeMinute,
       driveAccessToken: flatDb.driveAccessToken,
@@ -145,6 +149,8 @@ class FastDB {
       interestRate: flatDbBuilder.interestRate,
       interestType: flatDbBuilder.interestType,
       interestFrequency: flatDbBuilder.interestFrequency,
+      defaultLockInDays: flatDbBuilder.defaultLockInDays,
+      defaultEarlyRedemptionCharge: flatDbBuilder.defaultEarlyRedemptionCharge,
       scheduledBackUpTimeHour: flatDbBuilder.scheduledBackUpTimeHour,
       scheduledBackUpTimeMinute: flatDbBuilder.scheduledBackUpTimeMinute,
       dbUpdateTime: flatDbBuilder.dbUpdateTime,
@@ -200,6 +206,14 @@ class FastDB {
 
   static int getInterestFrequency() {
     return flatDbBuilder.interestFrequency ?? InterestFrequency.monthly.index;
+  }
+
+  static int getDefaultLockInDays() {
+    return flatDbBuilder.defaultLockInDays ?? 0;
+  }
+
+  static double getDefaultEarlyRedemptionCharge() {
+    return flatDbBuilder.defaultEarlyRedemptionCharge ?? 0;
   }
 
   static int getScheduledBackUpTimeHour() {
@@ -284,6 +298,14 @@ class FastDB {
 
   static void putInterestFrequency(int interestFrequency) {
     flatDbBuilder.interestFrequency = interestFrequency;
+  }
+
+  static void putDefaultLockInDays(int days) {
+    flatDbBuilder.defaultLockInDays = days;
+  }
+
+  static void putDefaultEarlyRedemptionCharge(double charge) {
+    flatDbBuilder.defaultEarlyRedemptionCharge = charge;
   }
 
   static void putScheduledBackUpTimeHour(int scheduledBackUpTimeHour) {

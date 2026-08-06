@@ -14,6 +14,7 @@ class LoanFields {
   static final String interestRate = 'interestRate';
   static final String interestType = 'interestType';
   static final String interestFrequency = 'interestFrequency';
+  static final String mortgageTermYears = 'mortgageTermYears';
   static final String lockInDays = 'lockInDays';
   static final String earlyRedemptionCharge = 'earlyRedemptionCharge';
   static final String additionalDetails = 'additionalDetails';
@@ -38,6 +39,7 @@ class Loan {
   double interestRate;
   int interestType;
   int interestFrequency;
+  int mortgageTermYears;
   int lockInDays;
   double earlyRedemptionCharge;
   String additionalDetails;
@@ -60,6 +62,7 @@ class Loan {
     required this.interestRate,
     required this.interestType,
     required this.interestFrequency,
+    this.mortgageTermYears = 5,
     this.lockInDays = 0,
     this.earlyRedemptionCharge = 0,
     required this.additionalDetails,
@@ -130,6 +133,7 @@ class Loan {
     double? weight,
     int? interestType,
     int? interestFrequency,
+    int? mortgageTermYears,
     int? lockInDays,
     double? earlyRedemptionCharge,
     String? additionalDetails,
@@ -152,6 +156,7 @@ class Loan {
     interestRate: interestRate ?? this.interestRate,
     interestType: interestType ?? this.interestType,
     interestFrequency: interestFrequency ?? this.interestFrequency,
+    mortgageTermYears: mortgageTermYears ?? this.mortgageTermYears,
     lockInDays: lockInDays ?? this.lockInDays,
     earlyRedemptionCharge: earlyRedemptionCharge ?? this.earlyRedemptionCharge,
     additionalDetails: additionalDetails ?? this.additionalDetails,
@@ -175,6 +180,8 @@ class Loan {
     interestRate: json[LoanFields.interestRate] as double,
     interestType: json[LoanFields.interestType] as int,
     interestFrequency: json[LoanFields.interestFrequency] as int,
+    mortgageTermYears:
+        (json[LoanFields.mortgageTermYears] as num?)?.toInt() ?? 5,
     lockInDays: (json[LoanFields.lockInDays] as num?)?.toInt() ?? 0,
     earlyRedemptionCharge:
         (json[LoanFields.earlyRedemptionCharge] as num?)?.toDouble() ?? 0,
@@ -201,6 +208,7 @@ class Loan {
     LoanFields.interestRate: interestRate,
     LoanFields.interestType: interestType,
     LoanFields.interestFrequency: interestFrequency,
+    LoanFields.mortgageTermYears: mortgageTermYears,
     LoanFields.lockInDays: lockInDays,
     LoanFields.earlyRedemptionCharge: earlyRedemptionCharge,
     LoanFields.additionalDetails: additionalDetails,

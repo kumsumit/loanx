@@ -801,6 +801,7 @@ class LoanList extends _$LoanList {
     double interestRate,
     int interestType,
     int interestFrequency,
+    int mortgageTermYears,
     int lockInDays,
     double earlyRedemptionCharge,
     String additionalDetails,
@@ -816,6 +817,7 @@ class LoanList extends _$LoanList {
       loanAmount: loanAmount,
       interestType: interestType,
       interestFrequency: interestFrequency,
+      mortgageTermYears: mortgageTermYears,
       lockInDays: lockInDays,
       earlyRedemptionCharge: earlyRedemptionCharge,
       additionalDetails: additionalDetails,
@@ -975,6 +977,11 @@ class LoanList extends _$LoanList {
         InterestFrequency.values[after.interestFrequency].name,
       );
     }
+    record(
+      'Mortgage term',
+      '${before.mortgageTermYears} years',
+      '${after.mortgageTermYears} years',
+    );
     record(
       'Lock-in period',
       '${before.lockInDays} days',

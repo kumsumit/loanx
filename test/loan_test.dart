@@ -63,6 +63,20 @@ void main() {
       expect(loan.calculateEarlyRedemptionCharge(), 0);
       expect(loan.calculateCollectable(), closeTo(10233.333, 0.001));
     });
+
+    test('mortgage term is stored per loan with a legacy default', () {
+      final loan = _loan(
+        interestType: InterestType.simple,
+        interestRate: 10,
+        durationInDays: 30,
+      ).copy(id: 1, mortgageTermYears: 12);
+      final json = loan.toJson();
+
+      expect(Loan.fromJson(json).mortgageTermYears, 12);
+
+      json.remove(LoanFields.mortgageTermYears);
+      expect(Loan.fromJson(json).mortgageTermYears, 5);
+    });
   });
 }
 

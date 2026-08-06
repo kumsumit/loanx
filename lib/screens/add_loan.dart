@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
@@ -59,7 +60,40 @@ class LoanInput extends HookConsumerWidget {
           ? FastDB.getInterestFrequency()
           : loan!.interestFrequency],
     );
-    final lockInDays = useState<int>(loan?.lockInDays ?? 0);
+    final mortgageTermYears = useState<int>(
+      (loan?.mortgageTermYears ?? FastDB.getHoldingPeriod()).clamp(1, 30),
+    );
+    final lockInDays = useState<int>(
+      loan?.lockInDays ?? FastDB.getDefaultLockInDays(),
+    );
+    final initialInterestRate =
+        loan?.interestRate ??
+        ref.read(interestRateProvider) ??
+        FastDB.getInterestRate();
+    final interestRateWhole = useState<int>(
+      initialInterestRate.floor().clamp(0, 50),
+    );
+    final interestRateFraction = useState<int>(
+      ((initialInterestRate - initialInterestRate.floor()) * 100).round().clamp(
+        0,
+        99,
+      ),
+    );
+    final interestRateWholeController = useMemoized(
+      () => FixedExtentScrollController(initialItem: interestRateWhole.value),
+    );
+    final interestRateFractionController = useMemoized(
+      () =>
+          FixedExtentScrollController(initialItem: interestRateFraction.value),
+    );
+    useEffect(() {
+      return () {
+        interestRateWholeController.dispose();
+        interestRateFractionController.dispose();
+      };
+    }, [interestRateWholeController, interestRateFractionController]);
+    final initialEarlyRedemptionCharge =
+        loan?.earlyRedemptionCharge ?? FastDB.getDefaultEarlyRedemptionCharge();
     final depositorController = useTextEditingController(
       text: loan?.depositorName ?? '',
     );
@@ -76,23 +110,22 @@ class LoanInput extends HookConsumerWidget {
       text: loan?.loanAmount.toString() ?? '',
     );
     final earlyRedemptionChargeController = useTextEditingController(
-      text: (loan?.earlyRedemptionCharge ?? 0) > 0
-          ? loan!.earlyRedemptionCharge.toStringAsFixed(2)
+      text: lockInDays.value > 0 && initialEarlyRedemptionCharge > 0
+          ? initialEarlyRedemptionCharge.toStringAsFixed(2)
           : '',
+    );
+    final earlyRedemptionCharge = useState<double>(
+      lockInDays.value > 0 ? initialEarlyRedemptionCharge : 0,
     );
     final additionalDetailsController = useTextEditingController(
       text: loan?.additionalDetails ?? '',
     );
     final scrollController = useScrollController();
-    List<String> interestRateString =
-        (loan?.interestRate ?? ref.read(interestRateProvider)).toString().split(
-          ".",
-        );
-    if (interestRateString[1].length > 2) {
-      interestRateString[1] = interestRateString[1].substring(0, 2);
-    } else if (interestRateString[1].length == 1) {
-      interestRateString[1] = "${interestRateString[1]}0";
-    }
+    final currentInterestRate =
+        interestRateWhole.value + (interestRateFraction.value / 100);
+    final lockInSummary = lockInDays.value == 0
+        ? 'No lock-in'
+        : '${lockInDays.value} days · ₹${earlyRedemptionCharge.value.toStringAsFixed(2)}';
 
     return Scaffold(
       appBar: AppBar(title: Text(appBarTitle)),
@@ -142,187 +175,245 @@ class LoanInput extends HookConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              Text('Loan terms', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 10),
-              RadioGroup<InterestType>(
-                groupValue: interestType.value,
-                onChanged: (value) {
-                  if (value != null) interestType.value = value;
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              Card(
+                clipBehavior: Clip.antiAlias,
+                child: ExpansionTile(
+                  initiallyExpanded: loan != null,
+                  maintainState: true,
+                  leading: const Icon(Icons.tune_rounded),
+                  title: const Text('Loan terms'),
+                  subtitle: Text(
+                    '${interestType.value.name.toSentenceCase()} · '
+                    '${currentInterestRate.toStringAsFixed(2)}% ${interestFrequency.value.name.toSentenceCase()} · '
+                    '${mortgageTermYears.value} years · $lockInSummary',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
                   children: [
-                    Radio<InterestType>(value: InterestType.simple),
-                    StyledSubtitle('Simple'),
-                    SizedBox(width: 20),
-                    Radio<InterestType>(value: InterestType.compound),
-                    StyledSubtitle('Compound'),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Interest type',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    RadioGroup<InterestType>(
+                      groupValue: interestType.value,
+                      onChanged: (value) {
+                        if (value != null) interestType.value = value;
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Radio<InterestType>(value: InterestType.simple),
+                          StyledSubtitle('Simple'),
+                          SizedBox(width: 20),
+                          Radio<InterestType>(value: InterestType.compound),
+                          StyledSubtitle('Compound'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Interest rate',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10.0),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                            child: CupertinoPicker(
+                              itemExtent: 32,
+                              scrollController: interestRateWholeController,
+                              selectionOverlay:
+                                  const CupertinoPickerDefaultSelectionOverlay(
+                                    background: Colors.transparent,
+                                    capEndEdge: false,
+                                  ),
+                              onSelectedItemChanged: (val) {
+                                interestRateWhole.value = val;
+                              },
+                              children: List.generate(
+                                51,
+                                (index) => StyledSubtitle(index.toString()),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 5),
+                        Center(child: StyledSubtitle(".", fontSize: 20)),
+                        SizedBox(width: 5),
+                        Expanded(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10.0),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                            child: CupertinoPicker(
+                              itemExtent: 32,
+                              scrollController: interestRateFractionController,
+                              selectionOverlay:
+                                  const CupertinoPickerDefaultSelectionOverlay(
+                                    background: Colors.transparent,
+                                    capStartEdge: false,
+                                  ),
+                              onSelectedItemChanged: (val) {
+                                interestRateFraction.value = val;
+                              },
+                              children: List.generate(
+                                100,
+                                (index) => StyledSubtitle(index.toString()),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 5),
+                        Center(child: StyledSubtitle("%", fontSize: 20)),
+                        SizedBox(width: 5),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Mortgage term',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        Text('${mortgageTermYears.value} years'),
+                      ],
+                    ),
+                    Slider(
+                      value: mortgageTermYears.value.toDouble(),
+                      min: 1,
+                      max: 30,
+                      divisions: 29,
+                      label: '${mortgageTermYears.value} years',
+                      onChanged: (value) {
+                        mortgageTermYears.value = value.round();
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Interest frequency',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.secondary,
+                          width: 1,
+                        ),
+                      ),
+                      child: RadioGroup<InterestFrequency>(
+                        groupValue: interestFrequency.value,
+                        onChanged: (value) {
+                          if (value != null) interestFrequency.value = value;
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Radio<InterestFrequency>(
+                                  value: InterestFrequency.monthly,
+                                ),
+                                StyledSubtitle('Monthly'),
+                                SizedBox(width: 20),
+                                Radio<InterestFrequency>(
+                                  value: InterestFrequency.quarterly,
+                                ),
+                                StyledSubtitle('Quarterly'),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Radio<InterestFrequency>(
+                                  value: InterestFrequency.yearly,
+                                ),
+                                StyledSubtitle('Yearly'),
+                                SizedBox(width: 20),
+                                Radio<InterestFrequency>(
+                                  value: InterestFrequency.halfYearly,
+                                ),
+                                StyledSubtitle('Half-Yearly'),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    DropdownButtonFormField<int>(
+                      initialValue: lockInDays.value,
+                      decoration: const InputDecoration(
+                        labelText: 'Lock-in period',
+                        helperText:
+                            'A fixed charge applies if the item is redeemed early.',
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('No lock-in')),
+                        DropdownMenuItem(value: 7, child: Text('7 days')),
+                        DropdownMenuItem(value: 15, child: Text('15 days')),
+                      ],
+                      onChanged: (value) {
+                        lockInDays.value = value ?? 0;
+                        if (lockInDays.value == 0) {
+                          earlyRedemptionChargeController.clear();
+                          earlyRedemptionCharge.value = 0;
+                        }
+                      },
+                    ),
+                    if (lockInDays.value > 0) ...[
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: earlyRedemptionChargeController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Early redemption charge',
+                          hintText: 'Fixed amount',
+                          prefixText: '₹ ',
+                        ),
+                        validator: (value) {
+                          if (lockInDays.value == 0) return null;
+                          final charge = double.tryParse(value?.trim() ?? '');
+                          if (charge == null || charge <= 0) {
+                            return 'Enter a charge greater than zero';
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          earlyRedemptionCharge.value =
+                              double.tryParse(value.trim()) ?? 0;
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                      ),
-                      child: CupertinoPicker(
-                        itemExtent: 32,
-                        scrollController: FixedExtentScrollController(
-                          initialItem: int.tryParse(interestRateString[0]) ?? 2,
-                        ),
-                        selectionOverlay:
-                            const CupertinoPickerDefaultSelectionOverlay(
-                              background: Colors.transparent,
-                              capEndEdge: false,
-                            ),
-                        onSelectedItemChanged: (val) {
-                          interestRateString[0] = val.toString();
-                        },
-                        children: List.generate(
-                          51,
-                          (index) => StyledSubtitle(index.toString()),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 5),
-                  Center(child: StyledSubtitle(".", fontSize: 20)),
-                  SizedBox(width: 5),
-                  Expanded(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                      ),
-                      child: CupertinoPicker(
-                        itemExtent: 32,
-                        scrollController: FixedExtentScrollController(
-                          initialItem:
-                              int.tryParse(interestRateString[1]) ?? 51,
-                        ),
-                        selectionOverlay:
-                            const CupertinoPickerDefaultSelectionOverlay(
-                              background: Colors.transparent,
-                              capStartEdge: false,
-                            ),
-                        onSelectedItemChanged: (val) {
-                          final valStr = val.toString();
-                          if (valStr.length > 2) {
-                            interestRateString[1] = valStr.substring(0, 2);
-                          } else if (interestRateString[1].length == 1) {
-                            interestRateString[1] = "0$valStr";
-                          }
-                        },
-                        children: List.generate(
-                          100,
-                          (index) => StyledSubtitle(index.toString()),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 5),
-                  Center(child: StyledSubtitle("%", fontSize: 20)),
-                  SizedBox(width: 5),
-                ],
-              ),
-              SizedBox(height: 10),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.secondary,
-                    width: 1,
-                  ),
-                ),
-                child: RadioGroup<InterestFrequency>(
-                  groupValue: interestFrequency.value,
-                  onChanged: (value) {
-                    if (value != null) interestFrequency.value = value;
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Radio<InterestFrequency>(
-                            value: InterestFrequency.monthly,
-                          ),
-                          StyledSubtitle('Monthly'),
-                          SizedBox(width: 20),
-                          Radio<InterestFrequency>(
-                            value: InterestFrequency.quarterly,
-                          ),
-                          StyledSubtitle('Quarterly'),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Radio<InterestFrequency>(
-                            value: InterestFrequency.yearly,
-                          ),
-                          StyledSubtitle('Yearly'),
-                          SizedBox(width: 20),
-                          Radio<InterestFrequency>(
-                            value: InterestFrequency.halfYearly,
-                          ),
-                          StyledSubtitle('Half-Yearly'),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<int>(
-                initialValue: lockInDays.value,
-                decoration: const InputDecoration(
-                  labelText: 'Lock-in period',
-                  helperText:
-                      'A fixed charge applies if the item is redeemed early.',
-                ),
-                items: const [
-                  DropdownMenuItem(value: 0, child: Text('No lock-in')),
-                  DropdownMenuItem(value: 7, child: Text('7 days')),
-                  DropdownMenuItem(value: 15, child: Text('15 days')),
-                ],
-                onChanged: (value) {
-                  lockInDays.value = value ?? 0;
-                  if (lockInDays.value == 0) {
-                    earlyRedemptionChargeController.clear();
-                  }
-                },
-              ),
-              if (lockInDays.value > 0) ...[
-                const SizedBox(height: 14),
-                TextFormField(
-                  controller: earlyRedemptionChargeController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Early redemption charge',
-                    hintText: 'Fixed amount',
-                    prefixText: '₹ ',
-                  ),
-                  validator: (value) {
-                    if (lockInDays.value == 0) return null;
-                    final charge = double.tryParse(value?.trim() ?? '');
-                    if (charge == null || charge <= 0) {
-                      return 'Enter a charge greater than zero';
-                    }
-                    return null;
-                  },
-                ),
-              ],
               const SizedBox(height: 24),
               Text(
                 'Borrower information',
@@ -487,9 +578,10 @@ class LoanInput extends HookConsumerWidget {
                                 relativeNameController.text,
                                 addressController.text,
                                 _parseDouble(loanAmountController.text),
-                                _parseDouble(interestRateString.join(".")),
+                                currentInterestRate,
                                 interestType.value.index,
                                 interestFrequency.value.index,
+                                mortgageTermYears.value,
                                 lockInDays.value,
                                 lockInDays.value == 0
                                     ? 0

@@ -132,6 +132,7 @@ Phone: ${loan.phoneNumber}
 Address: ${loan.address}
 Loan amount: ${currency.format(loan.loanAmount)}
 Interest: ${loan.interestRate}% (${InterestType.values[loan.interestType].name.toSentenceCase()})
+Mortgage term: ${loan.mortgageTermYears} years
 ${loan.lockInDays > 0 ? 'Lock-in period: ${loan.lockInDays} days (until ${DateFormat('d MMM yyyy').format(loan.lockInEndsAt)})\nEarly redemption charge: ${currency.format(loan.earlyRedemptionCharge)} if redeemed before this date\n' : ''}Estimated amount due as of ${DateFormat('d MMM yyyy').format(calculationDate)}: ${currency.format(collectable)}
 Status: ${loan.isFinished() ? 'Completed' : 'Active'}
 Created: ${DateFormat('d MMM yyyy').format(loan.dateCreated)}
@@ -368,6 +369,11 @@ class _DetailsContent extends ConsumerWidget {
                   value: InterestFrequency.values[loan.interestFrequency].name
                       .toSentenceCase(),
                 ),
+              _DetailRow(
+                icon: Icons.event_repeat_outlined,
+                label: 'Mortgage term',
+                value: '${loan.mortgageTermYears} years',
+              ),
               if (loan.lockInDays > 0) ...[
                 _DetailRow(
                   icon: Icons.lock_clock_outlined,

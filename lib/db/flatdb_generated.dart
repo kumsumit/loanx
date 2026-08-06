@@ -55,10 +55,14 @@ class FlatDb {
       const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 42);
   List<int>? get photo =>
       const fb.Uint8ListReader().vTableGetNullable(_bc, _bcOffset, 44);
+  int get defaultLockInDays =>
+      const fb.Int8Reader().vTableGet(_bc, _bcOffset, 46, 0);
+  double get defaultEarlyRedemptionCharge =>
+      const fb.Float64Reader().vTableGet(_bc, _bcOffset, 48, 0.0);
 
   @override
   String toString() {
-    return 'FlatDb{isTableCreated: $isTableCreated, themeMode: $themeMode, appColor: $appColor, holdingPeriod: $holdingPeriod, interestRate: $interestRate, interestType: $interestType, interestFrequency: $interestFrequency, scheduledBackUpTimeHour: $scheduledBackUpTimeHour, scheduledBackUpTimeMinute: $scheduledBackUpTimeMinute, driveAccessToken: $driveAccessToken, driveAccessTokenExpires: $driveAccessTokenExpires, driveFileId: $driveFileId, driveUser: $driveUser, isBackUpRegistered: $isBackUpRegistered, dbUpdateTime: $dbUpdateTime, backupTaskId: $backupTaskId, secure: $secure, displayName: $displayName, email: $email, photourl: $photourl, photo: $photo}';
+    return 'FlatDb{isTableCreated: $isTableCreated, themeMode: $themeMode, appColor: $appColor, holdingPeriod: $holdingPeriod, interestRate: $interestRate, interestType: $interestType, interestFrequency: $interestFrequency, scheduledBackUpTimeHour: $scheduledBackUpTimeHour, scheduledBackUpTimeMinute: $scheduledBackUpTimeMinute, driveAccessToken: $driveAccessToken, driveAccessTokenExpires: $driveAccessTokenExpires, driveFileId: $driveFileId, driveUser: $driveUser, isBackUpRegistered: $isBackUpRegistered, dbUpdateTime: $dbUpdateTime, backupTaskId: $backupTaskId, secure: $secure, displayName: $displayName, email: $email, photourl: $photourl, photo: $photo, defaultLockInDays: $defaultLockInDays, defaultEarlyRedemptionCharge: $defaultEarlyRedemptionCharge}';
   }
 }
 
@@ -91,6 +95,8 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
   String? email;
   String? photourl;
   List<int>? photo;
+  int? defaultLockInDays;
+  double? defaultEarlyRedemptionCharge;
 
   FlatDbObjectBuilder({
     this.isTableCreated,
@@ -114,6 +120,8 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     this.backupTaskId,
     this.secure,
     this.photo,
+    this.defaultLockInDays,
+    this.defaultEarlyRedemptionCharge,
   });
 
   /// Finish building, and store into the [fbBuilder].
@@ -143,7 +151,7 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     final int? photoOffset = photo == null
         ? null
         : fbBuilder.writeListUint8(photo!);
-    fbBuilder.startTable(21);
+    fbBuilder.startTable(23);
     fbBuilder.addBool(0, isTableCreated);
     fbBuilder.addInt8(1, themeMode);
     fbBuilder.addOffset(2, appColorOffset);
@@ -165,6 +173,8 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addOffset(18, emailOffset);
     fbBuilder.addOffset(19, photourlOffset);
     fbBuilder.addOffset(20, photoOffset);
+    fbBuilder.addInt8(21, defaultLockInDays);
+    fbBuilder.addFloat64(22, defaultEarlyRedemptionCharge);
     return fbBuilder.endTable();
   }
 

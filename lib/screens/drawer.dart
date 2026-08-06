@@ -911,6 +911,7 @@ class MyDrawer extends HookConsumerWidget {
                     );
                   },
                 ),
+                const _DefaultLockInSetting(),
               ],
             ),
             ExpansionTile(
@@ -1417,5 +1418,132 @@ class MyDrawer extends HookConsumerWidget {
     } else {
       throw 'Could not launch $url';
     }
+  }
+}
+
+class _DefaultLockInSetting extends StatefulWidget {
+  const _DefaultLockInSetting();
+
+  @override
+  State<_DefaultLockInSetting> createState() => _DefaultLockInSettingState();
+}
+
+class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
+  late int _lockInDays;
+  late double _charge;
+
+  @override
+  void initState() {
+    super.initState();
+    _lockInDays = FastDB.getDefaultLockInDays();
+    _charge = FastDB.getDefaultEarlyRedemptionCharge();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = _lockInDays == 0
+        ? 'New loans have no lock-in by default'
+        : 'Default: $_lockInDays days · ₹${_charge.toStringAsFixed(2)} charge';
+    return ListTile(
+      leading: StyledIcon(Icons.lock_clock_outlined),
+      title: StyledText('Default lock-in'),
+      subtitle: StyledSubtitle(subtitle),
+      onTap: _edit,
+    );
+  }
+
+  Future<void> _edit() async {
+    var selectedDays = _lockInDays;
+    final formKey = GlobalKey<FormState>();
+    final chargeController = TextEditingController(
+      text: _charge > 0 ? _charge.toStringAsFixed(2) : '',
+    );
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Default lock-in'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<int>(
+                  initialValue: selectedDays,
+                  decoration: const InputDecoration(
+                    labelText: 'Lock-in period',
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 0, child: Text('No lock-in')),
+                    DropdownMenuItem(value: 7, child: Text('7 days')),
+                    DropdownMenuItem(value: 15, child: Text('15 days')),
+                  ],
+                  onChanged: (value) {
+                    setDialogState(() => selectedDays = value ?? 0);
+                  },
+                ),
+                if (selectedDays > 0) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: chargeController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Early redemption charge',
+                      prefixText: '₹ ',
+                    ),
+                    validator: (value) {
+                      final amount = double.tryParse(value?.trim() ?? '');
+                      if (amount == null || amount <= 0) {
+                        return 'Enter a charge greater than zero';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+                const SizedBox(height: 12),
+                const Text(
+                  'These defaults apply to new loans only and can be changed on each loan.',
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (selectedDays > 0 &&
+                    formKey.currentState?.validate() != true) {
+                  return;
+                }
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (saved == true) {
+      final charge = selectedDays == 0
+          ? 0.0
+          : double.parse(chargeController.text.trim());
+      FastDB.putDefaultLockInDays(selectedDays);
+      FastDB.putDefaultEarlyRedemptionCharge(charge);
+      await FastDB.flush();
+      if (mounted) {
+        setState(() {
+          _lockInDays = selectedDays;
+          _charge = charge;
+        });
+        showSnackBar(context, 'Default lock-in updated');
+      }
+    }
+    chargeController.dispose();
   }
 }
