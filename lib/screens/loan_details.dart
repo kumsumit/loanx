@@ -123,10 +123,8 @@ class LoanDetails extends ConsumerWidget {
       symbol: '₹',
       decimalDigits: 0,
     );
-    final calculated = loan.calculateCollectable();
-    final collectable = loan.interestType == InterestType.compound.index
-        ? calculated
-        : loan.loanAmount + calculated;
+    final collectable = loan.calculateCollectable();
+    final calculationDate = loan.dateFinished ?? DateTime.now();
     return '''Loan details
 
 Borrower: ${loan.depositorName}
@@ -134,7 +132,7 @@ Phone: ${loan.phoneNumber}
 Address: ${loan.address}
 Loan amount: ${currency.format(loan.loanAmount)}
 Interest: ${loan.interestRate}% (${InterestType.values[loan.interestType].name.toSentenceCase()})
-Collectable amount: ${currency.format(collectable)}
+Estimated amount due as of ${DateFormat('d MMM yyyy').format(calculationDate)}: ${currency.format(collectable)}
 Status: ${loan.isFinished() ? 'Completed' : 'Active'}
 Created: ${DateFormat('d MMM yyyy').format(loan.dateCreated)}
 ${loan.isFinished() ? 'Completed: ${DateFormat('d MMM yyyy, h:mm a').format(loan.dateFinished!)}\nReceived by: ${loan.completedBy.isEmpty ? 'Not recorded' : loan.completedBy}\nAmount received: ${loan.settlementAmount == null ? 'Not recorded' : currency.format(loan.settlementAmount)}' : ''}
@@ -273,13 +271,8 @@ class _DetailsContent extends ConsumerWidget {
       symbol: '₹',
       decimalDigits: 0,
     );
-    final calculated = loan.calculateCollectable();
-    final interest = loan.interestType == InterestType.compound.index
-        ? calculated - loan.loanAmount
-        : calculated;
-    final collectable = loan.interestType == InterestType.compound.index
-        ? calculated
-        : loan.loanAmount + calculated;
+    final interest = loan.calculateInterest();
+    final collectable = loan.calculateCollectable();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),

@@ -35,8 +35,8 @@ class LoanPrintingService {
   }
 
   static pw.Document _buildReceipt(Loan loan) {
-    final interest = loan.calculateCollectable();
-    final total = loan.loanAmount + interest;
+    final interest = loan.calculateInterest();
+    final total = loan.calculateCollectable();
     final isCompleted = loan.isFinished();
     final rows = <List<String>>[
       ['Loan ID', loan.id?.toString() ?? '—'],

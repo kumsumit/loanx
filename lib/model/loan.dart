@@ -203,7 +203,7 @@ class Loan {
     LoanFields.mortgageMaterialId: mortgageMaterialId,
   };
 
-  double calculateCollectable() {
+  double calculateInterest() {
     final duration = (dateFinished ?? DateTime.now())
         .difference(dateCreated)
         .inDays;
@@ -224,10 +224,13 @@ class Loan {
     if (interestType == InterestType.simple.index) {
       return loanAmount * (interestRate / 100) * duration / n;
     } else if (interestType == InterestType.compound.index) {
-      return loanAmount * pow((1 + (interestRate / 100) * n), duration / n);
+      final total = loanAmount * pow(1 + (interestRate / 100), duration / n);
+      return total - loanAmount;
     }
     return 0.0;
   }
+
+  double calculateCollectable() => loanAmount + calculateInterest();
 }
 
 enum InterestType { simple, compound }
