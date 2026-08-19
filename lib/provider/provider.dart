@@ -798,6 +798,7 @@ class LoanList extends _$LoanList {
     String relativeName,
     String address,
     double loanAmount,
+    double weight,
     double interestRate,
     int interestType,
     int interestFrequency,
@@ -815,6 +816,7 @@ class LoanList extends _$LoanList {
       relativeName: relativeName,
       address: address,
       loanAmount: loanAmount,
+      weight: weight,
       interestType: interestType,
       interestFrequency: interestFrequency,
       mortgageTermYears: mortgageTermYears,
@@ -959,6 +961,11 @@ class LoanList extends _$LoanList {
       'Loan amount',
       before.loanAmount.toStringAsFixed(2),
       after.loanAmount.toStringAsFixed(2),
+    );
+    record(
+      'Mortgage weight',
+      '${before.weight.toStringAsFixed(2)} g',
+      '${after.weight.toStringAsFixed(2)} g',
     );
     record(
       'Interest rate',

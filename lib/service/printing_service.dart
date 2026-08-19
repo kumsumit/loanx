@@ -47,6 +47,13 @@ class LoanPrintingService {
       if (loan.address.isNotEmpty) ['Address', loan.address],
       ['Created', loan.dateCreatedFormat],
       ['Principal', _currency.format(loan.loanAmount)],
+      if (loan.weight > 0) ...[
+        ['Mortgage weight', '${loan.weight.toStringAsFixed(2)} g'],
+        [
+          'Loan value per gram',
+          _currency.format(loan.loanAmount / loan.weight),
+        ],
+      ],
       ['Interest rate', '${loan.interestRate.toStringAsFixed(2)}%'],
       ['Interest type', _interestType(loan.interestType)],
       ['Interest frequency', _interestFrequency(loan.interestFrequency)],

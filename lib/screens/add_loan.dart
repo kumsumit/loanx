@@ -110,6 +110,13 @@ class LoanInput extends HookConsumerWidget {
     final loanAmountController = useTextEditingController(
       text: loan?.loanAmount.toString() ?? '',
     );
+    useListenable(loanAmountController);
+    final weightController = useTextEditingController(
+      text: loan != null && loan!.weight > 0
+          ? loan!.weight.toStringAsFixed(2)
+          : '',
+    );
+    final mortgageWeight = useState<double>(loan?.weight ?? 0);
     final earlyRedemptionChargeController = useTextEditingController(
       text: lockInDays.value > 0 && initialEarlyRedemptionCharge > 0
           ? initialEarlyRedemptionCharge.toStringAsFixed(2)
@@ -509,6 +516,54 @@ class LoanInput extends HookConsumerWidget {
                 labelText: "Principal amount",
                 keyboardType: TextInputType.number,
               ),
+              TextFormField(
+                controller: weightController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(
+                  labelText: 'Mortgage weight',
+                  hintText: 'Weight of the pledged item',
+                  suffixText: 'grams',
+                  helperText: 'Optional · enter the total gross weight',
+                  prefixIcon: Icon(Icons.scale_outlined),
+                ),
+                validator: (value) {
+                  final text = value?.trim() ?? '';
+                  if (text.isEmpty) return null;
+                  final weight = double.tryParse(text);
+                  if (weight == null || weight <= 0) {
+                    return 'Enter a valid weight greater than zero';
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  mortgageWeight.value = double.tryParse(value.trim()) ?? 0;
+                },
+              ),
+              if (mortgageWeight.value > 0) ...[
+                const SizedBox(height: 8),
+                Card(
+                  color: Theme.of(context).colorScheme.secondaryContainer,
+                  child: ListTile(
+                    leading: const Icon(Icons.analytics_outlined),
+                    title: const Text('Loan value per gram'),
+                    subtitle: const Text('A quick valuation reference'),
+                    trailing: Text(
+                      NumberFormat.currency(
+                        locale: 'en_IN',
+                        symbol: '₹',
+                        decimalDigits: 2,
+                      ).format(
+                        (_parseDouble(loanAmountController.text) /
+                            mortgageWeight.value),
+                      ),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
               mortgageMaterials.when(
                 data: (data) {
                   if (data.isEmpty) {
@@ -591,6 +646,7 @@ class LoanInput extends HookConsumerWidget {
                               : _parseDouble(
                                   earlyRedemptionChargeController.text,
                                 );
+                          final weight = _parseDouble(weightController.text);
                           final confirmed = await _confirmSave(
                             context,
                             isEditing: loan != null,
@@ -601,6 +657,7 @@ class LoanInput extends HookConsumerWidget {
                             relation: relation.name,
                             principal: principal,
                             pledgedMaterial: material.name,
+                            mortgageWeight: weight,
                             mortgageTermYears: mortgageTermYears.value,
                             interestType: interestType.value,
                             interestRate: currentInterestRate,
@@ -619,6 +676,7 @@ class LoanInput extends HookConsumerWidget {
                                 relativeNameController.text,
                                 addressController.text,
                                 principal,
+                                weight,
                                 currentInterestRate,
                                 interestType.value.index,
                                 interestFrequency.value.index,
@@ -679,6 +737,7 @@ class LoanInput extends HookConsumerWidget {
     required String relation,
     required double principal,
     required String pledgedMaterial,
+    required double mortgageWeight,
     required int mortgageTermYears,
     required InterestType interestType,
     required double interestRate,
@@ -699,6 +758,13 @@ class LoanInput extends HookConsumerWidget {
       MapEntry('Reference', '$referenceName · $relation'),
       MapEntry('Principal', currency.format(principal)),
       MapEntry('Pledged item', pledgedMaterial),
+      if (mortgageWeight > 0)
+        MapEntry('Mortgage weight', '${mortgageWeight.toStringAsFixed(2)} g'),
+      if (mortgageWeight > 0)
+        MapEntry(
+          'Loan value per gram',
+          currency.format(principal / mortgageWeight),
+        ),
       MapEntry('Mortgage term', '$mortgageTermYears years'),
       MapEntry(
         'Interest',

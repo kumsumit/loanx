@@ -392,6 +392,18 @@ class _DetailsContent extends ConsumerWidget {
                 label: 'Mortgage material',
                 value: material,
               ),
+              if (loan.weight > 0) ...[
+                _DetailRow(
+                  icon: Icons.scale_outlined,
+                  label: 'Mortgage weight',
+                  value: '${loan.weight.toStringAsFixed(2)} g',
+                ),
+                _DetailRow(
+                  icon: Icons.analytics_outlined,
+                  label: 'Loan value per gram',
+                  value: currency.format(loan.loanAmount / loan.weight),
+                ),
+              ],
               _DetailRow(
                 icon: Icons.event_outlined,
                 label: 'Created',
