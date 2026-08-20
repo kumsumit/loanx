@@ -525,7 +525,6 @@ class LoanInput extends HookConsumerWidget {
                   labelText: 'Mortgage weight',
                   hintText: 'Weight of the pledged item',
                   suffixText: 'grams',
-                  helperText: 'Optional · enter the total gross weight',
                   prefixIcon: Icon(Icons.scale_outlined),
                 ),
                 validator: (value) {

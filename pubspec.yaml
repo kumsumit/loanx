@@ -1,7 +1,7 @@
 name: loanx
 description: "A loanx calculator app that helps you calculate your monthly loanx payments. It also helps you understand the different types of loanxs and how much you can borrow. loanx is available on both Android and iOS platforms, making it accessible to a wide range of users."
 publish_to: "none"
-version: 1.0.1+7
+version: 1.0.1+8
 
 environment:
   sdk: ^3.12.0
@@ -21,7 +21,7 @@ dependencies:
   auto_size_text:
     git: https://github.com/sumitsharansatsangi/auto_size_text.git
   encrypt: ^5.0.3
-  archive: ^4.0.9
+  archive: ^4.1.0
   # faker: ^2.2.0
   path: ^1.9.1
   path_provider:
@@ -97,7 +97,8 @@ dependency_overrides:
   path_provider:
     git: https://github.com/kumsumit/path_provider.git
   plugin_platform_interface:
-    git: https://github.com/kumsumit/plugin_platform_interface.git  
+    git: https://github.com/kumsumit/plugin_platform_interface.git
+  meta: ^1.19.0    
 
 flutter:
   uses-material-design: true
