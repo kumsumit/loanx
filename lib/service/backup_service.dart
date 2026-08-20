@@ -18,6 +18,16 @@ import 'package:workmanager/workmanager.dart';
 
 GoogleSignIn _googleSignIn() => GoogleSignIn.instance;
 
+const _iosGoogleClientId =
+    '971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug.apps.googleusercontent.com';
+const _androidGoogleServerClientId =
+    '971184206112-suu0rjqkd51htgg0l1kf0f73h4pn6uc5.apps.googleusercontent.com';
+
+Future<void> initializeGoogleSignIn() => GoogleSignIn.instance.initialize(
+  clientId: Platform.isIOS ? _iosGoogleClientId : null,
+  serverClientId: Platform.isAndroid ? _androidGoogleServerClientId : null,
+);
+
 class BackupService {
   static const _databaseEntryName = 'loanx.db';
   static const _settingsEntryName = 'fastdb-settings.flatbuffer';
@@ -87,6 +97,10 @@ class BackupService {
     debugPrint(file.path);
     if (file.existsSync()) {
       await FastDB.flush();
+      // Ensure WAL-backed writes have reached the database file before it is
+      // read into the archive.
+      final database = await DatabaseHelper.instance.database;
+      await database.rawQuery('PRAGMA wal_checkpoint(FULL)');
       final archive = Archive()
         ..add(
           ArchiveFile(
@@ -185,6 +199,14 @@ class BackupService {
                 latestBackup.name,
                 saveFile,
               );
+              if (isDownloaded) {
+                // Record the applied backup version so tapping restore again
+                // does not repeatedly apply the same Drive file.
+                FastDB.putDbUpdateTime(
+                  (driveBackupDate ?? DateTime.now()).millisecondsSinceEpoch,
+                );
+                await FastDB.flush();
+              }
             }
           } else {
             _lastError = 'This device already has the latest backup.';
@@ -248,12 +270,7 @@ class BackupService {
     List<int> databaseBytes,
     File saveFile,
   ) async {
-    if (!saveFile.existsSync()) {
-      await saveFile.writeAsBytes(databaseBytes, flush: true);
-      return;
-    }
-
-    final tempFile = File(join(await getDatabasesPath(), 'loanx_temp.db'));
+    final tempFile = File(join(dirname(saveFile.path), 'loanx_temp.db'));
     try {
       await tempFile.writeAsBytes(databaseBytes, flush: true);
       final tempDb = await openDatabase(
@@ -264,7 +281,7 @@ class BackupService {
         password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
       );
       try {
-        await DatabaseHelper.mergeTables(tempDb);
+        await DatabaseHelper.restoreTables(tempDb);
       } finally {
         await tempDb.close();
       }
@@ -332,14 +349,11 @@ class BackupService {
     FastDB.putDriveAccessTokenExpires(0);
     FastDB.putDriveAccessToken(authorization.accessToken);
 
-    final headers = await account.authorizationClient.authorizationHeaders(
-      [drive.DriveApi.driveAppdataScope],
-      promptIfNecessary: false,
-    );
+    final headers = await account.authorizationClient.authorizationHeaders([
+      drive.DriveApi.driveAppdataScope,
+    ], promptIfNecessary: false);
     if (headers?["X-Goog-AuthUser"] != null) {
-      FastDB.putDriveUser(
-        int.tryParse(headers!["X-Goog-AuthUser"] ?? "") ?? 0,
-      );
+      FastDB.putDriveUser(int.tryParse(headers!["X-Goog-AuthUser"] ?? "") ?? 0);
     }
     await FastDB.flush();
     return authorization;
@@ -404,9 +418,13 @@ Future<void> registerBackUp() async {
   await FastDB.flush();
 }
 
+@pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task == dailyBackUpUpload) {
+      WidgetsFlutterBinding.ensureInitialized();
+      await initializeGoogleSignIn();
+      await FastDB.init();
       return await BackupService.performBackup();
     }
     // if(task == dailyBackUpDownload ){

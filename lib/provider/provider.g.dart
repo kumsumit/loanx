@@ -861,7 +861,7 @@ final class BackupAvailableProvider
   }
 }
 
-String _$backupAvailableHash() => r'1c42ba82502ccdd6c7224d527af11988ae5d8973';
+String _$backupAvailableHash() => r'92dbb3514d8ae2ab935cc637b146b6ca1ac7229f';
 
 /// Whether the connected Google Drive account has a LoanX backup to restore.
 /// Connecting an account alone does not guarantee that a backup exists.
@@ -1121,7 +1121,7 @@ final class AppVersionProvider
   }
 }
 
-String _$appVersionHash() => r'1047063a2265b00afdccc963cd6588405254dff8';
+String _$appVersionHash() => r'3c979e8353e1e42af3b1f94569776ced362c316f';
 
 @ProviderFor(DB)
 final dBProvider = DBProvider._();
@@ -1269,6 +1269,51 @@ abstract class _$MortgageMaterialList
   }
 }
 
+@ProviderFor(WeightUnitList)
+final weightUnitListProvider = WeightUnitListProvider._();
+
+final class WeightUnitListProvider
+    extends $AsyncNotifierProvider<WeightUnitList, List<WeightUnit>> {
+  WeightUnitListProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'weightUnitListProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$weightUnitListHash();
+
+  @$internal
+  @override
+  WeightUnitList create() => WeightUnitList();
+}
+
+String _$weightUnitListHash() => r'57f00a3aaa55c013556876e48df71fcab38e6dd9';
+
+abstract class _$WeightUnitList extends $AsyncNotifier<List<WeightUnit>> {
+  FutureOr<List<WeightUnit>> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref =
+        this.ref as $Ref<AsyncValue<List<WeightUnit>>, List<WeightUnit>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<List<WeightUnit>>, List<WeightUnit>>,
+              AsyncValue<List<WeightUnit>>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(LoanList)
 final loanListProvider = LoanListProvider._();
 
@@ -1293,7 +1338,7 @@ final class LoanListProvider
   LoanList create() => LoanList();
 }
 
-String _$loanListHash() => r'e982b7240943689428d8e77589e1f92cb0875e89';
+String _$loanListHash() => r'724ddbedf9d0a9b2988042105d17c78e1979cb64';
 
 abstract class _$LoanList extends $AsyncNotifier<List<Loan>> {
   FutureOr<List<Loan>> build();

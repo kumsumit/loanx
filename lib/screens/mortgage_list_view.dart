@@ -144,7 +144,7 @@ class MortgageListView extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         loan.weight > 0
-                            ? '${mortgageMaterial.name} · ${loan.weight.toStringAsFixed(2)} g'
+                            ? '${mortgageMaterial.name} · ${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}'
                             : mortgageMaterial.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

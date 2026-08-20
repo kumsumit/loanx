@@ -396,11 +396,11 @@ class _DetailsContent extends ConsumerWidget {
                 _DetailRow(
                   icon: Icons.scale_outlined,
                   label: 'Mortgage weight',
-                  value: '${loan.weight.toStringAsFixed(2)} g',
+                  value: '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}',
                 ),
                 _DetailRow(
                   icon: Icons.analytics_outlined,
-                  label: 'Loan value per gram',
+                  label: 'Loan value per ${loan.weightUnit}',
                   value: currency.format(loan.loanAmount / loan.weight),
                 ),
               ],

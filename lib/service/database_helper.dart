@@ -4,6 +4,7 @@ import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/model/mortgage_material.dart';
+import 'package:loanx/model/weight_unit.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path/path.dart';
 // import 'package:faker/faker.dart';
@@ -27,7 +28,7 @@ class DatabaseHelper {
     if (await File(path).exists()) {
       return await openDatabase(
         path,
-        version: 5,
+        version: 6,
         onCreate: onCreate,
         onUpgrade: onUpgrade,
         password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
@@ -35,7 +36,7 @@ class DatabaseHelper {
     }
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: onCreate,
       onUpgrade: onUpgrade,
       password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
@@ -81,6 +82,38 @@ class DatabaseHelper {
         db,
         'loans',
         'mortgageTermYears INTEGER NOT NULL DEFAULT 5',
+      );
+    }
+    if (oldVersion < 6) {
+      await _addColumnIfMissing(
+        db,
+        'loans',
+        "weightUnit TEXT NOT NULL DEFAULT 'g'",
+      );
+      await _createWeightUnitsTable(db);
+      await _insertDefaultWeightUnits(db);
+    }
+  }
+
+  Future<void> _createWeightUnitsTable(Database db) =>
+      db.execute('''CREATE TABLE IF NOT EXISTS ${WeightUnit.tableName}(
+      id INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      symbol TEXT NOT NULL UNIQUE,
+      isAddedByUser INTEGER NOT NULL DEFAULT 0
+    )''');
+
+  Future<void> _insertDefaultWeightUnits(DatabaseExecutor db) async {
+    for (final unit in const [
+      WeightUnit(name: 'Gram', symbol: 'g'),
+      WeightUnit(name: 'Kilogram', symbol: 'kg'),
+      WeightUnit(name: 'Milligram', symbol: 'mg'),
+      WeightUnit(name: 'Tola', symbol: 'tola'),
+    ]) {
+      await db.insert(
+        WeightUnit.tableName,
+        unit.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
       );
     }
   }
@@ -1076,8 +1109,11 @@ class DatabaseHelper {
       'CREATE TABLE IF NOT EXISTS familyRelations(id INTEGER PRIMARY KEY, name TEXT UNIQUE, isAddedByUser INTEGER)',
     );
     batch.execute(
+      'CREATE TABLE IF NOT EXISTS weightUnits(id INTEGER PRIMARY KEY, name TEXT NOT NULL, symbol TEXT NOT NULL UNIQUE, isAddedByUser INTEGER NOT NULL DEFAULT 0)',
+    );
+    batch.execute(
       '''CREATE TABLE IF NOT EXISTS loans(id INTEGER PRIMARY KEY, depositorName TEXT, phoneNumber TEXT, email TEXT,
-           relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, interestType INTEGER,
+           relativeName TEXT, address TEXT, loanAmount REAL, interestRate REAL,weight REAL, weightUnit TEXT NOT NULL DEFAULT 'g', interestType INTEGER,
            interestFrequency INTEGER, mortgageTermYears INTEGER NOT NULL DEFAULT 5,
            lockInDays INTEGER NOT NULL DEFAULT 0,
            earlyRedemptionCharge REAL NOT NULL DEFAULT 0, additionalDetails TEXT,
@@ -1108,6 +1144,15 @@ class DatabaseHelper {
       });
     }
 
+    for (final unit in const [
+      WeightUnit(name: 'Gram', symbol: 'g'),
+      WeightUnit(name: 'Kilogram', symbol: 'kg'),
+      WeightUnit(name: 'Milligram', symbol: 'mg'),
+      WeightUnit(name: 'Tola', symbol: 'tola'),
+    ]) {
+      batch.insert(WeightUnit.tableName, unit.toJson());
+    }
+
     // for (final name in indianBoysNames) {
     //   batch.insert(Mortgage.tableName, {
     //     MortgageFields.depositorName: name,
@@ -1133,44 +1178,86 @@ class DatabaseHelper {
     await FastDB.flush();
   }
 
-  static Future<void> mergeTables(Database db2) async {
-    // Fetch records from the second database
-    final List<Map<String, dynamic>> familyRelations = await db2.query(
+  /// Replaces the user data in the live database with data from [source].
+  ///
+  /// All source rows are read before the target transaction starts. This
+  /// validates the backup and ensures a failed restore leaves the live
+  /// database unchanged.
+  static Future<void> restoreTables(Database source) async {
+    final sourceTables =
+        (await source.rawQuery(
+              "SELECT name FROM sqlite_master WHERE type = 'table'",
+            ))
+            .map((row) => row['name'])
+            .whereType<String>()
+            .map((name) => name.toLowerCase())
+            .toSet();
+    final requiredTables = {
+      FamilyRelation.tableName,
+      MortgageMaterial.tableName,
+      Loan.tableName,
+    }.map((name) => name.toLowerCase()).toSet();
+    if (!sourceTables.containsAll(requiredTables)) {
+      throw const FormatException(
+        'The backup database is missing required tables.',
+      );
+    }
+
+    final List<Map<String, dynamic>> familyRelations = await source.query(
       FamilyRelation.tableName,
     );
-    final List<Map<String, dynamic>> mortgageMaterials = await db2.query(
+    final List<Map<String, dynamic>> mortgageMaterials = await source.query(
       MortgageMaterial.tableName,
     );
-    final List<Map<String, dynamic>> loans = await db2.query(Loan.tableName);
+    final List<Map<String, dynamic>> weightUnits =
+        sourceTables.contains(WeightUnit.tableName.toLowerCase())
+        ? await source.query(WeightUnit.tableName)
+        : const [];
+    final List<Map<String, dynamic>> loans = await source.query(Loan.tableName);
+    final List<Map<String, dynamic>> loanChanges =
+        sourceTables.contains(LoanChange.tableName.toLowerCase())
+        ? await source.query(LoanChange.tableName)
+        : const [];
 
-    if (_database != null) {
-      final batch = _database!.batch();
+    final target = await instance.database;
+    await target.transaction((transaction) async {
+      // Child rows must be removed first to remain valid when foreign-key
+      // enforcement is enabled.
+      await transaction.delete(LoanChange.tableName);
+      await transaction.delete(Loan.tableName);
+      await transaction.delete(FamilyRelation.tableName);
+      await transaction.delete(MortgageMaterial.tableName);
+      await transaction.delete(WeightUnit.tableName);
 
-      // Insert records into the first database
+      final batch = transaction.batch();
       for (final familyRelation in familyRelations) {
-        batch.insert(
-          FamilyRelation.tableName,
-          familyRelation,
-          conflictAlgorithm: ConflictAlgorithm.ignore,
-        );
+        batch.insert(FamilyRelation.tableName, familyRelation);
       }
-
       for (final mortgageMaterial in mortgageMaterials) {
-        batch.insert(
-          MortgageMaterial.tableName,
-          mortgageMaterial,
-          conflictAlgorithm: ConflictAlgorithm.ignore,
-        );
+        batch.insert(MortgageMaterial.tableName, mortgageMaterial);
       }
-
+      if (weightUnits.isEmpty) {
+        for (final unit in const [
+          WeightUnit(name: 'Gram', symbol: 'g'),
+          WeightUnit(name: 'Kilogram', symbol: 'kg'),
+          WeightUnit(name: 'Milligram', symbol: 'mg'),
+          WeightUnit(name: 'Tola', symbol: 'tola'),
+        ]) {
+          batch.insert(WeightUnit.tableName, unit.toJson());
+        }
+      } else {
+        for (final unit in weightUnits) {
+          batch.insert(WeightUnit.tableName, unit);
+        }
+      }
       for (final loan in loans) {
-        batch.insert(
-          Loan.tableName,
-          loan,
-          conflictAlgorithm: ConflictAlgorithm.ignore,
-        );
+        batch.insert(Loan.tableName, loan);
       }
-    }
+      for (final loanChange in loanChanges) {
+        batch.insert(LoanChange.tableName, loanChange);
+      }
+      await batch.commit(noResult: true);
+    });
   }
 
   Future close() async {

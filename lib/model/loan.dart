@@ -12,6 +12,7 @@ class LoanFields {
   static final String address = 'address';
   static final String loanAmount = 'loanAmount';
   static final String weight = 'weight';
+  static final String weightUnit = 'weightUnit';
   static final String interestRate = 'interestRate';
   static final String interestType = 'interestType';
   static final String interestFrequency = 'interestFrequency';
@@ -38,6 +39,7 @@ class Loan {
   String address;
   double loanAmount;
   double weight;
+  String weightUnit;
   double interestRate;
   int interestType;
   int interestFrequency;
@@ -62,6 +64,7 @@ class Loan {
     required this.address,
     required this.loanAmount,
     this.weight = 0,
+    this.weightUnit = 'g',
     required this.interestRate,
     required this.interestType,
     required this.interestFrequency,
@@ -134,6 +137,7 @@ class Loan {
     double? loanAmount,
     double? interestRate,
     double? weight,
+    String? weightUnit,
     int? interestType,
     int? interestFrequency,
     int? mortgageTermYears,
@@ -157,6 +161,7 @@ class Loan {
     address: address ?? this.address,
     loanAmount: loanAmount ?? this.loanAmount,
     weight: weight ?? this.weight,
+    weightUnit: weightUnit ?? this.weightUnit,
     interestRate: interestRate ?? this.interestRate,
     interestType: interestType ?? this.interestType,
     interestFrequency: interestFrequency ?? this.interestFrequency,
@@ -182,6 +187,7 @@ class Loan {
     address: json[LoanFields.address] as String,
     loanAmount: (json[LoanFields.loanAmount] as num).toDouble(),
     weight: (json[LoanFields.weight] as num?)?.toDouble() ?? 0,
+    weightUnit: json[LoanFields.weightUnit] as String? ?? 'g',
     interestRate: json[LoanFields.interestRate] as double,
     interestType: json[LoanFields.interestType] as int,
     interestFrequency: json[LoanFields.interestFrequency] as int,
@@ -211,6 +217,7 @@ class Loan {
     LoanFields.address: address,
     LoanFields.loanAmount: loanAmount,
     LoanFields.weight: weight,
+    LoanFields.weightUnit: weightUnit,
     LoanFields.interestRate: interestRate,
     LoanFields.interestType: interestType,
     LoanFields.interestFrequency: interestFrequency,

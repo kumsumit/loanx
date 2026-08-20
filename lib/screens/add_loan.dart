@@ -9,6 +9,7 @@ import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
+import 'package:loanx/model/weight_unit.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/phone.dart';
 import 'package:loanx/widget/snackbar.dart';
@@ -49,6 +50,7 @@ class LoanInput extends HookConsumerWidget {
     final isDialogOpen = useState<bool>(false);
     final familyRelations = ref.watch(familyRelationListProvider);
     final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
+    final weightUnits = ref.watch(weightUnitListProvider);
     final currentFamilyRelation = useState<FamilyRelation?>(null);
     final currentMortgageMaterial = useState<MortgageMaterial?>(null);
     final interestType = useState<InterestType>(
@@ -117,6 +119,8 @@ class LoanInput extends HookConsumerWidget {
           : '',
     );
     final mortgageWeight = useState<double>(loan?.weight ?? 0);
+    final weightUnit = useState<String>(loan?.weightUnit ?? 'g');
+    final weightUnitName = _weightUnitName(weightUnits.value, weightUnit.value);
     final earlyRedemptionChargeController = useTextEditingController(
       text: lockInDays.value > 0 && initialEarlyRedemptionCharge > 0
           ? initialEarlyRedemptionCharge.toStringAsFixed(2)
@@ -128,7 +132,10 @@ class LoanInput extends HookConsumerWidget {
     final additionalDetailsController = useTextEditingController(
       text: loan?.additionalDetails ?? '',
     );
-    final scrollController = useScrollController();
+    // This form is reused each time the add/edit route is opened. Persisting
+    // its offset in PageStorage can make a new loan form reopen halfway down
+    // the page, with the first fields hidden above the app bar.
+    final scrollController = useScrollController(keepScrollOffset: false);
     final currentInterestRate =
         interestRateWhole.value + (interestRateFraction.value / 100);
     final lockInSummary = lockInDays.value == 0
@@ -145,44 +152,44 @@ class LoanInput extends HookConsumerWidget {
             controller: scrollController,
             children: <Widget>[
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      loan == null
-                          ? Icons.add_card_rounded
-                          : Icons.edit_note_rounded,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 32,
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            loan == null
-                                ? 'Create a loan record'
-                                : 'Update loan details',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Add the terms and borrower information below.',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
+              // Container(
+              //   padding: const EdgeInsets.all(18),
+              //   decoration: BoxDecoration(
+              //     color: Theme.of(context).colorScheme.primaryContainer,
+              //     borderRadius: BorderRadius.circular(20),
+              //   ),
+              //   child: Row(
+              //     children: [
+              //       Icon(
+              //         loan == null
+              //             ? Icons.add_card_rounded
+              //             : Icons.edit_note_rounded,
+              //         color: Theme.of(context).colorScheme.primary,
+              //         size: 32,
+              //       ),
+              //       const SizedBox(width: 14),
+              //       Expanded(
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             Text(
+              //               loan == null
+              //                   ? 'Create a loan record'
+              //                   : 'Update loan details',
+              //               style: Theme.of(context).textTheme.titleMedium,
+              //             ),
+              //             const SizedBox(height: 2),
+              //             Text(
+              //               'Add the terms and borrower information below.',
+              //               style: Theme.of(context).textTheme.bodyMedium,
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              // const SizedBox(height: 24),
               Card(
                 clipBehavior: Clip.antiAlias,
                 child: ExpansionTile(
@@ -516,43 +523,91 @@ class LoanInput extends HookConsumerWidget {
                 labelText: "Principal amount",
                 keyboardType: TextInputType.number,
               ),
-              TextFormField(
-                controller: weightController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: 'Mortgage weight',
-                  hintText: 'Weight of the pledged item',
-                  suffixText: 'grams',
-                  prefixIcon: Icon(Icons.scale_outlined),
-                ),
-                validator: (value) {
-                  final text = value?.trim() ?? '';
-                  if (text.isEmpty) return null;
-                  final weight = double.tryParse(text);
-                  if (weight == null || weight <= 0) {
-                    return 'Enter a valid weight greater than zero';
-                  }
-                  return null;
-                },
-                onChanged: (value) {
-                  mortgageWeight.value = double.tryParse(value.trim()) ?? 0;
-                },
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: weightController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Mortgage weight',
+                        hintText: 'Weight',
+                        prefixIcon: Icon(Icons.scale_outlined),
+                      ),
+                      validator: (value) {
+                        final text = value?.trim() ?? '';
+                        if (text.isEmpty) return null;
+                        final parsedWeight = double.tryParse(text);
+                        if (parsedWeight == null || parsedWeight <= 0) {
+                          return 'Enter a valid weight';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        mortgageWeight.value =
+                            double.tryParse(value.trim()) ?? 0;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 116,
+                    child: weightUnits.when(
+                      data: (units) {
+                        final symbols = units
+                            .map((unit) => unit.symbol)
+                            .toSet();
+                        final selected = symbols.contains(weightUnit.value)
+                            ? weightUnit.value
+                            : (units.isEmpty
+                                  ? weightUnit.value
+                                  : units.first.symbol);
+                        return DropdownButtonFormField<String>(
+                          initialValue: selected,
+                          decoration: const InputDecoration(labelText: 'Unit'),
+                          items: [
+                            for (final unit in units)
+                              DropdownMenuItem(
+                                value: unit.symbol,
+                                child: Text(unit.symbol),
+                              ),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) weightUnit.value = value;
+                          },
+                        );
+                      },
+                      loading: () => const InputDecorator(
+                        decoration: InputDecoration(labelText: 'Unit'),
+                        child: SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      error: (_, _) => InputDecorator(
+                        decoration: const InputDecoration(labelText: 'Unit'),
+                        child: Text(weightUnit.value),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 14),
               if (mortgageWeight.value > 0) ...[
-                const SizedBox(height: 8),
                 Card(
                   color: Theme.of(context).colorScheme.secondaryContainer,
                   child: ListTile(
                     leading: const Icon(Icons.analytics_outlined),
-                    title: const Text('Loan value per gram'),
-                    subtitle: const Text('A quick valuation reference'),
+                    title: Text('Loan Value / $weightUnitName'),
                     trailing: Text(
                       NumberFormat.currency(
                         locale: 'en_IN',
                         symbol: '₹',
-                        decimalDigits: 2,
+                        decimalDigits: 0,
                       ).format(
                         (_parseDouble(loanAmountController.text) /
                             mortgageWeight.value),
@@ -657,6 +712,7 @@ class LoanInput extends HookConsumerWidget {
                             principal: principal,
                             pledgedMaterial: material.name,
                             mortgageWeight: weight,
+                            weightUnit: weightUnit.value,
                             mortgageTermYears: mortgageTermYears.value,
                             interestType: interestType.value,
                             interestRate: currentInterestRate,
@@ -676,6 +732,7 @@ class LoanInput extends HookConsumerWidget {
                                 addressController.text,
                                 principal,
                                 weight,
+                                weightUnit.value,
                                 currentInterestRate,
                                 interestType.value.index,
                                 interestFrequency.value.index,
@@ -737,6 +794,7 @@ class LoanInput extends HookConsumerWidget {
     required double principal,
     required String pledgedMaterial,
     required double mortgageWeight,
+    required String weightUnit,
     required int mortgageTermYears,
     required InterestType interestType,
     required double interestRate,
@@ -758,10 +816,13 @@ class LoanInput extends HookConsumerWidget {
       MapEntry('Principal', currency.format(principal)),
       MapEntry('Pledged item', pledgedMaterial),
       if (mortgageWeight > 0)
-        MapEntry('Mortgage weight', '${mortgageWeight.toStringAsFixed(2)} g'),
+        MapEntry(
+          'Mortgage weight',
+          '${mortgageWeight.toStringAsFixed(2)} $weightUnit',
+        ),
       if (mortgageWeight > 0)
         MapEntry(
-          'Loan value per gram',
+          'Loan value per $weightUnit',
           currency.format(principal / mortgageWeight),
         ),
       MapEntry('Mortgage term', '$mortgageTermYears years'),
@@ -826,6 +887,14 @@ class LoanInput extends HookConsumerWidget {
           ),
         ) ??
         false;
+  }
+
+  String _weightUnitName(List<WeightUnit>? units, String symbol) {
+    if (units == null) return symbol;
+    for (final unit in units) {
+      if (unit.symbol == symbol) return unit.name.toLowerCase();
+    }
+    return symbol;
   }
 
   List<DropdownMenuItem<MortgageMaterial>> buildMenuMortgageMaterials(

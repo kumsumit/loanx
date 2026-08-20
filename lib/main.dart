@@ -1,13 +1,11 @@
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:device_preview/device_preview.dart';
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/l10n/app_localizations.dart';
@@ -53,15 +51,7 @@ void main() async {
     return ErrorWidget(details.exception);
   };
 
-  const String iosClientId =
-      '971184206112-he3jrlalluq0hd1dlv14deau3s3d52ug.apps.googleusercontent.com';
-  const String androidServerClientId =
-      '971184206112-suu0rjqkd51htgg0l1kf0f73h4pn6uc5.apps.googleusercontent.com';
-
-  await GoogleSignIn.instance.initialize(
-    clientId: Platform.isIOS ? iosClientId : null,
-    serverClientId: Platform.isAndroid ? androidServerClientId : null,
-  );
+  await initializeGoogleSignIn();
   await Workmanager().initialize(callbackDispatcher);
   await FastDB.init();
   if (!FastDB.getIsTableCreated()) {

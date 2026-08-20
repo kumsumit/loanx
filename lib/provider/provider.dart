@@ -15,6 +15,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/model/mortgage_material.dart';
+import 'package:loanx/model/weight_unit.dart';
 import 'package:loanx/service/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
@@ -629,6 +630,78 @@ class MortgageMaterialList extends _$MortgageMaterialList {
 }
 
 @Riverpod(keepAlive: true)
+class WeightUnitList extends _$WeightUnitList {
+  late Database db;
+
+  @override
+  Future<List<WeightUnit>> build() async {
+    db = ref.watch(dBProvider).value!;
+    final result = await db.query(
+      WeightUnit.tableName,
+      orderBy: WeightUnitFields.name,
+    );
+    return result.map(WeightUnit.fromJson).toList();
+  }
+
+  Future<int> add(String name, String symbol) async {
+    final normalizedSymbol = symbol.trim();
+    final current = state.value ?? const <WeightUnit>[];
+    if (current.any(
+      (unit) =>
+          unit.name.toLowerCase() == name.trim().toLowerCase() ||
+          unit.symbol.toLowerCase() == normalizedSymbol.toLowerCase(),
+    )) {
+      return -1;
+    }
+    var unit = WeightUnit(
+      name: name.trim(),
+      symbol: normalizedSymbol,
+      isAddedByUser: 1,
+    );
+    final id = await db.insert(WeightUnit.tableName, unit.toJson());
+    if (id <= 0) return -1;
+    unit = unit.copy(id: id);
+    await updateDBTime();
+    state = AsyncData(
+      [...current, unit]..sort((a, b) => a.name.compareTo(b.name)),
+    );
+    return id;
+  }
+
+  Future<void> updateData(WeightUnit unit) async {
+    final changed = await db.update(
+      WeightUnit.tableName,
+      unit.toJson(),
+      where: '${WeightUnitFields.id} = ?',
+      whereArgs: [unit.id],
+    );
+    if (changed > 0) {
+      await updateDBTime();
+      state = AsyncData([
+        for (final item in state.value ?? const <WeightUnit>[])
+          if (item.id == unit.id) unit else item,
+      ]);
+    }
+  }
+
+  Future<void> delete(int id) async {
+    final deleted = await db.delete(
+      WeightUnit.tableName,
+      where: '${WeightUnitFields.id} = ?',
+      whereArgs: [id],
+    );
+    if (deleted > 0) {
+      await updateDBTime();
+      state = AsyncData(
+        (state.value ?? const <WeightUnit>[])
+            .where((unit) => unit.id != id)
+            .toList(),
+      );
+    }
+  }
+}
+
+@Riverpod(keepAlive: true)
 class LoanList extends _$LoanList {
   late Database db;
 
@@ -799,6 +872,7 @@ class LoanList extends _$LoanList {
     String address,
     double loanAmount,
     double weight,
+    String weightUnit,
     double interestRate,
     int interestType,
     int interestFrequency,
@@ -817,6 +891,7 @@ class LoanList extends _$LoanList {
       address: address,
       loanAmount: loanAmount,
       weight: weight,
+      weightUnit: weightUnit,
       interestType: interestType,
       interestFrequency: interestFrequency,
       mortgageTermYears: mortgageTermYears,
@@ -964,8 +1039,8 @@ class LoanList extends _$LoanList {
     );
     record(
       'Mortgage weight',
-      '${before.weight.toStringAsFixed(2)} g',
-      '${after.weight.toStringAsFixed(2)} g',
+      '${before.weight.toStringAsFixed(2)} ${before.weightUnit}',
+      '${after.weight.toStringAsFixed(2)} ${after.weightUnit}',
     );
     record(
       'Interest rate',

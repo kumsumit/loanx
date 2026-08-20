@@ -48,9 +48,12 @@ class LoanPrintingService {
       ['Created', loan.dateCreatedFormat],
       ['Principal', _currency.format(loan.loanAmount)],
       if (loan.weight > 0) ...[
-        ['Mortgage weight', '${loan.weight.toStringAsFixed(2)} g'],
         [
-          'Loan value per gram',
+          'Mortgage weight',
+          '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}',
+        ],
+        [
+          'Loan value per ${loan.weightUnit}',
           _currency.format(loan.loanAmount / loan.weight),
         ],
       ],
