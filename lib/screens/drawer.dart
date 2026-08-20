@@ -20,6 +20,7 @@ import 'package:loanx/widget/styled_text.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
+
 // import 'package:workmanager/workmanager.dart';
 
 class MyDrawer extends HookConsumerWidget {
@@ -141,11 +142,15 @@ class MyDrawer extends HookConsumerWidget {
                         Consumer(
                           builder: (context, ref, child) {
                             return InkWell(
-                              onTap: () async {
-                                await ref
-                                    .read(themeModeManagerProvider.notifier)
-                                    .set();
-                              },
+                              onTap: ref.watch(backupDownloadStatusProvider)
+                                  ? null
+                                  : () async {
+                                      await ref
+                                          .read(
+                                            themeModeManagerProvider.notifier,
+                                          )
+                                          .set();
+                                    },
                               child:
                                   ref.watch(themeModeManagerProvider).index == 2
                                   ? Icon(
@@ -1038,68 +1043,74 @@ class MyDrawer extends HookConsumerWidget {
                               onTap: ref.watch(backupStatusProvider)
                                   ? null
                                   : () async {
-                                      final networkStatus = ref.watch(
-                                        networkCheckerProvider,
-                                      );
-                                      networkStatus.when(
-                                        data: (data) async {
-                                          if (data) {
-                                            isLoading.value = true;
-                                            if (!FastDB.getIsBackUpRegistered()) {
-                                              await registerBackUp();
-                                              ref
-                                                  .read(
-                                                    backUpRegisteredProvider
-                                                        .notifier,
-                                                  )
-                                                  .set(true);
-                                            }
-                                            ref
-                                                .read(
-                                                  backupStatusProvider.notifier,
-                                                )
-                                                .set(true);
-                                            final status =
-                                                await BackupService.performBackup();
-                                            if (status && context.mounted) {
-                                              ref
-                                                  .read(
-                                                    backupAvailableProvider
-                                                        .notifier,
-                                                  )
-                                                  .set(true);
-                                              showSnackBar(
-                                                context,
-                                                "Backup created successfully.",
-                                              );
-                                            } else if (!status &&
-                                                context.mounted) {
-                                              showErrorSnackBar(
-                                                context,
-                                                BackupService.lastError,
-                                              );
-                                            }
-                                            ref
-                                                .read(
-                                                  backupStatusProvider.notifier,
-                                                )
-                                                .set(false);
-                                            isLoading.value = false;
-                                          } else {
+                                      ref
+                                          .read(backupStatusProvider.notifier)
+                                          .set(true);
+                                      isLoading.value = true;
+                                      try {
+                                        final connected = await ref
+                                            .read(networkCheckerProvider.future)
+                                            .timeout(
+                                              const Duration(seconds: 10),
+                                            );
+                                        if (!connected) {
+                                          if (context.mounted) {
                                             showErrorSnackBar(
                                               context,
-                                              "No Internet Connection",
+                                              'No internet connection.',
                                             );
                                           }
-                                        },
-                                        error: (_, _) {
+                                          return;
+                                        }
+                                        if (!FastDB.getIsBackUpRegistered()) {
+                                          await registerBackUp();
+                                          ref
+                                              .read(
+                                                backUpRegisteredProvider
+                                                    .notifier,
+                                              )
+                                              .set(true);
+                                        }
+                                        final status =
+                                            await BackupService.performBackup();
+                                        if (!context.mounted) return;
+                                        if (status) {
+                                          ref
+                                              .read(
+                                                backupAvailableProvider
+                                                    .notifier,
+                                              )
+                                              .set(true);
                                           showSnackBar(
                                             context,
-                                            "An Error occured, Please try again later",
+                                            'Backup created successfully.',
                                           );
-                                        },
-                                        loading: () {},
-                                      );
+                                        } else {
+                                          showErrorSnackBar(
+                                            context,
+                                            BackupService.lastError,
+                                          );
+                                        }
+                                      } catch (error, stackTrace) {
+                                        debugPrint(
+                                          'Manual backup failed: '
+                                          '$error\n$stackTrace',
+                                        );
+                                        if (context.mounted) {
+                                          showErrorSnackBar(
+                                            context,
+                                            'Could not create the backup. '
+                                            'Please try again.',
+                                          );
+                                        }
+                                      } finally {
+                                        ref
+                                            .read(backupStatusProvider.notifier)
+                                            .set(false);
+                                        if (context.mounted) {
+                                          isLoading.value = false;
+                                        }
+                                      }
                                     },
                             );
                     },
@@ -1151,12 +1162,7 @@ class MyDrawer extends HookConsumerWidget {
                                       await BackupService.downloadFileToDevice();
                                   if (!context.mounted) return;
                                   if (restored) {
-                                    ref.invalidate(loanListProvider);
-                                    ref.invalidate(familyRelationListProvider);
-                                    ref.invalidate(
-                                      mortgageMaterialListProvider,
-                                    );
-                                    ref.invalidate(weightUnitListProvider);
+                                    _refreshAfterRestore(ref);
                                     showSnackBar(
                                       context,
                                       "Backup restored successfully.",
@@ -1341,15 +1347,39 @@ class MyDrawer extends HookConsumerWidget {
                         leading: StyledIcon(Icons.logout),
                         title: StyledText('Disconnect Google account'),
                         onTap: () async {
-                          await removeAccount();
-                          ref.read(displayNameProvider.notifier).set("");
-                          ref.read(photoUrlProvider.notifier).set("");
-                          ref.read(emailProvider.notifier).set("");
-                          ref.read(driveAccessTokenProvider.notifier).set("");
-                          ref
-                              .read(backUpRegisteredProvider.notifier)
-                              .set(false);
-                          ref.read(backupAvailableProvider.notifier).set(false);
+                          isLoading.value = true;
+                          try {
+                            await removeAccount();
+                            ref.read(displayNameProvider.notifier).set("");
+                            ref.read(photoUrlProvider.notifier).set("");
+                            ref.read(emailProvider.notifier).set("");
+                            ref.read(driveAccessTokenProvider.notifier).set("");
+                            ref
+                                .read(backUpRegisteredProvider.notifier)
+                                .set(false);
+                            ref
+                                .read(backupAvailableProvider.notifier)
+                                .set(false);
+                            if (context.mounted) {
+                              showSnackBar(
+                                context,
+                                'Google account disconnected.',
+                              );
+                            }
+                          } catch (error, stackTrace) {
+                            debugPrint(
+                              'Google account disconnect failed: '
+                              '$error\n$stackTrace',
+                            );
+                            if (context.mounted) {
+                              showErrorSnackBar(
+                                context,
+                                'Could not disconnect the Google account.',
+                              );
+                            }
+                          } finally {
+                            if (context.mounted) isLoading.value = false;
+                          }
                         },
                       );
                     },
@@ -1455,6 +1485,26 @@ class MyDrawer extends HookConsumerWidget {
     } on PlatformException catch (e) {
       debugPrint("Failed to open review page: '${e.message}'.");
     }
+  }
+
+  void _refreshAfterRestore(WidgetRef ref) {
+    ref.invalidate(loanListProvider);
+    ref.invalidate(familyRelationListProvider);
+    ref.invalidate(mortgageMaterialListProvider);
+    ref.invalidate(weightUnitListProvider);
+    ref.invalidate(themeModeManagerProvider);
+    ref.invalidate(appColorProvider);
+    ref.invalidate(pickerColorProvider);
+    ref.invalidate(secureProvider);
+    ref.invalidate(holdingPeriodProvider);
+    ref.invalidate(interestTypeStatusProvider);
+    ref.invalidate(interestRateProvider);
+    ref.invalidate(interestFrequencyStatusProvider);
+    ref.invalidate(scheduledBackUpTimeHourProvider);
+    ref.invalidate(scheduledBackUpTimeMinuteProvider);
+    ref.invalidate(displayNameProvider);
+    ref.invalidate(emailProvider);
+    ref.invalidate(photoUrlProvider);
   }
 
   void _launchURL(String url) async {

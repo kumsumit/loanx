@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 
 /// Our custom fork of https://pub.dev/packages/modal_progress_hud adding a fading effect
 ///
@@ -17,7 +16,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 ///
 /// HUD=Heads Up Display
 ///
-class LoadingOverlay extends HookWidget {
+class LoadingOverlay extends StatelessWidget {
   final bool isLoading;
   final Color? color;
   final Widget? progressIndicator;
@@ -34,58 +33,23 @@ class LoadingOverlay extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final controller = useAnimationController(
-      duration: const Duration(milliseconds: 300),
-    );
-    final animation = useMemoized(
-      () => Tween(begin: 0.0, end: 1.0).animate(controller),
-    );
-
-    useEffect(() {
-      void listener(AnimationStatus status) {
-        if (status == AnimationStatus.forward) {
-          controller.forward();
-        } else if (status == AnimationStatus.dismissed) {
-          controller.reverse();
-        }
-      }
-
-      animation.addStatusListener(listener);
-
-      if (isLoading) {
-        controller.forward();
-      } else {
-        controller.reverse();
-      }
-      return;
-    }, [isLoading]);
-
-    var widgets = <Widget>[];
-    widgets.add(child);
-
-    if (controller.isAnimating || controller.value != 0.0) {
-      final modal = FadeTransition(
-        opacity: animation,
-        child: Stack(
-          children: <Widget>[
-            SizedBox.expand(
+    return Stack(
+      children: [
+        child,
+        if (isLoading)
+          Positioned.fill(
+            child: AbsorbPointer(
               child: ColoredBox(
-                color: color ?? colors.onSurface.withValues(alpha: 0.5),
+                color: color ?? colors.scrim.withValues(alpha: 0.48),
+                child: Center(
+                  child:
+                      progressIndicator ??
+                      CircularProgressIndicator(color: colors.primaryContainer),
+                ),
               ),
             ),
-            Center(
-              child: progressIndicator ??
-                  CircularProgressIndicator(
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(colors.onPrimary),
-              ),
-            ),
-          ],
-        ),
-      );
-      widgets.add(modal);
-    }
-
-    return Stack(children: widgets);
+          ),
+      ],
+    );
   }
 }

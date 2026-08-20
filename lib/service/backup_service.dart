@@ -72,18 +72,16 @@ class BackupService {
     return fallback;
   }
 
-  static Future<bool> performBackup() async {
+  static Future<bool> performBackup({bool promptIfNeeded = true}) async {
     _lastError = null;
     try {
-      final driveApi = await getDriveApi();
+      final driveApi = await getDriveApi(promptIfNeeded: promptIfNeeded);
       if (driveApi != null) {
         return await createFileOnDrive(driveApi);
       }
       return false;
     } catch (e, stackTrace) {
       _recordError('Google Drive backup', e, stackTrace);
-      FastDB.putDriveAccessToken("");
-      await FastDB.flush();
       return false;
     }
   }
@@ -281,6 +279,7 @@ class BackupService {
 
   static Future<drive.DriveApi?> getDriveApi({
     GoogleSignInAccount? account,
+    bool promptIfNeeded = true,
   }) async {
     final googleSignIn = _googleSignIn();
     if (account == null) {
@@ -288,7 +287,8 @@ class BackupService {
         // Access tokens are short-lived. Re-obtain one from the account on
         // each Drive operation instead of trusting a persisted expiry time.
         account = await googleSignIn.attemptLightweightAuthentication();
-      } else {
+      }
+      if (account == null && promptIfNeeded) {
         account = await googleSignIn.authenticate(
           scopeHint: [drive.DriveApi.driveAppdataScope],
         );
@@ -414,7 +414,7 @@ void callbackDispatcher() {
       WidgetsFlutterBinding.ensureInitialized();
       await initializeGoogleSignIn();
       await FastDB.init();
-      return await BackupService.performBackup();
+      return await BackupService.performBackup(promptIfNeeded: false);
     }
     // if(task == dailyBackUpDownload ){
     //   await BackupService.downloadFileToDevice();
