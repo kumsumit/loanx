@@ -33,6 +33,7 @@ class BackupService {
   static const _settingsEntryName = 'fastdb-settings.flatbuffer';
   static const _backupExtension = '.loanxbackup';
   static String? _lastError;
+  static GoogleSignInAccount? _activeGoogleAccount;
 
   /// A detailed description of the latest Google sign-in or Drive failure.
   static String get lastError =>
@@ -282,6 +283,7 @@ class BackupService {
     bool promptIfNeeded = true,
   }) async {
     final googleSignIn = _googleSignIn();
+    account ??= _activeGoogleAccount;
     if (account == null) {
       if (FastDB.getDriveAccessToken().isNotEmpty) {
         // Access tokens are short-lived. Re-obtain one from the account on
@@ -296,6 +298,7 @@ class BackupService {
     }
 
     if (account != null) {
+      _activeGoogleAccount = account;
       await saveData(account);
       final authHeaders = {
         "Authorization": "Bearer ${FastDB.getDriveAccessToken()}",
@@ -316,6 +319,7 @@ class BackupService {
   static Future<GoogleSignInClientAuthorization> saveData(
     GoogleSignInAccount account,
   ) async {
+    _activeGoogleAccount = account;
     FastDB.putDisplayName(account.displayName ?? "");
     FastDB.putPhotourl(account.photoUrl ?? "");
     if (account.photoUrl != null) {
@@ -328,9 +332,13 @@ class BackupService {
     }
     FastDB.putEmail(account.email);
 
-    final authorization = await account.authorizationClient.authorizeScopes([
-      drive.DriveApi.driveAppdataScope,
-    ]);
+    const scopes = [drive.DriveApi.driveAppdataScope];
+    // Reuse an existing Drive grant without presenting Google UI. Interactive
+    // authorization is only needed the first time the account is connected or
+    // if the user has revoked the grant.
+    final authorization =
+        await account.authorizationClient.authorizationForScopes(scopes) ??
+        await account.authorizationClient.authorizeScopes(scopes);
 
     // The plugin refreshes its access token through the signed-in account.
     // Do not store a made-up expiry time; it caused every token to appear
@@ -338,9 +346,10 @@ class BackupService {
     FastDB.putDriveAccessTokenExpires(0);
     FastDB.putDriveAccessToken(authorization.accessToken);
 
-    final headers = await account.authorizationClient.authorizationHeaders([
-      drive.DriveApi.driveAppdataScope,
-    ], promptIfNecessary: false);
+    final headers = await account.authorizationClient.authorizationHeaders(
+      scopes,
+      promptIfNecessary: false,
+    );
     if (headers?["X-Goog-AuthUser"] != null) {
       FastDB.putDriveUser(int.tryParse(headers!["X-Goog-AuthUser"] ?? "") ?? 0);
     }
@@ -349,6 +358,7 @@ class BackupService {
   }
 
   static Future<void> removeData() async {
+    _activeGoogleAccount = null;
     FastDB.putDisplayName("");
     FastDB.putPhotourl("");
     FastDB.putEmail("");

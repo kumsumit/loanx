@@ -1072,7 +1072,9 @@ class MyDrawer extends HookConsumerWidget {
                                               .set(true);
                                         }
                                         final status =
-                                            await BackupService.performBackup();
+                                            await BackupService.performBackup(
+                                              promptIfNeeded: true,
+                                            );
                                         if (!context.mounted) return;
                                         if (status) {
                                           ref
