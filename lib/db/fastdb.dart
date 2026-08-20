@@ -9,6 +9,7 @@ import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:loanx/model/loan.dart';
 import 'package:path_provider/path_provider.dart';
 import 'flatdb_generated.dart' as db;
+
 // import 'dart:isolate';
 
 class FastDB {
@@ -291,6 +292,10 @@ class FastDB {
     restored.driveUser = flatDbBuilder.driveUser;
     restored.isBackUpRegistered = flatDbBuilder.isBackUpRegistered;
     restored.backupTaskId = flatDbBuilder.backupTaskId;
+    restored.displayName = flatDbBuilder.displayName;
+    restored.email = flatDbBuilder.email;
+    restored.photourl = flatDbBuilder.photourl;
+    restored.photo = flatDbBuilder.photo;
     flatDbBuilder = restored;
     await flush();
   }

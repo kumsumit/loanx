@@ -48,6 +48,7 @@ class LoanInput extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final appBarTitle = loan == null ? "Add Loan Record" : "Edit Loan Record";
     final isDialogOpen = useState<bool>(false);
+    final isSaving = useState<bool>(false);
     final familyRelations = ref.watch(familyRelationListProvider);
     final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
     final weightUnits = ref.watch(weightUnitListProvider);
@@ -678,6 +679,7 @@ class LoanInput extends HookConsumerWidget {
                     width: double.infinity,
                     child: FilledButton.icon(
                       onPressed: () async {
+                        if (isSaving.value) return;
                         if (formKey.currentState != null &&
                             formKey.currentState!.validate()) {
                           final relation = currentFamilyRelation.value;
@@ -695,6 +697,13 @@ class LoanInput extends HookConsumerWidget {
                           final principal = _parseDouble(
                             loanAmountController.text,
                           );
+                          if (principal <= 0) {
+                            showErrorSnackBar(
+                              context,
+                              'Enter a principal amount greater than zero',
+                            );
+                            return;
+                          }
                           final earlyCharge = lockInDays.value == 0
                               ? 0.0
                               : _parseDouble(
@@ -722,27 +731,43 @@ class LoanInput extends HookConsumerWidget {
                             notes: additionalDetailsController.text.trim(),
                           );
                           if (!confirmed || !context.mounted) return;
-                          final status = await ref
-                              .read(loanListProvider.notifier)
-                              .add(
-                                loan,
-                                depositorController.text,
-                                phoneNumberController.text,
-                                relativeNameController.text,
-                                addressController.text,
-                                principal,
-                                weight,
-                                weightUnit.value,
-                                currentInterestRate,
-                                interestType.value.index,
-                                interestFrequency.value.index,
-                                mortgageTermYears.value,
-                                lockInDays.value,
-                                earlyCharge,
-                                additionalDetailsController.text,
-                                relation.id!,
-                                material.id!,
+                          isSaving.value = true;
+                          int status;
+                          try {
+                            status = await ref
+                                .read(loanListProvider.notifier)
+                                .add(
+                                  loan,
+                                  depositorController.text.trim(),
+                                  phoneNumberController.text.trim(),
+                                  relativeNameController.text.trim(),
+                                  addressController.text.trim(),
+                                  principal,
+                                  weight,
+                                  weightUnit.value,
+                                  currentInterestRate,
+                                  interestType.value.index,
+                                  interestFrequency.value.index,
+                                  mortgageTermYears.value,
+                                  lockInDays.value,
+                                  earlyCharge,
+                                  additionalDetailsController.text.trim(),
+                                  relation.id!,
+                                  material.id!,
+                                );
+                          } catch (error, stackTrace) {
+                            debugPrint('Unable to save loan: $error');
+                            debugPrintStack(stackTrace: stackTrace);
+                            if (context.mounted) {
+                              showErrorSnackBar(
+                                context,
+                                'Unable to save the loan: $error',
                               );
+                            }
+                            return;
+                          } finally {
+                            if (context.mounted) isSaving.value = false;
+                          }
                           if (status > 0) {
                             if (loan != null) {
                               ref
@@ -766,9 +791,18 @@ class LoanInput extends HookConsumerWidget {
                           }
                         }
                       },
-                      icon: const Icon(Icons.check_rounded),
+                      icon: isSaving.value
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.check_rounded),
                       label: Text(
-                        loan == null ? 'Create loan' : 'Save changes',
+                        isSaving.value
+                            ? 'Saving…'
+                            : loan == null
+                            ? 'Create loan'
+                            : 'Save changes',
                       ),
                     ),
                   );

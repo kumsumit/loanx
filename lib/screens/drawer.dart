@@ -1210,6 +1210,8 @@ class MyDrawer extends HookConsumerWidget {
                           }
                           isLoading.value = true;
                           try {
+                            var mergedBackup = false;
+                            var mergeFailed = false;
                             final chngAccount = await changeAccount(
                               context,
                             ).timeout(const Duration(seconds: 90));
@@ -1243,14 +1245,35 @@ class MyDrawer extends HookConsumerWidget {
                                     .read(backupAvailableProvider.notifier)
                                     .set(hasBackup);
                                 await FastDB.flush();
+                                if (hasBackup) {
+                                  mergedBackup =
+                                      await BackupService.downloadFileToDevice(
+                                        account: account,
+                                      );
+                                  if (mergedBackup) {
+                                    _refreshAfterRestore(ref);
+                                  } else {
+                                    mergeFailed = true;
+                                  }
+                                }
                               }
                               if (context.mounted) {
-                                showSnackBar(
-                                  context,
-                                  isAddingAccount
-                                      ? "Google account connected."
-                                      : "Google account updated.",
-                                );
+                                if (mergeFailed) {
+                                  showErrorSnackBar(
+                                    context,
+                                    'Account connected, but its backup could '
+                                    'not be merged. ${BackupService.lastError}',
+                                  );
+                                } else {
+                                  showSnackBar(
+                                    context,
+                                    mergedBackup
+                                        ? 'Google account connected and backup data merged.'
+                                        : isAddingAccount
+                                        ? 'Google account connected.'
+                                        : 'Google account updated.',
+                                  );
+                                }
                               }
                             } else if (context.mounted) {
                               showSnackBar(

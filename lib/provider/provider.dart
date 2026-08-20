@@ -883,6 +883,10 @@ class LoanList extends _$LoanList {
     int familyRelationId,
     int mortgageMaterialId,
   ) async {
+    // `add` can be called while this notifier is rebuilding (for example just
+    // after a restore). Do not rely on the `late` field having been populated
+    // by `readAllLoans` first.
+    db = await ref.read(dBProvider.future);
     int id = -1;
     Loan loan = Loan(
       depositorName: depositorName,
