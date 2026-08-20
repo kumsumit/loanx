@@ -149,6 +149,14 @@ class AskBackupScreen extends HookWidget {
                                           isLoading.value = false;
                                           return;
                                         }
+                                        ref.invalidate(loanListProvider);
+                                        ref.invalidate(
+                                          familyRelationListProvider,
+                                        );
+                                        ref.invalidate(
+                                          mortgageMaterialListProvider,
+                                        );
+                                        ref.invalidate(weightUnitListProvider);
                                         if (!FastDB.getIsTableCreated()) {
                                           ref
                                               .read(dBProvider)

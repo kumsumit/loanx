@@ -180,36 +180,26 @@ class BackupService {
             fileList.first.id != null) {
           final latestBackup = fileList.first;
           final driveBackupDate = _backupDate(latestBackup.name);
-          final shouldRestore =
-              FastDB.getDbUpdateTime() == 0 ||
-              (driveBackupDate != null &&
-                  DateTime.fromMillisecondsSinceEpoch(
-                    FastDB.getDbUpdateTime(),
-                  ).isBefore(driveBackupDate));
-          if (shouldRestore) {
-            final media =
-                (await driveApi.files.get(
-                      latestBackup.id!,
-                      downloadOptions: drive.DownloadOptions.fullMedia,
-                    ))
-                    as drive.Media?;
-            if (media != null) {
-              isDownloaded = await _restoreBackup(
-                await _mediaBytes(media),
-                latestBackup.name,
-                saveFile,
+          // This is an explicit user-requested restore. Always apply the most
+          // recent Drive backup, even when local edits have a newer timestamp.
+          final media =
+              (await driveApi.files.get(
+                    latestBackup.id!,
+                    downloadOptions: drive.DownloadOptions.fullMedia,
+                  ))
+                  as drive.Media?;
+          if (media != null) {
+            isDownloaded = await _restoreBackup(
+              await _mediaBytes(media),
+              latestBackup.name,
+              saveFile,
+            );
+            if (isDownloaded) {
+              FastDB.putDbUpdateTime(
+                (driveBackupDate ?? DateTime.now()).millisecondsSinceEpoch,
               );
-              if (isDownloaded) {
-                // Record the applied backup version so tapping restore again
-                // does not repeatedly apply the same Drive file.
-                FastDB.putDbUpdateTime(
-                  (driveBackupDate ?? DateTime.now()).millisecondsSinceEpoch,
-                );
-                await FastDB.flush();
-              }
+              await FastDB.flush();
             }
-          } else {
-            _lastError = 'This device already has the latest backup.';
           }
           if (isDownloaded && fileList.length > 1) {
             for (final file in fileList.sublist(1)) {
@@ -277,7 +267,6 @@ class BackupService {
         tempFile.path,
         readOnly: true,
         singleInstance: true,
-        version: 1,
         password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
       );
       try {

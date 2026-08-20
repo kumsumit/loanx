@@ -1178,7 +1178,7 @@ class DatabaseHelper {
     await FastDB.flush();
   }
 
-  /// Replaces the user data in the live database with data from [source].
+  /// Merges user data from [source] into the live database.
   ///
   /// All source rows are read before the target transaction starts. This
   /// validates the backup and ensures a failed restore leaves the live
@@ -1221,42 +1221,137 @@ class DatabaseHelper {
 
     final target = await instance.database;
     await target.transaction((transaction) async {
-      // Child rows must be removed first to remain valid when foreign-key
-      // enforcement is enabled.
-      await transaction.delete(LoanChange.tableName);
-      await transaction.delete(Loan.tableName);
-      await transaction.delete(FamilyRelation.tableName);
-      await transaction.delete(MortgageMaterial.tableName);
-      await transaction.delete(WeightUnit.tableName);
-
-      final batch = transaction.batch();
+      final relationIds = <int, int>{};
       for (final familyRelation in familyRelations) {
-        batch.insert(FamilyRelation.tableName, familyRelation);
+        final sourceId = familyRelation[FamilyRelationFields.id] as int;
+        final name = familyRelation[FamilyRelationFields.name] as String;
+        final existing = await transaction.query(
+          FamilyRelation.tableName,
+          columns: [FamilyRelationFields.id],
+          where: 'LOWER(${FamilyRelationFields.name}) = LOWER(?)',
+          whereArgs: [name],
+          limit: 1,
+        );
+        if (existing.isNotEmpty) {
+          relationIds[sourceId] =
+              existing.first[FamilyRelationFields.id] as int;
+        } else {
+          final values = Map<String, Object?>.from(familyRelation)
+            ..remove(FamilyRelationFields.id);
+          relationIds[sourceId] = await transaction.insert(
+            FamilyRelation.tableName,
+            values,
+          );
+        }
       }
+
+      final materialIds = <int, int>{};
       for (final mortgageMaterial in mortgageMaterials) {
-        batch.insert(MortgageMaterial.tableName, mortgageMaterial);
-      }
-      if (weightUnits.isEmpty) {
-        for (final unit in const [
-          WeightUnit(name: 'Gram', symbol: 'g'),
-          WeightUnit(name: 'Kilogram', symbol: 'kg'),
-          WeightUnit(name: 'Milligram', symbol: 'mg'),
-          WeightUnit(name: 'Tola', symbol: 'tola'),
-        ]) {
-          batch.insert(WeightUnit.tableName, unit.toJson());
+        final sourceId = mortgageMaterial[MortgageMaterialFields.id] as int;
+        final name = mortgageMaterial[MortgageMaterialFields.name] as String;
+        final existing = await transaction.query(
+          MortgageMaterial.tableName,
+          columns: [MortgageMaterialFields.id],
+          where: 'LOWER(${MortgageMaterialFields.name}) = LOWER(?)',
+          whereArgs: [name],
+          limit: 1,
+        );
+        if (existing.isNotEmpty) {
+          materialIds[sourceId] =
+              existing.first[MortgageMaterialFields.id] as int;
+        } else {
+          final values = Map<String, Object?>.from(mortgageMaterial)
+            ..remove(MortgageMaterialFields.id);
+          materialIds[sourceId] = await transaction.insert(
+            MortgageMaterial.tableName,
+            values,
+          );
         }
-      } else {
-        for (final unit in weightUnits) {
-          batch.insert(WeightUnit.tableName, unit);
+      }
+
+      for (final weightUnit in weightUnits) {
+        final symbol = weightUnit[WeightUnitFields.symbol] as String;
+        final existing = await transaction.query(
+          WeightUnit.tableName,
+          columns: [WeightUnitFields.id],
+          where: 'LOWER(${WeightUnitFields.symbol}) = LOWER(?)',
+          whereArgs: [symbol],
+          limit: 1,
+        );
+        if (existing.isEmpty) {
+          final values = Map<String, Object?>.from(weightUnit)
+            ..remove(WeightUnitFields.id);
+          await transaction.insert(WeightUnit.tableName, values);
         }
       }
-      for (final loan in loans) {
-        batch.insert(Loan.tableName, loan);
+
+      final loanIds = <int, int>{};
+      for (final sourceLoan in loans) {
+        final sourceId = sourceLoan[LoanFields.id] as int;
+        final sourceRelationId = sourceLoan[LoanFields.familyRelationId] as int;
+        final sourceMaterialId =
+            sourceLoan[LoanFields.mortgageMaterialId] as int;
+        final relationId = relationIds[sourceRelationId];
+        final materialId = materialIds[sourceMaterialId];
+        if (relationId == null || materialId == null) {
+          throw const FormatException(
+            'A backup loan references missing relation or material data.',
+          );
+        }
+
+        final existing = await transaction.query(
+          Loan.tableName,
+          columns: [LoanFields.id],
+          where:
+              '${LoanFields.depositorName} = ? AND '
+              '${LoanFields.relativeName} = ? AND '
+              '${LoanFields.address} = ? AND '
+              '${LoanFields.loanAmount} = ? AND '
+              '${LoanFields.familyRelationId} = ?',
+          whereArgs: [
+            sourceLoan[LoanFields.depositorName],
+            sourceLoan[LoanFields.relativeName],
+            sourceLoan[LoanFields.address],
+            sourceLoan[LoanFields.loanAmount],
+            relationId,
+          ],
+          limit: 1,
+        );
+        if (existing.isNotEmpty) {
+          loanIds[sourceId] = existing.first[LoanFields.id] as int;
+          continue;
+        }
+
+        final values = Map<String, Object?>.from(sourceLoan)
+          ..remove(LoanFields.id)
+          ..[LoanFields.familyRelationId] = relationId
+          ..[LoanFields.mortgageMaterialId] = materialId;
+        loanIds[sourceId] = await transaction.insert(Loan.tableName, values);
       }
-      for (final loanChange in loanChanges) {
-        batch.insert(LoanChange.tableName, loanChange);
+
+      for (final sourceChange in loanChanges) {
+        final sourceLoanId = sourceChange[LoanChangeFields.loanId] as int;
+        final loanId = loanIds[sourceLoanId];
+        if (loanId == null) continue;
+        final description = sourceChange[LoanChangeFields.description];
+        final createdAt = sourceChange[LoanChangeFields.createdAt];
+        final existing = await transaction.query(
+          LoanChange.tableName,
+          columns: [LoanChangeFields.id],
+          where:
+              '${LoanChangeFields.loanId} = ? AND '
+              '${LoanChangeFields.description} = ? AND '
+              '${LoanChangeFields.createdAt} = ?',
+          whereArgs: [loanId, description, createdAt],
+          limit: 1,
+        );
+        if (existing.isEmpty) {
+          final values = Map<String, Object?>.from(sourceChange)
+            ..remove(LoanChangeFields.id)
+            ..[LoanChangeFields.loanId] = loanId;
+          await transaction.insert(LoanChange.tableName, values);
+        }
       }
-      await batch.commit(noResult: true);
     });
   }
 
