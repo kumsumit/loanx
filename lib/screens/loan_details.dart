@@ -306,7 +306,7 @@ class _DetailsContent extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [colors.primary, colors.tertiary],
@@ -323,6 +323,8 @@ class _DetailsContent extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       loan.depositorName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(
                         context,
                       ).textTheme.titleLarge?.copyWith(color: colors.onPrimary),
@@ -331,7 +333,7 @@ class _DetailsContent extends ConsumerWidget {
                   _StatusPill(completed: loan.isFinished()),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Text(
                 LocaleKeys.collectableAmount.tr(),
                 style: TextStyle(
@@ -341,15 +343,23 @@ class _DetailsContent extends ConsumerWidget {
                   letterSpacing: 1,
                 ),
               ),
-              const SizedBox(height: 5),
-              Text(
-                currency.format(collectable),
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  color: colors.onPrimary,
-                  fontWeight: FontWeight.w800,
+              const SizedBox(height: 2),
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    currency.format(collectable),
+                    maxLines: 1,
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: colors.onPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -367,7 +377,7 @@ class _DetailsContent extends ConsumerWidget {
                 ],
               ),
               if (earlyRedemptionCharge > 0) ...[
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
                 _AmountMetric(
                   label: 'Early redemption charge',
                   value: currency.format(earlyRedemptionCharge),
@@ -719,7 +729,7 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: colors.onPrimary.withValues(alpha: .14),
         borderRadius: BorderRadius.circular(20),
@@ -748,11 +758,21 @@ class _AmountMetric extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label.tr(), style: TextStyle(color: color.withValues(alpha: .7))),
-        const SizedBox(height: 3),
         Text(
-          value,
-          style: TextStyle(color: color, fontWeight: FontWeight.w700),
+          label.tr(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: color.withValues(alpha: .7), fontSize: 12),
+        ),
+        const SizedBox(height: 1),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: TextStyle(color: color, fontWeight: FontWeight.w700),
+          ),
         ),
       ],
     );

@@ -84,16 +84,19 @@ class _PortfolioSummary extends ConsumerWidget {
               0,
               (value, loan) => value + loan.calculateCollectable(),
             );
-            final money = NumberFormat.compactCurrency(
+            final money = NumberFormat.currency(
               locale: context.locale.toString(),
               symbol: '₹',
-              decimalDigits: 1,
+              decimalDigits: 2,
             );
             return Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(22),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
                   // Keep this card on the basic GPU paint path. Combining a
                   // gradient, rounded corners and a large blurred shadow can
@@ -113,16 +116,24 @@ class _PortfolioSummary extends ConsumerWidget {
                         letterSpacing: 1.1,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      money.format(receivable),
-                      style: Theme.of(context).textTheme.headlineLarge
-                          ?.copyWith(
-                            color: colors.onPrimary,
-                            fontWeight: FontWeight.w800,
-                          ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          money.format(receivable),
+                          maxLines: 1,
+                          style: Theme.of(context).textTheme.headlineLarge
+                              ?.copyWith(
+                                color: colors.onPrimary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
@@ -212,13 +223,19 @@ class _SummaryMetric extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: foreground,
-                  fontWeight: FontWeight.w700,
+              SizedBox(
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    value,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: foreground,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 2),

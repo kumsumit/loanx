@@ -249,7 +249,8 @@ class Loan {
   double calculateInterest() {
     final duration = (dateFinished ?? DateTime.now())
         .difference(dateCreated)
-        .inDays;
+        .inDays
+        .clamp(0, 1 << 31);
     int n;
     switch (InterestFrequency.values[interestFrequency]) {
       case InterestFrequency.monthly:

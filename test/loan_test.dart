@@ -36,6 +36,17 @@ void main() {
       expect(loan.calculateCollectable(), closeTo(10000, 0.001));
     });
 
+    test('a future-dated loan cannot accrue negative interest', () {
+      final loan = _loan(
+        interestType: InterestType.simple,
+        interestRate: 10,
+        durationInDays: -1,
+      );
+
+      expect(loan.calculateInterest(), 0);
+      expect(loan.calculateCollectable(), 10000);
+    });
+
     test('fixed charge applies when an item is redeemed during lock-in', () {
       final loan = _loan(
         interestType: InterestType.simple,
