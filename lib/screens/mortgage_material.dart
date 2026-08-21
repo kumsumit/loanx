@@ -66,7 +66,9 @@ class MortgageMaterialView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(14),
-                      onTap: () => mortgageDialog(context, element['name']),
+                      onTap: isCustom
+                          ? () => mortgageDialog(context, element['name'])
+                          : null,
                       onLongPress: isCustom
                           ? () => mortgageDeleteDialog(
                               context,
@@ -138,8 +140,10 @@ class MortgageMaterialView extends StatelessWidget {
                               )
                             else
                               Icon(
-                                Icons.chevron_right_rounded,
-                                color: theme.colorScheme.onSurfaceVariant,
+                                Icons.lock_outline_rounded,
+                                size: 18,
+                                color: theme.colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.6),
                               ),
                           ],
                         ),

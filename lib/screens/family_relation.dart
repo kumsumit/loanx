@@ -118,10 +118,14 @@ class FamilyRelationView extends StatelessWidget {
                               color: theme.colorScheme.onSurfaceVariant
                                   .withValues(alpha: 0.6),
                             ),
-                      onTap: () => familyDialog(
-                        context,
-                        data.firstWhere((item) => item.id == element["id"]),
-                      ),
+                      onTap: isCustom
+                          ? () => familyDialog(
+                              context,
+                              data.firstWhere(
+                                (item) => item.id == element["id"],
+                              ),
+                            )
+                          : null,
                       onLongPress: isCustom
                           ? () => familyDeleteDialog(
                               context,
