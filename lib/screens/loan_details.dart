@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/extension/loan_enum_localization.dart';
+import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/provider/provider.dart';
@@ -71,8 +72,8 @@ class LoanDetails extends ConsumerWidget {
                   ),
                   text: _shareText(
                     currentLoan,
-                    relativeRelation: relation?.name,
-                    mortgageName: material?.name,
+                    relativeRelation: relation?.localizedName,
+                    mortgageName: material?.localizedName,
                   ),
                   sharePositionOrigin: box == null
                       ? null
@@ -118,8 +119,8 @@ class LoanDetails extends ConsumerWidget {
                     );
                     return _DetailsContent(
                       loan: currentLoan,
-                      relation: relation.name,
-                      material: material.name,
+                      relation: relation.localizedName,
+                      material: material.localizedName,
                     );
                   },
                   error: (_, _) => const _LoadError(),
@@ -428,7 +429,9 @@ class _DetailsContent extends ConsumerWidget {
                 ),
                 _DetailRow(
                   icon: Icons.analytics_outlined,
-                  label: 'Loan value per ${loan.weightUnit}',
+                  label: LocaleKeys.loanValuePerUnit.tr(
+                    namedArgs: {'unit': loan.weightUnit},
+                  ),
                   value: currency.format(loan.loanAmount / loan.weight),
                 ),
               ],
@@ -803,7 +806,7 @@ class _DetailRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      label.tr(),
+                      label.trExists() ? label.tr() : label,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),

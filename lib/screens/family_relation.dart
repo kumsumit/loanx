@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/extension/string.dart';
+import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
@@ -31,9 +32,8 @@ class FamilyRelationView extends StatelessWidget {
               final jsonList = data.map((e) => e.toJson()).toList();
               return GroupedListView<dynamic, String>(
                 elements: jsonList,
-                groupBy: (element) => element['isAddedByUser'] == 1
-                    ? 'Added By You'
-                    : 'Added By System',
+                groupBy: (element) =>
+                    element['isAddedByUser'] == 1 ? 'user' : 'system',
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                 separator: const SizedBox(height: 10),
                 groupSeparatorBuilder: (String groupByValue) => Padding(
@@ -41,7 +41,7 @@ class FamilyRelationView extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        groupByValue == 'Added By You'
+                        groupByValue == 'user'
                             ? Icons.person_outline_rounded
                             : Icons.verified_outlined,
                         size: 16,
@@ -49,7 +49,9 @@ class FamilyRelationView extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        groupByValue,
+                        groupByValue == 'user'
+                            ? LocaleKeys.addedByYou.tr()
+                            : LocaleKeys.addedBySystem.tr(),
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: theme.colorScheme.primary,
@@ -93,7 +95,9 @@ class FamilyRelationView extends StatelessWidget {
                         ),
                       ),
                       title: Text(
-                        element['name'],
+                        data
+                            .firstWhere((item) => item.id == element['id'])
+                            .localizedName,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),

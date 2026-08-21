@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/extension/loan_enum_localization.dart';
+import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
@@ -1000,7 +1001,7 @@ class LoanInput extends HookConsumerWidget {
   String _weightUnitName(List<WeightUnit>? units, String symbol) {
     if (units == null) return symbol;
     for (final unit in units) {
-      if (unit.symbol == symbol) return unit.name.toLowerCase();
+      if (unit.symbol == symbol) return unit.localizedName.toLowerCase();
     }
     return symbol;
   }
@@ -1013,7 +1014,7 @@ class LoanInput extends HookConsumerWidget {
       DropdownMenuItem(
         value: mortgageMaterial,
         child: Text(
-          mortgageMaterial.name,
+          mortgageMaterial.localizedName,
           style: TextStyle(
             fontSize: 15.0,
             color: Theme.of(context).colorScheme.secondary,
@@ -1030,7 +1031,7 @@ class LoanInput extends HookConsumerWidget {
       DropdownMenuItem(
         value: familyRelation,
         child: Text(
-          familyRelation.name,
+          familyRelation.localizedName,
           style: TextStyle(
             fontSize: 15.0,
             color: Theme.of(context).colorScheme.secondary,

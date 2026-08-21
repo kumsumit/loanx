@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/loan.dart';
+import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/loan_details.dart';
 import 'package:loanx/widget/styled_text.dart';
@@ -235,7 +236,7 @@ class SearchAppBar extends HookWidget {
                     itemCount: data.length,
                     itemBuilder: (context, index) {
                       return ListTile(
-                        title: Text(data[index].name),
+                        title: Text(data[index].localizedName),
                         onTap: () {
                           Navigator.of(context).pop(data[index].id);
                         },

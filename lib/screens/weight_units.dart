@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/weight_unit.dart';
+import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
 
@@ -29,7 +30,7 @@ class WeightUnitView extends ConsumerWidget {
                       leading: const CircleAvatar(
                         child: Icon(Icons.straighten_rounded),
                       ),
-                      title: Text(unit.name),
+                      title: Text(unit.localizedName),
                       subtitle: Text(
                         LocaleKeys.weightUnitType.tr(
                           namedArgs: {

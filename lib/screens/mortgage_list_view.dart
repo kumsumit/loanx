@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/loan.dart';
+import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/loan_details.dart';
@@ -149,8 +150,8 @@ class MortgageListView extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         loan.weight > 0
-                            ? '${mortgageMaterial.name} · ${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}'
-                            : mortgageMaterial.name,
+                            ? '${mortgageMaterial.localizedName} · ${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}'
+                            : mortgageMaterial.localizedName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: colors.onSurfaceVariant),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/extension/string.dart';
+import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_text.dart';
@@ -31,9 +32,8 @@ class MortgageMaterialView extends StatelessWidget {
               final jsonList = data.map((e) => e.toJson()).toList();
               return GroupedListView<dynamic, String>(
                 elements: jsonList,
-                groupBy: (element) => element['isAddedByUser'] == 1
-                    ? 'Added By You'
-                    : 'Added By System',
+                groupBy: (element) =>
+                    element['isAddedByUser'] == 1 ? 'user' : 'system',
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                 separator: const SizedBox(height: 10),
                 groupSeparatorBuilder: (String groupByValue) => Padding(
@@ -41,7 +41,7 @@ class MortgageMaterialView extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        groupByValue == 'Added By You'
+                        groupByValue == 'user'
                             ? Icons.person_outline_rounded
                             : Icons.settings_suggest_outlined,
                         size: 18,
@@ -49,7 +49,9 @@ class MortgageMaterialView extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        groupByValue.tr(),
+                        groupByValue == 'user'
+                            ? LocaleKeys.addedByYou.tr()
+                            : LocaleKeys.addedBySystem.tr(),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -98,7 +100,10 @@ class MortgageMaterialView extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    element['name'],
+                                    localizedMortgageMaterialName(
+                                      element['name'],
+                                      isCustom,
+                                    ),
                                     style: theme.textTheme.bodyLarge?.copyWith(
                                       fontWeight: FontWeight.w500,
                                     ),

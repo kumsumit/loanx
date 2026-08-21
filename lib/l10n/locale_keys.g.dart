@@ -5,6 +5,26 @@
 abstract final class LocaleKeys {
   static const loanDetailsFor = "loanDetailsFor";
   static const daysCount = "daysCount";
+  static const addedByYou = "addedByYou";
+  static const addedBySystem = "addedBySystem";
+  static const systemHusband = "systemHusband";
+  static const systemFather = "systemFather";
+  static const systemWife = "systemWife";
+  static const systemRing = "systemRing";
+  static const systemAnklet = "systemAnklet";
+  static const systemBracelet = "systemBracelet";
+  static const systemArmlet = "systemArmlet";
+  static const systemChain = "systemChain";
+  static const systemEarRing = "systemEarRing";
+  static const systemHeadLocket = "systemHeadLocket";
+  static const systemMedal = "systemMedal";
+  static const systemNecklace = "systemNecklace";
+  static const systemLocket = "systemLocket";
+  static const systemNeckBand = "systemNeckBand";
+  static const systemGram = "systemGram";
+  static const systemKilogram = "systemKilogram";
+  static const systemMilligram = "systemMilligram";
+  static const systemTola = "systemTola";
   static const shareAppSubject = "shareAppSubject";
   static const shareAppMessage = "shareAppMessage";
   static const loan = "loan";
