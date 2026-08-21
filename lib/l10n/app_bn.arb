@@ -1,5 +1,8 @@
 {
   "@@locale": "bn",
+  "loanDetailsFor": "{name}-এর ঋণের বিবরণ",
+  "shareAppSubject": "এই দারুণ অ্যাপটি ইনস্টল করুন!",
+  "shareAppMessage": "LoanX আপনাকে পরিশোধের হিসাব করতে, ঋণের ধরন বুঝতে এবং কত টাকা ধার নেওয়া যাবে তা পরিচালনা করতে সাহায্য করে। LoanX Android ও iOS-এ পাওয়া যায়।\n\nLoanX ডাউনলোড করুন:\nPlay Store: https://play.google.com/store/apps/details?id=com.kumpali.loanx\nApp Store: https://apps.apple.com/us/app/loanx-loanx-calculator/id1502002892\n\nLoanX ব্যবহার করার জন্য ধন্যবাদ!",
   "loan": "ঋণ",
   "loans": "ঋণ",
   "loanx": "ঋণ-এক্স",

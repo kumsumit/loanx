@@ -1512,14 +1512,8 @@ class MyDrawer extends HookConsumerWidget {
                       final box = context.findRenderObject() as RenderBox?;
                       SharePlus.instance.share(
                         ShareParams(
-                          text:
-                              '''loanx is a loanx calculator app that helps you calculate your monthly loanx payments. It also helps you understand the different types of loanxs and how much you can borrow. loanx is available on both Android and iOS.
-                \nYou can download loanx from the Google Play Store or the App Store.
-                Playstore: https://play.google.com/store/apps/details?id=com.kumpali.loanx
-                App Store: https://apps.apple.com/us/app/loanx-loanx-calculator/id1502002892
-                \n\nThank you for using loanx!
-                ''',
-                          subject: 'Install this awesome app!',
+                          text: LocaleKeys.shareAppMessage.tr(),
+                          subject: LocaleKeys.shareAppSubject.tr(),
                           sharePositionOrigin:
                               box!.localToGlobal(Offset.zero) & box.size,
                         ),

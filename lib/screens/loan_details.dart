@@ -66,7 +66,9 @@ class LoanDetails extends ConsumerWidget {
               final box = context.findRenderObject() as RenderBox?;
               SharePlus.instance.share(
                 ShareParams(
-                  subject: 'Loan details for ${currentLoan.depositorName}',
+                  subject: LocaleKeys.loanDetailsFor.tr(
+                    namedArgs: {'name': currentLoan.depositorName},
+                  ),
                   text: _shareText(
                     currentLoan,
                     relativeRelation: relation?.name,

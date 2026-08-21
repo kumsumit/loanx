@@ -16,11 +16,10 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 # Localization generation
 
-Translations are authored in `assets/translations` and compiled into Dart for
+Translations are authored as ARB files in `lib/l10n` and compiled into Dart for
 runtime use. Regenerate both Dart files after changing a translation:
 
 ```sh
-flutter pub run easy_localization:generate -S assets/translations -O lib/l10n -o codegen_loader.g.dart -f json
-dart run tool/generate_locale_keys.dart
+dart run tool/generate_localizations.dart
 dart format lib/l10n/codegen_loader.g.dart lib/l10n/locale_keys.g.dart
 ```
