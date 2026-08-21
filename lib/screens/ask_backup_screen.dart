@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,7 +72,7 @@ class AskBackupScreen extends HookWidget {
                             ),
                             const SizedBox(height: 20),
                             Text(
-                              'Welcome to LoanX'.tr(),
+                              LocaleKeys.welcomeToLoanx.tr(),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 color: colors.primary,
                                 fontWeight: FontWeight.w700,
@@ -80,7 +81,7 @@ class AskBackupScreen extends HookWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Restore your loan records'.tr(),
+                              LocaleKeys.restoreYourLoanRecords.tr(),
                               style: theme.textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.w800,
                               ),
@@ -235,7 +236,9 @@ class AskBackupScreen extends HookWidget {
                                   );
                                 },
                                 icon: const Icon(Icons.cloud_download_outlined),
-                                label: Text('Restore from Google Drive'.tr()),
+                                label: Text(
+                                  LocaleKeys.restoreFromGoogleDrive.tr(),
+                                ),
                                 style: FilledButton.styleFrom(
                                   minimumSize: const Size.fromHeight(52),
                                 ),
@@ -273,7 +276,9 @@ class AskBackupScreen extends HookWidget {
                                   }
                                 },
                                 icon: const Icon(Icons.add_circle_outline),
-                                label: Text('Start with a new workspace'.tr()),
+                                label: Text(
+                                  LocaleKeys.startWithANewWorkspace.tr(),
+                                ),
                                 style: OutlinedButton.styleFrom(
                                   minimumSize: const Size.fromHeight(52),
                                 ),

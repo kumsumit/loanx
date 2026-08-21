@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 
@@ -16,6 +17,7 @@ import 'package:loanx/service/update_service.dart';
 import 'package:loanx/widget/avatar.dart';
 import 'package:loanx/widget/bullet.dart';
 import 'package:loanx/widget/loading_overlay.dart';
+import 'package:loanx/widget/language_picker.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_text.dart';
 import 'package:share_plus/share_plus.dart';
@@ -57,7 +59,7 @@ class MyDrawer extends HookConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'LoanX'.tr(),
+                          LocaleKeys.loanx2.tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             color: Theme.of(context).colorScheme.onPrimary,
@@ -176,8 +178,8 @@ class MyDrawer extends HookConsumerWidget {
               ),
               ExpansionTile(
                 leading: StyledIcon(Icons.info_outline),
-                title: StyledText('About LoanX'.tr()),
-                subtitle: StyledSubtitle('Learn about the app'.tr()),
+                title: StyledText(LocaleKeys.aboutLoanx.tr()),
+                subtitle: StyledSubtitle(LocaleKeys.learnAboutTheApp.tr()),
                 backgroundColor: Theme.of(
                   context,
                 ).colorScheme.surfaceContainerLow,
@@ -187,8 +189,10 @@ class MyDrawer extends HookConsumerWidget {
                   const Divider(indent: 16, endIndent: 16),
                   ListTile(
                     leading: StyledIcon(Icons.article_outlined),
-                    title: StyledText('What is LoanX?'.tr()),
-                    subtitle: StyledSubtitle('Learn what LoanX can do'.tr()),
+                    title: StyledText(LocaleKeys.whatIsLoanx.tr()),
+                    subtitle: StyledSubtitle(
+                      LocaleKeys.learnWhatLoanxCanDo.tr(),
+                    ),
                     onTap: () {
                       showDialog(
                         context: context,
@@ -205,7 +209,7 @@ class MyDrawer extends HookConsumerWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SizedBox(height: 10),
-                                    StyledHeading('About'.tr()),
+                                    StyledHeading(LocaleKeys.about.tr()),
                                     BulletPoint(
                                       'Traditionally practiced, now technologically advanced.',
                                       italic: true,
@@ -232,7 +236,7 @@ class MyDrawer extends HookConsumerWidget {
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                       },
-                                      child: Text('OK'.tr()),
+                                      child: Text(LocaleKeys.ok.tr()),
                                     ),
                                   ],
                                 ),
@@ -247,8 +251,8 @@ class MyDrawer extends HookConsumerWidget {
               ),
               ExpansionTile(
                 leading: StyledIcon(Icons.tune_rounded),
-                title: StyledText('App preferences'.tr()),
-                subtitle: StyledSubtitle('Security and appearance'.tr()),
+                title: StyledText(LocaleKeys.appPreferences.tr()),
+                subtitle: StyledSubtitle(LocaleKeys.securityAndAppearance.tr()),
                 backgroundColor: Theme.of(
                   context,
                 ).colorScheme.surfaceContainerLow,
@@ -256,6 +260,13 @@ class MyDrawer extends HookConsumerWidget {
                 childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                 children: [
                   const Divider(indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: StyledIcon(Icons.translate_rounded),
+                    title: StyledText(LocaleKeys.appLanguage.tr()),
+                    subtitle: StyledSubtitle(appLanguageName(context.locale)),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => showAppLanguagePicker(context),
+                  ),
                   Consumer(
                     builder: (context, ref, child) {
                       final secure = ref.watch(secureProvider);
@@ -267,8 +278,8 @@ class MyDrawer extends HookConsumerWidget {
                         ),
                         title: StyledText(
                           secure
-                              ? 'Disable app lock'.tr()
-                              : 'Enable app lock'.tr(),
+                              ? LocaleKeys.disableAppLock.tr()
+                              : LocaleKeys.enableAppLock.tr(),
                         ),
                         onTap: () {
                           showDialog(
@@ -285,7 +296,9 @@ class MyDrawer extends HookConsumerWidget {
                                     spacing: 10,
                                     children: [
                                       SizedBox(height: 10),
-                                      StyledHeading('Confirmation'.tr()),
+                                      StyledHeading(
+                                        LocaleKeys.confirmation.tr(),
+                                      ),
                                       StyledSubtitle(
                                         secure
                                             ? 'Disable the app lock on this device?'
@@ -298,13 +311,13 @@ class MyDrawer extends HookConsumerWidget {
                                             MainAxisAlignment.spaceEvenly,
                                         children: [
                                           OutlinedButton(
-                                            child: Text('Cancel'.tr()),
+                                            child: Text(LocaleKeys.cancel.tr()),
                                             onPressed: () {
                                               Navigator.of(context).pop();
                                             },
                                           ),
                                           OutlinedButton(
-                                            child: Text('Ok'.tr()),
+                                            child: Text(LocaleKeys.ok2.tr()),
                                             onPressed: () async {
                                               await ref
                                                   .read(secureProvider.notifier)
@@ -342,7 +355,7 @@ class MyDrawer extends HookConsumerWidget {
                   ),
                   ListTile(
                     leading: StyledIcon(Icons.color_lens),
-                    title: StyledText('App color'.tr()),
+                    title: StyledText(LocaleKeys.appColor.tr()),
                     onTap: () {
                       showDialog(
                         context: context,
@@ -358,7 +371,7 @@ class MyDrawer extends HookConsumerWidget {
                                 spacing: 10,
                                 children: [
                                   SizedBox(height: 10),
-                                  StyledHeading('Pick a color!'.tr()),
+                                  StyledHeading(LocaleKeys.pickAColor.tr()),
                                   Consumer(
                                     builder: (context, ref, child) {
                                       final color = ref.watch(
@@ -382,12 +395,12 @@ class MyDrawer extends HookConsumerWidget {
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: Text('Cancel'.tr()),
+                                        child: Text(LocaleKeys.cancel.tr()),
                                       ),
                                       Consumer(
                                         builder: (context, ref, child) {
                                           return OutlinedButton(
-                                            child: Text('Ok'.tr()),
+                                            child: Text(LocaleKeys.ok2.tr()),
                                             onPressed: () async {
                                               await ref
                                                   .read(
@@ -398,7 +411,8 @@ class MyDrawer extends HookConsumerWidget {
                                                 Navigator.of(context).pop();
                                                 showSnackBar(
                                                   context,
-                                                  "App Color Changed".tr(),
+                                                  LocaleKeys.appColorChanged
+                                                      .tr(),
                                                 );
                                               }
                                             },
@@ -419,7 +433,7 @@ class MyDrawer extends HookConsumerWidget {
                                           }
                                         },
                                         child: Text(
-                                          "Set Color Using Image".tr(),
+                                          LocaleKeys.setColorUsingImage.tr(),
                                         ),
                                       );
                                     },
@@ -437,8 +451,10 @@ class MyDrawer extends HookConsumerWidget {
               ),
               ExpansionTile(
                 leading: StyledIcon(Icons.calculate_outlined),
-                title: StyledText('Loan defaults'.tr()),
-                subtitle: StyledSubtitle('Interest and mortgage settings'.tr()),
+                title: StyledText(LocaleKeys.loanDefaults.tr()),
+                subtitle: StyledSubtitle(
+                  LocaleKeys.interestAndMortgageSettings.tr(),
+                ),
                 backgroundColor: Theme.of(
                   context,
                 ).colorScheme.surfaceContainerLow,
@@ -448,12 +464,12 @@ class MyDrawer extends HookConsumerWidget {
                   const Divider(indent: 16, endIndent: 16),
                   ListTile(
                     leading: StyledIcon(Icons.currency_exchange),
-                    title: StyledText('Mortgage term'.tr()),
+                    title: StyledText(LocaleKeys.mortgageTerm.tr()),
                     subtitle: Consumer(
                       builder: (context, ref, child) {
                         final holdingPeriod = ref.watch(holdingPeriodProvider);
                         return StyledSubtitle(
-                          'defaultYears'.tr(
+                          LocaleKeys.defaultYears.tr(
                             namedArgs: {'years': holdingPeriod.toString()},
                           ),
                         );
@@ -475,7 +491,8 @@ class MyDrawer extends HookConsumerWidget {
                                   children: [
                                     SizedBox(height: 10),
                                     StyledHeading(
-                                      'Change Mortgage Holding Period'.tr(),
+                                      LocaleKeys.changeMortgageHoldingPeriod
+                                          .tr(),
                                       maxLines: 2,
                                     ),
                                     Consumer(
@@ -518,7 +535,7 @@ class MyDrawer extends HookConsumerWidget {
                                           holdingPeriodProvider,
                                         );
                                         return StyledSubtitle(
-                                          'mortgageHoldingPeriod'.tr(
+                                          LocaleKeys.mortgageHoldingPeriod.tr(
                                             namedArgs: {
                                               'years': holdingPeriod.toString(),
                                             },
@@ -527,7 +544,8 @@ class MyDrawer extends HookConsumerWidget {
                                       },
                                     ),
                                     StyledSubtitle(
-                                      'Default holding Period is 5 years'.tr(),
+                                      LocaleKeys.defaultHoldingPeriodIs5Years
+                                          .tr(),
                                       fontSize: 12,
                                     ),
                                     SizedBox(height: 10),
@@ -539,7 +557,7 @@ class MyDrawer extends HookConsumerWidget {
                                           onPressed: () async {
                                             Navigator.pop(context);
                                           },
-                                          child: Text('Cancel'.tr()),
+                                          child: Text(LocaleKeys.cancel.tr()),
                                         ),
                                         Consumer(
                                           builder: (context, ref, child) {
@@ -556,7 +574,7 @@ class MyDrawer extends HookConsumerWidget {
                                                 }
                                               },
                                               child: Text(
-                                                'OK'.tr(),
+                                                LocaleKeys.ok.tr(),
                                                 style: TextStyle(
                                                   fontSize: Theme.of(context)
                                                       .textTheme
@@ -581,14 +599,14 @@ class MyDrawer extends HookConsumerWidget {
                   ),
                   ListTile(
                     leading: StyledIcon(Icons.input),
-                    title: StyledText('Interest type'.tr()),
+                    title: StyledText(LocaleKeys.interestType.tr()),
                     subtitle: Consumer(
                       builder: (context, ref, child) {
                         final interestType = ref.watch(
                           interestTypeStatusProvider,
                         );
                         return StyledSubtitle(
-                          'defaultInterestType'.tr(
+                          LocaleKeys.defaultInterestType.tr(
                             namedArgs: {
                               'type': interestType.name.toSentenceCase(),
                             },
@@ -612,7 +630,9 @@ class MyDrawer extends HookConsumerWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SizedBox(height: 10),
-                                    StyledHeading('Select Interest Type'.tr()),
+                                    StyledHeading(
+                                      LocaleKeys.selectInterestType.tr(),
+                                    ),
                                     Consumer(
                                       builder: (context, ref, child) {
                                         final interestType = ref.watch(
@@ -658,7 +678,7 @@ class MyDrawer extends HookConsumerWidget {
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
-                                          child: Text('Cancel'.tr()),
+                                          child: Text(LocaleKeys.cancel.tr()),
                                         ),
                                         Consumer(
                                           builder: (context, ref, child) {
@@ -675,7 +695,7 @@ class MyDrawer extends HookConsumerWidget {
                                                 }
                                               },
                                               child: Text(
-                                                'OK'.tr(),
+                                                LocaleKeys.ok.tr(),
                                                 style: TextStyle(
                                                   color: Theme.of(
                                                     context,
@@ -704,9 +724,9 @@ class MyDrawer extends HookConsumerWidget {
                       );
                       return ListTile(
                         leading: StyledIcon(Icons.calendar_month_outlined),
-                        title: StyledText('Interest frequency'.tr()),
+                        title: StyledText(LocaleKeys.interestFrequency2.tr()),
                         subtitle: StyledSubtitle(
-                          'defaultInterestFrequency'.tr(
+                          LocaleKeys.defaultInterestFrequency.tr(
                             namedArgs: {'frequency': interestFrequency.name},
                           ),
                         ),
@@ -720,7 +740,9 @@ class MyDrawer extends HookConsumerWidget {
                                   child: Column(
                                     children: [
                                       SizedBox(height: 10),
-                                      StyledHeading('Interest Frequency'.tr()),
+                                      StyledHeading(
+                                        LocaleKeys.interestFrequency.tr(),
+                                      ),
                                       RadioGroup<InterestFrequency>(
                                         groupValue: interestFrequency,
                                         onChanged: (value) {
@@ -749,7 +771,7 @@ class MyDrawer extends HookConsumerWidget {
                                         ),
                                       ),
                                       StyledText(
-                                        'interestFrequencySet'.tr(
+                                        LocaleKeys.interestFrequencySet.tr(
                                           namedArgs: {
                                             'frequency': interestFrequency.name,
                                           },
@@ -764,7 +786,7 @@ class MyDrawer extends HookConsumerWidget {
                                             onPressed: () {
                                               Navigator.pop(context);
                                             },
-                                            child: Text("Cancel".tr()),
+                                            child: Text(LocaleKeys.cancel.tr()),
                                           ),
                                           OutlinedButton(
                                             onPressed: () async {
@@ -773,7 +795,7 @@ class MyDrawer extends HookConsumerWidget {
                                                 Navigator.pop(context);
                                               }
                                             },
-                                            child: Text('Ok'.tr()),
+                                            child: Text(LocaleKeys.ok2.tr()),
                                           ),
                                         ],
                                       ),
@@ -790,12 +812,12 @@ class MyDrawer extends HookConsumerWidget {
                   ),
                   ListTile(
                     leading: StyledIcon(Icons.percent),
-                    title: StyledText('Interest rate'.tr()),
+                    title: StyledText(LocaleKeys.interestRate.tr()),
                     subtitle: Consumer(
                       builder: (context, ref, child) {
                         final interestRate = ref.watch(interestRateProvider);
                         return StyledSubtitle(
-                          'defaultInterestRate'.tr(
+                          LocaleKeys.defaultInterestRate.tr(
                             namedArgs: {'rate': interestRate.toString()},
                           ),
                         );
@@ -814,7 +836,9 @@ class MyDrawer extends HookConsumerWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   SizedBox(height: 10),
-                                  StyledHeading('Change Interest Rate'.tr()),
+                                  StyledHeading(
+                                    LocaleKeys.changeInterestRate.tr(),
+                                  ),
                                   Row(
                                     children: [
                                       Expanded(
@@ -907,7 +931,7 @@ class MyDrawer extends HookConsumerWidget {
                                         interestRateProvider,
                                       );
                                       return StyledSubtitle(
-                                        'currentInterestRate'.tr(
+                                        LocaleKeys.currentInterestRate.tr(
                                           namedArgs: {
                                             'rate': interestRate.toString(),
                                           },
@@ -924,7 +948,7 @@ class MyDrawer extends HookConsumerWidget {
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: Text('Cancel'.tr()),
+                                        child: Text(LocaleKeys.cancel.tr()),
                                       ),
                                       Consumer(
                                         builder: (context, ref, child) {
@@ -956,11 +980,12 @@ class MyDrawer extends HookConsumerWidget {
                                                 Navigator.of(context).pop();
                                                 showSnackBar(
                                                   context,
-                                                  "Interest Rate Changed".tr(),
+                                                  LocaleKeys.interestRateChanged
+                                                      .tr(),
                                                 );
                                               }
                                             },
-                                            child: Text('OK'.tr()),
+                                            child: Text(LocaleKeys.ok.tr()),
                                           );
                                         },
                                       ),
@@ -981,12 +1006,12 @@ class MyDrawer extends HookConsumerWidget {
               ),
               ExpansionTile(
                 leading: StyledIcon(Icons.cloud_outlined),
-                title: StyledText('Backup & Google Drive'.tr()),
+                title: StyledText(LocaleKeys.backupGoogleDrive.tr()),
                 subtitle: Consumer(
                   builder: (context, ref, child) {
                     final email = ref.watch(emailProvider);
                     return StyledSubtitle(
-                      email.isEmpty ? 'Not connected'.tr() : email,
+                      email.isEmpty ? LocaleKeys.notConnected.tr() : email,
                     );
                   },
                 ),
@@ -1010,9 +1035,9 @@ class MyDrawer extends HookConsumerWidget {
                       if (isBackUpRegistered) {
                         return ListTile(
                           leading: StyledIcon(Icons.settings_backup_restore),
-                          title: StyledText('Change Backup Time'.tr()),
+                          title: StyledText(LocaleKeys.changeBackupTime.tr()),
                           subtitle: StyledSubtitle(
-                            'defaultTime'.tr(
+                            LocaleKeys.defaultTime.tr(
                               namedArgs: {'time': time.format(context)},
                             ),
                           ),
@@ -1044,7 +1069,7 @@ class MyDrawer extends HookConsumerWidget {
                                 Navigator.pop(context);
                                 showSnackBar(
                                   context,
-                                  'backupTimeUpdated'.tr(
+                                  LocaleKeys.backupTimeUpdated.tr(
                                     namedArgs: {'time': picked.format(context)},
                                   ),
                                 );
@@ -1067,7 +1092,7 @@ class MyDrawer extends HookConsumerWidget {
                           ? SizedBox()
                           : ListTile(
                               leading: StyledIcon(Icons.backup),
-                              title: StyledText("Back up now".tr()),
+                              title: StyledText(LocaleKeys.backUpNow.tr()),
                               subtitle: ref.watch(backupStatusProvider)
                                   ? Text(
                                       "Creating your secure Google Drive backup…"
@@ -1125,7 +1150,8 @@ class MyDrawer extends HookConsumerWidget {
                                               .set(true);
                                           showSnackBar(
                                             context,
-                                            'Backup created successfully.'.tr(),
+                                            LocaleKeys.backupCreatedSuccessfully
+                                                .tr(),
                                           );
                                         } else {
                                           showErrorSnackBar(
@@ -1170,10 +1196,12 @@ class MyDrawer extends HookConsumerWidget {
                           ? SizedBox()
                           : ListTile(
                               leading: StyledIcon(Icons.download),
-                              title: StyledText('Restore latest backup'.tr()),
+                              title: StyledText(
+                                LocaleKeys.restoreLatestBackup.tr(),
+                              ),
                               subtitle: ref.watch(backupDownloadStatusProvider)
                                   ? Text(
-                                      "Restoring your backup…".tr(),
+                                      LocaleKeys.restoringYourBackup.tr(),
                                       style: TextStyle(
                                         fontSize: 15,
                                         color: Theme.of(
@@ -1207,7 +1235,8 @@ class MyDrawer extends HookConsumerWidget {
                                     _refreshAfterRestore(ref);
                                     showSnackBar(
                                       context,
-                                      "Backup restored successfully.".tr(),
+                                      LocaleKeys.backupRestoredSuccessfully
+                                          .tr(),
                                     );
                                   } else {
                                     showErrorSnackBar(
@@ -1241,8 +1270,8 @@ class MyDrawer extends HookConsumerWidget {
                         leading: StyledIcon(Icons.change_circle_outlined),
                         title: StyledText(
                           token.isEmpty
-                              ? 'Add Account'.tr()
-                              : 'Change Account'.tr(),
+                              ? LocaleKeys.addAccount.tr()
+                              : LocaleKeys.changeAccount.tr(),
                         ),
                         onTap: () async {
                           final isAddingAccount = token.isEmpty;
@@ -1322,7 +1351,7 @@ class MyDrawer extends HookConsumerWidget {
                             } else if (context.mounted) {
                               showSnackBar(
                                 context,
-                                "You have not selected any account.".tr(),
+                                LocaleKeys.youHaveNotSelectedAnyAccount.tr(),
                               );
                             }
                           } catch (error, stackTrace) {
@@ -1359,7 +1388,7 @@ class MyDrawer extends HookConsumerWidget {
                       }
                       return ListTile(
                         leading: StyledIcon(Icons.account_circle_outlined),
-                        title: StyledText('View connected account'.tr()),
+                        title: StyledText(LocaleKeys.viewConnectedAccount.tr()),
                         subtitle: StyledSubtitle(ref.watch(emailProvider)),
                         onTap: () {
                           final name = ref.read(displayNameProvider);
@@ -1381,7 +1410,9 @@ class MyDrawer extends HookConsumerWidget {
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    name.isEmpty ? 'Google account'.tr() : name,
+                                    name.isEmpty
+                                        ? LocaleKeys.googleAccount.tr()
+                                        : name,
                                     style: Theme.of(
                                       sheetContext,
                                     ).textTheme.titleLarge,
@@ -1413,7 +1444,9 @@ class MyDrawer extends HookConsumerWidget {
                       }
                       return ListTile(
                         leading: StyledIcon(Icons.logout),
-                        title: StyledText('Disconnect Google account'.tr()),
+                        title: StyledText(
+                          LocaleKeys.disconnectGoogleAccount.tr(),
+                        ),
                         onTap: () async {
                           isLoading.value = true;
                           try {
@@ -1431,7 +1464,7 @@ class MyDrawer extends HookConsumerWidget {
                             if (context.mounted) {
                               showSnackBar(
                                 context,
-                                'Google account disconnected.'.tr(),
+                                LocaleKeys.googleAccountDisconnected.tr(),
                               );
                             }
                           } catch (error, stackTrace) {
@@ -1456,8 +1489,10 @@ class MyDrawer extends HookConsumerWidget {
               ),
               ExpansionTile(
                 leading: StyledIcon(Icons.support_agent_outlined),
-                title: StyledText('Help & feedback'.tr()),
-                subtitle: StyledSubtitle('Support, sharing, and updates'.tr()),
+                title: StyledText(LocaleKeys.helpFeedback.tr()),
+                subtitle: StyledSubtitle(
+                  LocaleKeys.supportSharingAndUpdates.tr(),
+                ),
                 backgroundColor: Theme.of(
                   context,
                 ).colorScheme.surfaceContainerLow,
@@ -1467,12 +1502,12 @@ class MyDrawer extends HookConsumerWidget {
                   const Divider(indent: 16, endIndent: 16),
                   ListTile(
                     leading: StyledIcon(Icons.star_rate),
-                    title: StyledText('Rate LoanX'.tr()),
+                    title: StyledText(LocaleKeys.rateLoanx.tr()),
                     onTap: _openReview,
                   ),
                   ListTile(
                     leading: StyledIcon(Icons.share),
-                    title: StyledText('Share App'.tr()),
+                    title: StyledText(LocaleKeys.shareApp.tr()),
                     onTap: () {
                       final box = context.findRenderObject() as RenderBox?;
                       SharePlus.instance.share(
@@ -1493,14 +1528,14 @@ class MyDrawer extends HookConsumerWidget {
                   ),
                   ListTile(
                     leading: StyledIcon(Icons.edit_square),
-                    title: StyledText("Contact support".tr()),
+                    title: StyledText(LocaleKeys.contactSupport.tr()),
                     onTap: () {
                       _launchURL('https://forms.gle/zSRbdvU45hvPWEYp7');
                     },
                   ),
                   ListTile(
                     leading: StyledIcon(Icons.policy),
-                    title: StyledText('Privacy Policy'.tr()),
+                    title: StyledText(LocaleKeys.privacyPolicy.tr()),
                     onTap: () {
                       _launchURL(
                         'https://loanx.kumpali.com/privacy-policy.html',
@@ -1510,7 +1545,7 @@ class MyDrawer extends HookConsumerWidget {
                   if (Platform.isAndroid || Platform.isIOS)
                     ListTile(
                       leading: StyledIcon(Icons.update),
-                      title: StyledText('Check for updates'.tr()),
+                      title: StyledText(LocaleKeys.checkForUpdates.tr()),
                       onTap: () => checkForUpdates(context, true),
                     ),
                   ListTile(
@@ -1522,20 +1557,21 @@ class MyDrawer extends HookConsumerWidget {
                             .when(
                               data: (appVersion) {
                                 return StyledText(
-                                  'versionNumber'.tr(
+                                  LocaleKeys.versionNumber.tr(
                                     namedArgs: {'version': appVersion},
                                   ),
                                 );
                               },
                               error: (obj, trace) {
                                 return Text(
-                                  "Version unavailable".tr(),
+                                  LocaleKeys.versionUnavailable.tr(),
                                   style: TextStyle(
                                     color: Theme.of(context).colorScheme.error,
                                   ),
                                 );
                               },
-                              loading: () => StyledText("Version…".tr()),
+                              loading: () =>
+                                  StyledText(LocaleKeys.version.tr()),
                             );
                       },
                     ),
@@ -1614,11 +1650,11 @@ class _DefaultTermsAndConditionsSettingState
   Widget build(BuildContext context) {
     return ListTile(
       leading: StyledIcon(Icons.gavel_outlined),
-      title: StyledText('Terms and conditions'.tr()),
+      title: StyledText(LocaleKeys.termsAndConditions.tr()),
       subtitle: StyledSubtitle(
         _terms.trim().isEmpty
-            ? 'No default terms set'.tr()
-            : 'Prefilled for new loans'.tr(),
+            ? LocaleKeys.noDefaultTermsSet.tr()
+            : LocaleKeys.prefilledForNewLoans.tr(),
       ),
       onTap: _editTerms,
     );
@@ -1637,7 +1673,7 @@ class _DefaultTermsAndConditionsSettingState
     await FastDB.flush();
     if (!mounted) return;
     setState(() => _terms = terms);
-    showSnackBar(context, 'Default terms and conditions updated'.tr());
+    showSnackBar(context, LocaleKeys.defaultTermsAndConditionsUpdated.tr());
   }
 }
 
@@ -1683,7 +1719,7 @@ class _DefaultTermsAndConditionsSheetState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Default terms and conditions'.tr(),
+                LocaleKeys.defaultTermsAndConditions.tr(),
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 16),
@@ -1694,8 +1730,8 @@ class _DefaultTermsAndConditionsSheetState
                 autofocus: true,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
-                  labelText: 'Terms and conditions'.tr(),
-                  hintText: 'Enter the default terms for new loans'.tr(),
+                  labelText: LocaleKeys.termsAndConditions.tr(),
+                  hintText: LocaleKeys.enterTheDefaultTermsForNewLoans.tr(),
                   alignLabelWithHint: true,
                 ),
               ),
@@ -1710,13 +1746,13 @@ class _DefaultTermsAndConditionsSheetState
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text('Cancel'.tr()),
+                    child: Text(LocaleKeys.cancel.tr()),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: () =>
                         Navigator.pop(context, _controller.text.trim()),
-                    child: Text('Save'.tr()),
+                    child: Text(LocaleKeys.save.tr()),
                   ),
                 ],
               ),
@@ -1749,8 +1785,8 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
   @override
   Widget build(BuildContext context) {
     final subtitle = _lockInDays == 0
-        ? 'New loans have no lock-in by default'.tr()
-        : 'defaultLockInSummary'.tr(
+        ? LocaleKeys.newLoansHaveNoLockInByDefault.tr()
+        : LocaleKeys.defaultLockInSummary.tr(
             namedArgs: {
               'days': _lockInDays.toString(),
               'charge': _charge.toStringAsFixed(2),
@@ -1758,7 +1794,7 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
           );
     return ListTile(
       leading: StyledIcon(Icons.lock_clock_outlined),
-      title: StyledText('Default lock-in'.tr()),
+      title: StyledText(LocaleKeys.defaultLockIn.tr()),
       subtitle: StyledSubtitle(subtitle),
       onTap: _edit,
     );
@@ -1774,7 +1810,7 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text('Default lock-in'.tr()),
+          title: Text(LocaleKeys.defaultLockIn.tr()),
           content: Form(
             key: formKey,
             child: Column(
@@ -1782,11 +1818,22 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
               children: [
                 DropdownButtonFormField<int>(
                   initialValue: selectedDays,
-                  decoration: InputDecoration(labelText: 'Lock-in period'.tr()),
+                  decoration: InputDecoration(
+                    labelText: LocaleKeys.lockInPeriod.tr(),
+                  ),
                   items: [
-                    DropdownMenuItem(value: 0, child: Text('No lock-in'.tr())),
-                    DropdownMenuItem(value: 7, child: Text('7 days'.tr())),
-                    DropdownMenuItem(value: 15, child: Text('15 days'.tr())),
+                    DropdownMenuItem(
+                      value: 0,
+                      child: Text(LocaleKeys.noLockIn.tr()),
+                    ),
+                    DropdownMenuItem(
+                      value: 7,
+                      child: Text(LocaleKeys.key7Days.tr()),
+                    ),
+                    DropdownMenuItem(
+                      value: 15,
+                      child: Text(LocaleKeys.key15Days.tr()),
+                    ),
                   ],
                   onChanged: (value) {
                     setDialogState(() => selectedDays = value ?? 0);
@@ -1800,13 +1847,13 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
                       decimal: true,
                     ),
                     decoration: InputDecoration(
-                      labelText: 'Early redemption charge'.tr(),
+                      labelText: LocaleKeys.earlyRedemptionCharge.tr(),
                       prefixText: '₹ ',
                     ),
                     validator: (value) {
                       final amount = double.tryParse(value?.trim() ?? '');
                       if (amount == null || amount <= 0) {
-                        return 'Enter a charge greater than zero'.tr();
+                        return LocaleKeys.enterAChargeGreaterThanZero.tr();
                       }
                       return null;
                     },
@@ -1823,7 +1870,7 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text('Cancel'.tr()),
+              child: Text(LocaleKeys.cancel.tr()),
             ),
             FilledButton(
               onPressed: () {
@@ -1833,7 +1880,7 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
                 }
                 Navigator.pop(dialogContext, true);
               },
-              child: Text('Save'.tr()),
+              child: Text(LocaleKeys.save.tr()),
             ),
           ],
         ),
@@ -1852,7 +1899,7 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
           _lockInDays = selectedDays;
           _charge = charge;
         });
-        showSnackBar(context, 'Default lock-in updated'.tr());
+        showSnackBar(context, LocaleKeys.defaultLockInUpdated.tr());
       }
     }
     chargeController.dispose();

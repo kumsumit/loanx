@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -32,7 +33,7 @@ class Home extends HookWidget {
               child: Row(
                 children: [
                   Text(
-                    'Loans'.tr(),
+                    LocaleKeys.loans2.tr(),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const Spacer(),
@@ -50,7 +51,7 @@ class Home extends HookWidget {
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('add'),
         icon: const Icon(Icons.add_rounded),
-        label: Text('New loan'.tr()),
+        label: Text(LocaleKeys.newLoan.tr()),
         onPressed: () {
           if (context.mounted) {
             Navigator.push(
@@ -104,7 +105,7 @@ class _PortfolioSummary extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ESTIMATED RECEIVABLE'.tr(),
+                      LocaleKeys.estimatedReceivable.tr(),
                       style: TextStyle(
                         color: colors.onPrimary.withValues(alpha: .75),
                         fontSize: 12,
@@ -163,21 +164,21 @@ class _StatusFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<LoanStatusFilter>(
-      tooltip: 'Filter loans'.tr(),
+      tooltip: LocaleKeys.filterLoans.tr(),
       initialValue: value,
       onSelected: onChanged,
       itemBuilder: (context) => [
         PopupMenuItem(
           value: LoanStatusFilter.all,
-          child: Text('All loans'.tr()),
+          child: Text(LocaleKeys.allLoans.tr()),
         ),
         PopupMenuItem(
           value: LoanStatusFilter.active,
-          child: Text('Active'.tr()),
+          child: Text(LocaleKeys.active.tr()),
         ),
         PopupMenuItem(
           value: LoanStatusFilter.completed,
-          child: Text('Completed'.tr()),
+          child: Text(LocaleKeys.completed.tr()),
         ),
       ],
       child: Chip(

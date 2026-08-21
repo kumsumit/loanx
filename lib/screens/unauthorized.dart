@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +14,7 @@ class AuthFailurePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AppStatePage(
       icon: Icons.lock_outline_rounded,
-      title: 'Authentication failed'.tr(),
+      title: LocaleKeys.authenticationFailed.tr(),
       message:
           'We could not verify your identity. Unlock your device and try again.'
               .tr(),
@@ -39,12 +40,12 @@ class AuthFailurePage extends ConsumerWidget {
                 );
           },
           icon: const Icon(Icons.refresh_rounded),
-          label: Text('Try again'.tr()),
+          label: Text(LocaleKeys.tryAgain.tr()),
         ),
         TextButton.icon(
           onPressed: SystemNavigator.pop,
           icon: const Icon(Icons.close_rounded),
-          label: Text('Close app'.tr()),
+          label: Text(LocaleKeys.closeApp.tr()),
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -47,8 +48,8 @@ class LoanInput extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final appBarTitle = loan == null
-        ? 'Add Loan Record'.tr()
-        : 'Edit Loan Record'.tr();
+        ? LocaleKeys.addLoanRecord.tr()
+        : LocaleKeys.editLoanRecord.tr();
     final isDialogOpen = useState<bool>(false);
     final isSaving = useState<bool>(false);
     final familyRelations = ref.watch(familyRelationListProvider);
@@ -145,7 +146,7 @@ class LoanInput extends HookConsumerWidget {
     final currentInterestRate =
         interestRateWhole.value + (interestRateFraction.value / 100);
     final lockInSummary = lockInDays.value == 0
-        ? 'No lock-in'.tr()
+        ? LocaleKeys.noLockIn.tr()
         : '${lockInDays.value} days · ₹${earlyRedemptionCharge.value.toStringAsFixed(2)}';
 
     return Scaffold(
@@ -202,7 +203,7 @@ class LoanInput extends HookConsumerWidget {
                   initiallyExpanded: loan != null,
                   maintainState: true,
                   leading: const Icon(Icons.tune_rounded),
-                  title: Text('Loan terms'.tr()),
+                  title: Text(LocaleKeys.loanTerms.tr()),
                   subtitle: Text(
                     '${interestType.value.name.toSentenceCase()} · '
                     '${currentInterestRate.toStringAsFixed(2)}% ${interestFrequency.value.name.toSentenceCase()} · '
@@ -215,7 +216,7 @@ class LoanInput extends HookConsumerWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Interest type'.tr(),
+                        LocaleKeys.interestType.tr(),
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -228,10 +229,10 @@ class LoanInput extends HookConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Radio<InterestType>(value: InterestType.simple),
-                          StyledSubtitle('Simple'.tr()),
+                          StyledSubtitle(LocaleKeys.simple.tr()),
                           SizedBox(width: 20),
                           Radio<InterestType>(value: InterestType.compound),
-                          StyledSubtitle('Compound'.tr()),
+                          StyledSubtitle(LocaleKeys.compound.tr()),
                         ],
                       ),
                     ),
@@ -239,7 +240,7 @@ class LoanInput extends HookConsumerWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Interest rate'.tr(),
+                        LocaleKeys.interestRate.tr(),
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -311,12 +312,12 @@ class LoanInput extends HookConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Mortgage term'.tr(),
+                            LocaleKeys.mortgageTerm.tr(),
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
                         Text(
-                          'yearsCount'.tr(
+                          LocaleKeys.yearsCount.tr(
                             namedArgs: {
                               'count': mortgageTermYears.value.toString(),
                             },
@@ -338,7 +339,7 @@ class LoanInput extends HookConsumerWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Interest frequency'.tr(),
+                        LocaleKeys.interestFrequency2.tr(),
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -365,12 +366,12 @@ class LoanInput extends HookConsumerWidget {
                                 Radio<InterestFrequency>(
                                   value: InterestFrequency.monthly,
                                 ),
-                                StyledSubtitle('Monthly'.tr()),
+                                StyledSubtitle(LocaleKeys.monthly.tr()),
                                 SizedBox(width: 20),
                                 Radio<InterestFrequency>(
                                   value: InterestFrequency.quarterly,
                                 ),
-                                StyledSubtitle('Quarterly'.tr()),
+                                StyledSubtitle(LocaleKeys.quarterly.tr()),
                               ],
                             ),
                             Row(
@@ -379,12 +380,12 @@ class LoanInput extends HookConsumerWidget {
                                 Radio<InterestFrequency>(
                                   value: InterestFrequency.yearly,
                                 ),
-                                StyledSubtitle('Yearly'.tr()),
+                                StyledSubtitle(LocaleKeys.yearly.tr()),
                                 SizedBox(width: 20),
                                 Radio<InterestFrequency>(
                                   value: InterestFrequency.halfYearly,
                                 ),
-                                StyledSubtitle('Half-Yearly'.tr()),
+                                StyledSubtitle(LocaleKeys.halfYearly.tr()),
                               ],
                             ),
                           ],
@@ -395,7 +396,7 @@ class LoanInput extends HookConsumerWidget {
                     DropdownButtonFormField<int>(
                       initialValue: lockInDays.value,
                       decoration: InputDecoration(
-                        labelText: 'Lock-in period'.tr(),
+                        labelText: LocaleKeys.lockInPeriod.tr(),
                         helperText:
                             'A fixed charge applies if the item is redeemed early.'
                                 .tr(),
@@ -404,12 +405,15 @@ class LoanInput extends HookConsumerWidget {
                       items: [
                         DropdownMenuItem(
                           value: 0,
-                          child: Text('No lock-in'.tr()),
+                          child: Text(LocaleKeys.noLockIn.tr()),
                         ),
-                        DropdownMenuItem(value: 7, child: Text('7 days'.tr())),
+                        DropdownMenuItem(
+                          value: 7,
+                          child: Text(LocaleKeys.key7Days.tr()),
+                        ),
                         DropdownMenuItem(
                           value: 15,
-                          child: Text('15 days'.tr()),
+                          child: Text(LocaleKeys.key15Days.tr()),
                         ),
                       ],
                       onChanged: (value) {
@@ -428,15 +432,15 @@ class LoanInput extends HookConsumerWidget {
                           decimal: true,
                         ),
                         decoration: InputDecoration(
-                          labelText: 'Early redemption charge'.tr(),
-                          hintText: 'Fixed amount'.tr(),
+                          labelText: LocaleKeys.earlyRedemptionCharge.tr(),
+                          hintText: LocaleKeys.fixedAmount.tr(),
                           prefixText: '₹ ',
                         ),
                         validator: (value) {
                           if (lockInDays.value == 0) return null;
                           final charge = double.tryParse(value?.trim() ?? '');
                           if (charge == null || charge <= 0) {
-                            return 'Enter a charge greater than zero'.tr();
+                            return LocaleKeys.enterAChargeGreaterThanZero.tr();
                           }
                           return null;
                         },
@@ -451,37 +455,39 @@ class LoanInput extends HookConsumerWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Borrower information'.tr(),
+                LocaleKeys.borrowerInformation.tr(),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 10),
               StyledTextField(
-                failedValidationMessage: "Borrower name can't be empty".tr(),
+                failedValidationMessage: LocaleKeys.borrowerNameCanTBeEmpty
+                    .tr(),
                 textEditingController: depositorController,
-                hintText: "Borrower name".tr(),
-                labelText: "Borrower name".tr(),
+                hintText: LocaleKeys.borrowerName.tr(),
+                labelText: LocaleKeys.borrowerName.tr(),
               ),
               PhoneWidget(
                 key: ValueKey(loan?.id),
-                labelText: "Borrower mobile number".tr(),
+                labelText: LocaleKeys.borrowerMobileNumber.tr(),
                 textEditingController: phoneNumberController,
-                hint: 'Borrower mobile number'.tr(),
+                hint: LocaleKeys.borrowerMobileNumber.tr(),
                 initialValue: PhoneNumber(
                   isoCode: "IN",
                   nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
                 ),
               ),
               StyledTextField(
-                failedValidationMessage: "Address can't be empty".tr(),
+                failedValidationMessage: LocaleKeys.addressCanTBeEmpty.tr(),
                 textEditingController: addressController,
-                hintText: "Borrower address".tr(),
-                labelText: "Borrower address".tr(),
+                hintText: LocaleKeys.borrowerAddress.tr(),
+                labelText: LocaleKeys.borrowerAddress.tr(),
               ),
               StyledTextField(
-                failedValidationMessage: "Reference name can't be empty".tr(),
+                failedValidationMessage: LocaleKeys.referenceNameCanTBeEmpty
+                    .tr(),
                 textEditingController: relativeNameController,
-                hintText: "Reference name".tr(),
-                labelText: "Reference name".tr(),
+                hintText: LocaleKeys.referenceName.tr(),
+                labelText: LocaleKeys.referenceName.tr(),
               ),
               familyRelations.when(
                 data: (data) {
@@ -516,15 +522,15 @@ class LoanInput extends HookConsumerWidget {
                         currentFamilyRelation.value = value;
                       }
                     },
-                    hintText: "Family Relation".tr(),
-                    labelText: "Family Relation".tr(),
+                    hintText: LocaleKeys.familyRelation.tr(),
+                    labelText: LocaleKeys.familyRelation.tr(),
                     onAddPressed: () {
                       isDialogOpen.value = true;
                       showAddDialog(
                         context,
                         ref,
-                        'Add Family Relation'.tr(),
-                        'Enter the family relation'.tr(),
+                        LocaleKeys.addFamilyRelation2.tr(),
+                        LocaleKeys.enterTheFamilyRelation2.tr(),
                         ref.read(familyRelationListProvider.notifier).add,
                       );
                     },
@@ -536,10 +542,11 @@ class LoanInput extends HookConsumerWidget {
                 loading: () => const SizedBox(),
               ),
               StyledTextField(
-                failedValidationMessage: "Principal amount can't be empty".tr(),
+                failedValidationMessage: LocaleKeys.principalAmountCanTBeEmpty
+                    .tr(),
                 textEditingController: loanAmountController,
-                hintText: "Principal amount".tr(),
-                labelText: "Principal amount".tr(),
+                hintText: LocaleKeys.principalAmount.tr(),
+                labelText: LocaleKeys.principalAmount.tr(),
                 keyboardType: TextInputType.number,
               ),
               Row(
@@ -552,8 +559,8 @@ class LoanInput extends HookConsumerWidget {
                         decimal: true,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'Mortgage weight'.tr(),
-                        hintText: 'Weight'.tr(),
+                        labelText: LocaleKeys.mortgageWeight.tr(),
+                        hintText: LocaleKeys.weight.tr(),
                         prefixIcon: Icon(Icons.scale_outlined),
                       ),
                       validator: (value) {
@@ -561,7 +568,7 @@ class LoanInput extends HookConsumerWidget {
                         if (text.isEmpty) return null;
                         final parsedWeight = double.tryParse(text);
                         if (parsedWeight == null || parsedWeight <= 0) {
-                          return 'Enter a valid weight'.tr();
+                          return LocaleKeys.enterAValidWeight.tr();
                         }
                         return null;
                       },
@@ -586,7 +593,9 @@ class LoanInput extends HookConsumerWidget {
                                   : units.first.symbol);
                         return DropdownButtonFormField<String>(
                           initialValue: selected,
-                          decoration: InputDecoration(labelText: 'Unit'.tr()),
+                          decoration: InputDecoration(
+                            labelText: LocaleKeys.unit.tr(),
+                          ),
                           items: [
                             for (final unit in units)
                               DropdownMenuItem(
@@ -600,7 +609,9 @@ class LoanInput extends HookConsumerWidget {
                         );
                       },
                       loading: () => InputDecorator(
-                        decoration: InputDecoration(labelText: 'Unit'.tr()),
+                        decoration: InputDecoration(
+                          labelText: LocaleKeys.unit.tr(),
+                        ),
                         child: SizedBox(
                           height: 20,
                           width: 20,
@@ -608,7 +619,9 @@ class LoanInput extends HookConsumerWidget {
                         ),
                       ),
                       error: (_, _) => InputDecorator(
-                        decoration: InputDecoration(labelText: 'Unit'.tr()),
+                        decoration: InputDecoration(
+                          labelText: LocaleKeys.unit.tr(),
+                        ),
                         child: Text(weightUnit.value),
                       ),
                     ),
@@ -622,7 +635,7 @@ class LoanInput extends HookConsumerWidget {
                   child: ListTile(
                     leading: const Icon(Icons.analytics_outlined),
                     title: Text(
-                      'loanValuePerUnit'.tr(
+                      LocaleKeys.loanValuePerUnit.tr(
                         namedArgs: {'unit': weightUnitName},
                       ),
                     ),
@@ -670,15 +683,15 @@ class LoanInput extends HookConsumerWidget {
                         currentMortgageMaterial.value = value;
                       }
                     },
-                    hintText: "Pledged material".tr(),
-                    labelText: "Pledged material".tr(),
+                    hintText: LocaleKeys.pledgedMaterial.tr(),
+                    labelText: LocaleKeys.pledgedMaterial.tr(),
                     onAddPressed: () {
                       isDialogOpen.value = true;
                       showAddDialog(
                         context,
                         ref,
-                        'Add pledged material'.tr(),
-                        'Enter the material name'.tr(),
+                        LocaleKeys.addPledgedMaterial.tr(),
+                        LocaleKeys.enterTheMaterialName.tr(),
                         ref.read(mortgageMaterialListProvider.notifier).add,
                       );
                     },
@@ -691,14 +704,15 @@ class LoanInput extends HookConsumerWidget {
               ),
               StyledTextField(
                 textEditingController: termsAndConditionsController,
-                hintText: "Enter repayment, custody, or other conditions".tr(),
-                labelText: "Terms and conditions (optional)".tr(),
+                hintText: LocaleKeys.enterRepaymentCustodyOrOtherConditions
+                    .tr(),
+                labelText: LocaleKeys.termsAndConditionsOptional.tr(),
                 maxLines: 4,
               ),
               StyledTextField(
                 textEditingController: additionalDetailsController,
-                hintText: "Notes (optional)".tr(),
-                labelText: "Notes (optional)".tr(),
+                hintText: LocaleKeys.notesOptional.tr(),
+                labelText: LocaleKeys.notesOptional.tr(),
                 maxLines: 3,
               ),
               Consumer(
@@ -729,7 +743,8 @@ class LoanInput extends HookConsumerWidget {
                           if (principal <= 0) {
                             showErrorSnackBar(
                               context,
-                              'Enter a principal amount greater than zero'.tr(),
+                              LocaleKeys.enterAPrincipalAmountGreaterThanZero
+                                  .tr(),
                             );
                             return;
                           }
@@ -794,7 +809,7 @@ class LoanInput extends HookConsumerWidget {
                             if (context.mounted) {
                               showErrorSnackBar(
                                 context,
-                                'unableToSaveLoan'.tr(
+                                LocaleKeys.unableToSaveLoan.tr(
                                   namedArgs: {'error': '$error'},
                                 ),
                               );
@@ -814,12 +829,12 @@ class LoanInput extends HookConsumerWidget {
                               if (loan == null) {
                                 showSnackBar(
                                   context,
-                                  "Loan created successfully".tr(),
+                                  LocaleKeys.loanCreatedSuccessfully.tr(),
                                 );
                               } else {
                                 showSnackBar(
                                   context,
-                                  "Loan updated successfully".tr(),
+                                  LocaleKeys.loanUpdatedSuccessfully.tr(),
                                 );
                               }
                             }
@@ -834,10 +849,10 @@ class LoanInput extends HookConsumerWidget {
                           : const Icon(Icons.check_rounded),
                       label: Text(
                         isSaving.value
-                            ? 'Saving…'.tr()
+                            ? LocaleKeys.saving.tr()
                             : loan == null
-                            ? 'Create loan'.tr()
-                            : 'Save changes'.tr(),
+                            ? LocaleKeys.createLoan.tr()
+                            : LocaleKeys.saveChanges.tr(),
                       ),
                     ),
                   );
@@ -922,8 +937,8 @@ class LoanInput extends HookConsumerWidget {
             icon: const Icon(Icons.fact_check_outlined),
             title: Text(
               isEditing
-                  ? 'Verify updated loan details'.tr()
-                  : 'Verify loan details'.tr(),
+                  ? LocaleKeys.verifyUpdatedLoanDetails.tr()
+                  : LocaleKeys.verifyLoanDetails.tr(),
             ),
             content: SizedBox(
               width: double.maxFinite,
@@ -952,13 +967,15 @@ class LoanInput extends HookConsumerWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
-                child: Text('Go back'.tr()),
+                child: Text(LocaleKeys.goBack.tr()),
               ),
               FilledButton.icon(
                 onPressed: () => Navigator.pop(dialogContext, true),
                 icon: const Icon(Icons.check_rounded),
                 label: Text(
-                  isEditing ? 'Confirm & save'.tr() : 'Confirm & create'.tr(),
+                  isEditing
+                      ? LocaleKeys.confirmSave.tr()
+                      : LocaleKeys.confirmCreate.tr(),
                 ),
               ),
             ],
@@ -1028,7 +1045,7 @@ class LoanInput extends HookConsumerWidget {
         ),
         actions: [
           TextButton(
-            child: Text('Submit'.tr()),
+            child: Text(LocaleKeys.submit.tr()),
             onPressed: () {
               onAddPressed(controller.text);
               Navigator.of(context).pop();

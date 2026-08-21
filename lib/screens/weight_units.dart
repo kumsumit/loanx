@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,10 +13,10 @@ class WeightUnitView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final units = ref.watch(weightUnitListProvider);
     return Scaffold(
-      appBar: AppBar(title: Text('Weight Units'.tr())),
+      appBar: AppBar(title: Text(LocaleKeys.weightUnits.tr())),
       body: units.when(
         data: (items) => items.isEmpty
-            ? Center(child: Text('No weight units yet'.tr()))
+            ? Center(child: Text(LocaleKeys.noWeightUnitsYet.tr()))
             : ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                 itemCount: items.length,
@@ -30,12 +31,12 @@ class WeightUnitView extends ConsumerWidget {
                       ),
                       title: Text(unit.name),
                       subtitle: Text(
-                        'weightUnitType'.tr(
+                        LocaleKeys.weightUnitType.tr(
                           namedArgs: {
                             'symbol': unit.symbol,
                             'type': isCustom
-                                ? 'Custom unit'.tr()
-                                : 'System unit'.tr(),
+                                ? LocaleKeys.customUnit.tr()
+                                : LocaleKeys.systemUnit.tr(),
                           },
                         ),
                       ),
@@ -47,13 +48,13 @@ class WeightUnitView extends ConsumerWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  tooltip: 'Edit'.tr(),
+                                  tooltip: LocaleKeys.edit.tr(),
                                   onPressed: () =>
                                       _showUnitDialog(context, ref, unit),
                                   icon: const Icon(Icons.edit_outlined),
                                 ),
                                 IconButton(
-                                  tooltip: 'Delete'.tr(),
+                                  tooltip: LocaleKeys.delete.tr(),
                                   color: Theme.of(context).colorScheme.error,
                                   onPressed: () =>
                                       _deleteUnit(context, ref, unit),
@@ -66,13 +67,13 @@ class WeightUnitView extends ConsumerWidget {
                   );
                 },
               ),
-        error: (_, _) => Center(child: Text('Unable to load units'.tr())),
+        error: (_, _) => Center(child: Text(LocaleKeys.unableToLoadUnits.tr())),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showUnitDialog(context, ref, null),
         icon: const Icon(Icons.add),
-        label: Text('Add unit'.tr()),
+        label: Text(LocaleKeys.addUnit.tr()),
       ),
     );
   }
@@ -91,7 +92,9 @@ class WeightUnitView extends ConsumerWidget {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.straighten_rounded),
         title: Text(
-          unit == null ? 'Add Weight Unit'.tr() : 'Edit Weight Unit'.tr(),
+          unit == null
+              ? LocaleKeys.addWeightUnit.tr()
+              : LocaleKeys.editWeightUnit.tr(),
         ),
         content: Form(
           key: formKey,
@@ -103,8 +106,8 @@ class WeightUnitView extends ConsumerWidget {
                 autofocus: true,
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
-                  labelText: 'Unit name'.tr(),
-                  hintText: 'Example: Ounce'.tr(),
+                  labelText: LocaleKeys.unitName.tr(),
+                  hintText: LocaleKeys.exampleOunce.tr(),
                 ),
                 validator: _required,
               ),
@@ -112,8 +115,8 @@ class WeightUnitView extends ConsumerWidget {
               TextFormField(
                 controller: symbolController,
                 decoration: InputDecoration(
-                  labelText: 'Symbol'.tr(),
-                  hintText: 'Example: oz'.tr(),
+                  labelText: LocaleKeys.symbol.tr(),
+                  hintText: LocaleKeys.exampleOz.tr(),
                 ),
                 validator: _required,
               ),
@@ -123,7 +126,7 @@ class WeightUnitView extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('Cancel'.tr()),
+            child: Text(LocaleKeys.cancel.tr()),
           ),
           FilledButton(
             onPressed: () async {
@@ -136,7 +139,10 @@ class WeightUnitView extends ConsumerWidget {
                 );
                 if (result < 0) {
                   if (dialogContext.mounted) {
-                    showSnackBar(dialogContext, 'Unit already exists'.tr());
+                    showSnackBar(
+                      dialogContext,
+                      LocaleKeys.unitAlreadyExists.tr(),
+                    );
                   }
                   return;
                 }
@@ -150,7 +156,9 @@ class WeightUnitView extends ConsumerWidget {
               }
               if (dialogContext.mounted) Navigator.pop(dialogContext);
             },
-            child: Text(unit == null ? 'Add'.tr() : 'Save'.tr()),
+            child: Text(
+              unit == null ? LocaleKeys.add.tr() : LocaleKeys.save.tr(),
+            ),
           ),
         ],
       ),
@@ -167,20 +175,20 @@ class WeightUnitView extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('Delete weight unit?'.tr()),
+        title: Text(LocaleKeys.deleteWeightUnit.tr()),
         content: Text(
-          'deleteWeightUnitMessage'.tr(
+          LocaleKeys.deleteWeightUnitMessage.tr(
             namedArgs: {'name': unit.name, 'symbol': unit.symbol},
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('Cancel'.tr()),
+            child: Text(LocaleKeys.cancel.tr()),
           ),
           FilledButton.tonal(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text('Delete'.tr()),
+            child: Text(LocaleKeys.delete.tr()),
           ),
         ],
       ),
@@ -192,6 +200,6 @@ class WeightUnitView extends ConsumerWidget {
 
   static String? _required(String? value) =>
       value == null || value.trim().isEmpty
-      ? 'This field is required'.tr()
+      ? LocaleKeys.thisFieldIsRequired.tr()
       : null;
 }

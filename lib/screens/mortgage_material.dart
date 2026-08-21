@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
@@ -15,7 +16,7 @@ class MortgageMaterialView extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mortgage Materials'.tr()),
+        title: Text(LocaleKeys.mortgageMaterials.tr()),
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
@@ -107,8 +108,8 @@ class MortgageMaterialView extends StatelessWidget {
                                   const SizedBox(height: 2),
                                   Text(
                                     isCustom
-                                        ? 'Custom material'.tr()
-                                        : 'System material'.tr(),
+                                        ? LocaleKeys.customMaterial.tr()
+                                        : LocaleKeys.systemMaterial.tr(),
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.colorScheme.onSurfaceVariant,
                                     ),
@@ -118,7 +119,7 @@ class MortgageMaterialView extends StatelessWidget {
                             ),
                             if (isCustom)
                               IconButton(
-                                tooltip: 'Delete'.tr(),
+                                tooltip: LocaleKeys.delete.tr(),
                                 icon: const Icon(
                                   Icons.delete_outline_rounded,
                                   size: 20,
@@ -159,7 +160,7 @@ class MortgageMaterialView extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => mortgageDialog(context, null),
         icon: const Icon(Icons.add),
-        label: Text('Add material'.tr()),
+        label: Text(LocaleKeys.addMaterial.tr()),
       ),
     );
   }
@@ -174,7 +175,7 @@ class MortgageMaterialView extends StatelessWidget {
           color: Theme.of(context).colorScheme.error,
           size: 32,
         ),
-        title: StyledHeading('Delete Mortgage Material'.tr()),
+        title: StyledHeading(LocaleKeys.deleteMortgageMaterial2.tr()),
         content: StyledSubtitle(
           'Are you sure you want to delete this mortgage material? This action cannot be undone.'
               .tr(),
@@ -183,7 +184,7 @@ class MortgageMaterialView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel'.tr()),
+            child: Text(LocaleKeys.cancel.tr()),
           ),
           FilledButton.tonal(
             style: FilledButton.styleFrom(
@@ -196,11 +197,11 @@ class MortgageMaterialView extends StatelessWidget {
                 Navigator.of(context).pop();
                 showSnackBar(
                   context,
-                  'Mortgage Material deleted successfully'.tr(),
+                  LocaleKeys.mortgageMaterialDeletedSuccessfully.tr(),
                 );
               }
             },
-            child: Text('Delete'.tr()),
+            child: Text(LocaleKeys.delete.tr()),
           ),
         ],
       ),
@@ -224,8 +225,8 @@ class MortgageMaterialView extends StatelessWidget {
           ),
           title: StyledHeading(
             name == null
-                ? 'Add Mortgage Material'.tr()
-                : 'Edit Mortgage Material'.tr(),
+                ? LocaleKeys.addMortgageMaterial2.tr()
+                : LocaleKeys.editMortgageMaterial2.tr(),
           ),
           content: Form(
             key: formKey,
@@ -233,14 +234,14 @@ class MortgageMaterialView extends StatelessWidget {
               style: TextStyle(color: Theme.of(context).colorScheme.secondary),
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().isEmpty) {
-                  return 'Mortgage Material cannot be empty'.tr();
+                  return LocaleKeys.mortgageMaterialCannotBeEmpty.tr();
                 }
                 return null;
               },
               autofocus: true,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                hintText: 'Enter the Mortgage Material'.tr(),
+                hintText: LocaleKeys.enterTheMortgageMaterial.tr(),
                 hintStyle: TextStyle(
                   color: Theme.of(
                     context,
@@ -259,12 +260,12 @@ class MortgageMaterialView extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'.tr()),
+              child: Text(LocaleKeys.cancel.tr()),
             ),
             Consumer(
               builder: (context, ref, child) {
                 return FilledButton(
-                  child: Text('Submit'.tr()),
+                  child: Text(LocaleKeys.submit.tr()),
                   onPressed: () async {
                     if (formKey.currentState != null &&
                         formKey.currentState!.validate()) {
@@ -279,12 +280,12 @@ class MortgageMaterialView extends StatelessWidget {
                         if (status > 0) {
                           showSnackBar(
                             context,
-                            'Mortgage Material added successfully'.tr(),
+                            LocaleKeys.mortgageMaterialAddedSuccessfully.tr(),
                           );
                         } else {
                           showSnackBar(
                             context,
-                            'Mortgage Material already exists'.tr(),
+                            LocaleKeys.mortgageMaterialAlreadyExists.tr(),
                           );
                         }
                       }
@@ -320,13 +321,13 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No mortgage materials yet'.tr(),
+              LocaleKeys.noMortgageMaterialsYet.tr(),
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
             Text(
-              'Tap "Add material" to create your first one.'.tr(),
+              LocaleKeys.tapAddMaterialToCreateYourFirstOne.tr(),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -359,12 +360,12 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Something went wrong'.tr(),
+              LocaleKeys.somethingWentWrong.tr(),
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 4),
             Text(
-              'Please try again in a moment.'.tr(),
+              LocaleKeys.pleaseTryAgainInAMoment.tr(),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

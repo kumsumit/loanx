@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -30,10 +31,10 @@ class LoanDetails extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Loan details'.tr()),
+        title: Text(LocaleKeys.loanDetails.tr()),
         actions: [
           IconButton(
-            tooltip: 'Save borrower as contact'.tr(),
+            tooltip: LocaleKeys.saveBorrowerAsContact.tr(),
             icon: const Icon(Icons.person_add_alt_1_outlined),
             onPressed: currentLoan.phoneNumber.trim().isEmpty
                 ? null
@@ -45,13 +46,13 @@ class LoanDetails extends ConsumerWidget {
                     if (context.mounted && !opened) {
                       showSnackBar(
                         context,
-                        'Could not open the contact editor'.tr(),
+                        LocaleKeys.couldNotOpenTheContactEditor.tr(),
                       );
                     }
                   },
           ),
           IconButton(
-            tooltip: 'Share loan details'.tr(),
+            tooltip: LocaleKeys.shareLoanDetails.tr(),
             icon: const Icon(Icons.share_outlined),
             onPressed: () {
               final relations = ref.read(familyRelationListProvider).value;
@@ -79,7 +80,7 @@ class LoanDetails extends ConsumerWidget {
             },
           ),
           IconButton(
-            tooltip: 'Edit loan'.tr(),
+            tooltip: LocaleKeys.editLoan2.tr(),
             icon: const Icon(Icons.edit_outlined),
             onPressed: () {
               Navigator.of(context).push(
@@ -91,8 +92,8 @@ class LoanDetails extends ConsumerWidget {
           ),
           IconButton(
             tooltip: currentLoan.isFinished()
-                ? 'Loan already completed'.tr()
-                : 'Mark as complete'.tr(),
+                ? LocaleKeys.loanAlreadyCompleted.tr()
+                : LocaleKeys.markAsComplete.tr(),
             icon: const Icon(Icons.task_alt_outlined),
             onPressed: currentLoan.isFinished()
                 ? null
@@ -176,7 +177,7 @@ Sent via LoanX''';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('Complete and return item'.tr()),
+        title: Text(LocaleKeys.completeAndReturnItem.tr()),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -190,8 +191,8 @@ Sent via LoanX''';
                 controller: receivedByController,
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
-                  labelText: 'Item received by'.tr(),
-                  hintText: 'Name of borrower or authorised recipient'.tr(),
+                  labelText: LocaleKeys.itemReceivedBy.tr(),
+                  hintText: LocaleKeys.nameOfBorrowerOrAuthorisedRecipient.tr(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -201,7 +202,7 @@ Sent via LoanX''';
                   decimal: true,
                 ),
                 decoration: InputDecoration(
-                  labelText: 'Amount received'.tr(),
+                  labelText: LocaleKeys.amountReceived.tr(),
                   prefixText: '₹ ',
                 ),
               ),
@@ -209,7 +210,7 @@ Sent via LoanX''';
               TextField(
                 controller: referenceController,
                 decoration: InputDecoration(
-                  labelText: 'Receipt or reference number (optional)'.tr(),
+                  labelText: LocaleKeys.receiptOrReferenceNumberOptional.tr(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -218,8 +219,9 @@ Sent via LoanX''';
                 minLines: 2,
                 maxLines: 4,
                 decoration: InputDecoration(
-                  labelText: 'Settlement notes (optional)'.tr(),
-                  hintText: 'Item condition, witnesses, or other details'.tr(),
+                  labelText: LocaleKeys.settlementNotesOptional.tr(),
+                  hintText: LocaleKeys.itemConditionWitnessesOrOtherDetails
+                      .tr(),
                 ),
               ),
             ],
@@ -228,7 +230,7 @@ Sent via LoanX''';
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text('Cancel'.tr()),
+            child: Text(LocaleKeys.cancel.tr()),
           ),
           FilledButton(
             onPressed: () {
@@ -238,13 +240,13 @@ Sent via LoanX''';
                   amount < 0) {
                 showSnackBar(
                   context,
-                  'Enter the recipient and a valid amount received'.tr(),
+                  LocaleKeys.enterTheRecipientAndAValidAmountReceived.tr(),
                 );
                 return;
               }
               Navigator.of(dialogContext).pop(true);
             },
-            child: Text('Complete loan'.tr()),
+            child: Text(LocaleKeys.completeLoan.tr()),
           ),
         ],
       ),
@@ -269,7 +271,7 @@ Sent via LoanX''';
     notesController.dispose();
     await ref.read(loanListProvider.notifier).updateLoan(loan);
     if (context.mounted) {
-      showSnackBar(context, 'Loan marked as complete'.tr());
+      showSnackBar(context, LocaleKeys.loanMarkedAsComplete.tr());
     }
   }
 }
@@ -328,7 +330,7 @@ class _DetailsContent extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                'COLLECTABLE AMOUNT'.tr(),
+                LocaleKeys.collectableAmount.tr(),
                 style: TextStyle(
                   color: colors.onPrimary.withValues(alpha: .7),
                   fontWeight: FontWeight.w700,
@@ -496,7 +498,7 @@ class _DetailsContent extends ConsumerWidget {
                 icon: Icons.notes_rounded,
                 label: 'Additional details',
                 value: loan.additionalDetails.trim().isEmpty
-                    ? 'No additional details'.tr()
+                    ? LocaleKeys.noAdditionalDetails.tr()
                     : loan.additionalDetails,
                 last: loan.termsAndConditions.trim().isEmpty,
               ),
@@ -528,14 +530,14 @@ class _DetailsContent extends ConsumerWidget {
                   icon: Icons.person_outline_rounded,
                   label: 'Item received by',
                   value: loan.completedBy.isEmpty
-                      ? 'Not recorded for this older loan'.tr()
+                      ? LocaleKeys.notRecordedForThisOlderLoan.tr()
                       : loan.completedBy,
                 ),
                 _DetailRow(
                   icon: Icons.payments_outlined,
                   label: 'Amount received',
                   value: loan.settlementAmount == null
-                      ? 'Not recorded for this older loan'.tr()
+                      ? LocaleKeys.notRecordedForThisOlderLoan.tr()
                       : currency.format(loan.settlementAmount),
                 ),
                 if (loan.completionReference.trim().isNotEmpty)
@@ -548,7 +550,7 @@ class _DetailsContent extends ConsumerWidget {
                   icon: Icons.notes_rounded,
                   label: 'Settlement notes',
                   value: loan.completionNotes.trim().isEmpty
-                      ? 'No notes recorded'.tr()
+                      ? LocaleKeys.noNotesRecorded.tr()
                       : loan.completionNotes,
                   last: true,
                 ),
@@ -566,7 +568,9 @@ class _DetailsContent extends ConsumerWidget {
                   ? Card(
                       child: Padding(
                         padding: EdgeInsets.all(16),
-                        child: Text('No activity has been recorded yet.'.tr()),
+                        child: Text(
+                          LocaleKeys.noActivityHasBeenRecordedYet.tr(),
+                        ),
                       ),
                     )
                   : Card(
@@ -594,7 +598,7 @@ class _DetailsContent extends ConsumerWidget {
       mode: LaunchMode.externalApplication,
     );
     if (context.mounted && !launched) {
-      showSnackBar(context, 'Could not open the phone app'.tr());
+      showSnackBar(context, LocaleKeys.couldNotOpenThePhoneApp.tr());
     }
   }
 
@@ -611,7 +615,7 @@ class _DetailsContent extends ConsumerWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.sms_outlined),
-              title: Text('SMS'.tr()),
+              title: Text(LocaleKeys.sms.tr()),
               onTap: () => _sendMessage(
                 context,
                 sheetContext,
@@ -625,7 +629,7 @@ class _DetailsContent extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.chat_outlined),
-              title: Text('WhatsApp'.tr()),
+              title: Text(LocaleKeys.whatsapp.tr()),
               onTap: () => _sendMessage(
                 context,
                 sheetContext,
@@ -713,7 +717,7 @@ class _StatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        completed ? 'Completed'.tr() : 'Active'.tr(),
+        completed ? LocaleKeys.completed.tr() : LocaleKeys.active.tr(),
         style: TextStyle(
           color: colors.onPrimary,
           fontWeight: FontWeight.w700,
@@ -818,5 +822,5 @@ class _LoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      Center(child: Text('Unable to load loan details'.tr()));
+      Center(child: Text(LocaleKeys.unableToLoadLoanDetails.tr()));
 }

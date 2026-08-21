@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -72,7 +73,7 @@ class AuthScreen extends HookConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'LoanX'.tr(),
+                    LocaleKeys.loanx2.tr(),
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                       color: colors.onPrimary,
                       fontWeight: FontWeight.w800,
@@ -80,7 +81,7 @@ class AuthScreen extends HookConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Your lending workspace'.tr(),
+                    LocaleKeys.yourLendingWorkspace.tr(),
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: colors.onPrimary.withValues(alpha: .8),
                     ),
@@ -96,7 +97,7 @@ class AuthScreen extends HookConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Securing your data…'.tr(),
+                    LocaleKeys.securingYourData.tr(),
                     style: TextStyle(
                       color: colors.onPrimary.withValues(alpha: .75),
                     ),

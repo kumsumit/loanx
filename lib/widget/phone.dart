@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:flutter/material.dart';
@@ -114,13 +115,13 @@ class _PhoneWidgetState extends State<PhoneWidget> {
       keyboardAction: TextInputAction.done,
       searchBoxDecoration: InputDecoration(
         isDense: true,
-        hintText: "Search Country by name or code".tr(),
+        hintText: LocaleKeys.searchCountryByNameOrCode.tr(),
         hintStyle: TextStyle(
           color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.5),
           fontSize: 14,
         ),
         labelStyle: TextStyle(color: Theme.of(context).colorScheme.secondary),
-        labelText: "Search Country".tr(),
+        labelText: LocaleKeys.searchCountry.tr(),
         border: const OutlineInputBorder(),
         errorStyle: TextStyle(fontSize: 11),
       ),
@@ -163,7 +164,7 @@ class _PhoneWidgetState extends State<PhoneWidget> {
         ),
         errorStyle: TextStyle(fontSize: 11),
       ),
-      errorMessage: 'Provide a valid number'.tr(),
+      errorMessage: LocaleKeys.provideAValidNumber.tr(),
       onInputChanged: (phoneNumber) {
         widget.onChanged?.call(phoneNumber);
       },

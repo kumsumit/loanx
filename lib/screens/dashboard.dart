@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -28,10 +29,12 @@ class DashBoard extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = useState<int>(0);
-    final title = useState<String>('loanx'.tr());
+    final title = useState<String>(LocaleKeys.loanx.tr());
     final theme = Theme.of(context);
     useEffect(() {
-      title.value = currentIndex.value == 0 ? 'loanx'.tr() : 'manage'.tr();
+      title.value = currentIndex.value == 0
+          ? LocaleKeys.loanx.tr()
+          : LocaleKeys.manage.tr();
       return null;
     }, [context.locale]);
     if (Platform.isAndroid || Platform.isIOS) {
@@ -117,8 +120,8 @@ class DashBoard extends HookWidget {
                                   builder: (context) => AlertDialog(
                                     title: Text(
                                       selectedLoans.length == 1
-                                          ? 'Delete this loan?'.tr()
-                                          : 'deleteLoanCount'.tr(
+                                          ? LocaleKeys.deleteThisLoan.tr()
+                                          : LocaleKeys.deleteLoanCount.tr(
                                               namedArgs: {
                                                 'count': selectedLoans.length
                                                     .toString(),
@@ -137,7 +140,7 @@ class DashBoard extends HookWidget {
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: Text('Cancel'.tr()),
+                                        child: Text(LocaleKeys.cancel.tr()),
                                       ),
                                       TextButton(
                                         onPressed: () async {
@@ -154,7 +157,9 @@ class DashBoard extends HookWidget {
                                             Navigator.of(context).pop();
                                           }
                                         },
-                                        child: Text('Delete permanently'.tr()),
+                                        child: Text(
+                                          LocaleKeys.deletePermanently.tr(),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -261,10 +266,12 @@ Shared from LoanX
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 StyledHeading(
-                                                  "Sent via :".tr(),
+                                                  LocaleKeys.sentVia.tr(),
                                                 ),
                                                 OutlinedButton.icon(
-                                                  label: Text('SMS'.tr()),
+                                                  label: Text(
+                                                    LocaleKeys.sms.tr(),
+                                                  ),
                                                   icon: Icon(Icons.sms),
                                                   onPressed: () async {
                                                     final whatsappUrl =
@@ -280,7 +287,9 @@ Shared from LoanX
                                                   },
                                                 ),
                                                 OutlinedButton.icon(
-                                                  label: Text('Whatsapp'.tr()),
+                                                  label: Text(
+                                                    LocaleKeys.whatsapp2.tr(),
+                                                  ),
                                                   icon: Icon(K.whatsapp),
                                                   onPressed: () async {
                                                     String whatsappUrl =
@@ -299,7 +308,9 @@ Shared from LoanX
                                                   onPressed: () {
                                                     Navigator.of(context).pop();
                                                   },
-                                                  child: Text('Cancel'.tr()),
+                                                  child: Text(
+                                                    LocaleKeys.cancel.tr(),
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -319,7 +330,7 @@ Shared from LoanX
                           if (loanSelectionList.length == 1)
                             IconButton(
                               icon: Icon(Icons.print),
-                              tooltip: 'Print loan receipt'.tr(),
+                              tooltip: LocaleKeys.printLoanReceipt.tr(),
                               onPressed: () async {
                                 final selectedLoan = ref
                                     .read(loanListProvider)
@@ -339,7 +350,9 @@ Shared from LoanX
                                           children: [
                                             ListTile(
                                               leading: const Icon(Icons.print),
-                                              title: Text('Print receipt'.tr()),
+                                              title: Text(
+                                                LocaleKeys.printReceipt.tr(),
+                                              ),
                                               subtitle: Text(
                                                 'Print using a USB or Bluetooth printer'
                                                     .tr(),
@@ -353,7 +366,9 @@ Shared from LoanX
                                               leading: const Icon(
                                                 Icons.picture_as_pdf_outlined,
                                               ),
-                                              title: Text('Share PDF'.tr()),
+                                              title: Text(
+                                                LocaleKeys.sharePdf.tr(),
+                                              ),
                                               subtitle: Text(
                                                 'Save or open the receipt as a PDF file'
                                                     .tr(),
@@ -406,18 +421,20 @@ Shared from LoanX
         selectedIndex: currentIndex.value,
         onDestinationSelected: (index) {
           currentIndex.value = index;
-          title.value = index == 0 ? 'loanx'.tr() : 'manage'.tr();
+          title.value = index == 0
+              ? LocaleKeys.loanx.tr()
+              : LocaleKeys.manage.tr();
         },
         destinations: [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home'.tr(),
+            label: LocaleKeys.home.tr(),
           ),
           NavigationDestination(
             icon: Icon(Icons.tune_outlined),
             selectedIcon: Icon(Icons.tune_rounded),
-            label: 'Manage'.tr(),
+            label: LocaleKeys.manage2.tr(),
           ),
         ],
       ),

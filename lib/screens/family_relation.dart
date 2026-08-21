@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
@@ -15,7 +16,10 @@ class FamilyRelationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text('Family Relations'.tr()), centerTitle: false),
+      appBar: AppBar(
+        title: Text(LocaleKeys.familyRelations.tr()),
+        centerTitle: false,
+      ),
       body: Consumer(
         builder: (context, ref, child) {
           final familyRelations = ref.watch(familyRelationListProvider);
@@ -96,8 +100,8 @@ class FamilyRelationView extends StatelessWidget {
                       ),
                       subtitle: Text(
                         isCustom
-                            ? 'Custom relation'.tr()
-                            : 'System relation'.tr(),
+                            ? LocaleKeys.customRelation.tr()
+                            : LocaleKeys.systemRelation.tr(),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -146,7 +150,7 @@ class FamilyRelationView extends StatelessWidget {
                     color: theme.colorScheme.error,
                   ),
                   const SizedBox(height: 12),
-                  Text('Something went wrong'.tr()),
+                  Text(LocaleKeys.somethingWentWrong.tr()),
                 ],
               ),
             ),
@@ -157,7 +161,7 @@ class FamilyRelationView extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => familyDialog(context, null),
         icon: const Icon(Icons.add),
-        label: Text('Add Relation'.tr()),
+        label: Text(LocaleKeys.addRelation.tr()),
       ),
     );
   }
@@ -185,7 +189,9 @@ class FamilyRelationView extends StatelessWidget {
           ),
         ),
         title: StyledHeading(
-          'deleteNamedRelation'.tr(namedArgs: {'name': familyRelation.name}),
+          LocaleKeys.deleteNamedRelation.tr(
+            namedArgs: {'name': familyRelation.name},
+          ),
         ),
         content: StyledSubtitle(
           'This family relation will be removed permanently. This action cannot be undone.'
@@ -195,7 +201,7 @@ class FamilyRelationView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel'.tr()),
+            child: Text(LocaleKeys.cancel.tr()),
           ),
           FilledButton.tonal(
             style: FilledButton.styleFrom(
@@ -210,11 +216,11 @@ class FamilyRelationView extends StatelessWidget {
                 Navigator.of(context).pop();
                 showSnackBar(
                   context,
-                  'Family Relation Deleted Successfully'.tr(),
+                  LocaleKeys.familyRelationDeletedSuccessfully.tr(),
                 );
               }
             },
-            child: Text('Delete'.tr()),
+            child: Text(LocaleKeys.delete.tr()),
           ),
         ],
       ),
@@ -249,8 +255,8 @@ class FamilyRelationView extends StatelessWidget {
           ),
           title: StyledHeading(
             isEditing
-                ? 'Edit Family Relation'.tr()
-                : 'Add Family Relation'.tr(),
+                ? LocaleKeys.editFamilyRelation2.tr()
+                : LocaleKeys.addFamilyRelation2.tr(),
           ),
           content: Form(
             key: formKey,
@@ -258,14 +264,14 @@ class FamilyRelationView extends StatelessWidget {
               style: TextStyle(color: theme.colorScheme.secondary),
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().isEmpty) {
-                  return 'Family Relation cannot be empty'.tr();
+                  return LocaleKeys.familyRelationCannotBeEmpty.tr();
                 }
                 return null;
               },
               autofocus: true,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                hintText: 'Enter the Family Relation'.tr(),
+                hintText: LocaleKeys.enterTheFamilyRelation.tr(),
                 hintStyle: TextStyle(
                   color: theme.colorScheme.secondary.withValues(alpha: 0.5),
                   fontSize: 14,
@@ -282,12 +288,12 @@ class FamilyRelationView extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'.tr()),
+              child: Text(LocaleKeys.cancel.tr()),
             ),
             Consumer(
               builder: (context, ref, child) {
                 return FilledButton(
-                  child: Text('Submit'.tr()),
+                  child: Text(LocaleKeys.submit.tr()),
                   onPressed: () async {
                     if (formKey.currentState != null &&
                         formKey.currentState!.validate()) {
@@ -299,12 +305,12 @@ class FamilyRelationView extends StatelessWidget {
                         if (status > 0) {
                           showSnackBar(
                             context,
-                            "Family Relation added successfully".tr(),
+                            LocaleKeys.familyRelationAddedSuccessfully.tr(),
                           );
                         } else {
                           showSnackBar(
                             context,
-                            'Family Relation already exists'.tr(),
+                            LocaleKeys.familyRelationAlreadyExists.tr(),
                           );
                         }
                       }
@@ -348,7 +354,7 @@ class _EmptyState extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            StyledHeading('No family relations yet'.tr()),
+            StyledHeading(LocaleKeys.noFamilyRelationsYet.tr()),
             const SizedBox(height: 8),
             Text(
               'Add relations like Father, Mother, or Sibling to get started.'
@@ -362,7 +368,7 @@ class _EmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onAdd,
               icon: const Icon(Icons.add),
-              label: Text('Add Relation'.tr()),
+              label: Text(LocaleKeys.addRelation.tr()),
             ),
           ],
         ),

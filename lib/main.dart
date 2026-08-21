@@ -11,12 +11,14 @@ import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/screens/ask_backup_screen.dart';
 import 'package:loanx/screens/error.dart';
 import 'package:loanx/screens/unauthorized.dart';
+import 'package:loanx/l10n/codegen_loader.g.dart';
 // import 'package:loanx/service/database_helper.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/auth_screen.dart';
 import 'package:loanx/screens/dashboard.dart';
 import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/theme/app_theme.dart';
+import 'package:loanx/widget/language_picker.dart';
 import 'package:workmanager/workmanager.dart';
 // import 'package:path/path.dart';
 // import 'package:path_provider/path_provider.dart';
@@ -73,6 +75,7 @@ void main() async {
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('hi'), Locale('bn')],
       path: 'assets/translations',
+      assetLoader: const CodegenLoader(),
       fallbackLocale: const Locale('en'),
       useOnlyLangCode: true,
       child: const ProviderScope(
@@ -135,21 +138,23 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       theme: AppTheme.light(AppTheme.parseSeed(appColor)),
       darkTheme: AppTheme.dark(AppTheme.parseSeed(appColor)),
       debugShowCheckedModeBanner: false,
-      home: authenticate.when(
-        data: (data) {
-          return data
-              ? FastDB.getIsTableCreated()
-                    ? const DashBoard()
-                    : const AskBackupScreen()
-              : const AuthFailurePage();
-        },
-        error: (err, obj) {
-          return ErrorPage();
-        },
-        loading: () {
-          return AuthScreen();
-        },
-      ),
+      home: context.savedLocale == null
+          ? const StartupLanguageScreen()
+          : authenticate.when(
+              data: (data) {
+                return data
+                    ? FastDB.getIsTableCreated()
+                          ? const DashBoard()
+                          : const AskBackupScreen()
+                    : const AuthFailurePage();
+              },
+              error: (err, obj) {
+                return ErrorPage();
+              },
+              loading: () {
+                return AuthScreen();
+              },
+            ),
       locale: context.locale,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,

@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -29,7 +30,7 @@ class StyledDropdown<T> extends StatelessWidget {
             child: DropdownButtonFormField<T>(
               validator: (value) {
                 if (value == null) {
-                  return 'Please select an option'.tr();
+                  return LocaleKeys.pleaseSelectAnOption.tr();
                 }
                 return null;
               },
@@ -45,7 +46,9 @@ class StyledDropdown<T> extends StatelessWidget {
             const SizedBox(width: 8),
             IconButton.filledTonal(
               onPressed: onAddPressed,
-              tooltip: 'addNamedItem'.tr(namedArgs: {'item': labelText}),
+              tooltip: LocaleKeys.addNamedItem.tr(
+                namedArgs: {'item': labelText},
+              ),
               icon: const Icon(Icons.add_rounded),
             ),
           ],

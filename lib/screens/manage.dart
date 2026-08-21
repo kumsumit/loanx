@@ -1,3 +1,4 @@
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'family_relation.dart';
@@ -23,9 +24,9 @@ class Manage extends StatelessWidget {
               ),
               child: TabBar(
                 tabs: [
-                  Tab(text: 'Materials'.tr()),
-                  Tab(text: 'Relations'.tr()),
-                  Tab(text: 'Units'.tr()),
+                  Tab(text: LocaleKeys.materials.tr()),
+                  Tab(text: LocaleKeys.relations.tr()),
+                  Tab(text: LocaleKeys.units.tr()),
                 ],
               ),
             ),
