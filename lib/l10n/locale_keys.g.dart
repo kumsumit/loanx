@@ -33,8 +33,7 @@ abstract final class LocaleKeys {
   static const manage = "manage";
   static const appLanguage = "App language";
   static const chooseAppLanguage = "Choose app language";
-  static const youCanChangeThisLaterFromAppPreferences =
-      "You can change this later from App preferences.";
+  static const youCanChangeThisLaterFromAppPreferences = "You can change this later from App preferences.";
   static const simpleInterest = "simpleInterest";
   static const compoundInterest = "compoundInterest";
   static const addLoan = "addLoan";
@@ -51,34 +50,28 @@ abstract final class LocaleKeys {
   static const deleteFamilyRelation = "deleteFamilyRelation";
   static const deleteMultipleLoan = "deleteMultipleLoan";
   static const deleteMultipleMortgage = "deleteMultipleMortgage";
-  static const deleteMultipleMortgageMaterial =
-      "deleteMultipleMortgageMaterial";
+  static const deleteMultipleMortgageMaterial = "deleteMultipleMortgageMaterial";
   static const deleteMultipleFamilyRelation = "deleteMultipleFamilyRelation";
   static const confirmDelete = "confirmDelete";
   static const confirmDeleteMultiple = "confirmDeleteMultiple";
   static const confirmDeleteMortgage = "confirmDeleteMortgage";
   static const confirmDeleteMultipleMortgage = "confirmDeleteMultipleMortgage";
   static const confirmDeleteMortgageMaterial = "confirmDeleteMortgageMaterial";
-  static const confirmDeleteMultipleMortgageMaterial =
-      "confirmDeleteMultipleMortgageMaterial";
+  static const confirmDeleteMultipleMortgageMaterial = "confirmDeleteMultipleMortgageMaterial";
   static const confirmDeleteFamilyRelation = "confirmDeleteFamilyRelation";
-  static const confirmDeleteMultipleFamilyRelation =
-      "confirmDeleteMultipleFamilyRelation";
+  static const confirmDeleteMultipleFamilyRelation = "confirmDeleteMultipleFamilyRelation";
   static const key15Days = "15 days";
   static const key7Days = "7 days";
-  static const aFixedChargeAppliesIfTheItemIsRedeemedEarly =
-      "A fixed charge applies if the item is redeemed early.";
+  static const aFixedChargeAppliesIfTheItemIsRedeemedEarly = "A fixed charge applies if the item is redeemed early.";
   static const about = "About";
   static const aboutLoanx = "About LoanX";
   static const active = "Active";
   static const activeLoans = "Active loans";
   static const add = "Add";
   static const addRelation = "Add Relation";
-  static const addAtLeastOnePledgedMaterialInManageBeforeCreatingALoan =
-      "Add at least one pledged material in Manage before creating a loan.";
+  static const addAtLeastOnePledgedMaterialInManageBeforeCreatingALoan = "Add at least one pledged material in Manage before creating a loan.";
   static const addMaterial = "Add material";
-  static const addRelationsLikeFatherMotherOrSiblingToGetStarted =
-      "Add relations like Father, Mother, or Sibling to get started.";
+  static const addRelationsLikeFatherMotherOrSiblingToGetStarted = "Add relations like Father, Mother, or Sibling to get started.";
   static const addUnit = "Add unit";
   static const additionalDetails = "Additional details";
   static const address = "Address";
@@ -88,8 +81,7 @@ abstract final class LocaleKeys {
   static const anErrorOccurred = "An error occurred";
   static const appColor = "App color";
   static const appPreferences = "App preferences";
-  static const areYouSureWantYouHaveReturnedThisMortgageToTheBorrowerAndClearTheLoan =
-      "Are you sure want you have returned this mortgage to the borrower and clear the loan?";
+  static const areYouSureWantYouHaveReturnedThisMortgageToTheBorrowerAndClearTheLoan = "Are you sure want you have returned this mortgage to the borrower and clear the loan?";
   static const authenticationFailed = "Authentication failed";
   static const backUpNow = "Back up now";
   static const backupGoogleDrive = "Backup & Google Drive";
@@ -118,15 +110,13 @@ abstract final class LocaleKeys {
   static const couldNotOpenThePhoneApp = "Could not open the phone app";
   static const createALoan = "Create a loan";
   static const created = "Created";
-  static const creatingYourSecureGoogleDriveBackup =
-      "Creating your secure Google Drive backup…";
+  static const creatingYourSecureGoogleDriveBackup = "Creating your secure Google Drive backup…";
   static const dateOfLoan = "Date Of Loan";
   static const dateRangeOfLoan = "Date Range Of Loan";
   static const defaultLockIn = "Default lock-in";
   static const defaultLockInUpdated = "Default lock-in updated";
   static const defaultTermsAndConditions = "Default terms and conditions";
-  static const defaultTermsAndConditionsUpdated =
-      "Default terms and conditions updated";
+  static const defaultTermsAndConditionsUpdated = "Default terms and conditions updated";
   static const delete = "Delete";
   static const deleteMortgageMaterial2 = "Delete Mortgage Material";
   static const deletePermanently = "Delete permanently";
@@ -139,17 +129,14 @@ abstract final class LocaleKeys {
   static const editLoan2 = "Edit loan";
   static const enterAChargeGreaterThanZero = "Enter a charge greater than zero";
   static const enterAValidWeight = "Enter a valid weight";
-  static const enterRepaymentCustodyOrOtherConditions =
-      "Enter repayment, custody, or other conditions";
+  static const enterRepaymentCustodyOrOtherConditions = "Enter repayment, custody, or other conditions";
   static const enterTheFamilyRelation = "Enter the Family Relation";
   static const enterTheMortgageMaterial = "Enter the Mortgage Material";
-  static const enterTheDefaultTermsForNewLoans =
-      "Enter the default terms for new loans";
+  static const enterTheDefaultTermsForNewLoans = "Enter the default terms for new loans";
   static const exampleOunce = "Example: Ounce";
   static const exampleOz = "Example: oz";
   static const familyRelation = "Family Relation";
-  static const familyRelationDeletedSuccessfully =
-      "Family Relation Deleted Successfully";
+  static const familyRelationDeletedSuccessfully = "Family Relation Deleted Successfully";
   static const familyRelationCannotBeEmpty = "Family Relation cannot be empty";
   static const familyRelations = "Family Relations";
   static const filterLoans = "Filter loans";
@@ -160,16 +147,14 @@ abstract final class LocaleKeys {
   static const halfYearly = "Half-Yearly";
   static const helpFeedback = "Help & feedback";
   static const home = "Home";
-  static const ifYouHaveUsedLoanxBeforeBringYourSavedRecordsBackFromGoogleDriveOtherwiseStartWithANewWorkspace =
-      "If you have used LoanX before, bring your saved records back from Google Drive. Otherwise, start with a new workspace.";
+  static const ifYouHaveUsedLoanxBeforeBringYourSavedRecordsBackFromGoogleDriveOtherwiseStartWithANewWorkspace = "If you have used LoanX before, bring your saved records back from Google Drive. Otherwise, start with a new workspace.";
   static const interest = "Interest";
   static const interestFrequency = "Interest Frequency";
   static const interestAndMortgageSettings = "Interest and mortgage settings";
   static const interestFrequency2 = "Interest frequency";
   static const interestRate = "Interest rate";
   static const interestType = "Interest type";
-  static const itemConditionWitnessesOrOtherDetails =
-      "Item condition, witnesses, or other details";
+  static const itemConditionWitnessesOrOtherDetails = "Item condition, witnesses, or other details";
   static const itemReceivedBy = "Item received by";
   static const keyboardAwareListview = "Keyboard Aware ListView";
   static const learnAboutTheApp = "Learn about the app";
@@ -179,8 +164,7 @@ abstract final class LocaleKeys {
   static const loanMarkedAsComplete = "Loan marked as complete";
   static const loanTerms = "Loan terms";
   static const loanx2 = "LoanX";
-  static const loanxCouldNotFinishLoadingYourWorkspaceCloseTheAppAndTryAgain =
-      "LoanX could not finish loading your workspace. Close the app and try again.";
+  static const loanxCouldNotFinishLoadingYourWorkspaceCloseTheAppAndTryAgain = "LoanX could not finish loading your workspace. Close the app and try again.";
   static const loans2 = "Loans";
   static const loansCouldNotBeLoaded = "Loans could not be loaded";
   static const lockInPeriod = "Lock-in period";
@@ -190,19 +174,15 @@ abstract final class LocaleKeys {
   static const message = "Message";
   static const monthly = "Monthly";
   static const mortgageMaterialType = "Mortgage Material Type";
-  static const mortgageMaterialCannotBeEmpty =
-      "Mortgage Material cannot be empty";
-  static const mortgageMaterialDeletedSuccessfully =
-      "Mortgage Material deleted successfully";
+  static const mortgageMaterialCannotBeEmpty = "Mortgage Material cannot be empty";
+  static const mortgageMaterialDeletedSuccessfully = "Mortgage Material deleted successfully";
   static const mortgageMaterials = "Mortgage Materials";
   static const mortgageMaterial = "Mortgage material";
   static const mortgageTerm = "Mortgage term";
   static const mortgageWeight = "Mortgage weight";
-  static const nameOfBorrowerOrAuthorisedRecipient =
-      "Name of borrower or authorised recipient";
+  static const nameOfBorrowerOrAuthorisedRecipient = "Name of borrower or authorised recipient";
   static const newLoan = "New loan";
-  static const noActivityHasBeenRecordedYet =
-      "No activity has been recorded yet.";
+  static const noActivityHasBeenRecordedYet = "No activity has been recorded yet.";
   static const noDataFound = "No data found";
   static const noFamilyRelationsYet = "No family relations yet";
   static const noLockIn = "No lock-in";
@@ -215,8 +195,7 @@ abstract final class LocaleKeys {
   static const ok2 = "Ok";
   static const phone = "Phone";
   static const pickAColor = "Pick a color!";
-  static const pleaseRestartTheAppAndTryAgain =
-      "Please restart the app and try again.";
+  static const pleaseRestartTheAppAndTryAgain = "Please restart the app and try again.";
   static const pleaseSelectAnOption = "Please select an option";
   static const pleaseTryAgainInAMoment = "Please try again in a moment.";
   static const pledgedItem = "Pledged item";
@@ -227,16 +206,13 @@ abstract final class LocaleKeys {
   static const principalOutstanding = "Principal outstanding";
   static const printLoanReceipt = "Print loan receipt";
   static const printReceipt = "Print receipt";
-  static const printUsingAUsbOrBluetoothPrinter =
-      "Print using a USB or Bluetooth printer";
+  static const printUsingAUsbOrBluetoothPrinter = "Print using a USB or Bluetooth printer";
   static const privacyPolicy = "Privacy Policy";
   static const provideAValidNumber = "Provide a valid number";
   static const quarterly = "Quarterly";
   static const rateLoanx = "Rate LoanX";
-  static const receiptOrReferenceNumberOptional =
-      "Receipt or reference number (optional)";
-  static const recordTheHandoverDetailsForACompleteSettlementHistory =
-      "Record the handover details for a complete settlement history.";
+  static const receiptOrReferenceNumberOptional = "Receipt or reference number (optional)";
+  static const recordTheHandoverDetailsForACompleteSettlementHistory = "Record the handover details for a complete settlement history.";
   static const reference = "Reference";
   static const referenceName = "Reference name";
   static const referenceNameCanTBeEmpty = "Reference name can't be empty";
@@ -246,15 +222,13 @@ abstract final class LocaleKeys {
   static const restoreFromGoogleDrive = "Restore from Google Drive";
   static const restoreLatestBackup = "Restore latest backup";
   static const restoreYourLoanRecords = "Restore your loan records";
-  static const restoringReplacesTheRecordsCurrentlyOnThisDevice =
-      "Restoring replaces the records currently on this device.";
+  static const restoringReplacesTheRecordsCurrentlyOnThisDevice = "Restoring replaces the records currently on this device.";
   static const restoringYourBackup = "Restoring your backup…";
   static const sms = "SMS";
   static const save = "Save";
   static const saveBorrowerAsContact = "Save borrower as contact";
   static const saveContact = "Save contact";
-  static const saveOrOpenTheReceiptAsAPdfFile =
-      "Save or open the receipt as a PDF file";
+  static const saveOrOpenTheReceiptAsAPdfFile = "Save or open the receipt as a PDF file";
   static const searchCountry = "Search Country";
   static const searchCountryByNameOrCode = "Search Country by name or code";
   static const searchFilters = "Search filters";
@@ -277,19 +251,14 @@ abstract final class LocaleKeys {
   static const submit = "Submit";
   static const supportSharingAndUpdates = "Support, sharing, and updates";
   static const symbol = "Symbol";
-  static const tapAddMaterialToCreateYourFirstOne =
-      "Tap \"Add material\" to create your first one.";
+  static const tapAddMaterialToCreateYourFirstOne = "Tap \"Add material\" to create your first one.";
   static const termsAndConditions = "Terms and conditions";
   static const termsAndConditionsOptional = "Terms and conditions (optional)";
-  static const theseDefaultsApplyToNewLoansOnlyAndCanBeChangedOnEachLoan =
-      "These defaults apply to new loans only and can be changed on each loan.";
-  static const theseTermsAreCopiedIntoNewLoansAndCanBeEditedOnEachLoan =
-      "These terms are copied into new loans and can be edited on each loan.";
-  static const thisAccountStoresYourLoanxBackupsInGoogleDrive =
-      "This account stores your LoanX backups in Google Drive.";
+  static const theseDefaultsApplyToNewLoansOnlyAndCanBeChangedOnEachLoan = "These defaults apply to new loans only and can be changed on each loan.";
+  static const theseTermsAreCopiedIntoNewLoansAndCanBeEditedOnEachLoan = "These terms are copied into new loans and can be edited on each loan.";
+  static const thisAccountStoresYourLoanxBackupsInGoogleDrive = "This account stores your LoanX backups in Google Drive.";
   static const tryAgain = "Try again";
-  static const unableToCreateTheReceiptPleaseTryAgain =
-      "Unable to create the receipt. Please try again.";
+  static const unableToCreateTheReceiptPleaseTryAgain = "Unable to create the receipt. Please try again.";
   static const unableToLoadLoanDetails = "Unable to load loan details";
   static const unableToLoadUnits = "Unable to load units";
   static const unit = "Unit";
@@ -299,8 +268,7 @@ abstract final class LocaleKeys {
   static const versionUnavailable = "Version unavailable";
   static const version = "Version…";
   static const viewConnectedAccount = "View connected account";
-  static const weCouldNotVerifyYourIdentityUnlockYourDeviceAndTryAgain =
-      "We could not verify your identity. Unlock your device and try again.";
+  static const weCouldNotVerifyYourIdentityUnlockYourDeviceAndTryAgain = "We could not verify your identity. Unlock your device and try again.";
   static const weight = "Weight";
   static const weightUnits = "Weight Units";
   static const welcomeToLoanx = "Welcome to LoanX";
@@ -308,8 +276,7 @@ abstract final class LocaleKeys {
   static const whatsapp = "WhatsApp";
   static const whatsapp2 = "Whatsapp";
   static const yearly = "Yearly";
-  static const youCanManageBackupsLaterFromSettings =
-      "You can manage backups later from Settings.";
+  static const youCanManageBackupsLaterFromSettings = "You can manage backups later from Settings.";
   static const yourLendingWorkspace = "Your lending workspace";
   static const addNamedItem = "addNamedItem";
   static const dMmmYyyyHMmA = "d MMM yyyy, h:mm a";
@@ -329,8 +296,7 @@ abstract final class LocaleKeys {
   static const unableToSaveLoan = "unableToSaveLoan";
   static const deleteLoanCount = "deleteLoanCount";
   static const weightUnitType = "weightUnitType";
-  static const aRevolutionaryAppToKeepRecordsOfLoansProvidedByTheUnorganizedSectorOfTheLendersAcrossTheWorldWithoutAnyPaperwork =
-      "A revolutionary app to keep records of loans provided by the unorganized sector of the Lenders across the world without any paperwork.";
+  static const aRevolutionaryAppToKeepRecordsOfLoansProvidedByTheUnorganizedSectorOfTheLendersAcrossTheWorldWithoutAnyPaperwork = "A revolutionary app to keep records of loans provided by the unorganized sector of the Lenders across the world without any paperwork.";
   static const activityHistory = "Activity history";
   static const addFamilyRelation2 = "Add Family Relation";
   static const addLoanRecord = "Add Loan Record";
@@ -338,106 +304,75 @@ abstract final class LocaleKeys {
   static const addWeightUnit = "Add Weight Unit";
   static const addPledgedMaterial = "Add pledged material";
   static const appColorChanged = "App Color Changed";
-  static const appGetsSecuredNowYouNeedToRestartTheApp =
-      "App gets secured, Now you need to restart the app";
-  static const appGetsUnsecuredNowYouNeedToRestartTheApp =
-      "App gets unsecured, Now you need to restart the app";
-  static const areYouSureYouWantToDeleteThisMortgageMaterialThisActionCannotBeUndone =
-      "Are you sure you want to delete this mortgage material? This action cannot be undone.";
+  static const appGetsSecuredNowYouNeedToRestartTheApp = "App gets secured, Now you need to restart the app";
+  static const appGetsUnsecuredNowYouNeedToRestartTheApp = "App gets unsecured, Now you need to restart the app";
+  static const areYouSureYouWantToDeleteThisMortgageMaterialThisActionCannotBeUndone = "Are you sure you want to delete this mortgage material? This action cannot be undone.";
   static const backupCreatedSuccessfully = "Backup created successfully.";
   static const backupRestoredSuccessfully = "Backup restored successfully.";
   static const changeMortgageHoldingPeriod = "Change Mortgage Holding Period";
   static const confirmCreate = "Confirm & create";
   static const confirmSave = "Confirm & save";
-  static const connectToTheInternetToRestoreABackup =
-      "Connect to the internet to restore a backup.";
-  static const couldNotCheckYourConnectionPleaseTryAgain =
-      "Could not check your connection. Please try again.";
-  static const couldNotOpenTheContactEditor =
-      "Could not open the contact editor";
-  static const couldNotRestoreYourBackupPleaseTryAgain =
-      "Could not restore your backup. Please try again.";
+  static const connectToTheInternetToRestoreABackup = "Connect to the internet to restore a backup.";
+  static const couldNotCheckYourConnectionPleaseTryAgain = "Could not check your connection. Please try again.";
+  static const couldNotOpenTheContactEditor = "Could not open the contact editor";
+  static const couldNotRestoreYourBackupPleaseTryAgain = "Could not restore your backup. Please try again.";
   static const createLoan = "Create loan";
-  static const createYourFirstLoanToTrackBorrowersPledgedMaterialsAndRepaymentStatus =
-      "Create your first loan to track borrowers, pledged materials, and repayment status.";
-  static const currentlyLoanxIsAvailableOnOnlyAndroidButSoonWillBeAccessibleToOtherPlatformsTooForMakingItAccessibleToAWideRangeOfUsers =
-      "Currently, Loanx is available on only Android, But soon will be accessible to other platforms too for making it accessible to a wide range of users.";
+  static const createYourFirstLoanToTrackBorrowersPledgedMaterialsAndRepaymentStatus = "Create your first loan to track borrowers, pledged materials, and repayment status.";
+  static const currentlyLoanxIsAvailableOnOnlyAndroidButSoonWillBeAccessibleToOtherPlatformsTooForMakingItAccessibleToAWideRangeOfUsers = "Currently, Loanx is available on only Android, But soon will be accessible to other platforms too for making it accessible to a wide range of users.";
   static const customMaterial = "Custom material";
   static const customRelation = "Custom relation";
   static const customUnit = "Custom unit";
-  static const defaultHoldingPeriodIs5Years =
-      "Default holding Period is 5 years";
+  static const defaultHoldingPeriodIs5Years = "Default holding Period is 5 years";
   static const deleteThisLoan = "Delete this loan?";
   static const editFamilyRelation2 = "Edit Family Relation";
   static const editLoanRecord = "Edit Loan Record";
   static const editMortgageMaterial2 = "Edit Mortgage Material";
   static const editWeightUnit = "Edit Weight Unit";
-  static const enterAPrincipalAmountGreaterThanZero =
-      "Enter a principal amount greater than zero";
+  static const enterAPrincipalAmountGreaterThanZero = "Enter a principal amount greater than zero";
   static const enterTheFamilyRelation2 = "Enter the family relation";
   static const enterTheMaterialName = "Enter the material name";
-  static const enterTheRecipientAndAValidAmountReceived =
-      "Enter the recipient and a valid amount received";
-  static const familyRelationAddedSuccessfully =
-      "Family Relation added successfully";
+  static const enterTheRecipientAndAValidAmountReceived = "Enter the recipient and a valid amount received";
+  static const familyRelationAddedSuccessfully = "Family Relation added successfully";
   static const familyRelationAlreadyExists = "Family Relation already exists";
   static const googleAccountDisconnected = "Google account disconnected.";
   static const interestRateChanged = "Interest Rate Changed";
-  static const interestTypeChangedSuccessfully =
-      "Interest Type changed successfully";
+  static const interestTypeChangedSuccessfully = "Interest Type changed successfully";
   static const loanAlreadyCompleted = "Loan already completed";
   static const loanCreatedSuccessfully = "Loan created successfully";
   static const loanInformation = "Loan information";
   static const loanUpdatedSuccessfully = "Loan updated successfully";
-  static const loanxIsASimpleAndEasyToUseAppThatAllowsYouToTrackYourLoansItIsDesignedToBeUserFriendlyAndIntuitiveMakingItEasyForAnyoneToManageTheirLoanRecords =
-      "LoanX is a simple and easy to use app that allows you to track your loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their loan records.";
+  static const loanxIsASimpleAndEasyToUseAppThatAllowsYouToTrackYourLoansItIsDesignedToBeUserFriendlyAndIntuitiveMakingItEasyForAnyoneToManageTheirLoanRecords = "LoanX is a simple and easy to use app that allows you to track your loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their loan records.";
   static const markAsComplete = "Mark as complete";
   static const mortgageHoldingPeriodChanged = "Mortgage Holding Period changed";
-  static const mortgageMaterialAddedSuccessfully =
-      "Mortgage Material added successfully";
-  static const mortgageMaterialAlreadyExists =
-      "Mortgage Material already exists";
+  static const mortgageMaterialAddedSuccessfully = "Mortgage Material added successfully";
+  static const mortgageMaterialAlreadyExists = "Mortgage Material already exists";
   static const noAdditionalDetails = "No additional details";
   static const noLoansYet = "No loans yet";
   static const noNotesRecorded = "No notes recorded";
   static const notRecordedForThisOlderLoan = "Not recorded for this older loan";
-  static const nowYouCanGiveMortgageToTheBorrower =
-      "Now, you can give mortgage to the borrower";
-  static const reviewTheUpdatedDetailsWithTheBorrowerSaveTheChangesOnlyAfterBothOfYouAgree =
-      "Review the updated details with the borrower. Save the changes only after both of you agree.";
-  static const reviewTheseDetailsWithTheBorrowerCreateTheRecordOnlyAfterBothOfYouAgree =
-      "Review these details with the borrower. Create the record only after both of you agree.";
+  static const nowYouCanGiveMortgageToTheBorrower = "Now, you can give mortgage to the borrower";
+  static const reviewTheUpdatedDetailsWithTheBorrowerSaveTheChangesOnlyAfterBothOfYouAgree = "Review the updated details with the borrower. Save the changes only after both of you agree.";
+  static const reviewTheseDetailsWithTheBorrowerCreateTheRecordOnlyAfterBothOfYouAgree = "Review these details with the borrower. Create the record only after both of you agree.";
   static const saveChanges = "Save changes";
   static const saving = "Saving…";
-  static const selectAFamilyRelationAndPledgedMaterial =
-      "Select a family relation and pledged material";
+  static const selectAFamilyRelationAndPledgedMaterial = "Select a family relation and pledged material";
   static const settlementRecord = "Settlement record";
-  static const somethingWentWrongPleaseTryAgain =
-      "Something went wrong. Please try again.";
+  static const somethingWentWrongPleaseTryAgain = "Something went wrong. Please try again.";
   static const systemMaterial = "System material";
   static const systemRelation = "System relation";
   static const systemUnit = "System unit";
-  static const theAppAlsoProvidesAFeatureToBackupYourDataEnsuringThatYourInformationIsSecureAndAccessibleInCaseOfAnyDataLoss =
-      "The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss.";
-  static const thisFamilyRelationWillBeRemovedPermanentlyThisActionCannotBeUndone =
-      "This family relation will be removed permanently. This action cannot be undone.";
+  static const theAppAlsoProvidesAFeatureToBackupYourDataEnsuringThatYourInformationIsSecureAndAccessibleInCaseOfAnyDataLoss = "The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss.";
+  static const thisFamilyRelationWillBeRemovedPermanentlyThisActionCannotBeUndone = "This family relation will be removed permanently. This action cannot be undone.";
   static const thisFieldIsRequired = "This field is required";
-  static const thisPermanentlyRemovesTheLoanRecordThisActionCannotBeUndone =
-      "This permanently removes the loan record. This action cannot be undone.";
-  static const thisPermanentlyRemovesTheSelectedLoanRecordsThisActionCannotBeUndone =
-      "This permanently removes the selected loan records. This action cannot be undone.";
-  static const traditionallyPracticedNowTechnologicallyAdvanced =
-      "Traditionally practiced, now technologically advanced.";
-  static const tryADifferentFilterToViewYourLoanRecords =
-      "Try a different filter to view your loan records.";
+  static const thisPermanentlyRemovesTheLoanRecordThisActionCannotBeUndone = "This permanently removes the loan record. This action cannot be undone.";
+  static const thisPermanentlyRemovesTheSelectedLoanRecordsThisActionCannotBeUndone = "This permanently removes the selected loan records. This action cannot be undone.";
+  static const traditionallyPracticedNowTechnologicallyAdvanced = "Traditionally practiced, now technologically advanced.";
+  static const tryADifferentFilterToViewYourLoanRecords = "Try a different filter to view your loan records.";
   static const verifyLoanDetails = "Verify loan details";
   static const verifyUpdatedLoanDetails = "Verify updated loan details";
-  static const whetherYouReASeasonedLoanProfessionalOrJustStartingOutLoanxIsThePerfectAppToHelpYouManageYourLoansSmoothlyEfficientlyAndEconomically =
-      "Whether you're a seasoned loan professional or just starting out, Loanx is the perfect app to help you manage your loans smoothly, efficiently and economically.";
-  static const withLoanxYouCanEasilyCreateUpdateAndDeleteLoanRecordsAsWellAsViewYourLoanHistory =
-      "With LoanX, you can easily create, update, and delete loan records, as well as view your loan history.";
-  static const youHaveNotSelectedAnyAccount =
-      "You have not selected any account.";
+  static const whetherYouReASeasonedLoanProfessionalOrJustStartingOutLoanxIsThePerfectAppToHelpYouManageYourLoansSmoothlyEfficientlyAndEconomically = "Whether you're a seasoned loan professional or just starting out, Loanx is the perfect app to help you manage your loans smoothly, efficiently and economically.";
+  static const withLoanxYouCanEasilyCreateUpdateAndDeleteLoanRecordsAsWellAsViewYourLoanHistory = "With LoanX, you can easily create, update, and delete loan records, as well as view your loan history.";
+  static const youHaveNotSelectedAnyAccount = "You have not selected any account.";
   static const defaultYears = "defaultYears";
   static const mortgageHoldingPeriod = "mortgageHoldingPeriod";
   static const defaultInterestType = "defaultInterestType";
@@ -448,10 +383,8 @@ abstract final class LocaleKeys {
   static const defaultLockInSummary = "defaultLockInSummary";
   static const disableAppLock = "Disable app lock";
   static const enableAppLock = "Enable app lock";
-  static const disableTheAppLockOnThisDevice =
-      "Disable the app lock on this device?";
-  static const enableAnAppLockOnThisDevice =
-      "Enable an app lock on this device?";
+  static const disableTheAppLockOnThisDevice = "Disable the app lock on this device?";
+  static const enableAnAppLockOnThisDevice = "Enable an app lock on this device?";
   static const holdingPeriodCanTBe0 = "Holding Period can't be 0";
   static const notConnected = "Not connected";
   static const addAccount = "Add Account";
@@ -459,6 +392,5 @@ abstract final class LocaleKeys {
   static const googleAccount = "Google account";
   static const noDefaultTermsSet = "No default terms set";
   static const prefilledForNewLoans = "Prefilled for new loans";
-  static const newLoansHaveNoLockInByDefault =
-      "New loans have no lock-in by default";
+  static const newLoansHaveNoLockInByDefault = "New loans have no lock-in by default";
 }

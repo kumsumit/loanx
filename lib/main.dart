@@ -73,7 +73,9 @@ void main() async {
   FlutterNativeSplash.remove();
   runApp(
     EasyLocalization(
-      supportedLocales: appLanguages.map((language) => language.locale).toList(),
+      supportedLocales: appLanguages
+          .map((language) => language.locale)
+          .toList(),
       path: 'lib/l10n',
       assetLoader: const CodegenLoader(),
       fallbackLocale: const Locale('en'),

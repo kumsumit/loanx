@@ -1,4 +1,5 @@
 import 'package:loanx/l10n/locale_keys.g.dart';
+import 'package:loanx/l10n/codegen_loader.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -179,9 +180,9 @@ class LoanDetails extends ConsumerWidget {
       '${copy.weight}: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${copy.systemValue(loan.weightUnit)}' : copy.notRecorded}',
       '${copy.loanAmount}: ${currency.format(loan.loanAmount)}',
       '${copy.interest}: ${loan.interestRate}% ($interestType)',
-      '${copy.mortgageTerm}: ${loan.mortgageTermYears} ${copy.years}',
+      '${copy.mortgageTerm}: ${copy.yearCount(loan.mortgageTermYears)}',
       if (loan.lockInDays > 0)
-        '${copy.lockInPeriod}: ${loan.lockInDays} ${copy.days} (${copy.until} ${date.format(loan.lockInEndsAt)})',
+        '${copy.lockInPeriod}: ${copy.dayCount(loan.lockInDays)} (${copy.until} ${date.format(loan.lockInEndsAt)})',
       if (loan.lockInDays > 0)
         '${copy.earlyRedemptionCharge}: ${currency.format(loan.earlyRedemptionCharge)} ${copy.beforeThisDate}',
       '${copy.estimatedDue(date.format(calculationDate))}: ${currency.format(collectable)}',
@@ -912,39 +913,46 @@ class _LoadError extends StatelessWidget {
 class _ShareCopy {
   const _ShareCopy(this.code);
   final String code;
-  bool get hi => code == 'hi';
-  bool get bn => code == 'bn';
-  String pick(String en, String hindi, String bengali) => hi
-      ? hindi
-      : bn
-      ? bengali
-      : en;
+  String pick(String en, String hindi, String bengali) {
+    final catalog = CodegenLoader.mapLocales[code];
+    final translated = catalog?[en];
+    if (translated is String && translated.isNotEmpty) return translated;
+    return code == 'hi'
+        ? hindi
+        : code == 'bn'
+        ? bengali
+        : en;
+  }
 
   String get chooseShareLanguage => pick(
-    'Choose language for shared details',
+    'Choose app language',
     'जानकारी साझा करने की भाषा चुनें',
     'তথ্য শেয়ার করার ভাষা বেছে নিন',
   );
   String get loanDetails => pick('Loan details', 'लोन का विवरण', 'ঋণের বিবরণ');
-  String detailsFor(String name) => pick(
-    'Loan details for $name',
-    '$name के लोन का विवरण',
-    '$name-এর ঋণের বিবরণ',
-  );
+  String detailsFor(String name) {
+    final template =
+        CodegenLoader.mapLocales[code]?['loanDetailsFor'] as String?;
+    return (template ?? 'Loan details for {name}').replaceAll('{name}', name);
+  }
+
   String get borrower => pick('Borrower', 'उधारकर्ता', 'ঋণগ্রহীতা');
   String get phone => pick('Phone', 'फ़ोन', 'ফোন');
   String get address => pick('Address', 'पता', 'ঠিকানা');
   String get relativeName =>
-      pick('Relative name', 'रिश्तेदार का नाम', 'আত্মীয়ের নাম');
+      pick('Relative Name', 'रिश्तेदार का नाम', 'আত্মীয়ের নাম');
   String get mortgageName =>
-      pick('Mortgage name', 'गिरवी वस्तु', 'বন্ধকী বস্তু');
+      pick('Mortgage material', 'गिरवी वस्तु', 'বন্ধকী বস্তু');
   String get weight => pick('Weight', 'वज़न', 'ওজন');
-  String get loanAmount => pick('Loan amount', 'लोन की राशि', 'ঋণের পরিমাণ');
+  String get loanAmount =>
+      pick('Principal amount', 'लोन की राशि', 'ঋণের পরিমাণ');
   String get interest => pick('Interest', 'ब्याज', 'সুদ');
   String get mortgageTerm =>
       pick('Mortgage term', 'गिरवी अवधि', 'বন্ধকের মেয়াদ');
   String get years => pick('years', 'वर्ष', 'বছর');
   String get days => pick('days', 'दिन', 'দিন');
+  String yearCount(int count) => _template('yearsCount', count, years);
+  String dayCount(int count) => _template('daysCount', count, days);
   String get lockInPeriod =>
       pick('Lock-in period', 'लॉक-इन अवधि', 'লক-ইন সময়কাল');
   String get until => pick('until', 'तक', 'পর্যন্ত');
@@ -958,16 +966,14 @@ class _ShareCopy {
     'इस तारीख से पहले छुड़ाने पर',
     'এই তারিখের আগে ছাড়ালে',
   );
-  String estimatedDue(String date) => pick(
-    'Estimated amount due as of $date',
-    '$date तक अनुमानित देय राशि',
-    '$date পর্যন্ত আনুমানিক বকেয়া',
-  );
+  String estimatedDue(String date) =>
+      '${pick('COLLECTABLE AMOUNT', 'अनुमानित देय राशि', 'আনুমানিক বকেয়া')} ($date)';
   String get status => pick('Status', 'स्थिति', 'অবস্থা');
   String get active => pick('Active', 'सक्रिय', 'সক্রিয়');
   String get completed => pick('Completed', 'पूर्ण', 'সম্পন্ন');
   String get created => pick('Created', 'बनाया गया', 'তৈরি হয়েছে');
-  String get receivedBy => pick('Received by', 'प्राप्तकर्ता', 'গ্রহণকারী');
+  String get receivedBy =>
+      pick('Item received by', 'प्राप्तकर्ता', 'গ্রহণকারী');
   String get amountReceived =>
       pick('Amount received', 'प्राप्त राशि', 'প্রাপ্ত পরিমাণ');
   String get additionalDetails =>
@@ -977,63 +983,49 @@ class _ShareCopy {
   String get notRecorded =>
       pick('Not recorded', 'दर्ज नहीं', 'রেকর্ড করা হয়নি');
   String get sentVia =>
-      pick('Sent via LoanX', 'LoanX से भेजा गया', 'LoanX থেকে পাঠানো হয়েছে');
+      '${pick('Sent via :', 'इसके द्वारा भेजा गया:', 'এর মাধ্যমে পাঠানো:')} LoanX';
   String interestType(InterestType type) => type == InterestType.simple
       ? pick('Simple', 'साधारण', 'সরল')
       : pick('Compound', 'चक्रवृद्धि', 'চক্রবৃদ্ধি');
 
+  String _template(String key, int count, String unit) {
+    final template = CodegenLoader.mapLocales[code]?[key] as String?;
+    return template
+            ?.replaceAll('{count}', '$count')
+            .replaceAll('{years}', '$count') ??
+        '$count $unit';
+  }
+
   String systemValue(String value) {
-    const hiValues = {
-      'Husband': 'पति',
-      'Father': 'पिता',
-      'Wife': 'पत्नी',
-      'Ring': 'अंगूठी',
-      'Anklet': 'पायल',
-      'Bracelet': 'कंगन',
-      'Armlet': 'बाजूबंद',
-      'Chain': 'चेन',
-      'Ear-Ring': 'कान की बाली',
-      'Head-Locket': 'माथे का लॉकेट',
-      'Medal': 'पदक',
-      'Necklace': 'हार',
-      'Locket': 'लॉकेट',
-      'Neck band': 'गले का पट्टा',
-      'Gram': 'ग्राम',
-      'Kilogram': 'किलोग्राम',
-      'Milligram': 'मिलीग्राम',
-      'Tola': 'तोला',
+    const keys = {
+      'Husband': 'systemHusband',
+      'Father': 'systemFather',
+      'Wife': 'systemWife',
+      'Ring': 'systemRing',
+      'Anklet': 'systemAnklet',
+      'Bracelet': 'systemBracelet',
+      'Armlet': 'systemArmlet',
+      'Chain': 'systemChain',
+      'Ear-Ring': 'systemEarRing',
+      'Head-Locket': 'systemHeadLocket',
+      'Medal': 'systemMedal',
+      'Necklace': 'systemNecklace',
+      'Locket': 'systemLocket',
+      'Neck band': 'systemNeckBand',
+      'Gram': 'systemGram',
+      'Kilogram': 'systemKilogram',
+      'Milligram': 'systemMilligram',
+      'Tola': 'systemTola',
     };
-    const bnValues = {
-      'Husband': 'স্বামী',
-      'Father': 'বাবা',
-      'Wife': 'স্ত্রী',
-      'Ring': 'আংটি',
-      'Anklet': 'নূপুর',
-      'Bracelet': 'বালা',
-      'Armlet': 'বাজুবন্ধ',
-      'Chain': 'চেইন',
-      'Ear-Ring': 'কানের দুল',
-      'Head-Locket': 'মাথার লকেট',
-      'Medal': 'পদক',
-      'Necklace': 'হার',
-      'Locket': 'লকেট',
-      'Neck band': 'গলার বন্ধনী',
-      'Gram': 'গ্রাম',
-      'Kilogram': 'কিলোগ্রাম',
-      'Milligram': 'মিলিগ্রাম',
-      'Tola': 'তোলা',
-    };
-    return (hi
-            ? hiValues
-            : bn
-            ? bnValues
-            : const <String, String>{})[value] ??
-        value;
+    final key = keys[value];
+    return key == null
+        ? value
+        : CodegenLoader.mapLocales[code]?[key] as String? ?? value;
   }
 }
 
 _ShareCopy _shareCopy(Locale locale) => _ShareCopy(
-  locale.languageCode == 'hi' || locale.languageCode == 'bn'
+  CodegenLoader.mapLocales.containsKey(locale.languageCode)
       ? locale.languageCode
       : 'en',
 );
