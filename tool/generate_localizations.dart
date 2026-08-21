@@ -85,7 +85,7 @@ void _generateLoader(Map<String, Map<String, dynamic>> catalogs) {
     ..writeln(
       '  Future<Map<String, dynamic>?> load(String path, Locale locale) {',
     )
-    ..writeln('    return Future.value(mapLocales[locale.toString()]);')
+    ..writeln('    return Future.value(mapLocales[locale.languageCode]);')
     ..writeln('  }')
     ..writeln()
     ..writeln(

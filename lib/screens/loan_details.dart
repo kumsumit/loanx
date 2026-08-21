@@ -149,6 +149,19 @@ class LoanDetails extends ConsumerWidget {
     final localeName = switch (locale.languageCode) {
       'hi' => 'hi_IN',
       'bn' => 'bn_IN',
+      'bho' || 'bra' || 'mai' || 'mwr' => 'hi_IN',
+      'mni' => 'bn_IN',
+      'as' => 'as_IN',
+      'gu' => 'gu_IN',
+      'kn' => 'kn_IN',
+      'ml' => 'ml_IN',
+      'mr' => 'mr_IN',
+      'ne' => 'ne_IN',
+      'or' => 'or_IN',
+      'pa' => 'pa_IN',
+      'ta' => 'ta_IN',
+      'te' => 'te_IN',
+      'ur' => 'ur_IN',
       _ => 'en_IN',
     };
     final currency = NumberFormat.currency(

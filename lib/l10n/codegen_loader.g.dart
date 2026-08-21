@@ -7,7 +7,7 @@ import 'package:easy_localization/easy_localization.dart' show AssetLoader;
 import 'codegen_loader_as.g.dart' as locale_as;
 import 'codegen_loader_bho.g.dart' as locale_bho;
 import 'codegen_loader_bn.g.dart' as locale_bn;
-import 'codegen_loader_br.g.dart' as locale_br;
+import 'codegen_loader_bra.g.dart' as locale_bra;
 import 'codegen_loader_en.g.dart' as locale_en;
 import 'codegen_loader_gu.g.dart' as locale_gu;
 import 'codegen_loader_hi.g.dart' as locale_hi;
@@ -29,14 +29,14 @@ class CodegenLoader extends AssetLoader {
 
   @override
   Future<Map<String, dynamic>?> load(String path, Locale locale) {
-    return Future.value(mapLocales[locale.toString()]);
+    return Future.value(mapLocales[locale.languageCode]);
   }
 
   static const Map<String, Map<String, dynamic>> mapLocales = {
     'as': locale_as.translations,
     'bho': locale_bho.translations,
     'bn': locale_bn.translations,
-    'br': locale_br.translations,
+    'bra': locale_bra.translations,
     'en': locale_en.translations,
     'gu': locale_gu.translations,
     'hi': locale_hi.translations,

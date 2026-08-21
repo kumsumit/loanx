@@ -7,7 +7,7 @@ const appLanguages = <({Locale locale, String nativeName})>[
   (locale: Locale('bho'), nativeName: 'भोजपुरी'),
   (locale: Locale('en'), nativeName: 'English'),
   (locale: Locale('bn'), nativeName: 'বাংলা'),
-  (locale: Locale('br'), nativeName: 'ब्रज भाषा'),
+  (locale: Locale('bra'), nativeName: 'ब्रज भाषा'),
   (locale: Locale('gu'), nativeName: 'ગુજરાતી'),
   (locale: Locale('hi'), nativeName: 'हिन्दी'),
   (locale: Locale('kn'), nativeName: 'ಕನ್ನಡ'),
