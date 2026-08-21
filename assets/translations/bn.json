@@ -1,0 +1,42 @@
+{
+  "loan": "ঋণ",
+  "loans": "ঋণ",
+  "loanx": "ঋণ-এক্স",
+
+  "manage": "পরিচালনা",
+
+  "simpleInterest": "সরল সুদ",
+  "compoundInterest": "চক্রবৃদ্ধি সুদ",
+
+  "addLoan": "ঋণ যোগ করুন",
+  "addMortgage": "বন্ধক যোগ করুন",
+  "addMortgageMaterial": "বন্ধকী জিনিস যোগ করুন",
+  "addFamilyRelation": "পারিবারিক সম্পর্ক যোগ করুন",
+
+  "editLoan": "ঋণ সম্পাদনা করুন",
+  "editMortgage": "বন্ধক সম্পাদনা করুন",
+  "editMortgageMaterial": "বন্ধকী জিনিস সম্পাদনা করুন",
+  "editFamilyRelation": "পারিবারিক সম্পর্ক সম্পাদনা করুন",
+
+  "deleteLoan": "ঋণ মুছে দিন",
+  "deleteMortgage": "বন্ধক মুছে দিন",
+  "deleteMortgageMaterial": "বন্ধকী জিনিস মুছে দিন",
+  "deleteFamilyRelation": "পারিবারিক সম্পর্ক মুছে দিন",
+
+  "deleteMultipleLoan": "একাধিক ঋণ মুছে দিন",
+  "deleteMultipleMortgage": "একাধিক বন্ধক মুছে দিন",
+  "deleteMultipleMortgageMaterial": "একাধিক বন্ধকী জিনিস মুছে দিন",
+  "deleteMultipleFamilyRelation": "একাধিক পারিবারিক সম্পর্ক মুছে দিন",
+
+  "confirmDelete": "আপনি কি নিশ্চিত যে এই ঋণের রেকর্ডটি মুছে দিতে চান?",
+  "confirmDeleteMultiple": "আপনি কি নিশ্চিত যে এই ঋণের রেকর্ডগুলি মুছে দিতে চান?",
+
+  "confirmDeleteMortgage": "আপনি কি নিশ্চিত যে এই বন্ধকের রেকর্ডটি মুছে দিতে চান?",
+  "confirmDeleteMultipleMortgage": "আপনি কি নিশ্চিত যে এই বন্ধকের রেকর্ডগুলি মুছে দিতে চান?",
+
+  "confirmDeleteMortgageMaterial": "আপনি কি নিশ্চিত যে এই বন্ধকী জিনিসের রেকর্ডটি মুছে দিতে চান?",
+  "confirmDeleteMultipleMortgageMaterial": "আপনি কি নিশ্চিত যে এই বন্ধকী জিনিসগুলির রেকর্ডগুলি মুছে দিতে চান?",
+
+  "confirmDeleteFamilyRelation": "আপনি কি নিশ্চিত যে এই পারিবারিক সম্পর্কের রেকর্ডটি মুছে দিতে চান?",
+  "confirmDeleteMultipleFamilyRelation": "আপনি কি নিশ্চিত যে এই পারিবারিক সম্পর্কগুলির রেকর্ডগুলি মুছে দিতে চান?"
+}

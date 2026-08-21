@@ -2,13 +2,12 @@
 // import 'package:device_preview/device_preview.dart';
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
-import 'package:loanx/l10n/app_localizations.dart';
 import 'package:loanx/screens/ask_backup_screen.dart';
 import 'package:loanx/screens/error.dart';
 import 'package:loanx/screens/unauthorized.dart';
@@ -26,6 +25,7 @@ import 'db/fastdb.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   FlutterError.onError = (details) {
@@ -70,9 +70,15 @@ void main() async {
   // final directory = await getApplicationSupportDirectory();
   FlutterNativeSplash.remove();
   runApp(
-    ProviderScope(
-      // overrides: [databaseProvider.overrideWithValue(database)],
-      child: const MyApp(),
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('hi'), Locale('bn')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      useOnlyLangCode: true,
+      child: const ProviderScope(
+        // overrides: [databaseProvider.overrideWithValue(database)],
+        child: MyApp(),
+      ),
     ),
   );
   // runApp(DevicePreview(
@@ -144,21 +150,9 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
           return AuthScreen();
         },
       ),
-      locale: const Locale('en', 'IN'),
-      localizationsDelegates: [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: [
-        const Locale('en', 'IN'),
-        const Locale('hi', 'IN'),
-        // const Locale('bn', 'IN'),
-        // const Locale('mr', 'in'),
-        // const Locale('ta', 'in'),
-        // const Locale('te', 'in'),
-      ],
+      locale: context.locale,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
     );
     // errorMessage: err.toString() + obj.toString(),
   }

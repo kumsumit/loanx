@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  easy_localization: ^3.0.8
   flutter_localizations:
     sdk: flutter  
   intl: ^0.20.3
@@ -96,6 +97,8 @@ dev_dependencies:
 dependency_overrides: 
   path_provider:
     git: https://github.com/kumsumit/path_provider.git
+  shared_preferences:
+    git: https://github.com/kumsumit/shared_preferences.git
   plugin_platform_interface:
     git: https://github.com/kumsumit/plugin_platform_interface.git
   meta: ^1.19.0    
@@ -105,6 +108,7 @@ flutter:
   generate: true
   assets:
     - assets/
+    - assets/translations/
     - shorebird.yaml
   fonts:
     - family: K

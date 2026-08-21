@@ -1,0 +1,42 @@
+{
+  "loan": "लोन",
+  "loans": "लोन",
+  "loanx": "लोन-एक्स",
+
+  "manage": "प्रबंधन",
+
+  "simpleInterest": "साधारण ब्याज",
+  "compoundInterest": "चक्रवृद्धि ब्याज",
+
+  "addLoan": "लोन जोड़ें",
+  "addMortgage": "बंधक जोड़ें",
+  "addMortgageMaterial": "बंधक की वस्तु जोड़ें",
+  "addFamilyRelation": "पारिवारिक संबंध जोड़ें",
+
+  "editLoan": "लोन संपादित करें",
+  "editMortgage": "बंधक संपादित करें",
+  "editMortgageMaterial": "बंधक की वस्तु संपादित करें",
+  "editFamilyRelation": "पारिवारिक संबंध संपादित करें",
+
+  "deleteLoan": "लोन हटाएँ",
+  "deleteMortgage": "बंधक हटाएँ",
+  "deleteMortgageMaterial": "बंधक की वस्तु हटाएँ",
+  "deleteFamilyRelation": "पारिवारिक संबंध हटाएँ",
+
+  "deleteMultipleLoan": "एक से अधिक लोन हटाएँ",
+  "deleteMultipleMortgage": "एक से अधिक बंधक हटाएँ",
+  "deleteMultipleMortgageMaterial": "एक से अधिक बंधक की वस्तुएँ हटाएँ",
+  "deleteMultipleFamilyRelation": "एक से अधिक पारिवारिक संबंध हटाएँ",
+
+  "confirmDelete": "क्या आप वाकई इस लोन का रिकॉर्ड हटाना चाहते हैं?",
+  "confirmDeleteMultiple": "क्या आप वाकई इन लोन के रिकॉर्ड हटाना चाहते हैं?",
+
+  "confirmDeleteMortgage": "क्या आप वाकई इस बंधक का रिकॉर्ड हटाना चाहते हैं?",
+  "confirmDeleteMultipleMortgage": "क्या आप वाकई इन बंधकों के रिकॉर्ड हटाना चाहते हैं?",
+
+  "confirmDeleteMortgageMaterial": "क्या आप वाकई इस बंधक की वस्तु का रिकॉर्ड हटाना चाहते हैं?",
+  "confirmDeleteMultipleMortgageMaterial": "क्या आप वाकई इन बंधक की वस्तुओं के रिकॉर्ड हटाना चाहते हैं?",
+
+  "confirmDeleteFamilyRelation": "क्या आप वाकई इस पारिवारिक संबंध का रिकॉर्ड हटाना चाहते हैं?",
+  "confirmDeleteMultipleFamilyRelation": "क्या आप वाकई इन पारिवारिक संबंधों के रिकॉर्ड हटाना चाहते हैं?"
+}

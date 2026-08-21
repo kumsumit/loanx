@@ -1,11 +1,11 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:loanx/l10n/app_localizations.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/home.dart';
@@ -28,8 +28,12 @@ class DashBoard extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final currentIndex = useState<int>(0);
-    final title = useState<String>(AppLocalizations.of(context)!.loanx);
+    final title = useState<String>('loanx'.tr());
     final theme = Theme.of(context);
+    useEffect(() {
+      title.value = currentIndex.value == 0 ? 'loanx'.tr() : 'manage'.tr();
+      return null;
+    }, [context.locale]);
     if (Platform.isAndroid || Platform.isIOS) {
       useEffect(() {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -392,7 +396,7 @@ Shared from LoanX
         selectedIndex: currentIndex.value,
         onDestinationSelected: (index) {
           currentIndex.value = index;
-          title.value = index == 0 ? "LoanX" : "Manage";
+          title.value = index == 0 ? 'loanx'.tr() : 'manage'.tr();
         },
         destinations: [
           NavigationDestination(
