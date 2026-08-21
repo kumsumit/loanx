@@ -88,7 +88,7 @@ class SearchAppBar extends HookWidget {
                                   .firstWhere(
                                     (mo) => mo.id == loan.mortgageMaterialId,
                                   )
-                                  .name,
+                                  .localizedName,
                             ),
                           );
                         },

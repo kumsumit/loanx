@@ -104,7 +104,6 @@ class MortgageMaterialView extends StatelessWidget {
                                   Text(
                                     localizedMortgageMaterialName(
                                       element['name'],
-                                      isCustom,
                                     ),
                                     style: theme.textTheme.bodyLarge?.copyWith(
                                       fontWeight: FontWeight.w500,

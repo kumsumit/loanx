@@ -16,12 +16,10 @@ extension FamilyRelationLocalization on FamilyRelation {
 }
 
 extension MortgageMaterialLocalization on MortgageMaterial {
-  String get localizedName =>
-      localizedMortgageMaterialName(name, isAddedByUser == 1);
+  String get localizedName => localizedMortgageMaterialName(name);
 }
 
-String localizedMortgageMaterialName(String name, bool isCustom) {
-  if (isCustom) return name;
+String localizedMortgageMaterialName(String name) {
   return switch (name) {
     'Ring' => LocaleKeys.systemRing.tr(),
     'Anklet' => LocaleKeys.systemAnklet.tr(),
@@ -34,6 +32,9 @@ String localizedMortgageMaterialName(String name, bool isCustom) {
     'Necklace' => LocaleKeys.systemNecklace.tr(),
     'Locket' => LocaleKeys.systemLocket.tr(),
     'Neck band' => LocaleKeys.systemNeckBand.tr(),
+    // Custom material names are user content and should not be translated.
+    // Match built-in names first so older/imported records that were
+    // incorrectly marked as custom still follow the selected locale.
     _ => name,
   };
 }
