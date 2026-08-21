@@ -37,21 +37,23 @@ Future<void> showAppLanguagePicker(BuildContext context) async {
     builder: (dialogContext) => AlertDialog(
       title: Text(LocaleKeys.chooseAppLanguage.tr()),
       contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-      content: RadioGroup<String>(
-        groupValue: context.locale.languageCode,
-        onChanged: (languageCode) {
-          if (languageCode == null) return;
-          Navigator.of(dialogContext).pop(Locale(languageCode));
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final language in appLanguages)
-              RadioListTile<String>(
-                value: language.locale.languageCode,
-                title: Text(language.nativeName),
-              ),
-          ],
+      content: SingleChildScrollView(
+        child: RadioGroup<String>(
+          groupValue: context.locale.languageCode,
+          onChanged: (languageCode) {
+            if (languageCode == null) return;
+            Navigator.of(dialogContext).pop(Locale(languageCode));
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final language in appLanguages)
+                RadioListTile<String>(
+                  value: language.locale.languageCode,
+                  title: Text(language.nativeName),
+                ),
+            ],
+          ),
         ),
       ),
       actions: [

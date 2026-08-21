@@ -1,4 +1,5 @@
 import 'package:loanx/l10n/locale_keys.g.dart';
+import 'package:loanx/l10n/intl_locale.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -40,7 +41,7 @@ class MortgageListView extends StatelessWidget {
         final selected = loanSelectionList.contains(loan.id);
         final colors = Theme.of(context).colorScheme;
         final amount = NumberFormat.currency(
-          locale: context.locale.toString(),
+          locale: intlLocaleName(context.locale),
           symbol: '₹',
           decimalDigits: 0,
         ).format(loan.loanAmount);

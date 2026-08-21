@@ -3,8 +3,10 @@
 import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
@@ -24,6 +26,46 @@ import 'package:workmanager/workmanager.dart';
 // import 'package:path_provider/path_provider.dart';
 
 import 'db/fastdb.dart';
+
+class _FallbackMaterialLocalizationsDelegate
+    extends LocalizationsDelegate<MaterialLocalizations> {
+  const _FallbackMaterialLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => true;
+
+  @override
+  Future<MaterialLocalizations> load(Locale locale) {
+    final materialLocale =
+        GlobalMaterialLocalizations.delegate.isSupported(locale)
+        ? locale
+        : const Locale('en');
+    return GlobalMaterialLocalizations.delegate.load(materialLocale);
+  }
+
+  @override
+  bool shouldReload(_FallbackMaterialLocalizationsDelegate old) => false;
+}
+
+class _FallbackCupertinoLocalizationsDelegate
+    extends LocalizationsDelegate<CupertinoLocalizations> {
+  const _FallbackCupertinoLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => true;
+
+  @override
+  Future<CupertinoLocalizations> load(Locale locale) {
+    final cupertinoLocale =
+        GlobalCupertinoLocalizations.delegate.isSupported(locale)
+        ? locale
+        : const Locale('en');
+    return GlobalCupertinoLocalizations.delegate.load(cupertinoLocale);
+  }
+
+  @override
+  bool shouldReload(_FallbackCupertinoLocalizationsDelegate old) => false;
+}
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -156,7 +198,11 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
               },
             ),
       locale: context.locale,
-      localizationsDelegates: context.localizationDelegates,
+      localizationsDelegates: [
+        const _FallbackMaterialLocalizationsDelegate(),
+        const _FallbackCupertinoLocalizationsDelegate(),
+        ...context.localizationDelegates,
+      ],
       supportedLocales: context.supportedLocales,
     );
     // errorMessage: err.toString() + obj.toString(),
