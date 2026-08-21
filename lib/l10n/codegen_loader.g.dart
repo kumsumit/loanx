@@ -14,6 +14,7 @@ class CodegenLoader extends AssetLoader {
 
   static const Map<String, dynamic> _en = {
     "loanDetailsFor": "Loan details for {name}",
+    "daysCount": "{count} days",
     "shareAppSubject": "Install this awesome app!",
     "shareAppMessage":
         "LoanX helps you calculate payments, understand loan types, and manage how much you can borrow. LoanX is available on Android and iOS.\n\nDownload LoanX:\nPlay Store: https://play.google.com/store/apps/details?id=com.kumpali.loanx\nApp Store: https://apps.apple.com/us/app/loanx-loanx-calculator/id1502002892\n\nThank you for using LoanX!",
@@ -450,6 +451,7 @@ class CodegenLoader extends AssetLoader {
   };
   static const Map<String, dynamic> _hi = {
     "loanDetailsFor": "{name} के ऋण का विवरण",
+    "daysCount": "{count} दिन",
     "shareAppSubject": "इस शानदार ऐप को इंस्टॉल करें!",
     "shareAppMessage":
         "LoanX भुगतान की गणना करने, ऋण के प्रकार समझने और उधार की राशि प्रबंधित करने में आपकी मदद करता है। LoanX Android और iOS पर उपलब्ध है।\n\nLoanX डाउनलोड करें:\nPlay Store: https://play.google.com/store/apps/details?id=com.kumpali.loanx\nApp Store: https://apps.apple.com/us/app/loanx-loanx-calculator/id1502002892\n\nLoanX का उपयोग करने के लिए धन्यवाद!",
@@ -889,6 +891,7 @@ class CodegenLoader extends AssetLoader {
   };
   static const Map<String, dynamic> _bn = {
     "loanDetailsFor": "{name}-এর ঋণের বিবরণ",
+    "daysCount": "{count} দিন",
     "shareAppSubject": "এই দারুণ অ্যাপটি ইনস্টল করুন!",
     "shareAppMessage":
         "LoanX আপনাকে পরিশোধের হিসাব করতে, ঋণের ধরন বুঝতে এবং কত টাকা ধার নেওয়া যাবে তা পরিচালনা করতে সাহায্য করে। LoanX Android ও iOS-এ পাওয়া যায়।\n\nLoanX ডাউনলোড করুন:\nPlay Store: https://play.google.com/store/apps/details?id=com.kumpali.loanx\nApp Store: https://apps.apple.com/us/app/loanx-loanx-calculator/id1502002892\n\nLoanX ব্যবহার করার জন্য ধন্যবাদ!",

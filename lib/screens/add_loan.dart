@@ -6,7 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/fastdb.dart';
-import 'package:loanx/extension/string.dart';
+import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
@@ -205,8 +205,8 @@ class LoanInput extends HookConsumerWidget {
                   leading: const Icon(Icons.tune_rounded),
                   title: Text(LocaleKeys.loanTerms.tr()),
                   subtitle: Text(
-                    '${interestType.value.name.toSentenceCase()} · '
-                    '${currentInterestRate.toStringAsFixed(2)}% ${interestFrequency.value.name.toSentenceCase()} · '
+                    '${interestType.value.localizedLabel} · '
+                    '${currentInterestRate.toStringAsFixed(2)}% ${interestFrequency.value.localizedLabel} · '
                     '${mortgageTermYears.value} years · $lockInSummary',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -330,7 +330,11 @@ class LoanInput extends HookConsumerWidget {
                       min: 1,
                       max: 30,
                       divisions: 29,
-                      label: '${mortgageTermYears.value} years',
+                      label: LocaleKeys.yearsCount.tr(
+                        namedArgs: {
+                          'count': mortgageTermYears.value.toString(),
+                        },
+                      ),
                       onChanged: (value) {
                         mortgageTermYears.value = value.round();
                       },
@@ -910,15 +914,24 @@ class LoanInput extends HookConsumerWidget {
           'Loan value per $weightUnit',
           currency.format(principal / mortgageWeight),
         ),
-      MapEntry('Mortgage term', '$mortgageTermYears years'),
+      MapEntry(
+        'Mortgage term',
+        LocaleKeys.yearsCount.tr(
+          namedArgs: {'count': mortgageTermYears.toString()},
+        ),
+      ),
       MapEntry(
         'Interest',
-        '${interestRate.toStringAsFixed(2)}% · ${interestType.name.toSentenceCase()}',
+        '${interestRate.toStringAsFixed(2)}% · ${interestType.localizedLabel}',
       ),
-      MapEntry('Interest frequency', interestFrequency.name.toSentenceCase()),
+      MapEntry('Interest frequency', interestFrequency.localizedLabel),
       MapEntry(
         'Lock-in period',
-        lockInDays == 0 ? 'No lock-in' : '$lockInDays days',
+        lockInDays == 0
+            ? LocaleKeys.noLockIn.tr()
+            : LocaleKeys.daysCount.tr(
+                namedArgs: {'count': lockInDays.toString()},
+              ),
       ),
       if (lockInDays > 0)
         MapEntry(

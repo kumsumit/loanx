@@ -2,7 +2,7 @@ import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:loanx/extension/string.dart';
+import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/provider/provider.dart';
@@ -153,7 +153,7 @@ Relative name: ${loan.relativeName}${relativeRelation == null ? '' : ' ($relativ
 Mortgage name: ${mortgageName ?? 'Not recorded'}
 Weight: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}' : 'Not recorded'}
 Loan amount: ${currency.format(loan.loanAmount)}
-Interest: ${loan.interestRate}% (${InterestType.values[loan.interestType].name.toSentenceCase()})
+Interest: ${loan.interestRate}% (${InterestType.values[loan.interestType].localizedLabel})
 Mortgage term: ${loan.mortgageTermYears} years
 ${loan.lockInDays > 0 ? 'Lock-in period: ${loan.lockInDays} days (until ${DateFormat('d MMM yyyy').format(loan.lockInEndsAt)})\nEarly redemption charge: ${currency.format(loan.earlyRedemptionCharge)} if redeemed before this date\n' : ''}Estimated amount due as of ${DateFormat('d MMM yyyy').format(calculationDate)}: ${currency.format(collectable)}
 Status: ${loan.isFinished() ? 'Completed' : 'Active'}
@@ -385,19 +385,22 @@ class _DetailsContent extends ConsumerWidget {
                 icon: Icons.percent_rounded,
                 label: 'Interest',
                 value:
-                    '${loan.interestRate}% · ${InterestType.values[loan.interestType].name.toSentenceCase()}',
+                    '${loan.interestRate}% · ${InterestType.values[loan.interestType].localizedLabel}',
               ),
               if (loan.interestType == InterestType.compound.index)
                 _DetailRow(
                   icon: Icons.calendar_month_outlined,
                   label: 'Frequency',
-                  value: InterestFrequency.values[loan.interestFrequency].name
-                      .toSentenceCase(),
+                  value: InterestFrequency
+                      .values[loan.interestFrequency]
+                      .localizedLabel,
                 ),
               _DetailRow(
                 icon: Icons.event_repeat_outlined,
                 label: 'Mortgage term',
-                value: '${loan.mortgageTermYears} years',
+                value: LocaleKeys.yearsCount.tr(
+                  namedArgs: {'count': loan.mortgageTermYears.toString()},
+                ),
               ),
               if (loan.lockInDays > 0) ...[
                 _DetailRow(

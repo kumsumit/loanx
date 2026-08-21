@@ -4,6 +4,7 @@
 
 abstract final class LocaleKeys {
   static const loanDetailsFor = "loanDetailsFor";
+  static const daysCount = "daysCount";
   static const shareAppSubject = "shareAppSubject";
   static const shareAppMessage = "shareAppMessage";
   static const loan = "loan";

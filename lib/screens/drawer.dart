@@ -9,6 +9,7 @@ import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/extension/string.dart';
+import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/db/fastdb.dart';
@@ -607,9 +608,7 @@ class MyDrawer extends HookConsumerWidget {
                         );
                         return StyledSubtitle(
                           LocaleKeys.defaultInterestType.tr(
-                            namedArgs: {
-                              'type': interestType.name.toSentenceCase(),
-                            },
+                            namedArgs: {'type': interestType.localizedLabel},
                           ),
                         );
                       },
@@ -727,7 +726,9 @@ class MyDrawer extends HookConsumerWidget {
                         title: StyledText(LocaleKeys.interestFrequency2.tr()),
                         subtitle: StyledSubtitle(
                           LocaleKeys.defaultInterestFrequency.tr(
-                            namedArgs: {'frequency': interestFrequency.name},
+                            namedArgs: {
+                              'frequency': interestFrequency.localizedLabel,
+                            },
                           ),
                         ),
                         onTap: () {
@@ -764,7 +765,7 @@ class MyDrawer extends HookConsumerWidget {
                                               RadioListTile(
                                                 value: option,
                                                 title: StyledSubtitle(
-                                                  option.name.toSentenceCase(),
+                                                  option.localizedLabel,
                                                 ),
                                               ),
                                           ],
@@ -773,7 +774,8 @@ class MyDrawer extends HookConsumerWidget {
                                       StyledText(
                                         LocaleKeys.interestFrequencySet.tr(
                                           namedArgs: {
-                                            'frequency': interestFrequency.name,
+                                            'frequency': interestFrequency
+                                                .localizedLabel,
                                           },
                                         ),
                                       ),

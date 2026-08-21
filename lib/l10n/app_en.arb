@@ -1,6 +1,7 @@
 {
   "@@locale": "en",
   "loanDetailsFor": "Loan details for {name}",
+  "daysCount": "{count} days",
   "shareAppSubject": "Install this awesome app!",
   "shareAppMessage": "LoanX helps you calculate payments, understand loan types, and manage how much you can borrow. LoanX is available on Android and iOS.\n\nDownload LoanX:\nPlay Store: https://play.google.com/store/apps/details?id=com.kumpali.loanx\nApp Store: https://apps.apple.com/us/app/loanx-loanx-calculator/id1502002892\n\nThank you for using LoanX!",
   "loan": "Loan",
