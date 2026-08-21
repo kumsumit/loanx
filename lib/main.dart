@@ -140,13 +140,11 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       debugShowCheckedModeBanner: false,
       home: context.savedLocale == null
           ? const StartupLanguageScreen()
+          : !FastDB.getIsTableCreated()
+          ? const AskBackupScreen()
           : authenticate.when(
               data: (data) {
-                return data
-                    ? FastDB.getIsTableCreated()
-                          ? const DashBoard()
-                          : const AskBackupScreen()
-                    : const AuthFailurePage();
+                return data ? const DashBoard() : const AuthFailurePage();
               },
               error: (err, obj) {
                 return ErrorPage();

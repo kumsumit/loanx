@@ -246,43 +246,50 @@ class AskBackupScreen extends HookWidget {
                             ),
                             const SizedBox(height: 12),
                             Consumer(
-                              builder: (context, ref, child) => OutlinedButton.icon(
-                                onPressed: () async {
-                                  isLoading.value = true;
-                                  if (!FastDB.getIsTableCreated()) {
-                                    ref
-                                        .read(dBProvider)
-                                        .when(
-                                          data: (data) async {
-                                            await DatabaseHelper.instance
-                                                .onCreate(data, 1);
-                                          },
-                                          error: (_, _) => showSnackBar(
+                              builder: (context, ref, child) =>
+                                  OutlinedButton.icon(
+                                    onPressed: () async {
+                                      isLoading.value = true;
+                                      try {
+                                        if (!FastDB.getIsTableCreated()) {
+                                          final database = await ref.read(
+                                            dBProvider.future,
+                                          );
+                                          await DatabaseHelper.instance
+                                              .onCreate(database, 1);
+                                          FastDB.putIsTableCreated(true);
+                                          await FastDB.flush();
+                                        }
+                                        if (context.mounted) {
+                                          Navigator.pushReplacement(
                                             context,
-                                            'Something went wrong. Please try again.'
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const DashBoard(),
+                                            ),
+                                          );
+                                        }
+                                      } catch (_) {
+                                        if (context.mounted) {
+                                          showSnackBar(
+                                            context,
+                                            LocaleKeys
+                                                .somethingWentWrongPleaseTryAgain
                                                 .tr(),
-                                          ),
-                                          loading: () {},
-                                        );
-                                  }
-                                  isLoading.value = false;
-                                  if (context.mounted) {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const DashBoard(),
-                                      ),
-                                    );
-                                  }
-                                },
-                                icon: const Icon(Icons.add_circle_outline),
-                                label: Text(
-                                  LocaleKeys.startWithANewWorkspace.tr(),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  minimumSize: const Size.fromHeight(52),
-                                ),
-                              ),
+                                          );
+                                        }
+                                      } finally {
+                                        isLoading.value = false;
+                                      }
+                                    },
+                                    icon: const Icon(Icons.add_circle_outline),
+                                    label: Text(
+                                      LocaleKeys.startWithANewWorkspace.tr(),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      minimumSize: const Size.fromHeight(52),
+                                    ),
+                                  ),
                             ),
                             const SizedBox(height: 16),
                             Text(
