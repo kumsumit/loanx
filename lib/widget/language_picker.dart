@@ -3,9 +3,25 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 const appLanguages = <({Locale locale, String nativeName})>[
+  (locale: Locale('as'), nativeName: 'অসমীয়া'),
+  (locale: Locale('bho'), nativeName: 'भोजपुरी'),
   (locale: Locale('en'), nativeName: 'English'),
-  (locale: Locale('hi'), nativeName: 'हिन्दी'),
   (locale: Locale('bn'), nativeName: 'বাংলা'),
+  (locale: Locale('br'), nativeName: 'ब्रज भाषा'),
+  (locale: Locale('gu'), nativeName: 'ગુજરાતી'),
+  (locale: Locale('hi'), nativeName: 'हिन्दी'),
+  (locale: Locale('kn'), nativeName: 'ಕನ್ನಡ'),
+  (locale: Locale('mai'), nativeName: 'मैथिली'),
+  (locale: Locale('ml'), nativeName: 'മലയാളം'),
+  (locale: Locale('mni'), nativeName: 'মৈতৈলোন্'),
+  (locale: Locale('mr'), nativeName: 'मराठी'),
+  (locale: Locale('mwr'), nativeName: 'मारवाड़ी'),
+  (locale: Locale('ne'), nativeName: 'नेपाली'),
+  (locale: Locale('or'), nativeName: 'ଓଡ଼ିଆ'),
+  (locale: Locale('pa'), nativeName: 'ਪੰਜਾਬੀ'),
+  (locale: Locale('ta'), nativeName: 'தமிழ்'),
+  (locale: Locale('te'), nativeName: 'తెలుగు'),
+  (locale: Locale('ur'), nativeName: 'اردو'),
 ];
 
 String appLanguageName(Locale locale) => appLanguages
