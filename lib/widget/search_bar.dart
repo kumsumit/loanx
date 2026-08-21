@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -40,8 +41,8 @@ class SearchAppBar extends HookWidget {
                         focusNode: focusNode,
                         autofocus: true,
                         decoration: InputDecoration(
-                          labelText: 'Search loans',
-                          hintText: 'Borrower, reference, or material',
+                          labelText: 'Search loans'.tr(),
+                          hintText: 'Borrower, reference, or material'.tr(),
                           prefixIcon: const Icon(Icons.search_rounded),
                         ),
                       );
@@ -52,7 +53,7 @@ class SearchAppBar extends HookWidget {
                           context,
                         ).colorScheme.surfaceContainer,
                         title: Text(
-                          "No matching loans",
+                          "No matching loans".tr(),
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.secondary,
                           ),
@@ -62,7 +63,7 @@ class SearchAppBar extends HookWidget {
                     errorBuilder: (context, error) {
                       return ListTile(
                         title: Text(
-                          "An error occurred",
+                          "An error occurred".tr(),
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.secondary,
                           ),
@@ -74,7 +75,7 @@ class SearchAppBar extends HookWidget {
                       return m.when(
                         data: (data) {
                           if (data.isEmpty) {
-                            return Center(child: Text("No data found"));
+                            return Center(child: Text("No data found".tr()));
                           }
                           return ListTile(
                             title: Text(loan.depositorName),
@@ -88,7 +89,7 @@ class SearchAppBar extends HookWidget {
                           );
                         },
                         error: (_, o) =>
-                            Center(child: Text("An error occurred")),
+                            Center(child: Text("An error occurred".tr())),
                         loading: () =>
                             Center(child: CircularProgressIndicator()),
                       );
@@ -117,7 +118,7 @@ class SearchAppBar extends HookWidget {
               builder: (context, ref, child) {
                 final loanListNotifier = ref.read(loanListProvider.notifier);
                 return PopupMenuButton<int>(
-                  tooltip: 'Search filters',
+                  tooltip: 'Search filters'.tr(),
                   icon: const Icon(Icons.tune_rounded),
                   onSelected: (value) async {
                     if (value == 3) {
@@ -153,23 +154,23 @@ class SearchAppBar extends HookWidget {
                     return [
                       PopupMenuItem<int>(
                         value: 1,
-                        child: StyledSubtitle('Depositor Name'),
+                        child: StyledSubtitle('Depositor Name'.tr()),
                       ),
                       PopupMenuItem<int>(
                         value: 2,
-                        child: StyledSubtitle('Relative Name'),
+                        child: StyledSubtitle('Relative Name'.tr()),
                       ),
                       PopupMenuItem<int>(
                         value: 3,
-                        child: StyledSubtitle('Date Of Loan'),
+                        child: StyledSubtitle('Date Of Loan'.tr()),
                       ),
                       PopupMenuItem<int>(
                         value: 4,
-                        child: StyledSubtitle('Date Range Of Loan'),
+                        child: StyledSubtitle('Date Range Of Loan'.tr()),
                       ),
                       PopupMenuItem<int>(
                         value: 5,
-                        child: StyledSubtitle('Mortgage Material Type'),
+                        child: StyledSubtitle('Mortgage Material Type'.tr()),
                       ),
                     ];
                   },
@@ -214,7 +215,7 @@ class SearchAppBar extends HookWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Select pledged material'),
+          title: Text('Select pledged material'.tr()),
           content: SingleChildScrollView(
             child: Consumer(
               builder: (context, ref, child) {
@@ -235,7 +236,8 @@ class SearchAppBar extends HookWidget {
                       );
                     },
                   ),
-                  error: (_, _) => Center(child: Text("An error occurred")),
+                  error: (_, _) =>
+                      Center(child: Text("An error occurred".tr())),
                   loading: () => Center(child: CircularProgressIndicator()),
                 );
               },

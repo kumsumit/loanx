@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/weight_unit.dart';
@@ -11,10 +12,10 @@ class WeightUnitView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final units = ref.watch(weightUnitListProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Weight Units')),
+      appBar: AppBar(title: Text('Weight Units'.tr())),
       body: units.when(
         data: (items) => items.isEmpty
-            ? const Center(child: Text('No weight units yet'))
+            ? Center(child: Text('No weight units yet'.tr()))
             : ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                 itemCount: items.length,
@@ -29,7 +30,14 @@ class WeightUnitView extends ConsumerWidget {
                       ),
                       title: Text(unit.name),
                       subtitle: Text(
-                        '${unit.symbol} · ${isCustom ? 'Custom unit' : 'System unit'}',
+                        'weightUnitType'.tr(
+                          namedArgs: {
+                            'symbol': unit.symbol,
+                            'type': isCustom
+                                ? 'Custom unit'.tr()
+                                : 'System unit'.tr(),
+                          },
+                        ),
                       ),
                       onTap: isCustom
                           ? () => _showUnitDialog(context, ref, unit)
@@ -39,13 +47,13 @@ class WeightUnitView extends ConsumerWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  tooltip: 'Edit',
+                                  tooltip: 'Edit'.tr(),
                                   onPressed: () =>
                                       _showUnitDialog(context, ref, unit),
                                   icon: const Icon(Icons.edit_outlined),
                                 ),
                                 IconButton(
-                                  tooltip: 'Delete',
+                                  tooltip: 'Delete'.tr(),
                                   color: Theme.of(context).colorScheme.error,
                                   onPressed: () =>
                                       _deleteUnit(context, ref, unit),
@@ -58,13 +66,13 @@ class WeightUnitView extends ConsumerWidget {
                   );
                 },
               ),
-        error: (_, _) => const Center(child: Text('Unable to load units')),
+        error: (_, _) => Center(child: Text('Unable to load units'.tr())),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showUnitDialog(context, ref, null),
         icon: const Icon(Icons.add),
-        label: const Text('Add unit'),
+        label: Text('Add unit'.tr()),
       ),
     );
   }
@@ -82,7 +90,9 @@ class WeightUnitView extends ConsumerWidget {
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.straighten_rounded),
-        title: Text(unit == null ? 'Add Weight Unit' : 'Edit Weight Unit'),
+        title: Text(
+          unit == null ? 'Add Weight Unit'.tr() : 'Edit Weight Unit'.tr(),
+        ),
         content: Form(
           key: formKey,
           child: Column(
@@ -92,18 +102,18 @@ class WeightUnitView extends ConsumerWidget {
                 controller: nameController,
                 autofocus: true,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Unit name',
-                  hintText: 'Example: Ounce',
+                decoration: InputDecoration(
+                  labelText: 'Unit name'.tr(),
+                  hintText: 'Example: Ounce'.tr(),
                 ),
                 validator: _required,
               ),
               const SizedBox(height: 14),
               TextFormField(
                 controller: symbolController,
-                decoration: const InputDecoration(
-                  labelText: 'Symbol',
-                  hintText: 'Example: oz',
+                decoration: InputDecoration(
+                  labelText: 'Symbol'.tr(),
+                  hintText: 'Example: oz'.tr(),
                 ),
                 validator: _required,
               ),
@@ -113,7 +123,7 @@ class WeightUnitView extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr()),
           ),
           FilledButton(
             onPressed: () async {
@@ -126,7 +136,7 @@ class WeightUnitView extends ConsumerWidget {
                 );
                 if (result < 0) {
                   if (dialogContext.mounted) {
-                    showSnackBar(dialogContext, 'Unit already exists');
+                    showSnackBar(dialogContext, 'Unit already exists'.tr());
                   }
                   return;
                 }
@@ -140,7 +150,7 @@ class WeightUnitView extends ConsumerWidget {
               }
               if (dialogContext.mounted) Navigator.pop(dialogContext);
             },
-            child: Text(unit == null ? 'Add' : 'Save'),
+            child: Text(unit == null ? 'Add'.tr() : 'Save'.tr()),
           ),
         ],
       ),
@@ -157,18 +167,20 @@ class WeightUnitView extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete weight unit?'),
+        title: Text('Delete weight unit?'.tr()),
         content: Text(
-          'Remove ${unit.name} (${unit.symbol}) from future selections? Existing loans will keep their saved unit.',
+          'deleteWeightUnitMessage'.tr(
+            namedArgs: {'name': unit.name, 'symbol': unit.symbol},
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr()),
           ),
           FilledButton.tonal(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
+            child: Text('Delete'.tr()),
           ),
         ],
       ),
@@ -179,5 +191,7 @@ class WeightUnitView extends ConsumerWidget {
   }
 
   static String? _required(String? value) =>
-      value == null || value.trim().isEmpty ? 'This field is required' : null;
+      value == null || value.trim().isEmpty
+      ? 'This field is required'.tr()
+      : null;
 }

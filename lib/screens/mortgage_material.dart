@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,7 +15,7 @@ class MortgageMaterialView extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mortgage Materials'),
+        title: Text('Mortgage Materials'.tr()),
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
@@ -47,7 +48,7 @@ class MortgageMaterialView extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        groupByValue,
+                        groupByValue.tr(),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -106,8 +107,8 @@ class MortgageMaterialView extends StatelessWidget {
                                   const SizedBox(height: 2),
                                   Text(
                                     isCustom
-                                        ? 'Custom material'
-                                        : 'System material',
+                                        ? 'Custom material'.tr()
+                                        : 'System material'.tr(),
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.colorScheme.onSurfaceVariant,
                                     ),
@@ -117,7 +118,7 @@ class MortgageMaterialView extends StatelessWidget {
                             ),
                             if (isCustom)
                               IconButton(
-                                tooltip: 'Delete',
+                                tooltip: 'Delete'.tr(),
                                 icon: const Icon(
                                   Icons.delete_outline_rounded,
                                   size: 20,
@@ -158,7 +159,7 @@ class MortgageMaterialView extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => mortgageDialog(context, null),
         icon: const Icon(Icons.add),
-        label: const Text('Add material'),
+        label: Text('Add material'.tr()),
       ),
     );
   }
@@ -173,15 +174,16 @@ class MortgageMaterialView extends StatelessWidget {
           color: Theme.of(context).colorScheme.error,
           size: 32,
         ),
-        title: StyledHeading('Delete Mortgage Material'),
+        title: StyledHeading('Delete Mortgage Material'.tr()),
         content: StyledSubtitle(
-          'Are you sure you want to delete this mortgage material? This action cannot be undone.',
+          'Are you sure you want to delete this mortgage material? This action cannot be undone.'
+              .tr(),
         ),
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr()),
           ),
           FilledButton.tonal(
             style: FilledButton.styleFrom(
@@ -192,10 +194,13 @@ class MortgageMaterialView extends StatelessWidget {
               await ref.read(mortgageMaterialListProvider.notifier).delete(id);
               if (context.mounted) {
                 Navigator.of(context).pop();
-                showSnackBar(context, 'Mortgage Material deleted successfully');
+                showSnackBar(
+                  context,
+                  'Mortgage Material deleted successfully'.tr(),
+                );
               }
             },
-            child: const Text('Delete'),
+            child: Text('Delete'.tr()),
           ),
         ],
       ),
@@ -218,7 +223,9 @@ class MortgageMaterialView extends StatelessWidget {
             size: 32,
           ),
           title: StyledHeading(
-            name == null ? 'Add Mortgage Material' : 'Edit Mortgage Material',
+            name == null
+                ? 'Add Mortgage Material'.tr()
+                : 'Edit Mortgage Material'.tr(),
           ),
           content: Form(
             key: formKey,
@@ -226,14 +233,14 @@ class MortgageMaterialView extends StatelessWidget {
               style: TextStyle(color: Theme.of(context).colorScheme.secondary),
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().isEmpty) {
-                  return 'Mortgage Material cannot be empty';
+                  return 'Mortgage Material cannot be empty'.tr();
                 }
                 return null;
               },
               autofocus: true,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                hintText: 'Enter the Mortgage Material',
+                hintText: 'Enter the Mortgage Material'.tr(),
                 hintStyle: TextStyle(
                   color: Theme.of(
                     context,
@@ -252,12 +259,12 @@ class MortgageMaterialView extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text('Cancel'.tr()),
             ),
             Consumer(
               builder: (context, ref, child) {
                 return FilledButton(
-                  child: const Text('Submit'),
+                  child: Text('Submit'.tr()),
                   onPressed: () async {
                     if (formKey.currentState != null &&
                         formKey.currentState!.validate()) {
@@ -272,12 +279,12 @@ class MortgageMaterialView extends StatelessWidget {
                         if (status > 0) {
                           showSnackBar(
                             context,
-                            'Mortgage Material added successfully',
+                            'Mortgage Material added successfully'.tr(),
                           );
                         } else {
                           showSnackBar(
                             context,
-                            'Mortgage Material already exists',
+                            'Mortgage Material already exists'.tr(),
                           );
                         }
                       }
@@ -313,13 +320,13 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No mortgage materials yet',
+              'No mortgage materials yet'.tr(),
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
             Text(
-              'Tap "Add material" to create your first one.',
+              'Tap "Add material" to create your first one.'.tr(),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -351,10 +358,13 @@ class _ErrorState extends StatelessWidget {
               color: theme.colorScheme.error,
             ),
             const SizedBox(height: 12),
-            Text('Something went wrong', style: theme.textTheme.titleMedium),
+            Text(
+              'Something went wrong'.tr(),
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 4),
             Text(
-              'Please try again in a moment.',
+              'Please try again in a moment.'.tr(),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

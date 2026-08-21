@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,9 +13,10 @@ class AuthFailurePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AppStatePage(
       icon: Icons.lock_outline_rounded,
-      title: 'Authentication failed',
+      title: 'Authentication failed'.tr(),
       message:
-          'We could not verify your identity. Unlock your device and try again.',
+          'We could not verify your identity. Unlock your device and try again.'
+              .tr(),
       isError: true,
       actions: [
         FilledButton.icon(
@@ -37,12 +39,12 @@ class AuthFailurePage extends ConsumerWidget {
                 );
           },
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Try again'),
+          label: Text('Try again'.tr()),
         ),
         TextButton.icon(
           onPressed: SystemNavigator.pop,
           icon: const Icon(Icons.close_rounded),
-          label: const Text('Close app'),
+          label: Text('Close app'.tr()),
         ),
       ],
     );

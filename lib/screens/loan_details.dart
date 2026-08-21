@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:loanx/extension/string.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
@@ -30,10 +30,10 @@ class LoanDetails extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Loan details'),
+        title: Text('Loan details'.tr()),
         actions: [
           IconButton(
-            tooltip: 'Save borrower as contact',
+            tooltip: 'Save borrower as contact'.tr(),
             icon: const Icon(Icons.person_add_alt_1_outlined),
             onPressed: currentLoan.phoneNumber.trim().isEmpty
                 ? null
@@ -45,13 +45,13 @@ class LoanDetails extends ConsumerWidget {
                     if (context.mounted && !opened) {
                       showSnackBar(
                         context,
-                        'Could not open the contact editor',
+                        'Could not open the contact editor'.tr(),
                       );
                     }
                   },
           ),
           IconButton(
-            tooltip: 'Share loan details',
+            tooltip: 'Share loan details'.tr(),
             icon: const Icon(Icons.share_outlined),
             onPressed: () {
               final relations = ref.read(familyRelationListProvider).value;
@@ -79,7 +79,7 @@ class LoanDetails extends ConsumerWidget {
             },
           ),
           IconButton(
-            tooltip: 'Edit loan',
+            tooltip: 'Edit loan'.tr(),
             icon: const Icon(Icons.edit_outlined),
             onPressed: () {
               Navigator.of(context).push(
@@ -91,8 +91,8 @@ class LoanDetails extends ConsumerWidget {
           ),
           IconButton(
             tooltip: currentLoan.isFinished()
-                ? 'Loan already completed'
-                : 'Mark as complete',
+                ? 'Loan already completed'.tr()
+                : 'Mark as complete'.tr(),
             icon: const Icon(Icons.task_alt_outlined),
             onPressed: currentLoan.isFinished()
                 ? null
@@ -176,21 +176,22 @@ Sent via LoanX''';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Complete and return item'),
+        title: Text('Complete and return item'.tr()),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Record the handover details for a complete settlement history.',
+              Text(
+                'Record the handover details for a complete settlement history.'
+                    .tr(),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: receivedByController,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Item received by',
-                  hintText: 'Name of borrower or authorised recipient',
+                decoration: InputDecoration(
+                  labelText: 'Item received by'.tr(),
+                  hintText: 'Name of borrower or authorised recipient'.tr(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -199,16 +200,16 @@ Sent via LoanX''';
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(
-                  labelText: 'Amount received',
+                decoration: InputDecoration(
+                  labelText: 'Amount received'.tr(),
                   prefixText: '₹ ',
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: referenceController,
-                decoration: const InputDecoration(
-                  labelText: 'Receipt or reference number (optional)',
+                decoration: InputDecoration(
+                  labelText: 'Receipt or reference number (optional)'.tr(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -216,9 +217,9 @@ Sent via LoanX''';
                 controller: notesController,
                 minLines: 2,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'Settlement notes (optional)',
-                  hintText: 'Item condition, witnesses, or other details',
+                decoration: InputDecoration(
+                  labelText: 'Settlement notes (optional)'.tr(),
+                  hintText: 'Item condition, witnesses, or other details'.tr(),
                 ),
               ),
             ],
@@ -227,7 +228,7 @@ Sent via LoanX''';
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr()),
           ),
           FilledButton(
             onPressed: () {
@@ -237,13 +238,13 @@ Sent via LoanX''';
                   amount < 0) {
                 showSnackBar(
                   context,
-                  'Enter the recipient and a valid amount received',
+                  'Enter the recipient and a valid amount received'.tr(),
                 );
                 return;
               }
               Navigator.of(dialogContext).pop(true);
             },
-            child: const Text('Complete loan'),
+            child: Text('Complete loan'.tr()),
           ),
         ],
       ),
@@ -268,7 +269,7 @@ Sent via LoanX''';
     notesController.dispose();
     await ref.read(loanListProvider.notifier).updateLoan(loan);
     if (context.mounted) {
-      showSnackBar(context, 'Loan marked as complete');
+      showSnackBar(context, 'Loan marked as complete'.tr());
     }
   }
 }
@@ -327,7 +328,7 @@ class _DetailsContent extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                'COLLECTABLE AMOUNT',
+                'COLLECTABLE AMOUNT'.tr(),
                 style: TextStyle(
                   color: colors.onPrimary.withValues(alpha: .7),
                   fontWeight: FontWeight.w700,
@@ -495,7 +496,7 @@ class _DetailsContent extends ConsumerWidget {
                 icon: Icons.notes_rounded,
                 label: 'Additional details',
                 value: loan.additionalDetails.trim().isEmpty
-                    ? 'No additional details'
+                    ? 'No additional details'.tr()
                     : loan.additionalDetails,
                 last: loan.termsAndConditions.trim().isEmpty,
               ),
@@ -527,14 +528,14 @@ class _DetailsContent extends ConsumerWidget {
                   icon: Icons.person_outline_rounded,
                   label: 'Item received by',
                   value: loan.completedBy.isEmpty
-                      ? 'Not recorded for this older loan'
+                      ? 'Not recorded for this older loan'.tr()
                       : loan.completedBy,
                 ),
                 _DetailRow(
                   icon: Icons.payments_outlined,
                   label: 'Amount received',
                   value: loan.settlementAmount == null
-                      ? 'Not recorded for this older loan'
+                      ? 'Not recorded for this older loan'.tr()
                       : currency.format(loan.settlementAmount),
                 ),
                 if (loan.completionReference.trim().isNotEmpty)
@@ -547,7 +548,7 @@ class _DetailsContent extends ConsumerWidget {
                   icon: Icons.notes_rounded,
                   label: 'Settlement notes',
                   value: loan.completionNotes.trim().isEmpty
-                      ? 'No notes recorded'
+                      ? 'No notes recorded'.tr()
                       : loan.completionNotes,
                   last: true,
                 ),
@@ -562,10 +563,10 @@ class _DetailsContent extends ConsumerWidget {
             .watch(loanChangesProvider(loan.id!))
             .when(
               data: (changes) => changes.isEmpty
-                  ? const Card(
+                  ? Card(
                       child: Padding(
                         padding: EdgeInsets.all(16),
-                        child: Text('No activity has been recorded yet.'),
+                        child: Text('No activity has been recorded yet.'.tr()),
                       ),
                     )
                   : Card(
@@ -593,7 +594,7 @@ class _DetailsContent extends ConsumerWidget {
       mode: LaunchMode.externalApplication,
     );
     if (context.mounted && !launched) {
-      showSnackBar(context, 'Could not open the phone app');
+      showSnackBar(context, 'Could not open the phone app'.tr());
     }
   }
 
@@ -610,7 +611,7 @@ class _DetailsContent extends ConsumerWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.sms_outlined),
-              title: const Text('SMS'),
+              title: Text('SMS'.tr()),
               onTap: () => _sendMessage(
                 context,
                 sheetContext,
@@ -624,7 +625,7 @@ class _DetailsContent extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.chat_outlined),
-              title: const Text('WhatsApp'),
+              title: Text('WhatsApp'.tr()),
               onTap: () => _sendMessage(
                 context,
                 sheetContext,
@@ -649,7 +650,9 @@ class _DetailsContent extends ConsumerWidget {
   ) async {
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (sheetContext.mounted) Navigator.of(sheetContext).pop();
-    if (context.mounted && !launched) showSnackBar(context, errorMessage);
+    if (context.mounted && !launched) {
+      showSnackBar(context, errorMessage.tr());
+    }
   }
 
   String _whatsAppNumber(String phoneNumber) =>
@@ -672,7 +675,7 @@ class _ContactActionLabel extends StatelessWidget {
           child: FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(label, softWrap: false),
+            child: Text(label.tr(), softWrap: false),
           ),
         ),
       ],
@@ -710,7 +713,7 @@ class _StatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        completed ? 'Completed' : 'Active',
+        completed ? 'Completed'.tr() : 'Active'.tr(),
         style: TextStyle(
           color: colors.onPrimary,
           fontWeight: FontWeight.w700,
@@ -733,7 +736,7 @@ class _AmountMetric extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: color.withValues(alpha: .7))),
+        Text(label.tr(), style: TextStyle(color: color.withValues(alpha: .7))),
         const SizedBox(height: 3),
         Text(
           value,
@@ -751,7 +754,7 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      Text(text, style: Theme.of(context).textTheme.titleMedium);
+      Text(text.tr(), style: Theme.of(context).textTheme.titleMedium);
 }
 
 class _DetailRow extends StatelessWidget {
@@ -791,7 +794,7 @@ class _DetailRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      label,
+                      label.tr(),
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -815,5 +818,5 @@ class _LoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      const Center(child: Text('Unable to load loan details'));
+      Center(child: Text('Unable to load loan details'.tr()));
 }

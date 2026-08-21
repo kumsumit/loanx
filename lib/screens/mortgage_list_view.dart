@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/loan.dart';
@@ -8,15 +9,17 @@ import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/widget/empty_state.dart';
 import 'package:loanx/widget/snackbar.dart';
-import 'package:intl/intl.dart';
 
 enum LoanStatusFilter {
-  all('All loans'),
-  active('Active'),
-  completed('Completed');
+  all,
+  active,
+  completed;
 
-  const LoanStatusFilter(this.label);
-  final String label;
+  String get label => switch (this) {
+    LoanStatusFilter.all => 'All loans'.tr(),
+    LoanStatusFilter.active => 'Active'.tr(),
+    LoanStatusFilter.completed => 'Completed'.tr(),
+  };
 }
 
 class MortgageListView extends StatelessWidget {
@@ -35,7 +38,7 @@ class MortgageListView extends StatelessWidget {
         final selected = loanSelectionList.contains(loan.id);
         final colors = Theme.of(context).colorScheme;
         final amount = NumberFormat.currency(
-          locale: 'en_IN',
+          locale: context.locale.toString(),
           symbol: '₹',
           decimalDigits: 0,
         ).format(loan.loanAmount);
@@ -45,9 +48,10 @@ class MortgageListView extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: Text("Confirmation"),
+                  title: Text("Confirmation".tr()),
                   content: Text(
-                    "Are you sure want you have returned this mortgage to the borrower and clear the loan?",
+                    "Are you sure want you have returned this mortgage to the borrower and clear the loan?"
+                        .tr(),
                   ),
                   actionsAlignment: MainAxisAlignment.spaceEvenly,
                   actions: [
@@ -55,10 +59,10 @@ class MortgageListView extends StatelessWidget {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: Text("Cancel"),
+                      child: Text("Cancel".tr()),
                     ),
                     OutlinedButton(
-                      child: const Text('Ok'),
+                      child: Text('Ok'.tr()),
                       onPressed: () async {
                         loan.toggleFinished();
                         await ref
@@ -68,7 +72,7 @@ class MortgageListView extends StatelessWidget {
                           Navigator.of(context).pop();
                           showSnackBar(
                             context,
-                            "Now, you can give mortgage to the borrower",
+                            "Now, you can give mortgage to the borrower".tr(),
                           );
                         }
                       },
@@ -166,7 +170,7 @@ class MortgageListView extends StatelessWidget {
                           Flexible(
                             child: Text(
                               loan.isFinished()
-                                  ? 'Completed'
+                                  ? 'Completed'.tr()
                                   : DateFormat(
                                       'd MMM yyyy',
                                     ).format(loan.dateCreated),
@@ -193,7 +197,7 @@ class MortgageListView extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     IconButton(
-                      tooltip: 'Save contact',
+                      tooltip: 'Save contact'.tr(),
                       visualDensity: VisualDensity.compact,
                       icon: const Icon(Icons.person_add_alt_1_outlined),
                       color: colors.onSurfaceVariant,
@@ -207,7 +211,7 @@ class MortgageListView extends StatelessWidget {
                               if (context.mounted && !opened) {
                                 showSnackBar(
                                   context,
-                                  'Could not open the contact editor',
+                                  'Could not open the contact editor'.tr(),
                                 );
                               }
                             },
@@ -231,11 +235,12 @@ class MortgageListView extends StatelessWidget {
         return mortgageMaterials.when(
           data: (mortgageMaterialList) {
             if (mortgageMaterialList.isEmpty) {
-              return const EmptyState(
+              return EmptyState(
                 icon: Icons.inventory_2_outlined,
-                title: 'Set up your loan materials',
+                title: 'Set up your loan materials'.tr(),
                 message:
-                    'Add at least one pledged material in Manage before creating a loan.',
+                    'Add at least one pledged material in Manage before creating a loan.'
+                        .tr(),
               );
             }
             return loans.when(
@@ -254,11 +259,15 @@ class MortgageListView extends StatelessWidget {
                         ? Icons.filter_alt_off_outlined
                         : Icons.receipt_long_outlined,
                     title: hasLoans
-                        ? 'No ${filter.label.toLowerCase()}'
-                        : 'No loans yet',
+                        ? 'noFilteredLoans'.tr(
+                            namedArgs: {'filter': filter.label.toLowerCase()},
+                          )
+                        : 'No loans yet'.tr(),
                     message: hasLoans
                         ? 'Try a different filter to view your loan records.'
-                        : 'Create your first loan to track borrowers, pledged materials, and repayment status.',
+                              .tr()
+                        : 'Create your first loan to track borrowers, pledged materials, and repayment status.'
+                              .tr(),
                     action: hasLoans
                         ? null
                         : FilledButton.icon(
@@ -268,7 +277,7 @@ class MortgageListView extends StatelessWidget {
                               ),
                             ),
                             icon: const Icon(Icons.add_rounded),
-                            label: const Text('Create a loan'),
+                            label: Text('Create a loan'.tr()),
                           ),
                   );
                 }
@@ -285,18 +294,18 @@ class MortgageListView extends StatelessWidget {
                   },
                 );
               },
-              error: (e, b) => const EmptyState(
+              error: (e, b) => EmptyState(
                 icon: Icons.error_outline_rounded,
-                title: 'Loans could not be loaded',
-                message: 'Please restart the app and try again.',
+                title: 'Loans could not be loaded'.tr(),
+                message: 'Please restart the app and try again.'.tr(),
               ),
               loading: () => Center(child: CircularProgressIndicator()),
             );
           },
-          error: (e, b) => const EmptyState(
+          error: (e, b) => EmptyState(
             icon: Icons.error_outline_rounded,
-            title: 'Materials could not be loaded',
-            message: 'Please restart the app and try again.',
+            title: 'Materials could not be loaded'.tr(),
+            message: 'Please restart the app and try again.'.tr(),
           ),
           loading: () => Center(child: CircularProgressIndicator()),
         );
@@ -317,7 +326,7 @@ class MortgageListView extends StatelessWidget {
 //   showDialog(
 //       context: context,
 //       builder: (context) => AlertDialog(
-//             title: Text('loanx Details'),
+//             title: Text('loanx Details'.tr()),
 //             content: SingleChildScrollView(
 //               scrollDirection: Axis.horizontal,
 //               child: SingleChildScrollView(
@@ -361,7 +370,7 @@ class MortgageListView extends StatelessWidget {
 //                 onPressed: () {
 //                   Navigator.of(context).pop();
 //                 },
-//                 child: const Text('Close'),
+//                 child: Text('Close'.tr()),
 //               ),
 //             ],
 //           ));

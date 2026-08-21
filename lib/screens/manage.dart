@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'family_relation.dart';
 import 'mortgage_material.dart';
@@ -20,16 +21,16 @@ class Manage extends StatelessWidget {
                 color: Theme.of(context).colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const TabBar(
+              child: TabBar(
                 tabs: [
-                  Tab(text: "Materials"),
-                  Tab(text: "Relations"),
-                  Tab(text: "Units"),
+                  Tab(text: 'Materials'.tr()),
+                  Tab(text: 'Relations'.tr()),
+                  Tab(text: 'Units'.tr()),
                 ],
               ),
             ),
           ),
-          const Expanded(
+          Expanded(
             child: TabBarView(
               children: [
                 MortgageMaterialView(),

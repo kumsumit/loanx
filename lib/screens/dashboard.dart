@@ -117,20 +117,27 @@ class DashBoard extends HookWidget {
                                   builder: (context) => AlertDialog(
                                     title: Text(
                                       selectedLoans.length == 1
-                                          ? 'Delete this loan?'
-                                          : 'Delete ${selectedLoans.length} loans?',
+                                          ? 'Delete this loan?'.tr()
+                                          : 'deleteLoanCount'.tr(
+                                              namedArgs: {
+                                                'count': selectedLoans.length
+                                                    .toString(),
+                                              },
+                                            ),
                                     ),
                                     content: Text(
                                       selectedLoans.length == 1
                                           ? 'This permanently removes the loan record. This action cannot be undone.'
-                                          : 'This permanently removes the selected loan records. This action cannot be undone.',
+                                                .tr()
+                                          : 'This permanently removes the selected loan records. This action cannot be undone.'
+                                                .tr(),
                                     ),
                                     actions: [
                                       TextButton(
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: const Text('Cancel'),
+                                        child: Text('Cancel'.tr()),
                                       ),
                                       TextButton(
                                         onPressed: () async {
@@ -147,7 +154,7 @@ class DashBoard extends HookWidget {
                                             Navigator.of(context).pop();
                                           }
                                         },
-                                        child: const Text('Delete permanently'),
+                                        child: Text('Delete permanently'.tr()),
                                       ),
                                     ],
                                   ),
@@ -253,9 +260,11 @@ Shared from LoanX
                                                   MainAxisAlignment.center,
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                StyledHeading("Sent via :"),
+                                                StyledHeading(
+                                                  "Sent via :".tr(),
+                                                ),
                                                 OutlinedButton.icon(
-                                                  label: const Text('SMS'),
+                                                  label: Text('SMS'.tr()),
                                                   icon: Icon(Icons.sms),
                                                   onPressed: () async {
                                                     final whatsappUrl =
@@ -271,7 +280,7 @@ Shared from LoanX
                                                   },
                                                 ),
                                                 OutlinedButton.icon(
-                                                  label: const Text('Whatsapp'),
+                                                  label: Text('Whatsapp'.tr()),
                                                   icon: Icon(K.whatsapp),
                                                   onPressed: () async {
                                                     String whatsappUrl =
@@ -290,7 +299,7 @@ Shared from LoanX
                                                   onPressed: () {
                                                     Navigator.of(context).pop();
                                                   },
-                                                  child: const Text('Cancel'),
+                                                  child: Text('Cancel'.tr()),
                                                 ),
                                               ],
                                             ),
@@ -310,7 +319,7 @@ Shared from LoanX
                           if (loanSelectionList.length == 1)
                             IconButton(
                               icon: Icon(Icons.print),
-                              tooltip: 'Print loan receipt',
+                              tooltip: 'Print loan receipt'.tr(),
                               onPressed: () async {
                                 final selectedLoan = ref
                                     .read(loanListProvider)
@@ -330,11 +339,10 @@ Shared from LoanX
                                           children: [
                                             ListTile(
                                               leading: const Icon(Icons.print),
-                                              title: const Text(
-                                                'Print receipt',
-                                              ),
-                                              subtitle: const Text(
-                                                'Print using a USB or Bluetooth printer',
+                                              title: Text('Print receipt'.tr()),
+                                              subtitle: Text(
+                                                'Print using a USB or Bluetooth printer'
+                                                    .tr(),
                                               ),
                                               onTap: () => Navigator.pop(
                                                 context,
@@ -345,9 +353,10 @@ Shared from LoanX
                                               leading: const Icon(
                                                 Icons.picture_as_pdf_outlined,
                                               ),
-                                              title: const Text('Share PDF'),
-                                              subtitle: const Text(
-                                                'Save or open the receipt as a PDF file',
+                                              title: Text('Share PDF'.tr()),
+                                              subtitle: Text(
+                                                'Save or open the receipt as a PDF file'
+                                                    .tr(),
                                               ),
                                               onTap: () => Navigator.pop(
                                                 context,
@@ -373,9 +382,10 @@ Shared from LoanX
                                 } catch (_) {
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
+                                    SnackBar(
                                       content: Text(
-                                        'Unable to create the receipt. Please try again.',
+                                        'Unable to create the receipt. Please try again.'
+                                            .tr(),
                                       ),
                                     ),
                                   );
@@ -402,12 +412,12 @@ Shared from LoanX
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+            label: 'Home'.tr(),
           ),
           NavigationDestination(
             icon: Icon(Icons.tune_outlined),
             selectedIcon: Icon(Icons.tune_rounded),
-            label: 'Manage',
+            label: 'Manage'.tr(),
           ),
         ],
       ),

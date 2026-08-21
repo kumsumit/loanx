@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+
 // import 'package:loanx/db/fastdb.dart';
 
 class BulletPoint extends StatelessWidget {
@@ -23,7 +25,7 @@ class BulletPoint extends StatelessWidget {
           SizedBox(width: 8), // Space between bullet and text
           Expanded(
             child: Text(
-              text,
+              text.trExists() ? text.tr() : text,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.secondary,
                 fontStyle: italic ? FontStyle.italic : FontStyle.normal,

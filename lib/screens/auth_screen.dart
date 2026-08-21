@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -71,7 +72,7 @@ class AuthScreen extends HookConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'LoanX',
+                    'LoanX'.tr(),
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                       color: colors.onPrimary,
                       fontWeight: FontWeight.w800,
@@ -79,7 +80,7 @@ class AuthScreen extends HookConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Your lending workspace',
+                    'Your lending workspace'.tr(),
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: colors.onPrimary.withValues(alpha: .8),
                     ),
@@ -95,7 +96,7 @@ class AuthScreen extends HookConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Securing your data…',
+                    'Securing your data…'.tr(),
                     style: TextStyle(
                       color: colors.onPrimary.withValues(alpha: .75),
                     ),

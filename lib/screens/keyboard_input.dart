@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -65,21 +66,25 @@ class KeyboardAwareListView extends HookWidget {
     // }, [scrollController, focusNodes]);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Keyboard Aware ListView')),
+      appBar: AppBar(title: Text('Keyboard Aware ListView'.tr())),
       body: ListView.builder(
         controller: scrollController,
         itemCount: items.length + 6,
         itemBuilder: (context, index) {
           final idx = index - 6;
           if (idx < 0) {
-            return ListTile(title: Text("items$idx"));
+            return ListTile(
+              title: Text('itemNumber'.tr(namedArgs: {'number': '$idx'})),
+            );
           }
           return Padding(
             padding: EdgeInsets.all(8.0),
             child: TextField(
               focusNode: focusNodes[idx],
               decoration: InputDecoration(
-                labelText: 'Type something in ${items[idx]}...',
+                labelText: 'typeSomethingIn'.tr(
+                  namedArgs: {'item': items[idx]},
+                ),
                 border: OutlineInputBorder(),
               ),
               onTap: () {

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -5,7 +6,6 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/screens/mortgage_list_view.dart';
 import 'package:loanx/widget/search_bar.dart';
-import 'package:intl/intl.dart';
 
 // import 'keyboard_input.dart';
 
@@ -31,7 +31,10 @@ class Home extends HookWidget {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
               child: Row(
                 children: [
-                  Text('Loans', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    'Loans'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const Spacer(),
                   _StatusFilter(
                     value: filter.value,
@@ -47,7 +50,7 @@ class Home extends HookWidget {
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('add'),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('New loan'),
+        label: Text('New loan'.tr()),
         onPressed: () {
           if (context.mounted) {
             Navigator.push(
@@ -74,14 +77,14 @@ class _PortfolioSummary extends ConsumerWidget {
             final active = loans.where((loan) => !loan.isFinished()).toList();
             final principal = active.fold<double>(
               0,
-              (value, loan) => value + loan.loanAmount, 
+              (value, loan) => value + loan.loanAmount,
             );
             final receivable = active.fold<double>(
               0,
               (value, loan) => value + loan.calculateCollectable(),
             );
             final money = NumberFormat.compactCurrency(
-              locale: 'en_IN',
+              locale: context.locale.toString(),
               symbol: '₹',
               decimalDigits: 1,
             );
@@ -101,7 +104,7 @@ class _PortfolioSummary extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ESTIMATED RECEIVABLE',
+                      'ESTIMATED RECEIVABLE'.tr(),
                       style: TextStyle(
                         color: colors.onPrimary.withValues(alpha: .75),
                         fontSize: 12,
@@ -160,15 +163,21 @@ class _StatusFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<LoanStatusFilter>(
-      tooltip: 'Filter loans',
+      tooltip: 'Filter loans'.tr(),
       initialValue: value,
       onSelected: onChanged,
-      itemBuilder: (context) => const [
-        PopupMenuItem(value: LoanStatusFilter.all, child: Text('All loans')),
-        PopupMenuItem(value: LoanStatusFilter.active, child: Text('Active')),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: LoanStatusFilter.all,
+          child: Text('All loans'.tr()),
+        ),
+        PopupMenuItem(
+          value: LoanStatusFilter.active,
+          child: Text('Active'.tr()),
+        ),
         PopupMenuItem(
           value: LoanStatusFilter.completed,
-          child: Text('Completed'),
+          child: Text('Completed'.tr()),
         ),
       ],
       child: Chip(
@@ -213,7 +222,7 @@ class _SummaryMetric extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                label,
+                label.tr(),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(

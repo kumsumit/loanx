@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class StyledDropdown<T> extends StatelessWidget {
@@ -28,7 +29,7 @@ class StyledDropdown<T> extends StatelessWidget {
             child: DropdownButtonFormField<T>(
               validator: (value) {
                 if (value == null) {
-                  return 'Please select an option';
+                  return 'Please select an option'.tr();
                 }
                 return null;
               },
@@ -44,7 +45,7 @@ class StyledDropdown<T> extends StatelessWidget {
             const SizedBox(width: 8),
             IconButton.filledTonal(
               onPressed: onAddPressed,
-              tooltip: 'Add $labelText',
+              tooltip: 'addNamedItem'.tr(namedArgs: {'item': labelText}),
               icon: const Icon(Icons.add_rounded),
             ),
           ],

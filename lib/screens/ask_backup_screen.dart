@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -70,7 +71,7 @@ class AskBackupScreen extends HookWidget {
                             ),
                             const SizedBox(height: 20),
                             Text(
-                              'Welcome to LoanX',
+                              'Welcome to LoanX'.tr(),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 color: colors.primary,
                                 fontWeight: FontWeight.w700,
@@ -79,7 +80,7 @@ class AskBackupScreen extends HookWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Restore your loan records',
+                              'Restore your loan records'.tr(),
                               style: theme.textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.w800,
                               ),
@@ -87,7 +88,8 @@ class AskBackupScreen extends HookWidget {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'If you have used LoanX before, bring your saved records back from Google Drive. Otherwise, start with a new workspace.',
+                              'If you have used LoanX before, bring your saved records back from Google Drive. Otherwise, start with a new workspace.'
+                                  .tr(),
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 color: colors.onSurfaceVariant,
                                 height: 1.4,
@@ -110,7 +112,8 @@ class AskBackupScreen extends HookWidget {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      'Restoring replaces the records currently on this device.',
+                                      'Restoring replaces the records currently on this device.'
+                                          .tr(),
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             color: colors.onSecondaryContainer,
@@ -167,7 +170,8 @@ class AskBackupScreen extends HookWidget {
                                                 },
                                                 error: (_, _) => showSnackBar(
                                                   context,
-                                                  'Something went wrong. Please try again.',
+                                                  'Something went wrong. Please try again.'
+                                                      .tr(),
                                                 ),
                                                 loading: () {},
                                               );
@@ -198,14 +202,16 @@ class AskBackupScreen extends HookWidget {
                                           },
                                           error: (_, _) => showSnackBar(
                                             context,
-                                            'Could not restore your backup. Please try again.',
+                                            'Could not restore your backup. Please try again.'
+                                                .tr(),
                                           ),
                                           loading: () {},
                                         );
                                       } else {
                                         showSnackBar(
                                           context,
-                                          'Connect to the internet to restore a backup.',
+                                          'Connect to the internet to restore a backup.'
+                                              .tr(),
                                         );
                                         return;
                                       }
@@ -222,13 +228,14 @@ class AskBackupScreen extends HookWidget {
                                     },
                                     error: (_, _) => showSnackBar(
                                       context,
-                                      'Could not check your connection. Please try again.',
+                                      'Could not check your connection. Please try again.'
+                                          .tr(),
                                     ),
                                     loading: () {},
                                   );
                                 },
                                 icon: const Icon(Icons.cloud_download_outlined),
-                                label: const Text('Restore from Google Drive'),
+                                label: Text('Restore from Google Drive'.tr()),
                                 style: FilledButton.styleFrom(
                                   minimumSize: const Size.fromHeight(52),
                                 ),
@@ -249,7 +256,8 @@ class AskBackupScreen extends HookWidget {
                                           },
                                           error: (_, _) => showSnackBar(
                                             context,
-                                            'Something went wrong. Please try again.',
+                                            'Something went wrong. Please try again.'
+                                                .tr(),
                                           ),
                                           loading: () {},
                                         );
@@ -265,7 +273,7 @@ class AskBackupScreen extends HookWidget {
                                   }
                                 },
                                 icon: const Icon(Icons.add_circle_outline),
-                                label: const Text('Start with a new workspace'),
+                                label: Text('Start with a new workspace'.tr()),
                                 style: OutlinedButton.styleFrom(
                                   minimumSize: const Size.fromHeight(52),
                                 ),
@@ -273,7 +281,8 @@ class AskBackupScreen extends HookWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'You can manage backups later from Settings.',
+                              'You can manage backups later from Settings.'
+                                  .tr(),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colors.onSurfaceVariant,
                               ),

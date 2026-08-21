@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class AppStatePage extends StatelessWidget {
@@ -42,13 +43,13 @@ class AppStatePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 28),
                   Text(
-                    title,
+                    title.trExists() ? title.tr() : title,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    message,
+                    message.trExists() ? message.tr() : message,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: colors.onSurfaceVariant,

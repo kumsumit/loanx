@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,7 +15,7 @@ class FamilyRelationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Family Relations'), centerTitle: false),
+      appBar: AppBar(title: Text('Family Relations'.tr()), centerTitle: false),
       body: Consumer(
         builder: (context, ref, child) {
           final familyRelations = ref.watch(familyRelationListProvider);
@@ -94,7 +95,9 @@ class FamilyRelationView extends StatelessWidget {
                         ),
                       ),
                       subtitle: Text(
-                        isCustom ? 'Custom relation' : 'System relation',
+                        isCustom
+                            ? 'Custom relation'.tr()
+                            : 'System relation'.tr(),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -143,7 +146,7 @@ class FamilyRelationView extends StatelessWidget {
                     color: theme.colorScheme.error,
                   ),
                   const SizedBox(height: 12),
-                  const Text('Something went wrong'),
+                  Text('Something went wrong'.tr()),
                 ],
               ),
             ),
@@ -154,7 +157,7 @@ class FamilyRelationView extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => familyDialog(context, null),
         icon: const Icon(Icons.add),
-        label: const Text('Add Relation'),
+        label: Text('Add Relation'.tr()),
       ),
     );
   }
@@ -181,15 +184,18 @@ class FamilyRelationView extends StatelessWidget {
             color: theme.colorScheme.onErrorContainer,
           ),
         ),
-        title: StyledHeading('Delete "${familyRelation.name}"?'),
+        title: StyledHeading(
+          'deleteNamedRelation'.tr(namedArgs: {'name': familyRelation.name}),
+        ),
         content: StyledSubtitle(
-          'This family relation will be removed permanently. This action cannot be undone.',
+          'This family relation will be removed permanently. This action cannot be undone.'
+              .tr(),
         ),
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr()),
           ),
           FilledButton.tonal(
             style: FilledButton.styleFrom(
@@ -202,10 +208,13 @@ class FamilyRelationView extends StatelessWidget {
                   .delete(familyRelation.id!);
               if (context.mounted) {
                 Navigator.of(context).pop();
-                showSnackBar(context, 'Family Relation Deleted Successfully');
+                showSnackBar(
+                  context,
+                  'Family Relation Deleted Successfully'.tr(),
+                );
               }
             },
-            child: const Text('Delete'),
+            child: Text('Delete'.tr()),
           ),
         ],
       ),
@@ -239,7 +248,9 @@ class FamilyRelationView extends StatelessWidget {
             ),
           ),
           title: StyledHeading(
-            isEditing ? 'Edit Family Relation' : 'Add Family Relation',
+            isEditing
+                ? 'Edit Family Relation'.tr()
+                : 'Add Family Relation'.tr(),
           ),
           content: Form(
             key: formKey,
@@ -247,14 +258,14 @@ class FamilyRelationView extends StatelessWidget {
               style: TextStyle(color: theme.colorScheme.secondary),
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().isEmpty) {
-                  return 'Family Relation cannot be empty';
+                  return 'Family Relation cannot be empty'.tr();
                 }
                 return null;
               },
               autofocus: true,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                hintText: 'Enter the Family Relation',
+                hintText: 'Enter the Family Relation'.tr(),
                 hintStyle: TextStyle(
                   color: theme.colorScheme.secondary.withValues(alpha: 0.5),
                   fontSize: 14,
@@ -271,12 +282,12 @@ class FamilyRelationView extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text('Cancel'.tr()),
             ),
             Consumer(
               builder: (context, ref, child) {
                 return FilledButton(
-                  child: const Text('Submit'),
+                  child: Text('Submit'.tr()),
                   onPressed: () async {
                     if (formKey.currentState != null &&
                         formKey.currentState!.validate()) {
@@ -288,12 +299,12 @@ class FamilyRelationView extends StatelessWidget {
                         if (status > 0) {
                           showSnackBar(
                             context,
-                            "Family Relation added successfully",
+                            "Family Relation added successfully".tr(),
                           );
                         } else {
                           showSnackBar(
                             context,
-                            'Family Relation already exists',
+                            'Family Relation already exists'.tr(),
                           );
                         }
                       }
@@ -337,10 +348,11 @@ class _EmptyState extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            StyledHeading('No family relations yet'),
+            StyledHeading('No family relations yet'.tr()),
             const SizedBox(height: 8),
             Text(
-              'Add relations like Father, Mother, or Sibling to get started.',
+              'Add relations like Father, Mother, or Sibling to get started.'
+                  .tr(),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -350,7 +362,7 @@ class _EmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onAdd,
               icon: const Icon(Icons.add),
-              label: const Text('Add Relation'),
+              label: Text('Add Relation'.tr()),
             ),
           ],
         ),

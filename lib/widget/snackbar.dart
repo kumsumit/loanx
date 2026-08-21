@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+
 // import 'package:fluttertoast/fluttertoast.dart';
 
 // showToast(String message) {
@@ -18,7 +20,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 void showErrorSnackBar(BuildContext context, String message) {
   final overlay = Overlay.of(context);
   final displayMessage = kReleaseMode
-      ? 'Something went wrong. Please try again.'
+      ? 'Something went wrong. Please try again.'.tr()
       : message;
   final overlayEntry = OverlayEntry(
     builder: (context) => Align(
@@ -98,7 +100,7 @@ class SlideInSnackbar extends HookWidget {
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-                color: colors.onSurface.withValues(alpha: 0.12),
+              color: colors.onSurface.withValues(alpha: 0.12),
               blurRadius: 10,
               offset: Offset(0, 2),
             ),
