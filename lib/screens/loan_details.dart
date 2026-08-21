@@ -10,6 +10,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/widget/snackbar.dart';
+import 'package:loanx/widget/language_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -55,7 +56,10 @@ class LoanDetails extends ConsumerWidget {
           IconButton(
             tooltip: LocaleKeys.shareLoanDetails.tr(),
             icon: const Icon(Icons.share_outlined),
-            onPressed: () {
+            onPressed: () async {
+              final shareLocale = await _chooseShareLanguage(context);
+              if (shareLocale == null || !context.mounted) return;
+
               final relations = ref.read(familyRelationListProvider).value;
               final materials = ref.read(mortgageMaterialListProvider).value;
               final relation = relations?.firstWhere(
@@ -67,13 +71,14 @@ class LoanDetails extends ConsumerWidget {
               final box = context.findRenderObject() as RenderBox?;
               SharePlus.instance.share(
                 ShareParams(
-                  subject: LocaleKeys.loanDetailsFor.tr(
-                    namedArgs: {'name': currentLoan.depositorName},
-                  ),
+                  subject: _shareCopy(
+                    shareLocale,
+                  ).detailsFor(currentLoan.depositorName),
                   text: _shareText(
                     currentLoan,
-                    relativeRelation: relation?.localizedName,
-                    mortgageName: material?.localizedName,
+                    locale: shareLocale,
+                    relativeRelation: relation?.name,
+                    mortgageName: material?.name,
                   ),
                   sharePositionOrigin: box == null
                       ? null
@@ -135,35 +140,86 @@ class LoanDetails extends ConsumerWidget {
 
   String _shareText(
     Loan loan, {
+    required Locale locale,
     String? relativeRelation,
     String? mortgageName,
   }) {
+    final copy = _shareCopy(locale);
+    final localeName = switch (locale.languageCode) {
+      'hi' => 'hi_IN',
+      'bn' => 'bn_IN',
+      _ => 'en_IN',
+    };
     final currency = NumberFormat.currency(
-      locale: 'en_IN',
+      locale: localeName,
       symbol: '₹',
       decimalDigits: 0,
     );
+    final date = DateFormat('d MMM yyyy', localeName);
+    final dateTime = DateFormat('d MMM yyyy, h:mm a', localeName);
     final collectable = loan.calculateCollectable();
     final calculationDate = loan.dateFinished ?? DateTime.now();
-    return '''Loan details
+    final relation = relativeRelation == null
+        ? null
+        : copy.systemValue(relativeRelation);
+    final material = mortgageName == null
+        ? copy.notRecorded
+        : copy.systemValue(mortgageName);
+    final interestType = copy.interestType(
+      InterestType.values[loan.interestType],
+    );
+    final lines = <String>[
+      copy.loanDetails,
+      '',
+      '${copy.borrower}: ${loan.depositorName}',
+      '${copy.phone}: ${loan.phoneNumber}',
+      '${copy.address}: ${loan.address}',
+      '${copy.relativeName}: ${loan.relativeName}${relation == null ? '' : ' ($relation)'}',
+      '${copy.mortgageName}: $material',
+      '${copy.weight}: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${copy.systemValue(loan.weightUnit)}' : copy.notRecorded}',
+      '${copy.loanAmount}: ${currency.format(loan.loanAmount)}',
+      '${copy.interest}: ${loan.interestRate}% ($interestType)',
+      '${copy.mortgageTerm}: ${loan.mortgageTermYears} ${copy.years}',
+      if (loan.lockInDays > 0)
+        '${copy.lockInPeriod}: ${loan.lockInDays} ${copy.days} (${copy.until} ${date.format(loan.lockInEndsAt)})',
+      if (loan.lockInDays > 0)
+        '${copy.earlyRedemptionCharge}: ${currency.format(loan.earlyRedemptionCharge)} ${copy.beforeThisDate}',
+      '${copy.estimatedDue(date.format(calculationDate))}: ${currency.format(collectable)}',
+      '${copy.status}: ${loan.isFinished() ? copy.completed : copy.active}',
+      '${copy.created}: ${date.format(loan.dateCreated)}',
+      if (loan.isFinished()) ...[
+        '${copy.completed}: ${dateTime.format(loan.dateFinished!)}',
+        '${copy.receivedBy}: ${loan.completedBy.isEmpty ? copy.notRecorded : loan.completedBy}',
+        '${copy.amountReceived}: ${loan.settlementAmount == null ? copy.notRecorded : currency.format(loan.settlementAmount)}',
+      ],
+      if (loan.additionalDetails.trim().isNotEmpty)
+        '${copy.additionalDetails}: ${loan.additionalDetails}',
+      if (loan.termsAndConditions.trim().isNotEmpty)
+        '${copy.termsAndConditions}: ${loan.termsAndConditions}',
+      '',
+      copy.sentVia,
+    ];
+    return lines.join('\n');
+  }
 
-Borrower: ${loan.depositorName}
-Phone: ${loan.phoneNumber}
-Address: ${loan.address}
-Relative name: ${loan.relativeName}${relativeRelation == null ? '' : ' ($relativeRelation)'}
-Mortgage name: ${mortgageName ?? 'Not recorded'}
-Weight: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}' : 'Not recorded'}
-Loan amount: ${currency.format(loan.loanAmount)}
-Interest: ${loan.interestRate}% (${InterestType.values[loan.interestType].localizedLabel})
-Mortgage term: ${loan.mortgageTermYears} years
-${loan.lockInDays > 0 ? 'Lock-in period: ${loan.lockInDays} days (until ${DateFormat('d MMM yyyy').format(loan.lockInEndsAt)})\nEarly redemption charge: ${currency.format(loan.earlyRedemptionCharge)} if redeemed before this date\n' : ''}Estimated amount due as of ${DateFormat('d MMM yyyy').format(calculationDate)}: ${currency.format(collectable)}
-Status: ${loan.isFinished() ? 'Completed' : 'Active'}
-Created: ${DateFormat('d MMM yyyy').format(loan.dateCreated)}
-${loan.isFinished() ? 'Completed: ${DateFormat('d MMM yyyy, h:mm a').format(loan.dateFinished!)}\nReceived by: ${loan.completedBy.isEmpty ? 'Not recorded' : loan.completedBy}\nAmount received: ${loan.settlementAmount == null ? 'Not recorded' : currency.format(loan.settlementAmount)}' : ''}
-${loan.additionalDetails.trim().isEmpty ? '' : 'Additional details: ${loan.additionalDetails}'}
-${loan.termsAndConditions.trim().isEmpty ? '' : 'Terms and conditions: ${loan.termsAndConditions}'}
-
-Sent via LoanX''';
+  Future<Locale?> _chooseShareLanguage(BuildContext context) {
+    final copy = _shareCopy(context.locale);
+    return showDialog<Locale>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(copy.chooseShareLanguage),
+        children: [
+          for (final language in appLanguages)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(dialogContext).pop(language.locale),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(language.nativeName),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Future<void> _markComplete(
@@ -852,3 +908,132 @@ class _LoadError extends StatelessWidget {
   Widget build(BuildContext context) =>
       Center(child: Text(LocaleKeys.unableToLoadLoanDetails.tr()));
 }
+
+class _ShareCopy {
+  const _ShareCopy(this.code);
+  final String code;
+  bool get hi => code == 'hi';
+  bool get bn => code == 'bn';
+  String pick(String en, String hindi, String bengali) => hi
+      ? hindi
+      : bn
+      ? bengali
+      : en;
+
+  String get chooseShareLanguage => pick(
+    'Choose language for shared details',
+    'जानकारी साझा करने की भाषा चुनें',
+    'তথ্য শেয়ার করার ভাষা বেছে নিন',
+  );
+  String get loanDetails => pick('Loan details', 'लोन का विवरण', 'ঋণের বিবরণ');
+  String detailsFor(String name) => pick(
+    'Loan details for $name',
+    '$name के लोन का विवरण',
+    '$name-এর ঋণের বিবরণ',
+  );
+  String get borrower => pick('Borrower', 'उधारकर्ता', 'ঋণগ্রহীতা');
+  String get phone => pick('Phone', 'फ़ोन', 'ফোন');
+  String get address => pick('Address', 'पता', 'ঠিকানা');
+  String get relativeName =>
+      pick('Relative name', 'रिश्तेदार का नाम', 'আত্মীয়ের নাম');
+  String get mortgageName =>
+      pick('Mortgage name', 'गिरवी वस्तु', 'বন্ধকী বস্তু');
+  String get weight => pick('Weight', 'वज़न', 'ওজন');
+  String get loanAmount => pick('Loan amount', 'लोन की राशि', 'ঋণের পরিমাণ');
+  String get interest => pick('Interest', 'ब्याज', 'সুদ');
+  String get mortgageTerm =>
+      pick('Mortgage term', 'गिरवी अवधि', 'বন্ধকের মেয়াদ');
+  String get years => pick('years', 'वर्ष', 'বছর');
+  String get days => pick('days', 'दिन', 'দিন');
+  String get lockInPeriod =>
+      pick('Lock-in period', 'लॉक-इन अवधि', 'লক-ইন সময়কাল');
+  String get until => pick('until', 'तक', 'পর্যন্ত');
+  String get earlyRedemptionCharge => pick(
+    'Early redemption charge',
+    'समय से पहले छुड़ाने का शुल्क',
+    'আগে ছাড়ানোর ফি',
+  );
+  String get beforeThisDate => pick(
+    'if redeemed before this date',
+    'इस तारीख से पहले छुड़ाने पर',
+    'এই তারিখের আগে ছাড়ালে',
+  );
+  String estimatedDue(String date) => pick(
+    'Estimated amount due as of $date',
+    '$date तक अनुमानित देय राशि',
+    '$date পর্যন্ত আনুমানিক বকেয়া',
+  );
+  String get status => pick('Status', 'स्थिति', 'অবস্থা');
+  String get active => pick('Active', 'सक्रिय', 'সক্রিয়');
+  String get completed => pick('Completed', 'पूर्ण', 'সম্পন্ন');
+  String get created => pick('Created', 'बनाया गया', 'তৈরি হয়েছে');
+  String get receivedBy => pick('Received by', 'प्राप्तकर्ता', 'গ্রহণকারী');
+  String get amountReceived =>
+      pick('Amount received', 'प्राप्त राशि', 'প্রাপ্ত পরিমাণ');
+  String get additionalDetails =>
+      pick('Additional details', 'अतिरिक्त विवरण', 'অতিরিক্ত বিবরণ');
+  String get termsAndConditions =>
+      pick('Terms and conditions', 'नियम और शर्तें', 'শর্তাবলি');
+  String get notRecorded =>
+      pick('Not recorded', 'दर्ज नहीं', 'রেকর্ড করা হয়নি');
+  String get sentVia =>
+      pick('Sent via LoanX', 'LoanX से भेजा गया', 'LoanX থেকে পাঠানো হয়েছে');
+  String interestType(InterestType type) => type == InterestType.simple
+      ? pick('Simple', 'साधारण', 'সরল')
+      : pick('Compound', 'चक्रवृद्धि', 'চক্রবৃদ্ধি');
+
+  String systemValue(String value) {
+    const hiValues = {
+      'Husband': 'पति',
+      'Father': 'पिता',
+      'Wife': 'पत्नी',
+      'Ring': 'अंगूठी',
+      'Anklet': 'पायल',
+      'Bracelet': 'कंगन',
+      'Armlet': 'बाजूबंद',
+      'Chain': 'चेन',
+      'Ear-Ring': 'कान की बाली',
+      'Head-Locket': 'माथे का लॉकेट',
+      'Medal': 'पदक',
+      'Necklace': 'हार',
+      'Locket': 'लॉकेट',
+      'Neck band': 'गले का पट्टा',
+      'Gram': 'ग्राम',
+      'Kilogram': 'किलोग्राम',
+      'Milligram': 'मिलीग्राम',
+      'Tola': 'तोला',
+    };
+    const bnValues = {
+      'Husband': 'স্বামী',
+      'Father': 'বাবা',
+      'Wife': 'স্ত্রী',
+      'Ring': 'আংটি',
+      'Anklet': 'নূপুর',
+      'Bracelet': 'বালা',
+      'Armlet': 'বাজুবন্ধ',
+      'Chain': 'চেইন',
+      'Ear-Ring': 'কানের দুল',
+      'Head-Locket': 'মাথার লকেট',
+      'Medal': 'পদক',
+      'Necklace': 'হার',
+      'Locket': 'লকেট',
+      'Neck band': 'গলার বন্ধনী',
+      'Gram': 'গ্রাম',
+      'Kilogram': 'কিলোগ্রাম',
+      'Milligram': 'মিলিগ্রাম',
+      'Tola': 'তোলা',
+    };
+    return (hi
+            ? hiValues
+            : bn
+            ? bnValues
+            : const <String, String>{})[value] ??
+        value;
+  }
+}
+
+_ShareCopy _shareCopy(Locale locale) => _ShareCopy(
+  locale.languageCode == 'hi' || locale.languageCode == 'bn'
+      ? locale.languageCode
+      : 'en',
+);
