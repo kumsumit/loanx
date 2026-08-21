@@ -880,6 +880,7 @@ class LoanList extends _$LoanList {
     int lockInDays,
     double earlyRedemptionCharge,
     String additionalDetails,
+    String termsAndConditions,
     int familyRelationId,
     int mortgageMaterialId,
   ) async {
@@ -902,6 +903,7 @@ class LoanList extends _$LoanList {
       lockInDays: lockInDays,
       earlyRedemptionCharge: earlyRedemptionCharge,
       additionalDetails: additionalDetails,
+      termsAndConditions: termsAndConditions,
       interestRate: interestRate,
       familyRelationId: familyRelationId,
       mortgageMaterialId: mortgageMaterialId,
@@ -1079,6 +1081,11 @@ class LoanList extends _$LoanList {
       after.earlyRedemptionCharge.toStringAsFixed(2),
     );
     record('Notes', before.additionalDetails, after.additionalDetails);
+    record(
+      'Terms and conditions',
+      before.termsAndConditions,
+      after.termsAndConditions,
+    );
     if (before.familyRelationId != after.familyRelationId) {
       record(
         'Family relation ID',

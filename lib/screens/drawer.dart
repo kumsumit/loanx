@@ -942,6 +942,7 @@ class MyDrawer extends HookConsumerWidget {
                     },
                   ),
                   const _DefaultLockInSetting(),
+                  const _DefaultTermsAndConditionsSetting(),
                 ],
               ),
               ExpansionTile(
@@ -1542,6 +1543,141 @@ class MyDrawer extends HookConsumerWidget {
     } else {
       throw 'Could not launch $url';
     }
+  }
+}
+
+class _DefaultTermsAndConditionsSetting extends StatefulWidget {
+  const _DefaultTermsAndConditionsSetting();
+
+  @override
+  State<_DefaultTermsAndConditionsSetting> createState() =>
+      _DefaultTermsAndConditionsSettingState();
+}
+
+class _DefaultTermsAndConditionsSettingState
+    extends State<_DefaultTermsAndConditionsSetting> {
+  String _terms = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _terms = FastDB.getDefaultTermsAndConditions();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: StyledIcon(Icons.gavel_outlined),
+      title: StyledText('Terms and conditions'),
+      subtitle: StyledSubtitle(
+        _terms.trim().isEmpty
+            ? 'No default terms set'
+            : 'Prefilled for new loans',
+      ),
+      onTap: _editTerms,
+    );
+  }
+
+  Future<void> _editTerms() async {
+    final terms = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _DefaultTermsAndConditionsSheet(initialTerms: _terms),
+    );
+    if (terms == null) return;
+
+    FastDB.putDefaultTermsAndConditions(terms);
+    await FastDB.flush();
+    if (!mounted) return;
+    setState(() => _terms = terms);
+    showSnackBar(context, 'Default terms and conditions updated');
+  }
+}
+
+class _DefaultTermsAndConditionsSheet extends StatefulWidget {
+  const _DefaultTermsAndConditionsSheet({required this.initialTerms});
+
+  final String initialTerms;
+
+  @override
+  State<_DefaultTermsAndConditionsSheet> createState() =>
+      _DefaultTermsAndConditionsSheetState();
+}
+
+class _DefaultTermsAndConditionsSheetState
+    extends State<_DefaultTermsAndConditionsSheet> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialTerms);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          0,
+          20,
+          20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Default terms and conditions',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _controller,
+                minLines: 4,
+                maxLines: 8,
+                autofocus: true,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  labelText: 'Terms and conditions',
+                  hintText: 'Enter the default terms for new loans',
+                  alignLabelWithHint: true,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'These terms are copied into new loans and can be edited on each loan.',
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () =>
+                        Navigator.pop(context, _controller.text.trim()),
+                    child: const Text('Save'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

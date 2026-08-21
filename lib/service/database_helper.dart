@@ -28,7 +28,7 @@ class DatabaseHelper {
     if (await File(path).exists()) {
       return await openDatabase(
         path,
-        version: 6,
+        version: 7,
         onCreate: onCreate,
         onUpgrade: onUpgrade,
         password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
@@ -36,7 +36,7 @@ class DatabaseHelper {
     }
     return await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: onCreate,
       onUpgrade: onUpgrade,
       password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
@@ -92,6 +92,13 @@ class DatabaseHelper {
       );
       await _createWeightUnitsTable(db);
       await _insertDefaultWeightUnits(db);
+    }
+    if (oldVersion < 7) {
+      await _addColumnIfMissing(
+        db,
+        'loans',
+        "termsAndConditions TEXT NOT NULL DEFAULT ''",
+      );
     }
   }
 
@@ -1117,6 +1124,7 @@ class DatabaseHelper {
            interestFrequency INTEGER, mortgageTermYears INTEGER NOT NULL DEFAULT 5,
            lockInDays INTEGER NOT NULL DEFAULT 0,
            earlyRedemptionCharge REAL NOT NULL DEFAULT 0, additionalDetails TEXT,
+           termsAndConditions TEXT NOT NULL DEFAULT '',
            dateCreated TEXT, dateFinished TEXT, completedBy TEXT NOT NULL DEFAULT '', settlementAmount REAL,
            completionReference TEXT NOT NULL DEFAULT '', completionNotes TEXT NOT NULL DEFAULT '',
            familyRelationId INTEGER, mortgageMaterialId INTEGER,

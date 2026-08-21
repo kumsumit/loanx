@@ -7,12 +7,17 @@ void main() {
     final settings = FlatDbObjectBuilder(
       defaultLockInDays: 15,
       defaultEarlyRedemptionCharge: 750.50,
+      defaultTermsAndConditions: 'Repayment is due within 12 months.',
     );
 
     final restored = FlatDb(settings.toBytes());
 
     expect(restored.defaultLockInDays, 15);
     expect(restored.defaultEarlyRedemptionCharge, 750.50);
+    expect(
+      restored.defaultTermsAndConditions,
+      'Repayment is due within 12 months.',
+    );
   });
 
   test('older settings default to no lock-in', () {
@@ -26,5 +31,6 @@ void main() {
 
     expect(restored.defaultLockInDays, 0);
     expect(restored.defaultEarlyRedemptionCharge, 0);
+    expect(restored.defaultTermsAndConditions, isNull);
   });
 }

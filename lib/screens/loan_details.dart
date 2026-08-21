@@ -54,11 +54,23 @@ class LoanDetails extends ConsumerWidget {
             tooltip: 'Share loan details',
             icon: const Icon(Icons.share_outlined),
             onPressed: () {
+              final relations = ref.read(familyRelationListProvider).value;
+              final materials = ref.read(mortgageMaterialListProvider).value;
+              final relation = relations?.firstWhere(
+                (item) => item.id == currentLoan.familyRelationId,
+              );
+              final material = materials?.firstWhere(
+                (item) => item.id == currentLoan.mortgageMaterialId,
+              );
               final box = context.findRenderObject() as RenderBox?;
               SharePlus.instance.share(
                 ShareParams(
                   subject: 'Loan details for ${currentLoan.depositorName}',
-                  text: _shareText(currentLoan),
+                  text: _shareText(
+                    currentLoan,
+                    relativeRelation: relation?.name,
+                    mortgageName: material?.name,
+                  ),
                   sharePositionOrigin: box == null
                       ? null
                       : box.localToGlobal(Offset.zero) & box.size,
@@ -117,7 +129,11 @@ class LoanDetails extends ConsumerWidget {
     );
   }
 
-  String _shareText(Loan loan) {
+  String _shareText(
+    Loan loan, {
+    String? relativeRelation,
+    String? mortgageName,
+  }) {
     final currency = NumberFormat.currency(
       locale: 'en_IN',
       symbol: '₹',
@@ -130,6 +146,9 @@ class LoanDetails extends ConsumerWidget {
 Borrower: ${loan.depositorName}
 Phone: ${loan.phoneNumber}
 Address: ${loan.address}
+Relative name: ${loan.relativeName}${relativeRelation == null ? '' : ' ($relativeRelation)'}
+Mortgage name: ${mortgageName ?? 'Not recorded'}
+Weight: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}' : 'Not recorded'}
 Loan amount: ${currency.format(loan.loanAmount)}
 Interest: ${loan.interestRate}% (${InterestType.values[loan.interestType].name.toSentenceCase()})
 Mortgage term: ${loan.mortgageTermYears} years
@@ -138,6 +157,7 @@ Status: ${loan.isFinished() ? 'Completed' : 'Active'}
 Created: ${DateFormat('d MMM yyyy').format(loan.dateCreated)}
 ${loan.isFinished() ? 'Completed: ${DateFormat('d MMM yyyy, h:mm a').format(loan.dateFinished!)}\nReceived by: ${loan.completedBy.isEmpty ? 'Not recorded' : loan.completedBy}\nAmount received: ${loan.settlementAmount == null ? 'Not recorded' : currency.format(loan.settlementAmount)}' : ''}
 ${loan.additionalDetails.trim().isEmpty ? '' : 'Additional details: ${loan.additionalDetails}'}
+${loan.termsAndConditions.trim().isEmpty ? '' : 'Terms and conditions: ${loan.termsAndConditions}'}
 
 Sent via LoanX''';
   }
@@ -477,8 +497,15 @@ class _DetailsContent extends ConsumerWidget {
                 value: loan.additionalDetails.trim().isEmpty
                     ? 'No additional details'
                     : loan.additionalDetails,
-                last: true,
+                last: loan.termsAndConditions.trim().isEmpty,
               ),
+              if (loan.termsAndConditions.trim().isNotEmpty)
+                _DetailRow(
+                  icon: Icons.gavel_outlined,
+                  label: 'Terms and conditions',
+                  value: loan.termsAndConditions,
+                  last: true,
+                ),
             ],
           ),
         ),

@@ -133,6 +133,9 @@ class LoanInput extends HookConsumerWidget {
     final additionalDetailsController = useTextEditingController(
       text: loan?.additionalDetails ?? '',
     );
+    final termsAndConditionsController = useTextEditingController(
+      text: loan?.termsAndConditions ?? FastDB.getDefaultTermsAndConditions(),
+    );
     // This form is reused each time the add/edit route is opened. Persisting
     // its offset in PageStorage can make a new loan form reopen halfway down
     // the page, with the first fields hidden above the app bar.
@@ -668,6 +671,12 @@ class LoanInput extends HookConsumerWidget {
                 loading: () => const SizedBox(),
               ),
               StyledTextField(
+                textEditingController: termsAndConditionsController,
+                hintText: "Enter repayment, custody, or other conditions",
+                labelText: "Terms and conditions (optional)",
+                maxLines: 4,
+              ),
+              StyledTextField(
                 textEditingController: additionalDetailsController,
                 hintText: "Notes (optional)",
                 labelText: "Notes (optional)",
@@ -729,6 +738,9 @@ class LoanInput extends HookConsumerWidget {
                             lockInDays: lockInDays.value,
                             earlyRedemptionCharge: earlyCharge,
                             notes: additionalDetailsController.text.trim(),
+                            termsAndConditions: termsAndConditionsController
+                                .text
+                                .trim(),
                           );
                           if (!confirmed || !context.mounted) return;
                           isSaving.value = true;
@@ -752,6 +764,7 @@ class LoanInput extends HookConsumerWidget {
                                   lockInDays.value,
                                   earlyCharge,
                                   additionalDetailsController.text.trim(),
+                                  termsAndConditionsController.text.trim(),
                                   relation.id!,
                                   material.id!,
                                 );
@@ -836,6 +849,7 @@ class LoanInput extends HookConsumerWidget {
     required int lockInDays,
     required double earlyRedemptionCharge,
     required String notes,
+    required String termsAndConditions,
   }) async {
     final currency = NumberFormat.currency(
       locale: 'en_IN',
@@ -875,6 +889,8 @@ class LoanInput extends HookConsumerWidget {
           currency.format(earlyRedemptionCharge),
         ),
       if (notes.isNotEmpty) MapEntry('Notes', notes),
+      if (termsAndConditions.isNotEmpty)
+        MapEntry('Terms and conditions', termsAndConditions),
     ];
 
     return await showDialog<bool>(

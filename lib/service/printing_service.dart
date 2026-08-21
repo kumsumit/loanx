@@ -84,6 +84,8 @@ class LoanPrintingService {
       if (loan.completionReference.isNotEmpty)
         ['Reference', loan.completionReference],
       if (loan.additionalDetails.isNotEmpty) ['Notes', loan.additionalDetails],
+      if (loan.termsAndConditions.isNotEmpty)
+        ['Terms and conditions', loan.termsAndConditions],
     ];
 
     return pw.Document()..addPage(

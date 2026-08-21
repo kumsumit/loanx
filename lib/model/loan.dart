@@ -20,6 +20,7 @@ class LoanFields {
   static final String lockInDays = 'lockInDays';
   static final String earlyRedemptionCharge = 'earlyRedemptionCharge';
   static final String additionalDetails = 'additionalDetails';
+  static final String termsAndConditions = 'termsAndConditions';
   static final String dateCreated = 'dateCreated';
   static final String dateFinished = 'dateFinished';
   static final String completedBy = 'completedBy';
@@ -47,6 +48,7 @@ class Loan {
   int lockInDays;
   double earlyRedemptionCharge;
   String additionalDetails;
+  String termsAndConditions;
   DateTime dateCreated;
   DateTime? dateFinished;
   String completedBy;
@@ -72,6 +74,7 @@ class Loan {
     this.lockInDays = 0,
     this.earlyRedemptionCharge = 0,
     required this.additionalDetails,
+    this.termsAndConditions = '',
     required this.familyRelationId,
     required this.mortgageMaterialId,
     DateTime? dateCreated,
@@ -144,6 +147,7 @@ class Loan {
     int? lockInDays,
     double? earlyRedemptionCharge,
     String? additionalDetails,
+    String? termsAndConditions,
     DateTime? dateCreated,
     DateTime? dateFinished,
     String? completedBy,
@@ -169,6 +173,7 @@ class Loan {
     lockInDays: lockInDays ?? this.lockInDays,
     earlyRedemptionCharge: earlyRedemptionCharge ?? this.earlyRedemptionCharge,
     additionalDetails: additionalDetails ?? this.additionalDetails,
+    termsAndConditions: termsAndConditions ?? this.termsAndConditions,
     dateCreated: dateCreated ?? this.dateCreated,
     dateFinished: dateFinished ?? this.dateFinished,
     completedBy: completedBy ?? this.completedBy,
@@ -197,6 +202,7 @@ class Loan {
     earlyRedemptionCharge:
         (json[LoanFields.earlyRedemptionCharge] as num?)?.toDouble() ?? 0,
     additionalDetails: json[LoanFields.additionalDetails] as String,
+    termsAndConditions: json[LoanFields.termsAndConditions] as String? ?? '',
     dateCreated: DateTime.parse(json[LoanFields.dateCreated] as String),
     dateFinished: json[LoanFields.dateFinished] == null
         ? null
@@ -225,6 +231,7 @@ class Loan {
     LoanFields.lockInDays: lockInDays,
     LoanFields.earlyRedemptionCharge: earlyRedemptionCharge,
     LoanFields.additionalDetails: additionalDetails,
+    LoanFields.termsAndConditions: termsAndConditions,
     LoanFields.dateCreated: DateFormat(
       'yyyy-MM-dd kk:mm:ss',
     ).format(dateCreated),

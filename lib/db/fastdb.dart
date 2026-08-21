@@ -235,6 +235,7 @@ class FastDB {
       interestFrequency: flatDb.interestFrequency,
       defaultLockInDays: flatDb.defaultLockInDays,
       defaultEarlyRedemptionCharge: flatDb.defaultEarlyRedemptionCharge,
+      defaultTermsAndConditions: flatDb.defaultTermsAndConditions,
       scheduledBackUpTimeHour: flatDb.scheduledBackUpTimeHour,
       scheduledBackUpTimeMinute: flatDb.scheduledBackUpTimeMinute,
       driveAccessToken: flatDb.driveAccessToken,
@@ -268,6 +269,7 @@ class FastDB {
       interestFrequency: flatDbBuilder.interestFrequency,
       defaultLockInDays: flatDbBuilder.defaultLockInDays,
       defaultEarlyRedemptionCharge: flatDbBuilder.defaultEarlyRedemptionCharge,
+      defaultTermsAndConditions: flatDbBuilder.defaultTermsAndConditions,
       scheduledBackUpTimeHour: flatDbBuilder.scheduledBackUpTimeHour,
       scheduledBackUpTimeMinute: flatDbBuilder.scheduledBackUpTimeMinute,
       dbUpdateTime: flatDbBuilder.dbUpdateTime,
@@ -335,6 +337,10 @@ class FastDB {
 
   static double getDefaultEarlyRedemptionCharge() {
     return flatDbBuilder.defaultEarlyRedemptionCharge ?? 0;
+  }
+
+  static String getDefaultTermsAndConditions() {
+    return flatDbBuilder.defaultTermsAndConditions ?? '';
   }
 
   static int getScheduledBackUpTimeHour() {
@@ -427,6 +433,10 @@ class FastDB {
 
   static void putDefaultEarlyRedemptionCharge(double charge) {
     flatDbBuilder.defaultEarlyRedemptionCharge = charge;
+  }
+
+  static void putDefaultTermsAndConditions(String terms) {
+    flatDbBuilder.defaultTermsAndConditions = terms;
   }
 
   static void putScheduledBackUpTimeHour(int scheduledBackUpTimeHour) {
