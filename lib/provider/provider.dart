@@ -106,9 +106,10 @@ class BackUpRegistered extends _$BackUpRegistered {
   @override
   bool build() => FastDB.getIsBackUpRegistered();
 
-  void set(bool isRegistered) {
+  Future<void> set(bool isRegistered) async {
     state = isRegistered;
     FastDB.putIsBackUpRegistered(isRegistered);
+    await FastDB.flush();
   }
 }
 

@@ -8,9 +8,19 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:loanx/model/loan.dart';
 import 'package:path_provider/path_provider.dart';
+import 'durable_file_system.dart';
 import 'flatdb_generated.dart' as db;
 
 // import 'dart:isolate';
+
+class FastDbRecoveryException implements Exception {
+  const FastDbRecoveryException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'FastDbRecoveryException: $message';
+}
 
 class FastDB {
   static final FastDB _instance = FastDB._internal();
@@ -30,18 +40,17 @@ class FastDB {
   static late File _file;
   static late File _temporaryFile;
   static late File _backupFile;
+  static late File _olderBackupFile;
   static late encrypt.Encrypter _encrypter;
   static late encrypt.Encrypter _authenticatedEncrypter;
   static Future<void> _flushQueue = Future.value();
 
   static Future<void> init() async {
-    const FlutterSecureStorage secureStorage = FlutterSecureStorage(
-      aOptions: AndroidOptions(resetOnError: true),
-    );
-    await _initializeKeys(secureStorage);
-    _initializeEncrypters();
     final directory = await getApplicationSupportDirectory();
     _initializeFiles(directory);
+    const secureStorage = FlutterSecureStorage();
+    await _initializeKeys(secureStorage);
+    _initializeEncrypters();
     await _loadWithRecovery();
   }
 
@@ -58,11 +67,17 @@ class FastDB {
     _file = File('${directory.path}/fastDB.bin');
     _temporaryFile = File('${_file.path}.tmp');
     _backupFile = File('${_file.path}.bak');
+    _olderBackupFile = File('${_file.path}.bak2');
   }
 
   @visibleForTesting
-  static Future<void> initForTesting(Directory directory) async {
-    _key = encrypt.Key(Uint8List.fromList(List<int>.generate(32, (i) => i)));
+  static Future<void> initForTesting(
+    Directory directory, {
+    int keyOffset = 0,
+  }) async {
+    _key = encrypt.Key(
+      Uint8List.fromList(List<int>.generate(32, (i) => i + keyOffset)),
+    );
     _iv = encrypt.IV(Uint8List.fromList(List<int>.generate(16, (i) => i)));
     _initializeEncrypters();
     _initializeFiles(directory);
@@ -82,11 +97,22 @@ class FastDB {
   @visibleForTesting
   static String get backupFilePathForTesting => _backupFile.path;
 
+  @visibleForTesting
+  static String get olderBackupFilePathForTesting => _olderBackupFile.path;
+
   static Future<void> _initializeKeys(
     FlutterSecureStorage secureStorage,
   ) async {
     final encryptedSSData = await secureStorage.read(key: _ssKey);
     final encryptedSVData = await secureStorage.read(key: _svKey);
+    final hasDatabaseFiles = await _hasAnyDatabaseFile();
+    if ((encryptedSSData == null || encryptedSVData == null) &&
+        hasDatabaseFiles) {
+      throw const FastDbRecoveryException(
+        'The encryption key is missing, but existing FastDB files are present. '
+        'The files were preserved; restore secure storage or a portable backup.',
+      );
+    }
     if (encryptedSSData == null) {
       _key = encrypt.Key.fromLength(_keyLength);
       await secureStorage.write(key: _ssKey, value: _key.base64);
@@ -99,6 +125,13 @@ class FastDB {
     } else {
       _iv = encrypt.IV.fromBase64(encryptedSVData);
     }
+  }
+
+  static Future<bool> _hasAnyDatabaseFile() async {
+    for (final file in [_file, _temporaryFile, _backupFile, _olderBackupFile]) {
+      if (await file.exists() && await file.length() > 0) return true;
+    }
+    return false;
   }
 
   static Future<void> _loadWithRecovery() async {
@@ -126,6 +159,22 @@ class FastDB {
       return;
     }
 
+    final olderRecovered = await _tryLoad(_olderBackupFile);
+    if (olderRecovered != null) {
+      await _preserveCorruptPrimary();
+      await _olderBackupFile.copy(_file.path);
+      flatDbBuilder = olderRecovered;
+      if (await _temporaryFile.exists()) await _temporaryFile.delete();
+      debugPrint('FastDB recovered settings from ${_olderBackupFile.path}');
+      return;
+    }
+
+    if (await _hasAnyDatabaseFile()) {
+      throw const FastDbRecoveryException(
+        'All FastDB recovery files are unreadable. They were preserved for '
+        'diagnostics or recovery.',
+      );
+    }
     await _preserveCorruptPrimary();
     flatDbBuilder = db.FlatDbObjectBuilder();
   }
@@ -134,12 +183,12 @@ class FastDB {
     final primary = await _tryLoad(_file);
     try {
       if (primary != null) {
-        if (await _backupFile.exists()) await _backupFile.delete();
-        await _file.rename(_backupFile.path);
+        await _rotatePrimaryToBackup();
       } else {
         await _preserveCorruptPrimary();
       }
       await _temporaryFile.rename(_file.path);
+      await _syncDatabaseDirectory();
       return true;
     } catch (error) {
       debugPrint('Could not promote recovered FastDB write: $error');
@@ -532,11 +581,11 @@ class FastDB {
     // before replacing the last known-good file.
     _decode(await _temporaryFile.readAsBytes());
 
-    if (await _backupFile.exists()) await _backupFile.delete();
-    if (await _file.exists()) await _file.rename(_backupFile.path);
+    await _rotatePrimaryToBackup();
 
     try {
       await _temporaryFile.rename(_file.path);
+      await _syncDatabaseDirectory();
     } catch (_) {
       if (!await _file.exists() && await _backupFile.exists()) {
         await _backupFile.copy(_file.path);
@@ -545,9 +594,39 @@ class FastDB {
     }
   }
 
+  static Future<void> _rotatePrimaryToBackup() async {
+    // Keep two known-good generations. Copying with flush ensures bak2 is
+    // durable before bak is replaced, so a failure during rotation still
+    // leaves at least one prior snapshot.
+    if (await _backupFile.exists()) {
+      final olderTemporary = File('${_olderBackupFile.path}.tmp');
+      if (await olderTemporary.exists()) await olderTemporary.delete();
+      await olderTemporary.writeAsBytes(
+        await _backupFile.readAsBytes(),
+        flush: true,
+      );
+      _decode(await olderTemporary.readAsBytes());
+      if (await _olderBackupFile.exists()) await _olderBackupFile.delete();
+      await olderTemporary.rename(_olderBackupFile.path);
+      await _syncDatabaseDirectory();
+    }
+    if (await _backupFile.exists()) await _backupFile.delete();
+    if (await _file.exists()) await _file.rename(_backupFile.path);
+    await _syncDatabaseDirectory();
+  }
+
+  static Future<void> _syncDatabaseDirectory() =>
+      syncDirectoryMetadata(_file.parent);
+
   static Future<void> clearAll() async {
     await _flushQueue;
-    for (final file in [_file, _temporaryFile, _backupFile]) {
+    for (final file in [
+      _file,
+      _temporaryFile,
+      _backupFile,
+      _olderBackupFile,
+      File('${_olderBackupFile.path}.tmp'),
+    ]) {
       if (await file.exists()) await file.delete();
     }
   }
