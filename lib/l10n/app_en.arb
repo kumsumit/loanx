@@ -389,5 +389,21 @@
   "Google account": "Google account",
   "No default terms set": "No default terms set",
   "Prefilled for new loans": "Prefilled for new loans",
-  "New loans have no lock-in by default": "New loans have no lock-in by default"
+  "New loans have no lock-in by default": "New loans have no lock-in by default",
+  "showUpiPaymentQr": "Show UPI payment QR",
+  "createUpiPaymentQr": "Create UPI payment QR",
+  "receivingUpiId": "Receiving UPI ID",
+  "upiIdHint": "name@bank",
+  "enterValidUpiId": "Enter a valid UPI ID",
+  "defaultUpiId": "Default UPI ID",
+  "noDefaultUpiIdSet": "No default UPI ID set",
+  "defaultUpiIdHelper": "Prefilled when creating a UPI payment; you can still edit it there.",
+  "defaultUpiIdUpdated": "Default UPI ID updated",
+  "amount": "Amount",
+  "enterAmountGreaterThanZero": "Enter an amount greater than zero",
+  "createQr": "Create QR",
+  "loanRepaymentFor": "Loan repayment - {name}",
+  "scanToPayWithUpi": "Scan to pay with UPI",
+  "verifyUpiRecipient": "Verify the recipient name in the UPI app before paying.",
+  "done": "Done"
 }

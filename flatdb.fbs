@@ -22,4 +22,6 @@ table FlatDB {
   photo:[ubyte];
   default_lock_in_days:int8;
   default_early_redemption_charge:double;
+  default_terms_and_conditions:string;
+  default_upi_id:string;
 }

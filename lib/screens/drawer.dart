@@ -1004,6 +1004,7 @@ class MyDrawer extends HookConsumerWidget {
                   ),
                   const _DefaultLockInSetting(),
                   const _DefaultTermsAndConditionsSetting(),
+                  const _DefaultUpiIdSetting(),
                 ],
               ),
               ExpansionTile(
@@ -1621,6 +1622,117 @@ class MyDrawer extends HookConsumerWidget {
     } else {
       throw 'Could not launch $url';
     }
+  }
+}
+
+class _DefaultUpiIdSetting extends StatefulWidget {
+  const _DefaultUpiIdSetting();
+
+  @override
+  State<_DefaultUpiIdSetting> createState() => _DefaultUpiIdSettingState();
+}
+
+class _DefaultUpiIdSettingState extends State<_DefaultUpiIdSetting> {
+  String _upiId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _upiId = FastDB.getDefaultUpiId();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: StyledIcon(Icons.account_balance_outlined),
+      title: StyledText(LocaleKeys.defaultUpiId.tr()),
+      subtitle: StyledSubtitle(
+        _upiId.isEmpty ? LocaleKeys.noDefaultUpiIdSet.tr() : _upiId,
+      ),
+      onTap: _edit,
+    );
+  }
+
+  Future<void> _edit() async {
+    final saved = await showDialog<String>(
+      context: context,
+      builder: (_) => _DefaultUpiIdDialog(initialUpiId: _upiId),
+    );
+    if (saved == null) return;
+
+    FastDB.putDefaultUpiId(saved);
+    await FastDB.flush();
+    if (!mounted) return;
+    setState(() => _upiId = saved);
+    showSnackBar(context, LocaleKeys.defaultUpiIdUpdated.tr());
+  }
+}
+
+class _DefaultUpiIdDialog extends StatefulWidget {
+  const _DefaultUpiIdDialog({required this.initialUpiId});
+
+  final String initialUpiId;
+
+  @override
+  State<_DefaultUpiIdDialog> createState() => _DefaultUpiIdDialogState();
+}
+
+class _DefaultUpiIdDialogState extends State<_DefaultUpiIdDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialUpiId);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(LocaleKeys.defaultUpiId.tr()),
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          controller: _controller,
+          autofocus: true,
+          keyboardType: TextInputType.emailAddress,
+          autocorrect: false,
+          decoration: InputDecoration(
+            labelText: LocaleKeys.receivingUpiId.tr(),
+            hintText: LocaleKeys.upiIdHint.tr(),
+            helperText: LocaleKeys.defaultUpiIdHelper.tr(),
+          ),
+          validator: (value) {
+            final upiId = value?.trim() ?? '';
+            if (upiId.isNotEmpty &&
+                !RegExp(r'^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+$').hasMatch(upiId)) {
+              return LocaleKeys.enterValidUpiId.tr();
+            }
+            return null;
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(LocaleKeys.cancel.tr()),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (_formKey.currentState?.validate() != true) return;
+            Navigator.pop(context, _controller.text.trim());
+          },
+          child: Text(LocaleKeys.save.tr()),
+        ),
+      ],
+    );
   }
 }
 

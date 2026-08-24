@@ -61,6 +61,8 @@ class FlatDb {
       const fb.Float64Reader().vTableGet(_bc, _bcOffset, 48, 0.0);
   String? get defaultTermsAndConditions =>
       const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 50);
+  String? get defaultUpiId =>
+      const fb.StringReader().vTableGetNullable(_bc, _bcOffset, 52);
 
   @override
   String toString() {
@@ -100,6 +102,7 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
   int? defaultLockInDays;
   double? defaultEarlyRedemptionCharge;
   String? defaultTermsAndConditions;
+  String? defaultUpiId;
 
   FlatDbObjectBuilder({
     this.isTableCreated,
@@ -126,6 +129,7 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     this.defaultLockInDays,
     this.defaultEarlyRedemptionCharge,
     this.defaultTermsAndConditions,
+    this.defaultUpiId,
   });
 
   /// Finish building, and store into the [fbBuilder].
@@ -159,7 +163,10 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
         defaultTermsAndConditions == null
         ? null
         : fbBuilder.writeString(defaultTermsAndConditions!);
-    fbBuilder.startTable(24);
+    final int? defaultUpiIdOffset = defaultUpiId == null
+        ? null
+        : fbBuilder.writeString(defaultUpiId!);
+    fbBuilder.startTable(25);
     fbBuilder.addBool(0, isTableCreated);
     fbBuilder.addInt8(1, themeMode);
     fbBuilder.addOffset(2, appColorOffset);
@@ -184,6 +191,7 @@ class FlatDbObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.addInt8(21, defaultLockInDays);
     fbBuilder.addFloat64(22, defaultEarlyRedemptionCharge);
     fbBuilder.addOffset(23, defaultTermsAndConditionsOffset);
+    fbBuilder.addOffset(24, defaultUpiIdOffset);
     return fbBuilder.endTable();
   }
 

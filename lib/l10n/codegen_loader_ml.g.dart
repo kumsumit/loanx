@@ -460,4 +460,21 @@ const Map<String, dynamic> translations = {
   "Prefilled for new loans": "പുതിയ വായ്പകൾക്കായി മുൻകൂട്ടി പൂരിപ്പിച്ചത്",
   "New loans have no lock-in by default":
       "പുതിയ വായ്പകൾക്ക് ഡിഫോൾട്ടായി ലോക്ക്-ഇൻ ഇല്ല",
+  "showUpiPaymentQr": "UPI QR കാണുക",
+  "createUpiPaymentQr": "UPI QR ഉണ്ടാക്കുക",
+  "receivingUpiId": "പണം ലഭിക്കുന്ന UPI ID",
+  "upiIdHint": "name@bank",
+  "enterValidUpiId": "ശരിയായ UPI ID നൽകുക",
+  "defaultUpiId": "ഡിഫോൾട്ട് UPI ID",
+  "noDefaultUpiIdSet": "ഡിഫോൾട്ട് UPI ID സെറ്റ് ചെയ്തിട്ടില്ല",
+  "defaultUpiIdHelper": "പേയ്‌മെന്റ് ചെയ്യുമ്പോൾ ഈ ID തനിയെ പൂരിപ്പിക്കും",
+  "defaultUpiIdUpdated": "ഡിഫോൾട്ട് UPI ID അപ്‌ഡേറ്റ് ചെയ്തു",
+  "amount": "തുക",
+  "enterAmountGreaterThanZero": "പൂജ്യത്തേക്കാൾ കൂടുതലുള്ള തുക നൽകുക",
+  "createQr": "QR ഉണ്ടാക്കുക",
+  "loanRepaymentFor": "{name}-ന്റെ ലോൺ തവണ",
+  "scanToPayWithUpi": "UPI വഴി പേയ്‌മെന്റ് ചെയ്യാൻ സ്കാൻ ചെയ്യുക",
+  "verifyUpiRecipient":
+      "പേയ്‌മെന്റ് ചെയ്യുന്നതിന് മുമ്പ് പണം ലഭിക്കുന്നയാളുടെ പേര് നോക്കുക",
+  "done": "കഴിഞ്ഞു",
 };

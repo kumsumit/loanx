@@ -145,10 +145,23 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  bool? _hasSelectedLanguage;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _hasSelectedLanguage ??= context.savedLocale != null;
+  }
+
+  void _languageSelected() {
+    if (_hasSelectedLanguage == true) return;
+    setState(() => _hasSelectedLanguage = true);
   }
 
   @override
@@ -182,8 +195,8 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       theme: AppTheme.light(AppTheme.parseSeed(appColor)),
       darkTheme: AppTheme.dark(AppTheme.parseSeed(appColor)),
       debugShowCheckedModeBanner: false,
-      home: context.savedLocale == null
-          ? const StartupLanguageScreen()
+      home: _hasSelectedLanguage != true
+          ? StartupLanguageScreen(onLanguageSelected: _languageSelected)
           : !FastDB.getIsTableCreated()
           ? const AskBackupScreen()
           : authenticate.when(

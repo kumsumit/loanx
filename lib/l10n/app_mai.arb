@@ -389,5 +389,21 @@
   "Google account": "Google खाता",
   "No default terms set": "कोनो डिफॉल्ट शर्त निर्धारित नहि अछि",
   "Prefilled for new loans": "नवीन ऋणक लेल पहिनेसँ भरल गेल",
-  "New loans have no lock-in by default": "नवीन ऋण मे डिफॉल्ट रूपसँ कोनो लॉक-इन नहि अछि"
+  "New loans have no lock-in by default": "नवीन ऋण मे डिफॉल्ट रूपसँ कोनो लॉक-इन नहि अछि",
+  "showUpiPaymentQr": "UPI QR देखू",
+"createUpiPaymentQr": "UPI QR बनाउ",
+"receivingUpiId": "पैसा पाबय वाला UPI ID",
+"upiIdHint": "name@bank",
+"enterValidUpiId": "सही UPI ID दिअ",
+"defaultUpiId": "डिफॉल्ट UPI ID",
+"noDefaultUpiIdSet": "डिफॉल्ट UPI ID सेट नहि अछि",
+"defaultUpiIdHelper": "पेमेंट करैत समय ई ID अपने-आप भरि जाएत",
+"defaultUpiIdUpdated": "डिफॉल्ट UPI ID अपडेट भ' गेल",
+"amount": "रकम",
+"enterAmountGreaterThanZero": "शून्य सँ बेसी रकम दिअ",
+"createQr": "QR बनाउ",
+"loanRepaymentFor": "{name} के लोनक किस्त",
+"scanToPayWithUpi": "UPI सँ पेमेंट करबाक लेल स्कैन करू",
+"verifyUpiRecipient": "पेमेंट करय सँ पहिने पैसा पाबय वाला के नाम देखू",
+"done": "भ' गेल"
 }

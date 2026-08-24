@@ -8,6 +8,7 @@ void main() {
       defaultLockInDays: 15,
       defaultEarlyRedemptionCharge: 750.50,
       defaultTermsAndConditions: 'Repayment is due within 12 months.',
+      defaultUpiId: 'shop@bank',
     );
 
     final restored = FlatDb(settings.toBytes());
@@ -18,6 +19,7 @@ void main() {
       restored.defaultTermsAndConditions,
       'Repayment is due within 12 months.',
     );
+    expect(restored.defaultUpiId, 'shop@bank');
   });
 
   test('older settings default to no lock-in', () {
@@ -32,5 +34,6 @@ void main() {
     expect(restored.defaultLockInDays, 0);
     expect(restored.defaultEarlyRedemptionCharge, 0);
     expect(restored.defaultTermsAndConditions, isNull);
+    expect(restored.defaultUpiId, isNull);
   });
 }

@@ -389,5 +389,21 @@
   "Google account": "Google ਖਾਤਾ",
   "No default terms set": "ਕੋਈ ਡਿਫਾਲਟ ਸ਼ਰਤਾਂ ਸੈੱਟ ਨਹੀਂ ਹਨ",
   "Prefilled for new loans": "ਨਵੇਂ ਕਰਜ਼ਿਆਂ ਲਈ ਪਹਿਲਾਂ ਤੋਂ ਭਰਿਆ ਹੋਇਆ",
-  "New loans have no lock-in by default": "ਨਵੇਂ ਕਰਜ਼ਿਆਂ ਲਈ ਡਿਫਾਲਟ ਤੌਰ 'ਤੇ ਕੋਈ ਲੌਕ-ਇਨ ਨਹੀਂ ਹੈ"
+  "New loans have no lock-in by default": "ਨਵੇਂ ਕਰਜ਼ਿਆਂ ਲਈ ਡਿਫਾਲਟ ਤੌਰ 'ਤੇ ਕੋਈ ਲੌਕ-ਇਨ ਨਹੀਂ ਹੈ",
+  "showUpiPaymentQr": "UPI QR ਵੇਖੋ",
+"createUpiPaymentQr": "UPI QR ਬਣਾਓ",
+"receivingUpiId": "ਪੈਸੇ ਲੈਣ ਲਈ UPI ID",
+"upiIdHint": "name@bank",
+"enterValidUpiId": "ਸਹੀ UPI ID ਪਾਓ",
+"defaultUpiId": "ਡਿਫਾਲਟ UPI ID",
+"noDefaultUpiIdSet": "ਡਿਫਾਲਟ UPI ID ਸੈੱਟ ਨਹੀਂ ਹੈ",
+"defaultUpiIdHelper": "ਪੇਮੈਂਟ ਕਰਦੇ ਸਮੇਂ ਇਹ ID ਆਪਣੇ ਆਪ ਭਰ ਜਾਵੇਗੀ",
+"defaultUpiIdUpdated": "ਡਿਫਾਲਟ UPI ID ਅੱਪਡੇਟ ਹੋ ਗਈ",
+"amount": "ਰਕਮ",
+"enterAmountGreaterThanZero": "ਜ਼ੀਰੋ ਤੋਂ ਵੱਧ ਰਕਮ ਪਾਓ",
+"createQr": "QR ਬਣਾਓ",
+"loanRepaymentFor": "{name} ਦੇ ਲੋਨ ਦੀ ਕਿਸ਼ਤ",
+"scanToPayWithUpi": "UPI ਨਾਲ ਪੇਮੈਂਟ ਕਰਨ ਲਈ ਸਕੈਨ ਕਰੋ",
+"verifyUpiRecipient": "ਪੇਮੈਂਟ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਪੈਸੇ ਲੈਣ ਵਾਲੇ ਦਾ ਨਾਮ ਵੇਖੋ",
+"done": "ਹੋ ਗਿਆ"
 }

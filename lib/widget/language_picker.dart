@@ -70,7 +70,15 @@ Future<void> showAppLanguagePicker(BuildContext context) async {
 }
 
 class StartupLanguageScreen extends StatelessWidget {
-  const StartupLanguageScreen({super.key});
+  const StartupLanguageScreen({required this.onLanguageSelected, super.key});
+
+  final VoidCallback onLanguageSelected;
+
+  Future<void> _selectLanguage(BuildContext context, Locale locale) async {
+    await context.setLocale(locale);
+    if (!context.mounted) return;
+    onLanguageSelected();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +123,8 @@ class StartupLanguageScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        onPressed: () => context.setLocale(language.locale),
+                        onPressed: () =>
+                            _selectLanguage(context, language.locale),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),

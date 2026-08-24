@@ -1,10 +1,10 @@
-import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/dashboard.dart';
 import 'package:loanx/service/backup_service.dart';
@@ -20,72 +20,46 @@ class AskBackupScreen extends HookWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final isLoading = useState(false);
+    final isDark = theme.brightness == Brightness.dark;
 
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        SystemChrome.setSystemUIOverlayStyle(
-          SystemUiOverlayStyle(
-            statusBarColor: theme.scaffoldBackgroundColor,
-            statusBarIconBrightness: theme.brightness,
-            systemNavigationBarColor: theme.scaffoldBackgroundColor,
-            systemNavigationBarDividerColor: theme.scaffoldBackgroundColor,
-            systemNavigationBarIconBrightness: theme.brightness,
-          ),
-        );
-      });
-      return null;
-    }, [theme]);
-
-    return Scaffold(
-      body: LoadingOverlay(
-        isLoading: isLoading.value,
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) => SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 480),
-                    child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: colors.surface,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: colors.surface,
+        systemNavigationBarDividerColor: colors.surface,
+        systemNavigationBarIconBrightness: isDark
+            ? Brightness.light
+            : Brightness.dark,
+      ),
+      child: Scaffold(
+        body: LoadingOverlay(
+          isLoading: isLoading.value,
+          child: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 48,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: IntrinsicHeight(
                         child: Column(
-                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Center(
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: colors.primaryContainer,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.cloud_sync_outlined,
-                                  size: 32,
-                                  color: colors.primary,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              LocaleKeys.welcomeToLoanx.tr(),
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: colors.primary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
+                            _BrandMark(colors: colors),
+                            const SizedBox(height: 28),
                             Text(
                               LocaleKeys.restoreYourLoanRecords.tr(),
-                              style: theme.textTheme.headlineSmall?.copyWith(
+                              style: theme.textTheme.headlineLarge?.copyWith(
                                 fontWeight: FontWeight.w800,
+                                letterSpacing: -1.1,
+                                height: 1.08,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -93,212 +67,47 @@ class AskBackupScreen extends HookWidget {
                                   .tr(),
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 color: colors.onSurfaceVariant,
-                                height: 1.4,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 24),
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: colors.secondaryContainer,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline_rounded,
-                                    color: colors.onSecondaryContainer,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      'Restoring replaces the records currently on this device.'
-                                          .tr(),
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            color: colors.onSecondaryContainer,
-                                            height: 1.35,
-                                          ),
-                                    ),
-                                  ),
-                                ],
+                                height: 1.5,
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 32),
                             Consumer(
-                              builder: (context, ref, child) => FilledButton.icon(
-                                onPressed: () async {
-                                  final networkStatus = ref.read(
-                                    networkCheckerProvider,
-                                  );
-                                  final backupRegistered = ref.read(
-                                    backUpRegisteredProvider.notifier,
-                                  );
-                                  final db = ref.read(dBProvider);
-
-                                  networkStatus.when(
-                                    data: (connected) async {
-                                      if (connected) {
-                                        isLoading.value = true;
-                                        final restored =
-                                            await BackupService.downloadFileToDevice();
-                                        if (!restored) {
-                                          if (context.mounted) {
-                                            showSnackBar(
-                                              context,
-                                              BackupService.lastError,
-                                            );
-                                          }
-                                          isLoading.value = false;
-                                          return;
-                                        }
-                                        ref.invalidate(loanListProvider);
-                                        ref.invalidate(
-                                          familyRelationListProvider,
-                                        );
-                                        ref.invalidate(
-                                          mortgageMaterialListProvider,
-                                        );
-                                        ref.invalidate(weightUnitListProvider);
-                                        if (!FastDB.getIsTableCreated()) {
-                                          ref
-                                              .read(dBProvider)
-                                              .when(
-                                                data: (data) async {
-                                                  await DatabaseHelper.instance
-                                                      .onCreate(data, 1);
-                                                },
-                                                error: (_, _) => showSnackBar(
-                                                  context,
-                                                  'Something went wrong. Please try again.'
-                                                      .tr(),
-                                                ),
-                                                loading: () {},
-                                              );
-                                        }
-                                        FastDB.putScheduledBackUpTimeHour(02);
-                                        FastDB.putScheduledBackUpTimeMinute(00);
-                                        await registerBackUp();
-                                        backupRegistered.set(true);
-                                        FastDB.putIsTableCreated(true);
-                                        await FastDB.flush();
-                                        db.when(
-                                          data: (data) async {
-                                            ref
-                                                .read(
-                                                  mortgageMaterialListProvider
-                                                      .notifier,
-                                                )
-                                                .readAllMortgageMaterials();
-                                            ref
-                                                .read(
-                                                  familyRelationListProvider
-                                                      .notifier,
-                                                )
-                                                .readAllFamilyRelations();
-                                            ref
-                                                .read(loanListProvider.notifier)
-                                                .readAllLoans();
-                                          },
-                                          error: (_, _) => showSnackBar(
-                                            context,
-                                            'Could not restore your backup. Please try again.'
-                                                .tr(),
-                                          ),
-                                          loading: () {},
-                                        );
-                                      } else {
-                                        showSnackBar(
-                                          context,
-                                          'Connect to the internet to restore a backup.'
-                                              .tr(),
-                                        );
-                                        return;
-                                      }
-                                      isLoading.value = false;
-                                      if (context.mounted) {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const DashBoard(),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    error: (_, _) => showSnackBar(
-                                      context,
-                                      'Could not check your connection. Please try again.'
-                                          .tr(),
-                                    ),
-                                    loading: () {},
-                                  );
-                                },
-                                icon: const Icon(Icons.cloud_download_outlined),
-                                label: Text(
-                                  LocaleKeys.restoreFromGoogleDrive.tr(),
-                                ),
-                                style: FilledButton.styleFrom(
-                                  minimumSize: const Size.fromHeight(52),
-                                ),
+                              builder: (context, ref, child) => _RestoreCard(
+                                colors: colors,
+                                onPressed: () =>
+                                    _restoreBackup(context, ref, isLoading),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 14),
                             Consumer(
-                              builder: (context, ref, child) =>
-                                  OutlinedButton.icon(
-                                    onPressed: () async {
-                                      isLoading.value = true;
-                                      try {
-                                        if (!FastDB.getIsTableCreated()) {
-                                          final database = await ref.read(
-                                            dBProvider.future,
-                                          );
-                                          await DatabaseHelper.instance
-                                              .onCreate(database, 1);
-                                          FastDB.putIsTableCreated(true);
-                                          await FastDB.flush();
-                                        }
-                                        if (context.mounted) {
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const DashBoard(),
-                                            ),
-                                          );
-                                        }
-                                      } catch (_) {
-                                        if (context.mounted) {
-                                          showSnackBar(
-                                            context,
-                                            LocaleKeys
-                                                .somethingWentWrongPleaseTryAgain
-                                                .tr(),
-                                          );
-                                        }
-                                      } finally {
-                                        isLoading.value = false;
-                                      }
-                                    },
-                                    icon: const Icon(Icons.add_circle_outline),
-                                    label: Text(
-                                      LocaleKeys.startWithANewWorkspace.tr(),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      minimumSize: const Size.fromHeight(52),
-                                    ),
-                                  ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'You can manage backups later from Settings.'
-                                  .tr(),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colors.onSurfaceVariant,
+                              builder: (context, ref, child) => _FreshStartRow(
+                                colors: colors,
+                                onPressed: () =>
+                                    _startFresh(context, ref, isLoading),
                               ),
-                              textAlign: TextAlign.center,
+                            ),
+                            const Spacer(),
+                            const SizedBox(height: 28),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.settings_outlined,
+                                  size: 16,
+                                  color: colors.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 7),
+                                Flexible(
+                                  child: Text(
+                                    'You can manage backups later from Settings.'
+                                        .tr(),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -308,6 +117,235 @@ class AskBackupScreen extends HookWidget {
                 ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _restoreBackup(
+    BuildContext context,
+    WidgetRef ref,
+    ValueNotifier<bool> isLoading,
+  ) async {
+    final backupRegistered = ref.read(backUpRegisteredProvider.notifier);
+    final db = ref.read(dBProvider);
+
+    isLoading.value = true;
+    try {
+      // Let Google Sign-In start immediately. The connectivity stream can stay
+      // in its initial loading state on this first-run screen and must not gate
+      // an explicit user action.
+      final restored = await BackupService.downloadFileToDevice();
+      if (!restored) {
+        if (context.mounted) {
+          showSnackBar(context, BackupService.lastError);
+        }
+        return;
+      }
+
+      ref.invalidate(loanListProvider);
+      ref.invalidate(familyRelationListProvider);
+      ref.invalidate(mortgageMaterialListProvider);
+      ref.invalidate(weightUnitListProvider);
+      if (!FastDB.getIsTableCreated()) {
+        final database = await ref.read(dBProvider.future);
+        await DatabaseHelper.instance.onCreate(database, 1);
+      }
+      FastDB.putScheduledBackUpTimeHour(02);
+      FastDB.putScheduledBackUpTimeMinute(00);
+      await registerBackUp();
+      backupRegistered.set(true);
+      FastDB.putIsTableCreated(true);
+      await FastDB.flush();
+      db.whenData((data) {
+        ref
+            .read(mortgageMaterialListProvider.notifier)
+            .readAllMortgageMaterials();
+        ref.read(familyRelationListProvider.notifier).readAllFamilyRelations();
+        ref.read(loanListProvider.notifier).readAllLoans();
+      });
+      if (context.mounted) {
+        isLoading.value = false;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashBoard()),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        showSnackBar(
+          context,
+          'Could not restore your backup. Please try again.'.tr(),
+        );
+      }
+    } finally {
+      if (context.mounted) isLoading.value = false;
+    }
+  }
+
+  Future<void> _startFresh(
+    BuildContext context,
+    WidgetRef ref,
+    ValueNotifier<bool> isLoading,
+  ) async {
+    isLoading.value = true;
+    try {
+      if (!FastDB.getIsTableCreated()) {
+        final database = await ref.read(dBProvider.future);
+        await DatabaseHelper.instance.onCreate(database, 1);
+        FastDB.putIsTableCreated(true);
+        await FastDB.flush();
+      }
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashBoard()),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        showSnackBar(context, LocaleKeys.somethingWentWrongPleaseTryAgain.tr());
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+}
+
+class _BrandMark extends StatelessWidget {
+  const _BrandMark({required this.colors});
+
+  final ColorScheme colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: colors.primary,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(
+            Icons.account_balance_wallet_rounded,
+            color: colors.onPrimary,
+            size: 23,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          'LoanX',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -.4,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RestoreCard extends StatelessWidget {
+  const _RestoreCard({required this.colors, required this.onPressed});
+
+  final ColorScheme colors;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: colors.primaryContainer,
+      borderRadius: BorderRadius.circular(24),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: colors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.cloud_download_rounded,
+                color: colors.onPrimary,
+              ),
+            ),
+            const SizedBox(height: 22),
+            Text(
+              LocaleKeys.restoreFromGoogleDrive.tr(),
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: colors.onPrimaryContainer,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              'Restoring replaces the records currently on this device.'.tr(),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.onPrimaryContainer.withValues(alpha: .76),
+              ),
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: onPressed,
+              iconAlignment: IconAlignment.end,
+              icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+              label: Text(
+                LocaleKeys.restoreLatestBackup.tr(),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+                backgroundColor: colors.primary,
+                foregroundColor: colors.onPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FreshStartRow extends StatelessWidget {
+  const _FreshStartRow({required this.colors, required this.onPressed});
+
+  final ColorScheme colors;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: colors.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
+          child: Row(
+            children: [
+              Icon(Icons.add_rounded, color: colors.primary),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  LocaleKeys.startWithANewWorkspace.tr(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: colors.onSurfaceVariant),
+            ],
           ),
         ),
       ),

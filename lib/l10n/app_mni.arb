@@ -389,5 +389,21 @@
   "Google account": "Google একাউন্ট",
   "No default terms set": "ডিফল্ট টাৰ্ম অমত্তা সেট তৌদ্রে",
   "Prefilled for new loans": "অনৌবা ঋণশিংগী মতাংদা মমাংদগী ফিল তৌরে",
-  "New loans have no lock-in by default": "অনৌবা ঋণশিংদা ডিফল্ট ওইনা লক-ইন অমত্তা লৈতে"
+  "New loans have no lock-in by default": "অনৌবা ঋণশিংদা ডিফল্ট ওইনা লক-ইন অমত্তা লৈতে",
+  "showUpiPaymentQr": "UPI QR উবা",
+"createUpiPaymentQr": "UPI QR শেমদোকউ",
+"receivingUpiId": "শাংবা মনি পাম্বা UPI ID",
+"upiIdHint": "name@bank",
+"enterValidUpiId": "শিংদবা UPI ID শিজিন্নউ",
+"defaultUpiId": "ডিফল্ট UPI ID",
+"noDefaultUpiIdSet": "ডিফল্ট UPI ID সেট তৌদ্রে",
+"defaultUpiIdHelper": "পেমেন্ট শেমদোকপদা মসিগী ID মখা তানা ফিল তৌগনি",
+"defaultUpiIdUpdated": "ডিফল্ট UPI ID আপডেট তৌরে",
+"amount": "মমল",
+"enterAmountGreaterThanZero": "শূন্যগী মখাদা মমল অমা ইন্নউ",
+"createQr": "QR শেমদোকউ",
+"loanRepaymentFor": "{name} গী লোন কিস্তি",
+"scanToPayWithUpi": "UPI গা পেমেন্ট তৌনবা স্ক্যান তৌ",
+"verifyUpiRecipient": "পেমেন্ট তৌদ্রিঙৈদা মনি পাম্বগী মিং উবা",
+"done": "লোইরে"
 }

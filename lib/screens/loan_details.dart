@@ -9,10 +9,12 @@ import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/provider/provider.dart';
+import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/language_picker.dart';
+import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -430,6 +432,17 @@ class _DetailsContent extends ConsumerWidget {
                   ),
                 ],
               ),
+              if (!loan.isFinished()) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    onPressed: () => _showUpiPaymentQr(context, collectable),
+                    icon: const Icon(Icons.qr_code_2_rounded),
+                    label: Text(LocaleKeys.showUpiPaymentQr.tr()),
+                  ),
+                ),
+              ],
               if (earlyRedemptionCharge > 0) ...[
                 const SizedBox(height: 10),
                 _AmountMetric(
@@ -664,6 +677,83 @@ class _DetailsContent extends ConsumerWidget {
     );
   }
 
+  Future<void> _showUpiPaymentQr(
+    BuildContext context,
+    double collectable,
+  ) async {
+    final payment = await showDialog<({String upiId, double amount})>(
+      context: context,
+      builder: (_) => _UpiPaymentFormDialog(
+        initialUpiId: FastDB.getDefaultUpiId(),
+        initialAmount: collectable,
+      ),
+    );
+
+    if (payment == null || !context.mounted) return;
+
+    final paymentUri = Uri(
+      scheme: 'upi',
+      host: 'pay',
+      queryParameters: {
+        'pa': payment.upiId,
+        'am': payment.amount.toStringAsFixed(2),
+        'cu': 'INR',
+        'tn': LocaleKeys.loanRepaymentFor.tr(
+          namedArgs: {'name': loan.depositorName},
+        ),
+      },
+    );
+    final currency = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 2,
+    );
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(LocaleKeys.scanToPayWithUpi.tr()),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 240,
+                height: 240,
+                padding: const EdgeInsets.all(12),
+                color: Colors.white,
+                child: PrettyQrView.data(data: paymentUri.toString()),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                currency.format(payment.amount),
+                style: Theme.of(dialogContext).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 4),
+              SelectableText(
+                payment.upiId,
+                textAlign: TextAlign.center,
+                style: Theme.of(dialogContext).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                LocaleKeys.verifyUpiRecipient.tr(),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(LocaleKeys.done.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _callBorrower(BuildContext context) async {
     final launched = await launchUrl(
       Uri(scheme: 'tel', path: loan.phoneNumber.trim()),
@@ -733,6 +823,112 @@ class _DetailsContent extends ConsumerWidget {
 
   String _whatsAppNumber(String phoneNumber) =>
       phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+}
+
+class _UpiPaymentFormDialog extends StatefulWidget {
+  const _UpiPaymentFormDialog({
+    required this.initialUpiId,
+    required this.initialAmount,
+  });
+
+  final String initialUpiId;
+  final double initialAmount;
+
+  @override
+  State<_UpiPaymentFormDialog> createState() => _UpiPaymentFormDialogState();
+}
+
+class _UpiPaymentFormDialogState extends State<_UpiPaymentFormDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _upiIdController;
+  late final TextEditingController _amountController;
+
+  @override
+  void initState() {
+    super.initState();
+    _upiIdController = TextEditingController(text: widget.initialUpiId);
+    _amountController = TextEditingController(
+      text: widget.initialAmount.toStringAsFixed(2),
+    );
+  }
+
+  @override
+  void dispose() {
+    _upiIdController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      scrollable: true,
+      title: Text(LocaleKeys.createUpiPaymentQr.tr()),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _upiIdController,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autocorrect: false,
+              decoration: InputDecoration(
+                labelText: LocaleKeys.receivingUpiId.tr(),
+                hintText: LocaleKeys.upiIdHint.tr(),
+                prefixIcon: const Icon(Icons.account_balance_outlined),
+              ),
+              validator: (value) {
+                final upiId = value?.trim() ?? '';
+                if (!RegExp(
+                  r'^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+$',
+                ).hasMatch(upiId)) {
+                  return LocaleKeys.enterValidUpiId.tr();
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: LocaleKeys.amount.tr(),
+                prefixText: '₹ ',
+              ),
+              validator: (value) {
+                final amount = double.tryParse(value?.trim() ?? '');
+                if (amount == null || !amount.isFinite || amount <= 0) {
+                  return LocaleKeys.enterAmountGreaterThanZero.tr();
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(LocaleKeys.cancel.tr()),
+        ),
+        FilledButton.icon(
+          onPressed: () {
+            if (_formKey.currentState?.validate() != true) return;
+            Navigator.pop(context, (
+              upiId: _upiIdController.text.trim(),
+              amount: double.parse(_amountController.text.trim()),
+            ));
+          },
+          icon: const Icon(Icons.qr_code_2_rounded),
+          label: Text(LocaleKeys.createQr.tr()),
+        ),
+      ],
+    );
+  }
 }
 
 class _ContactActionLabel extends StatelessWidget {

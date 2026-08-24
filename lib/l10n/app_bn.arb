@@ -389,5 +389,21 @@
   "Google account": "Google অ্যাকাউন্ট",
   "No default terms set": "কোনো ডিফল্ট নিয়ম ও শর্ত নির্ধারণ করা নেই",
   "Prefilled for new loans": "নতুন ঋণের জন্য আগে থেকেই পূরণ করা আছে",
-  "New loans have no lock-in by default": "নতুন ঋণের জন্য ডিফল্টভাবে কোনো লক-ইন সময়কাল নেই"
+  "New loans have no lock-in by default": "নতুন ঋণের জন্য ডিফল্টভাবে কোনো লক-ইন সময়কাল নেই",
+  "showUpiPaymentQr": "UPI QR দেখুন",
+"createUpiPaymentQr": "UPI QR তৈরি করুন",
+"receivingUpiId": "টাকা পাওয়ার UPI ID",
+"upiIdHint": "name@bank",
+"enterValidUpiId": "সঠিক UPI ID দিন",
+"defaultUpiId": "ডিফল্ট UPI ID",
+"noDefaultUpiIdSet": "ডিফল্ট UPI ID সেট করা নেই",
+"defaultUpiIdHelper": "পেমেন্ট তৈরি করার সময় এই ID নিজে থেকেই পূরণ হবে।",
+"defaultUpiIdUpdated": "ডিফল্ট UPI ID আপডেট হয়েছে",
+"amount": "টাকার পরিমাণ",
+"enterAmountGreaterThanZero": "শূন্যের বেশি টাকার পরিমাণ দিন",
+"createQr": "QR তৈরি করুন",
+"loanRepaymentFor": "{name}-এর লোনের কিস্তি",
+"scanToPayWithUpi": "UPI দিয়ে পেমেন্ট করতে স্ক্যান করুন",
+"verifyUpiRecipient": "পেমেন্টের আগে প্রাপকের নাম দেখুন",
+"done": "হয়ে গেছে"
 }

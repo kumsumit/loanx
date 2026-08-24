@@ -459,4 +459,21 @@ const Map<String, dynamic> translations = {
   "Prefilled for new loans": "ନୂତନ ଋଣ ପାଇଁ ପୂର୍ବରୁ ପୂରଣ କରାଯାଇଛି",
   "New loans have no lock-in by default":
       "ଡିଫଲ୍ଟ ଭାବେ ନୂତନ ଋଣରେ କୌଣସି ଲକ୍-ଇନ୍ ନାହିଁ",
+  "showUpiPaymentQr": "UPI QR ଦେଖନ୍ତୁ",
+  "createUpiPaymentQr": "UPI QR ତିଆରି କରନ୍ତୁ",
+  "receivingUpiId": "ଟଙ୍କା ପାଇବା ପାଇଁ UPI ID",
+  "upiIdHint": "name@bank",
+  "enterValidUpiId": "ଠିକ୍ UPI ID ଦିଅନ୍ତୁ",
+  "defaultUpiId": "ଡିଫଲ୍ଟ UPI ID",
+  "noDefaultUpiIdSet": "ଡିଫଲ୍ଟ UPI ID ସେଟ୍ ହୋଇନାହିଁ",
+  "defaultUpiIdHelper": "ପେମେଣ୍ଟ କରିବା ସମୟରେ ଏହି ID ନିଜେ ଭରିଯିବ",
+  "defaultUpiIdUpdated": "ଡିଫଲ୍ଟ UPI ID ଅପଡେଟ୍ ହୋଇଗଲା",
+  "amount": "ଟଙ୍କା",
+  "enterAmountGreaterThanZero": "ଶୂନଠାରୁ ଅଧିକ ଟଙ୍କା ଦିଅନ୍ତୁ",
+  "createQr": "QR ତିଆରି କରନ୍ତୁ",
+  "loanRepaymentFor": "{name}ଙ୍କ ଲୋନ୍ କିସ୍ତି",
+  "scanToPayWithUpi": "UPIରେ ପେମେଣ୍ଟ କରିବାକୁ ସ୍କାନ୍ କରନ୍ତୁ",
+  "verifyUpiRecipient":
+      "ପେମେଣ୍ଟ କରିବା ପୂର୍ବରୁ ଟଙ୍କା ପାଇବା ବ୍ୟକ୍ତିଙ୍କ ନାମ ଦେଖନ୍ତୁ",
+  "done": "ହୋଇଗଲା",
 };
