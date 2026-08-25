@@ -405,5 +405,10 @@
 "loanRepaymentFor": "{name} च्या लोनचा हप्ता",
 "scanToPayWithUpi": "UPI ने पेमेंट करण्यासाठी स्कॅन करा",
 "verifyUpiRecipient": "पेमेंट करण्यापूर्वी पैसे घेणाऱ्याचे नाव पाहा",
-"done": "झाले"
+"done": "झाले",
+"No LoanX backup is available in Google Drive.": "Google Drive मध्ये कोणताही LoanX बॅकअप उपलब्ध नाही.",
+"Restart the app to apply the update.": "अपडेट लागू करण्यासाठी अॅप पुन्हा सुरू करा.",
+"No updates available": "कोणतेही अपडेट उपलब्ध नाही",
+"Google account connected.": "Google खाते जोडले गेले.",
+"Google account updated.": "Google खाते अपडेट केले गेले."
 }

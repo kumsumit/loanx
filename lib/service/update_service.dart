@@ -15,10 +15,7 @@ Future<void> checkForUpdates(BuildContext context, bool showSnack) async {
         case UpdateStatus.outdated:
           await shorebirdUpdater.update();
           if (context.mounted) {
-            showSnackBar(
-              context,
-              'Update downloaded. Restart the app to apply it.',
-            );
+            showSnackBar(context, 'Restart the app to apply the update.');
           }
           return;
         case UpdateStatus.restartRequired:

@@ -476,4 +476,11 @@ const Map<String, dynamic> translations = {
   "verifyUpiRecipient":
       "ପେମେଣ୍ଟ କରିବା ପୂର୍ବରୁ ଟଙ୍କା ପାଇବା ବ୍ୟକ୍ତିଙ୍କ ନାମ ଦେଖନ୍ତୁ",
   "done": "ହୋଇଗଲା",
+  "No LoanX backup is available in Google Drive.":
+      "Google Drive ରେ କୌଣସି LoanX ବ୍ୟାକଅପ୍ ଉପଲବ୍ଧ ନାହିଁ।",
+  "Restart the app to apply the update.":
+      "ଅପଡେଟ୍ ପ୍ରୟୋଗ କରିବାକୁ ଆପ୍ ପୁନଃଆରମ୍ଭ କରନ୍ତୁ।",
+  "No updates available": "କୌଣସି ଅପଡେଟ୍ ଉପଲବ୍ଧ ନାହିଁ",
+  "Google account connected.": "Google ଆକାଉଣ୍ଟ ସଂଯୋଗ ହୋଇଛି।",
+  "Google account updated.": "Google ଆକାଉଣ୍ଟ ଅପଡେଟ୍ ହୋଇଛି।",
 };

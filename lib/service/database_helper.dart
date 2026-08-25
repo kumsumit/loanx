@@ -1142,14 +1142,14 @@ class DatabaseHelper {
       batch.insert(MortgageMaterial.tableName, {
         MortgageMaterialFields.name: mortgageMaterial,
         MortgageMaterialFields.isAddedByUser: 0,
-      });
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
 
     for (final familyRelation in familyRelations) {
       batch.insert(FamilyRelation.tableName, {
         FamilyRelationFields.name: familyRelation,
         FamilyRelationFields.isAddedByUser: 0,
-      });
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
 
     for (final unit in const [
@@ -1158,7 +1158,11 @@ class DatabaseHelper {
       WeightUnit(name: 'Milligram', symbol: 'mg'),
       WeightUnit(name: 'Tola', symbol: 'tola'),
     ]) {
-      batch.insert(WeightUnit.tableName, unit.toJson());
+      batch.insert(
+        WeightUnit.tableName,
+        unit.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
 
     // for (final name in indianBoysNames) {

@@ -476,4 +476,11 @@ const Map<String, dynamic> translations = {
   "scanToPayWithUpi": "UPI ద్వారా పేమెంట్ చేయడానికి స్కాన్ చేయండి",
   "verifyUpiRecipient": "పేమెంట్ చేసే ముందు డబ్బులు పొందే వారి పేరు చూడండి",
   "done": "పూర్తయింది",
+  "No LoanX backup is available in Google Drive.":
+      "Google Driveలో LoanX బ్యాకప్ ఏదీ అందుబాటులో లేదు.",
+  "Restart the app to apply the update.":
+      "నవీకరణను వర్తింపజేయడానికి యాప్‌ను పునఃప్రారంభించండి.",
+  "No updates available": "నవీకరణలు ఏవీ అందుబాటులో లేవు",
+  "Google account connected.": "Google ఖాతా కనెక్ట్ చేయబడింది.",
+  "Google account updated.": "Google ఖాతా నవీకరించబడింది.",
 };

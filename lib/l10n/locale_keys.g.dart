@@ -477,4 +477,11 @@ abstract final class LocaleKeys {
   static const scanToPayWithUpi = "scanToPayWithUpi";
   static const verifyUpiRecipient = "verifyUpiRecipient";
   static const done = "done";
+  static const noLoanxBackupIsAvailableInGoogleDrive =
+      "No LoanX backup is available in Google Drive.";
+  static const restartTheAppToApplyTheUpdate =
+      "Restart the app to apply the update.";
+  static const noUpdatesAvailable = "No updates available";
+  static const googleAccountConnected = "Google account connected.";
+  static const googleAccountUpdated = "Google account updated.";
 }

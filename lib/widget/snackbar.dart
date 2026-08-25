@@ -22,7 +22,7 @@ void showErrorSnackBar(BuildContext context, String message) {
   final overlay = Overlay.of(context);
   final displayMessage = kReleaseMode
       ? LocaleKeys.somethingWentWrongPleaseTryAgain.tr()
-      : message;
+      : message.tr();
   final overlayEntry = OverlayEntry(
     builder: (context) => Align(
       alignment: Alignment.center,
@@ -47,13 +47,21 @@ void showErrorSnackBar(BuildContext context, String message) {
 
 void showSnackBar(BuildContext context, String message) {
   final overlay = Overlay.of(context);
+  // Callers may pass either a generated locale key or an English catalog key.
+  // Translating at this shared boundary also covers messages returned by
+  // services, which do not have access to a BuildContext.
+  final displayMessage =
+      message ==
+          'No Google account was selected. Please choose an account to continue.'
+      ? LocaleKeys.youHaveNotSelectedAnyAccount.tr()
+      : message.tr();
   final overlayEntry = OverlayEntry(
     builder: (context) => Align(
       alignment: Alignment.center,
       child: Material(
         color: Colors.transparent,
         child: SlideInSnackbar(
-          message: message,
+          message: displayMessage,
           color: Theme.of(context).colorScheme.onPrimary,
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),

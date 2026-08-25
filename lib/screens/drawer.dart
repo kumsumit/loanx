@@ -4,11 +4,11 @@ import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_picker_plus/flutter_color_picker_plus.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:loanx/extension/string.dart';
 import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/service/backup_service.dart';
@@ -177,6 +177,24 @@ class MyDrawer extends HookConsumerWidget {
                   ],
                 ),
               ),
+              if (kDebugMode)
+                Container(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Text(
+                    'DEBUG APPLICATION',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
               ExpansionTile(
                 leading: StyledIcon(Icons.info_outline),
                 title: StyledText(LocaleKeys.aboutLoanx.tr()),
@@ -660,8 +678,7 @@ class MyDrawer extends HookConsumerWidget {
                                                 title: StyledSubtitle(
                                                   InterestType
                                                       .values[index]
-                                                      .name
-                                                      .toSentenceCase(),
+                                                      .localizedLabel,
                                                 ),
                                               );
                                             },
@@ -688,7 +705,8 @@ class MyDrawer extends HookConsumerWidget {
                                                   Navigator.of(context).pop();
                                                   showSnackBar(
                                                     context,
-                                                    "Interest Type changed successfully"
+                                                    LocaleKeys
+                                                        .interestTypeChangedSuccessfully
                                                         .tr(),
                                                   );
                                                 }
@@ -1125,7 +1143,7 @@ class MyDrawer extends HookConsumerWidget {
                                           if (context.mounted) {
                                             showErrorSnackBar(
                                               context,
-                                              'No internet connection.',
+                                              LocaleKeys.notConnected.tr(),
                                             );
                                           }
                                           return;
@@ -1226,7 +1244,7 @@ class MyDrawer extends HookConsumerWidget {
                                     if (context.mounted) {
                                       showErrorSnackBar(
                                         context,
-                                        "No internet connection.",
+                                        LocaleKeys.notConnected.tr(),
                                       );
                                     }
                                     return;
@@ -1344,7 +1362,8 @@ class MyDrawer extends HookConsumerWidget {
                                   showSnackBar(
                                     context,
                                     mergedBackup
-                                        ? 'Google account connected and backup data merged.'
+                                        ? LocaleKeys.backupRestoredSuccessfully
+                                              .tr()
                                         : isAddingAccount
                                         ? 'Google account connected.'
                                         : 'Google account updated.',

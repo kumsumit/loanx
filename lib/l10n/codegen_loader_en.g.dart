@@ -474,4 +474,11 @@ const Map<String, dynamic> translations = {
   "verifyUpiRecipient":
       "Verify the recipient name in the UPI app before paying.",
   "done": "Done",
+  "No LoanX backup is available in Google Drive.":
+      "No LoanX backup is available in Google Drive.",
+  "Restart the app to apply the update.":
+      "Restart the app to apply the update.",
+  "No updates available": "No updates available",
+  "Google account connected.": "Google account connected.",
+  "Google account updated.": "Google account updated.",
 };

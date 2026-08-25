@@ -14,6 +14,7 @@ import 'package:loanx/screens/ask_backup_screen.dart';
 import 'package:loanx/screens/error.dart';
 import 'package:loanx/screens/unauthorized.dart';
 import 'package:loanx/l10n/codegen_loader.g.dart';
+import 'package:loanx/l10n/locale_keys.g.dart';
 // import 'package:loanx/service/database_helper.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/auth_screen.dart';
@@ -88,8 +89,10 @@ void main() async {
 
   ErrorWidget.builder = (details) {
     if (kReleaseMode) {
-      return const Material(
-        child: Center(child: Text('Something went wrong. Please try again.')),
+      return Material(
+        child: Center(
+          child: Text(LocaleKeys.somethingWentWrongPleaseTryAgain.tr()),
+        ),
       );
     }
     return ErrorWidget(details.exception);
@@ -100,7 +103,7 @@ void main() async {
   await FastDB.init();
   if (!FastDB.getIsTableCreated()) {
     FastDB.putHoldingPeriod(5);
-    FastDB.putInterestRate(2.5);
+    FastDB.putInterestRate(3.0);
     FastDB.putScheduledBackUpTimeHour(2);
     await FastDB.flush();
   }
