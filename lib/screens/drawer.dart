@@ -15,6 +15,7 @@ import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/update_service.dart';
+import 'package:loanx/service/upi_validator.dart';
 import 'package:loanx/widget/avatar.dart';
 import 'package:loanx/widget/bullet.dart';
 import 'package:loanx/widget/loading_overlay.dart';
@@ -1730,8 +1731,7 @@ class _DefaultUpiIdDialogState extends State<_DefaultUpiIdDialog> {
           ),
           validator: (value) {
             final upiId = value?.trim() ?? '';
-            if (upiId.isNotEmpty &&
-                !RegExp(r'^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+$').hasMatch(upiId)) {
+            if (upiId.isNotEmpty && !isValidUpiId(upiId)) {
               return LocaleKeys.enterValidUpiId.tr();
             }
             return null;

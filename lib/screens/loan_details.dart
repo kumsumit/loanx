@@ -12,6 +12,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/db/fastdb.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
+import 'package:loanx/service/upi_validator.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/language_picker.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
@@ -881,9 +882,7 @@ class _UpiPaymentFormDialogState extends State<_UpiPaymentFormDialog> {
               ),
               validator: (value) {
                 final upiId = value?.trim() ?? '';
-                if (!RegExp(
-                  r'^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+$',
-                ).hasMatch(upiId)) {
+                if (!isValidUpiId(upiId)) {
                   return LocaleKeys.enterValidUpiId.tr();
                 }
                 return null;
