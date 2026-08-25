@@ -3,6 +3,7 @@ import 'package:loanx/l10n/intl_locale.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
@@ -134,6 +135,9 @@ class LoanInput extends HookConsumerWidget {
     );
     final earlyRedemptionCharge = useState<double>(
       lockInDays.value > 0 ? initialEarlyRedemptionCharge : 0,
+    );
+    final lockInDaysController = useTextEditingController(
+      text: lockInDays.value.toString(),
     );
     final additionalDetailsController = useTextEditingController(
       text: loan?.additionalDetails ?? '',
@@ -399,31 +403,27 @@ class LoanInput extends HookConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    DropdownButtonFormField<int>(
-                      initialValue: lockInDays.value,
+                    TextFormField(
+                      controller: lockInDaysController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
                         labelText: LocaleKeys.lockInPeriod.tr(),
+                        suffixText: 'days'.tr(),
                         helperText:
-                            'A fixed charge applies if the item is redeemed early.'
+                            'Enter 0 for no lock-in. A fixed charge applies if the item is redeemed early.'
                                 .tr(),
                         helperMaxLines: 2,
                       ),
-                      items: [
-                        DropdownMenuItem(
-                          value: 0,
-                          child: Text(LocaleKeys.noLockIn.tr()),
-                        ),
-                        DropdownMenuItem(
-                          value: 7,
-                          child: Text(LocaleKeys.key7Days.tr()),
-                        ),
-                        DropdownMenuItem(
-                          value: 15,
-                          child: Text(LocaleKeys.key15Days.tr()),
-                        ),
-                      ],
+                      validator: (value) {
+                        final days = int.tryParse(value?.trim() ?? '');
+                        if (days == null || days < 0) {
+                          return 'Enter a valid number of days'.tr();
+                        }
+                        return null;
+                      },
                       onChanged: (value) {
-                        lockInDays.value = value ?? 0;
+                        lockInDays.value = int.tryParse(value.trim()) ?? 0;
                         if (lockInDays.value == 0) {
                           earlyRedemptionChargeController.clear();
                           earlyRedemptionCharge.value = 0;

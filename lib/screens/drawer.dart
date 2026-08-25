@@ -1930,6 +1930,7 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
   Future<void> _edit() async {
     var selectedDays = _lockInDays;
     final formKey = GlobalKey<FormState>();
+    final daysController = TextEditingController(text: _lockInDays.toString());
     final chargeController = TextEditingController(
       text: _charge > 0 ? _charge.toStringAsFixed(2) : '',
     );
@@ -1943,27 +1944,26 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownButtonFormField<int>(
-                  initialValue: selectedDays,
+                TextFormField(
+                  controller: daysController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(
                     labelText: LocaleKeys.lockInPeriod.tr(),
+                    suffixText: 'days'.tr(),
+                    helperText: 'Enter 0 for no lock-in'.tr(),
                   ),
-                  items: [
-                    DropdownMenuItem(
-                      value: 0,
-                      child: Text(LocaleKeys.noLockIn.tr()),
-                    ),
-                    DropdownMenuItem(
-                      value: 7,
-                      child: Text(LocaleKeys.key7Days.tr()),
-                    ),
-                    DropdownMenuItem(
-                      value: 15,
-                      child: Text(LocaleKeys.key15Days.tr()),
-                    ),
-                  ],
+                  validator: (value) {
+                    final days = int.tryParse(value?.trim() ?? '');
+                    if (days == null || days < 0) {
+                      return 'Enter a valid number of days'.tr();
+                    }
+                    return null;
+                  },
                   onChanged: (value) {
-                    setDialogState(() => selectedDays = value ?? 0);
+                    setDialogState(
+                      () => selectedDays = int.tryParse(value.trim()) ?? 0,
+                    );
                   },
                 ),
                 if (selectedDays > 0) ...[
@@ -2001,8 +2001,7 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
             ),
             FilledButton(
               onPressed: () {
-                if (selectedDays > 0 &&
-                    formKey.currentState?.validate() != true) {
+                if (formKey.currentState?.validate() != true) {
                   return;
                 }
                 Navigator.pop(dialogContext, true);
@@ -2029,6 +2028,7 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
         showSnackBar(context, LocaleKeys.defaultLockInUpdated.tr());
       }
     }
+    daysController.dispose();
     chargeController.dispose();
   }
 }
