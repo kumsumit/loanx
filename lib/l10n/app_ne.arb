@@ -395,6 +395,7 @@
 "receivingUpiId": "पैसा पाउने UPI ID",
 "upiIdHint": "name@bank",
 "enterValidUpiId": "सही UPI ID हाल्नुहोस्",
+"invalidUpiHandle": "{handle} मान्य UPI ह्यान्डल होइन",
 "defaultUpiId": "डिफल्ट UPI ID",
 "noDefaultUpiIdSet": "डिफल्ट UPI ID सेट गरिएको छैन",
 "defaultUpiIdHelper": "भुक्तानी गर्दा यो ID आफैं भरिनेछ",

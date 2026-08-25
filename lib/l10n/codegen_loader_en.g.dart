@@ -461,6 +461,7 @@ const Map<String, dynamic> translations = {
   "receivingUpiId": "Receiving UPI ID",
   "upiIdHint": "name@bank",
   "enterValidUpiId": "Enter a valid UPI ID",
+  "invalidUpiHandle": "{handle} is not a valid UPI handle",
   "defaultUpiId": "Default UPI ID",
   "noDefaultUpiIdSet": "No default UPI ID set",
   "defaultUpiIdHelper":

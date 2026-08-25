@@ -395,6 +395,7 @@
 "receivingUpiId": "पैसा पाण री UPI ID",
 "upiIdHint": "name@bank",
 "enterValidUpiId": "सही UPI ID डालो",
+"invalidUpiHandle": "{handle} सही UPI हैंडल कोनी है",
 "defaultUpiId": "डिफॉल्ट UPI ID",
 "noDefaultUpiIdSet": "डिफॉल्ट UPI ID सेट कोनी है",
 "defaultUpiIdHelper": "पेमेंट बनावतै टैम ई ID आपै भर जासी",

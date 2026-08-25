@@ -465,6 +465,7 @@ const Map<String, dynamic> translations = {
   "receivingUpiId": "പണം ലഭിക്കുന്ന UPI ID",
   "upiIdHint": "name@bank",
   "enterValidUpiId": "ശരിയായ UPI ID നൽകുക",
+  "invalidUpiHandle": "{handle} സാധുവായ UPI ഹാൻഡിൽ അല്ല",
   "defaultUpiId": "ഡിഫോൾട്ട് UPI ID",
   "noDefaultUpiIdSet": "ഡിഫോൾട്ട് UPI ID സെറ്റ് ചെയ്തിട്ടില്ല",
   "defaultUpiIdHelper": "പേയ്‌മെന്റ് ചെയ്യുമ്പോൾ ഈ ID തനിയെ പൂരിപ്പിക്കും",

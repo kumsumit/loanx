@@ -882,8 +882,13 @@ class _UpiPaymentFormDialogState extends State<_UpiPaymentFormDialog> {
               ),
               validator: (value) {
                 final upiId = value?.trim() ?? '';
-                if (!isValidUpiId(upiId)) {
+                if (!isValidUpiIdFormat(upiId)) {
                   return LocaleKeys.enterValidUpiId.tr();
+                }
+                if (!hasSupportedUpiHandle(upiId)) {
+                  return LocaleKeys.invalidUpiHandle.tr(
+                    namedArgs: {'handle': upiHandle(upiId)},
+                  );
                 }
                 return null;
               },

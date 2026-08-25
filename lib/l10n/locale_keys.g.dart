@@ -466,6 +466,7 @@ abstract final class LocaleKeys {
   static const receivingUpiId = "receivingUpiId";
   static const upiIdHint = "upiIdHint";
   static const enterValidUpiId = "enterValidUpiId";
+  static const invalidUpiHandle = "invalidUpiHandle";
   static const defaultUpiId = "defaultUpiId";
   static const noDefaultUpiIdSet = "noDefaultUpiIdSet";
   static const defaultUpiIdHelper = "defaultUpiIdHelper";

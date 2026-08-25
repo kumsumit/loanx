@@ -120,14 +120,21 @@ const validUpiHandles = {
   'axb',
 };
 
-bool isValidUpiId(String upiId) {
-  final match = RegExp(
-    r'^([A-Za-z0-9._-]+)@([A-Za-z0-9.-]+)$',
-  ).firstMatch(upiId);
+final _upiIdPattern = RegExp(r'^([A-Za-z0-9._-]+)@([A-Za-z0-9.-]+)$');
+
+bool isValidUpiIdFormat(String upiId) => _upiIdPattern.hasMatch(upiId);
+
+String upiHandle(String upiId) => _upiIdPattern.firstMatch(upiId)!.group(2)!;
+
+bool hasSupportedUpiHandle(String upiId) {
+  final match = _upiIdPattern.firstMatch(upiId);
 
   if (match == null) {
     return false;
   }
 
-  return validUpiHandles.contains(match.group(2)!.toLowerCase());
+  return validUpiHandles.contains(upiHandle(upiId).toLowerCase());
 }
+
+bool isValidUpiId(String upiId) =>
+    isValidUpiIdFormat(upiId) && hasSupportedUpiHandle(upiId);

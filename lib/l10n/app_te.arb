@@ -395,6 +395,7 @@
 "receivingUpiId": "డబ్బులు పొందే UPI ID",
 "upiIdHint": "name@bank",
 "enterValidUpiId": "సరైన UPI ID నమోదు చేయండి",
+"invalidUpiHandle": "{handle} చెల్లుబాటు అయ్యే UPI హ్యాండిల్ కాదు",
 "defaultUpiId": "డిఫాల్ట్ UPI ID",
 "noDefaultUpiIdSet": "డిఫాల్ట్ UPI ID సెట్ చేయలేదు",
 "defaultUpiIdHelper": "పేమెంట్ చేసేటప్పుడు ఈ ID ఆటోమేటిక్‌గా నిండుతుంది",

@@ -1731,8 +1731,13 @@ class _DefaultUpiIdDialogState extends State<_DefaultUpiIdDialog> {
           ),
           validator: (value) {
             final upiId = value?.trim() ?? '';
-            if (upiId.isNotEmpty && !isValidUpiId(upiId)) {
+            if (upiId.isNotEmpty && !isValidUpiIdFormat(upiId)) {
               return LocaleKeys.enterValidUpiId.tr();
+            }
+            if (upiId.isNotEmpty && !hasSupportedUpiHandle(upiId)) {
+              return LocaleKeys.invalidUpiHandle.tr(
+                namedArgs: {'handle': upiHandle(upiId)},
+              );
             }
             return null;
           },

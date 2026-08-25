@@ -450,6 +450,7 @@ const Map<String, dynamic> translations = {
   "receivingUpiId": "पैसा पावै की UPI ID",
   "upiIdHint": "name@bank",
   "enterValidUpiId": "सही UPI ID डालो",
+  "invalidUpiHandle": "{handle} सही UPI हैंडल नाय है",
   "defaultUpiId": "डिफॉल्ट UPI ID",
   "noDefaultUpiIdSet": "डिफॉल्ट UPI ID सेट नाय है",
   "defaultUpiIdHelper": "पेमेंट बनावत टैम ई ID अपने-आप भर जैहै",
