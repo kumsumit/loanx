@@ -11,7 +11,9 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/screens/ask_backup_screen.dart';
+import 'package:loanx/screens/account_type_screen.dart';
 import 'package:loanx/screens/error.dart';
+import 'package:loanx/screens/phone_login_screen.dart';
 import 'package:loanx/screens/unauthorized.dart';
 import 'package:loanx/l10n/codegen_loader.g.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
@@ -149,6 +151,8 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   bool? _hasSelectedLanguage;
+  bool _hasProvidedPhoneNumber = false;
+  AccountType? _accountType;
 
   @override
   void initState() {
@@ -165,6 +169,15 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   void _languageSelected() {
     if (_hasSelectedLanguage == true) return;
     setState(() => _hasSelectedLanguage = true);
+  }
+
+  void _phoneNumberProvided(PhoneNumber phoneNumber) {
+    if (_hasProvidedPhoneNumber) return;
+    setState(() => _hasProvidedPhoneNumber = true);
+  }
+
+  void _accountTypeSelected(AccountType accountType) {
+    setState(() => _accountType = accountType);
   }
 
   @override
@@ -200,6 +213,10 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       debugShowCheckedModeBanner: false,
       home: _hasSelectedLanguage != true
           ? StartupLanguageScreen(onLanguageSelected: _languageSelected)
+          : !_hasProvidedPhoneNumber
+          ? PhoneLoginScreen(onContinue: _phoneNumberProvided)
+          : _accountType == null
+          ? AccountTypeScreen(onContinue: _accountTypeSelected)
           : !FastDB.getIsTableCreated()
           ? const AskBackupScreen()
           : authenticate.when(

@@ -206,6 +206,33 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.12.7"
+  cached_network_image_ce:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "9a687941dd719271174a274751aee2b942768b9e"
+      url: "https://github.com/kumsumit/cached_network_image_ce.git"
+    source: git
+    version: "4.10.0"
+  cached_network_image_platform_interface_ce:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "4e3c429e74f01c7afbd1012d9c55d03e69817329"
+      url: "https://github.com/kumsumit/cached_network_image_platform_interface_ce.git"
+    source: git
+    version: "5.2.0"
+  cached_network_image_web_ce:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: f150449e8ba54d77ec92e5ea34c66e20b5db47b4
+      url: "https://github.com/kumsumit/cached_network_image_web_ce.git"
+    source: git
+    version: "2.1.2"
   characters:
     dependency: transitive
     description:
@@ -459,6 +486,60 @@ packages:
       url: "https://github.com/kumsumit/flutter_hooks.git"
     source: git
     version: "0.21.3+1"
+  flutter_image_compress:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: def3f0341e1960c3f62d1dd154e483087684e71e
+      url: "https://github.com/kumsumit/flutter_image_compress.git"
+    source: git
+    version: "2.5.1"
+  flutter_image_compress_common:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "2eef983b4d13d8ea2d2331e44fa6a38b0503fcb0"
+      url: "https://github.com/kumsumit/flutter_image_compress_common.git"
+    source: git
+    version: "1.1.1"
+  flutter_image_compress_macos:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "977e81b515b0f3bc5bcbefaabf5d0ed53e0af556"
+      url: "https://github.com/kumsumit/flutter_image_compress_macos.git"
+    source: git
+    version: "1.1.0"
+  flutter_image_compress_ohos:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "5d5279ca543f2284404875d3d638c9d09f4abc06"
+      url: "https://github.com/kumsumit/flutter_image_compress_ohos.git"
+    source: git
+    version: "0.0.3+1"
+  flutter_image_compress_platform_interface:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "124782fe29733a6bd724e338a1b2d2a26f4d9797"
+      url: "https://github.com/kumsumit/flutter_image_compress_platform_interface.git"
+    source: git
+    version: "1.1.0"
+  flutter_image_compress_web:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "3c30243acf1694c88439c2da033958ddc0458881"
+      url: "https://github.com/kumsumit/flutter_image_compress_web.git"
+    source: git
+    version: "0.1.5+1"
   flutter_keyboard_visibility:
     dependency: transitive
     description:
@@ -720,10 +801,10 @@ packages:
     dependency: "direct main"
     description:
       name: googleapis
-      sha256: "62b5988f228b774448ebd99b53fe8069becb55840f1b28948bb84160373dc0b6"
+      sha256: d38bb64016ef27eca7fde992994b9d2999bcea307685807e15d6a08bff05dc61
       url: "https://pub.dev"
     source: hosted
-    version: "16.0.0"
+    version: "17.0.0"
   gradient_borders:
     dependency: transitive
     description:
@@ -765,6 +846,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  hive_ce:
+    dependency: transitive
+    description:
+      name: hive_ce
+      sha256: "8e9980e68643afb1e765d3af32b47996552a64e190d03faf622cea07c1294418"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.19.3"
   hooks:
     dependency: transitive
     description:
@@ -832,6 +921,33 @@ packages:
       url: "https://github.com/kumsumit/image.git"
     source: git
     version: "4.9.2"
+  image_cropper:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: d53ecfb25f1c19b5e1a53a4e6ab56f9b74b69205
+      url: "https://github.com/kumsumit/image_cropper.git"
+    source: git
+    version: "12.2.1"
+  image_cropper_for_web:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "8266ac7c63154cd0a647fffe2f08e0ccf7cec9d7"
+      url: "https://github.com/kumsumit/image_cropper_for_web.git"
+    source: git
+    version: "7.0.0"
+  image_cropper_platform_interface:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "47337c2a18a20e10c4d5cc5ee83a9f98caff62dd"
+      url: "https://github.com/kumsumit/image_cropper_platform_interface.git"
+    source: git
+    version: "8.0.0"
   image_picker:
     dependency: "direct main"
     description:
@@ -947,6 +1063,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  isolate_channel:
+    dependency: transitive
+    description:
+      name: isolate_channel
+      sha256: a9d3d620695bc984244dafae00b95e4319d6974b2d77f4b9e1eb4f2efe099094
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.1"
   jni:
     dependency: transitive
     description:
@@ -1155,6 +1279,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.6.0"
+  octo_image:
+    dependency: transitive
+    description:
+      name: octo_image
+      sha256: "34faa6639a78c7e3cbe79be6f9f96535867e879748ade7d17c9b1ae7536293bd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   package_config:
     dependency: transitive
     description:
@@ -1251,6 +1383,60 @@ packages:
       url: "https://github.com/kumsumit/widget_wrapper.git"
     source: git
     version: "1.0.4"
+  permission_handler:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: f97e49e86cc10f7c89dfb5cdae9c11148c7ba295
+      url: "https://github.com/kumsumit/permission_handler.git"
+    source: git
+    version: "13.0.0"
+  permission_handler_android:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "2a94c3e5b6503296cf918986fdb79e85ea830ad5"
+      url: "https://github.com/kumsumit/permission_handler_android.git"
+    source: git
+    version: "14.0.0"
+  permission_handler_apple:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "80a47f058425f6e9ad5097d53ad90841a3f64849"
+      url: "https://github.com/kumsumit/permission_handler_apple.git"
+    source: git
+    version: "9.5.0"
+  permission_handler_html:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "1ab323b5396df5f5556849e54e823b01f8665d35"
+      url: "https://github.com/kumsumit/permission_handler_html.git"
+    source: git
+    version: "0.1.4+1"
+  permission_handler_platform_interface:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "2d7555657767e8067b6bd8a6c7d1710196ef2caf"
+      url: "https://github.com/kumsumit/permission_handler_platform_interface.git"
+    source: git
+    version: "4.4.0"
+  permission_handler_windows:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "865247b3774621d27b3ca5e43c5cca12df46858c"
+      url: "https://github.com/kumsumit/permission_handler_windows.git"
+    source: git
+    version: "0.2.2"
   petitparser:
     dependency: transitive
     description:
@@ -1268,6 +1454,15 @@ packages:
       url: "https://github.com/sumitsharansatsangi/phone_parser.git"
     source: git
     version: "0.1.0"
+  pinput:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "95b596472fb0cc61f4d6f38f5a1c53f69e878fde"
+      url: "https://github.com/sumitsharansatsangi/flutter_pinput.git"
+    source: git
+    version: "6.0.2"
   platform:
     dependency: transitive
     description:
@@ -1352,6 +1547,15 @@ packages:
       url: "https://github.com/kumsumit/printing.git"
     source: git
     version: "5.14.0"
+  profile_picker_plus:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "1c6e1e3f73e898c284673e7e51c019fcd57f08e5"
+      url: "https://github.com/kumsumit/profile_picker_plus.git"
+    source: git
+    version: "1.0.1"
   pub_semver:
     dependency: transitive
     description:
@@ -1619,6 +1823,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  smart_auth:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "47d79386c12907458af9365e50064ba514ca14b9"
+      url: "https://github.com/sumitsharansatsangi/flutter_smart_auth.git"
+    source: git
+    version: "3.2.0"
   source_gen:
     dependency: transitive
     description:

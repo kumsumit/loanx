@@ -40,7 +40,7 @@ dependencies:
   # firebase_core: ^3.8.0
   # flutter_exif_rotation: ^0.5.2
   google_sign_in: ^7.2.0
-  googleapis: ^16.0.0
+  googleapis: ^17.0.0
   # googleapis_auth: ^1.6.0
   http: ^1.6.0
   hooks_riverpod: 
@@ -76,6 +76,12 @@ dependencies:
   shorebird_code_push: ^2.0.7 
   pretty_qr_code:
     git: "https://github.com/kumsumit/flutter_pretty_qr.git"
+  pinput:
+    git: https://github.com/sumitsharansatsangi/flutter_pinput.git
+  smart_auth:
+    git: https://github.com/sumitsharansatsangi/flutter_smart_auth.git  
+  profile_picker_plus:
+    git: https://github.com/kumsumit/profile_picker_plus.git  
   # device_preview:
   #   git: https://github.com/sumitsharansatsangi/device_preview.git
 

@@ -1,0 +1,136 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:loanx/l10n/locale_keys.g.dart';
+import 'package:loanx/widget/language_picker.dart';
+import 'package:loanx/widget/phone.dart';
+
+class PhoneLoginScreen extends StatefulWidget {
+  const PhoneLoginScreen({required this.onContinue, super.key});
+
+  final ValueChanged<PhoneNumber> onContinue;
+
+  @override
+  State<PhoneLoginScreen> createState() => _PhoneLoginScreenState();
+}
+
+class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
+  final _phoneController = TextEditingController();
+  PhoneNumber _phoneNumber = PhoneNumber(isoCode: 'IN', nsn: '');
+  bool _isValid = false;
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _onPhoneChanged(PhoneNumber phoneNumber) {
+    final isValid = phoneNumber.nsn.isNotEmpty && phoneNumber.isValid();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final isUnchanged =
+          _phoneNumber.isoCode == phoneNumber.isoCode &&
+          _phoneNumber.nsn == phoneNumber.nsn &&
+          _isValid == isValid;
+      if (isUnchanged) return;
+
+      setState(() {
+        _phoneNumber = phoneNumber;
+        _isValid = isValid;
+      });
+    });
+  }
+
+  void _continue() {
+    if (!_isValid) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    widget.onContinue(_phoneNumber);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: TextButton.icon(
+                      onPressed: () => showAppLanguagePicker(context),
+                      icon: const Icon(Icons.translate_rounded, size: 20),
+                      label: Text(appLanguageName(context.locale)),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Align(
+                    child: Container(
+                      width: 88,
+                      height: 88,
+                      padding: const EdgeInsets.all(13),
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer,
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                      child: Image.asset('assets/logo.png'),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Text(
+                    LocaleKeys.welcomeToLoanx.tr(),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    LocaleKeys.phoneLoginPrompt.tr(),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 36),
+                  PhoneWidget(
+                    labelText: LocaleKeys.phoneNumber.tr(),
+                    hint: LocaleKeys.phoneNumber.tr(),
+                    initialValue: PhoneNumber(isoCode: 'IN', nsn: ''),
+                    textEditingController: _phoneController,
+                    onChanged: _onPhoneChanged,
+                    onSubmit: _continue,
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 52,
+                    child: FilledButton(
+                      onPressed: _isValid ? _continue : null,
+                      child: Text(LocaleKeys.continueAction.tr()),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    LocaleKeys.validMobileNumberHelper.tr(),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

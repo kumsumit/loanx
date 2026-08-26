@@ -411,5 +411,15 @@
   "Restart the app to apply the update.": "Restart the app to apply the update.",
   "No updates available": "No updates available",
   "Google account connected.": "Google account connected.",
-  "Google account updated.": "Google account updated."
+  "Google account updated.": "Google account updated.",
+  "phoneLoginPrompt": "Enter your phone number to continue",
+  "phoneNumber": "Phone number",
+  "continueAction": "Continue",
+  "validMobileNumberHelper": "Use a valid mobile number to continue.",
+  "chooseAccountType": "Choose account type",
+  "accountTypePrompt": "Choose how you want to use LoanX",
+  "lenderAccount": "Lender",
+  "lenderAccountDescription": "Give loans and manage repayments",
+  "borrowerAccount": "Borrower",
+  "borrowerAccountDescription": "Track your loans and repayments"
 }
