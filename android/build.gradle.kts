@@ -19,7 +19,7 @@ subprojects {
     if (path != ":app") {
         afterEvaluate {
             extensions.findByType<com.android.build.api.dsl.LibraryExtension>()?.apply {
-                ndkVersion = "30.0.15729638"
+                ndkVersion = "30.0.16138531"
             }
         }
     }
