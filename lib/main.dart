@@ -217,7 +217,8 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
           ? PhoneLoginScreen(onContinue: _phoneNumberProvided)
           : _accountType == null
           ? AccountTypeScreen(onContinue: _accountTypeSelected)
-          : !FastDB.getIsTableCreated()
+          : _accountType == AccountType.lender &&
+                !FastDB.getIsTableCreated()
           ? const AskBackupScreen()
           : authenticate.when(
               data: (data) {

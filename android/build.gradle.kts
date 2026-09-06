@@ -2,6 +2,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven(url = "https://jitpack.io")
     }
 }
 
@@ -14,6 +15,14 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+
+    if (path != ":app") {
+        afterEvaluate {
+            extensions.findByType<com.android.build.api.dsl.LibraryExtension>()?.apply {
+                ndkVersion = "30.0.15729638"
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
