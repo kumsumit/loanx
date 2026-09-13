@@ -15,7 +15,7 @@ import 'canonical_migration.dart';
 final class DatabaseHelper {
   DatabaseHelper._();
   static final instance = DatabaseHelper._();
-  static const schemaVersion = 10;
+  static const schemaVersion = 11;
   static const _encodingKeyName = 'loanx.tostore.encoding_key';
   static const _masterKeyName = 'loanx.tostore.master_key';
   LoanxDatabasePort? _database;
@@ -249,6 +249,76 @@ final class DatabaseHelper {
     _stringTable('migrationReports', [
       _text('createdAt', nullable: false),
       _text('payload', nullable: false),
+    ]),
+    _stringTable('conversations', [
+      _text('ownerId', nullable: false, indexed: true),
+      _text('type', nullable: false),
+      _text('relationshipId'),
+      _text('loanUid'),
+      _text('title', nullable: false),
+      _text('status', nullable: false, defaultValue: 'ACTIVE'),
+      _text('createdAt', nullable: false),
+      _text('updatedAt', nullable: false),
+    ]),
+    _stringTable('conversationParticipants', [
+      _text('ownerId', nullable: false, indexed: true),
+      _text('conversationId', nullable: false, indexed: true),
+      _text('partyId', nullable: false, indexed: true),
+      _text('status', nullable: false),
+      _text('joinedAt', nullable: false),
+    ]),
+    _stringTable('messages', [
+      _text('ownerId', nullable: false, indexed: true),
+      _text('conversationId', nullable: false, indexed: true),
+      _text('senderPartyId', nullable: false),
+      _text('kind', nullable: false),
+      _text('body', nullable: false),
+      _text('clientOperationId', nullable: false, indexed: true),
+      _text('payloadHash', nullable: false),
+      _text('createdAt', nullable: false),
+      _text('persistedAt', nullable: false),
+      _text('deliveredAt'),
+      _text('readAt'),
+    ]),
+    _stringTable('notifications', [
+      _text('ownerId', nullable: false, indexed: true),
+      _text('recipientPartyId', nullable: false, indexed: true),
+      _text('type', nullable: false),
+      _text('entityType'),
+      _text('entityId'),
+      _text('title', nullable: false),
+      _text('body', nullable: false),
+      _text('createdAt', nullable: false),
+      _text('readAt'),
+    ]),
+    _stringTable('sharedResources', [
+      _text('ownerId', nullable: false, indexed: true),
+      _text('loanUid', nullable: false, indexed: true),
+      _text('recipientPartyId', nullable: false, indexed: true),
+      _text('resourceType', nullable: false),
+      _text('resourceId', nullable: false),
+      _text('visibility', nullable: false),
+      _text('sharedAt', nullable: false),
+      _text('revokedAt'),
+    ]),
+    _stringTable('reminders', [
+      _text('ownerId', nullable: false, indexed: true),
+      _text('loanUid', nullable: false, indexed: true),
+      _text('recipientPartyId', nullable: false),
+      _text('dueDate', nullable: false),
+      _text('channel', nullable: false),
+      _text('idempotencyKey', nullable: false, indexed: true),
+      _text('status', nullable: false),
+      _text('createdAt', nullable: false),
+      _text('sentAt'),
+    ]),
+    _stringTable('reports', [
+      _text('ownerId', nullable: false, indexed: true),
+      _text('reporterPartyId', nullable: false),
+      _text('reportedPartyId', nullable: false),
+      _text('conversationId'),
+      _text('reason', nullable: false),
+      _text('createdAt', nullable: false),
     ]),
   ];
 
