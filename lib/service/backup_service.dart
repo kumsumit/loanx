@@ -1,7 +1,10 @@
 import 'dart:io';
 // import 'dart:isolate';
 
-import 'package:archive/archive.dart';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:loanx/service/backup_archive.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,8 +32,6 @@ Future<void> initializeGoogleSignIn() => GoogleSignIn.instance.initialize(
 );
 
 class BackupService {
-  static const _databaseEntryName = 'loanx.db';
-  static const _settingsEntryName = 'fastdb-settings.flatbuffer';
   static const _backupExtension = '.loanxbackup';
   static String? _lastError;
   static GoogleSignInAccount? _activeGoogleAccount;
@@ -100,18 +101,13 @@ class BackupService {
       // read into the archive.
       final database = await DatabaseHelper.instance.database;
       await database.rawQuery('PRAGMA wal_checkpoint(FULL)');
-      final archive = Archive()
-        ..add(
-          ArchiveFile(
-            _databaseEntryName,
-            file.lengthSync(),
-            await file.readAsBytes(),
-          ),
-        )
-        ..add(
-          ArchiveFile.bytes(_settingsEntryName, FastDB.exportBackupSettings()),
-        );
-      final backupBytes = ZipEncoder().encodeBytes(archive);
+      final backupBytes = BackupArchive.encode(
+        database: await file.readAsBytes(),
+        settings: FastDB.exportBackupSettings(),
+        appVersion: '1.0.1+13',
+        deviceId: await _backupDeviceId(),
+        createdAt: DateTime.now().toUtc(),
+      );
       drive.File result = await driveApi.files.create(
         driveFile,
         uploadMedia: drive.Media(Stream.value(backupBytes), backupBytes.length),
@@ -120,15 +116,7 @@ class BackupService {
       debugPrint(result.name);
       debugPrint(result.mimeType);
       if (result.id != null) {
-        if (FastDB.getDriveFileId().isNotEmpty) {
-          try {
-            await driveApi.files.delete(FastDB.getDriveFileId());
-          } catch (e) {
-            // The upload has already succeeded. Keep the new backup even if
-            // an old, stale file ID can no longer be deleted.
-            debugPrint('Could not delete previous Google Drive backup: $e');
-          }
-        }
+        // Retain previous generations until an explicit retention policy exists.
         FastDB.putDriveFileId(result.id!);
         await FastDB.flush();
         return true;
@@ -145,7 +133,7 @@ class BackupService {
       if (driveApi == null) return false;
       final files = await driveApi.files.list(
         spaces: 'appDataFolder',
-        q: "name contains '$_backupExtension' and trashed = false",
+        q: "(name contains '$_backupExtension' or name contains 'backup-') and trashed = false",
         pageSize: 1,
       );
       return files.files?.any((file) => file.id != null) ?? false;
@@ -171,7 +159,7 @@ class BackupService {
       if (driveApi != null) {
         final fileList = (await driveApi.files.list(
           spaces: 'appDataFolder',
-          q: "name contains '$_backupExtension' and trashed = false",
+          q: "(name contains '$_backupExtension' or name contains 'backup-') and trashed = false",
           orderBy: 'modifiedTime desc',
         )).files;
         if (fileList != null &&
@@ -200,13 +188,6 @@ class BackupService {
               await FastDB.flush();
             }
           }
-          if (isDownloaded && fileList.length > 1) {
-            for (final file in fileList.sublist(1)) {
-              if (file.id != null) {
-                await driveApi.files.delete(file.id!);
-              }
-            }
-          }
         } else {
           _lastError = 'No LoanX backup is available in Google Drive.';
         }
@@ -228,30 +209,41 @@ class BackupService {
     );
   }
 
-  static Future<List<int>> _mediaBytes(drive.Media media) async {
-    final chunks = await media.stream.toList();
-    return [for (final chunk in chunks) ...chunk];
+  static Future<String> _backupDeviceId() async {
+    const storage = FlutterSecureStorage();
+    const key = 'loanx.backup.device_id';
+    final existing = await storage.read(key: key);
+    if (existing != null && existing.isNotEmpty) return existing;
+    final random = Random.secure();
+    final id = sha256
+        .convert(List.generate(32, (_) => random.nextInt(256)))
+        .toString();
+    await storage.write(key: key, value: id);
+    return id;
   }
+
+  static Future<List<int>> _mediaBytes(drive.Media media) =>
+      BackupArchive.readBounded(media.stream);
 
   static Future<bool> _restoreBackup(
     List<int> bytes,
     String? fileName,
     File saveFile,
   ) async {
-    if (fileName?.endsWith(_backupExtension) ?? false) {
-      final archive = ZipDecoder().decodeBytes(bytes, verify: true);
-      final databaseFile = archive.find(_databaseEntryName);
-      final settingsFile = archive.find(_settingsEntryName);
-      if (databaseFile == null || settingsFile == null) {
-        throw const FormatException('The backup is missing required files.');
-      }
-      await _restoreDatabase(databaseFile.content, saveFile);
-      await FastDB.restoreBackupSettings(settingsFile.content);
-      return true;
+    final backup = BackupArchive.decode(
+      bytes,
+      rawDatabase: fileName?.endsWith('.db') ?? false,
+    );
+    // FlatBuffers are lazy: force every field to be read and validate settings
+    // before any SQL mutation. Legacy archives lack a manifest but still get
+    // size, CRC, shape, settings and database validation.
+    if (backup.settings != null) {
+      FastDB.validateBackupSettings(backup.settings!);
     }
-
-    // Backups created by older app versions contained only loanx.db.
-    await _restoreDatabase(bytes, saveFile);
+    await _restoreDatabase(backup.database, saveFile);
+    if (backup.settings != null) {
+      await FastDB.restoreBackupSettings(backup.settings!);
+    }
     return true;
   }
 
@@ -299,7 +291,7 @@ class BackupService {
 
     if (account != null) {
       _activeGoogleAccount = account;
-      await saveData(account);
+      await saveData(account, promptIfNeeded: promptIfNeeded);
       final authHeaders = {
         "Authorization": "Bearer ${FastDB.getDriveAccessToken()}",
         "X-Goog-AuthUser": "${FastDB.getDriveUser()}",
@@ -317,8 +309,9 @@ class BackupService {
   }
 
   static Future<GoogleSignInClientAuthorization> saveData(
-    GoogleSignInAccount account,
-  ) async {
+    GoogleSignInAccount account, {
+    bool promptIfNeeded = true,
+  }) async {
     _activeGoogleAccount = account;
     FastDB.putDisplayName(account.displayName ?? "");
     FastDB.putPhotourl(account.photoUrl ?? "");
@@ -336,9 +329,16 @@ class BackupService {
     // Reuse an existing Drive grant without presenting Google UI. Interactive
     // authorization is only needed the first time the account is connected or
     // if the user has revoked the grant.
-    final authorization =
-        await account.authorizationClient.authorizationForScopes(scopes) ??
-        await account.authorizationClient.authorizeScopes(scopes);
+    var authorization = await account.authorizationClient
+        .authorizationForScopes(scopes);
+    if (authorization == null && promptIfNeeded) {
+      authorization = await account.authorizationClient.authorizeScopes(scopes);
+    }
+    if (authorization == null) {
+      throw StateError(
+        'Google Drive authorization requires reconnecting the account.',
+      );
+    }
 
     // The plugin refreshes its access token through the signed-in account.
     // Do not store a made-up expiry time; it caused every token to appear

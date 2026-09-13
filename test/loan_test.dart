@@ -2,6 +2,76 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:loanx/model/loan.dart';
 
 void main() {
+  group('Loan persistence integrity', () {
+    test(
+      'midnight and subsecond timestamps preserve the instant on round trip',
+      () {
+        final loan =
+            _loan(
+              interestType: InterestType.simple,
+              interestRate: 0,
+              durationInDays: 1,
+            ).copy(
+              id: 1,
+              dateCreated: DateTime.utc(2026, 1, 1, 0, 0, 0, 123),
+              dateFinished: DateTime.utc(2026, 1, 2),
+            );
+        final json = loan.toJson();
+        expect(json[LoanFields.dateCreated], '2026-01-01T00:00:00.123Z');
+        final restored = Loan.fromJson(json);
+        expect(restored.dateCreated.isAtSameMomentAs(loan.dateCreated), isTrue);
+        expect(
+          restored.dateFinished!.isAtSameMomentAs(loan.dateFinished!),
+          isTrue,
+        );
+      },
+    );
+
+    test('legacy date strings retain their existing interpretation', () {
+      final json = _loan(
+        interestType: InterestType.simple,
+        interestRate: 0,
+        durationInDays: 1,
+      ).copy(id: 1).toJson();
+      json[LoanFields.dateCreated] = '2026-01-01 13:14:15';
+      expect(Loan.fromJson(json).dateCreated, DateTime(2026, 1, 1, 13, 14, 15));
+    });
+
+    test('invalid settlement cannot mutate completion history', () {
+      final loan = _loan(
+        interestType: InterestType.simple,
+        interestRate: 0,
+        durationInDays: 1,
+      );
+      final finished = loan.dateFinished;
+      for (final amount in [double.nan, double.infinity, -1.0]) {
+        expect(
+          () => loan.complete(receivedBy: 'Owner', amountReceived: amount),
+          throwsArgumentError,
+        );
+        expect(loan.dateFinished, finished);
+        expect(loan.settlementAmount, isNull);
+      }
+    });
+
+    test('nonfinite financial fields cannot be persisted', () {
+      final loan = _loan(
+        interestType: InterestType.simple,
+        interestRate: 0,
+        durationInDays: 1,
+      );
+      for (final invalid in [
+        loan.copy(loanAmount: double.nan),
+        loan.copy(interestRate: double.infinity),
+        loan.copy(weight: double.nan),
+        loan.copy(earlyRedemptionCharge: double.infinity),
+        loan.copy(settlementAmount: double.nan),
+      ]) {
+        expect(invalid.toJson, throwsArgumentError);
+      }
+    });
+  });
+
   group('Loan interest calculations', () {
     test('simple interest and collectable use the same total contract', () {
       final loan = _loan(

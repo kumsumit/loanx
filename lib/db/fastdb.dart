@@ -333,8 +333,44 @@ class FastDB {
     return settings.toBytes();
   }
 
+  /// Eagerly validates every FlatBuffer field without changing live settings.
+  static void validateBackupSettings(List<int> bytes) {
+    if (bytes.length < 8 || bytes.length > 4 * 1024 * 1024) {
+      throw const FormatException('Invalid backup settings size.');
+    }
+    try {
+      final value = _builderFromFlatDb(db.FlatDb(bytes));
+      final hour = value.scheduledBackUpTimeHour ?? 0;
+      final minute = value.scheduledBackUpTimeMinute ?? 0;
+      final theme = value.themeMode ?? 0;
+      final rate = value.interestRate ?? 0;
+      final charge = value.defaultEarlyRedemptionCharge ?? 0;
+      if (hour < 0 ||
+          hour > 23 ||
+          minute < 0 ||
+          minute > 59 ||
+          theme < 0 ||
+          theme >= ThemeMode.values.length ||
+          !rate.isFinite ||
+          rate < 0 ||
+          !charge.isFinite ||
+          charge < 0 ||
+          (value.defaultLockInDays ?? 0) < 0 ||
+          (value.holdingPeriod ?? 0) < 0 ||
+          (value.interestType ?? 0) < 0 ||
+          (value.interestType ?? 0) >= InterestType.values.length ||
+          (value.interestFrequency ?? 0) < 0 ||
+          (value.interestFrequency ?? 0) >= InterestFrequency.values.length) {
+        throw const FormatException('Invalid backup settings values.');
+      }
+    } on RangeError {
+      throw const FormatException('Corrupt backup settings.');
+    }
+  }
+
   /// Saves portable backup settings using this device's encryption key.
   static Future<void> restoreBackupSettings(List<int> bytes) async {
+    validateBackupSettings(bytes);
     final restored = _builderFromFlatDb(db.FlatDb(bytes));
 
     // These are established locally before a Drive restore and must not be

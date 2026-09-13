@@ -1192,10 +1192,24 @@ class DatabaseHelper {
 
   /// Merges user data from [source] into the live database.
   ///
-  /// All source rows are read before the target transaction starts. This
-  /// validates the backup and ensures a failed restore leaves the live
-  /// database unchanged.
-  static Future<void> restoreTables(Database source) async {
+  /// Validate before writing, then merge all SQL records in one transaction.
+  /// Ambiguous legacy identity matches fail instead of discarding differences.
+  /// [targetDatabase] permits validation against a staging database and tests.
+  /// This transaction does not include auxiliary settings files.
+  static Future<void> restoreTables(
+    Database source, {
+    Database? targetDatabase,
+  }) async {
+    final version = await source.getVersion();
+    if (version < 1 || version > 7) {
+      throw const FormatException('Unsupported backup database version.');
+    }
+    final integrity = await source.rawQuery('PRAGMA integrity_check');
+    if (integrity.length != 1 || integrity.single.values.single != 'ok') {
+      throw const FormatException(
+        'The backup database failed its integrity check.',
+      );
+    }
     final sourceTables =
         (await source.rawQuery(
               "SELECT name FROM sqlite_master WHERE type = 'table'",
@@ -1231,7 +1245,42 @@ class DatabaseHelper {
         ? await source.query(LoanChange.tableName)
         : const [];
 
-    final target = await instance.database;
+    final sourceLoanIds = loans.map((row) => row[LoanFields.id]).toSet();
+    for (final change in loanChanges) {
+      if (!sourceLoanIds.contains(change[LoanChangeFields.loanId])) {
+        throw const FormatException(
+          'A backup audit event references a missing loan.',
+        );
+      }
+    }
+    for (final row in loans) {
+      for (final field in [
+        LoanFields.loanAmount,
+        LoanFields.interestRate,
+        LoanFields.weight,
+        LoanFields.earlyRedemptionCharge,
+        LoanFields.settlementAmount,
+      ]) {
+        final value = row[field];
+        if (value != null && (value is! num || !value.isFinite || value < 0)) {
+          throw FormatException('Invalid backup financial field: $field.');
+        }
+      }
+      if (row[LoanFields.loanAmount] == null ||
+          row[LoanFields.dateCreated] == null) {
+        throw const FormatException(
+          'A backup loan is missing required financial data.',
+        );
+      }
+      if (DateTime.tryParse(row[LoanFields.dateCreated].toString()) == null ||
+          (row[LoanFields.dateFinished] != null &&
+              DateTime.tryParse(row[LoanFields.dateFinished].toString()) ==
+                  null)) {
+        throw const FormatException('A backup loan has an invalid date.');
+      }
+    }
+
+    final target = targetDatabase ?? await instance.database;
     await target.transaction((transaction) async {
       final relationIds = <int, int>{};
       for (final familyRelation in familyRelations) {
@@ -1313,7 +1362,6 @@ class DatabaseHelper {
 
         final existing = await transaction.query(
           Loan.tableName,
-          columns: [LoanFields.id],
           where:
               '${LoanFields.depositorName} = ? AND '
               '${LoanFields.relativeName} = ? AND '
@@ -1329,22 +1377,49 @@ class DatabaseHelper {
           ],
           limit: 1,
         );
-        if (existing.isNotEmpty) {
-          loanIds[sourceId] = existing.first[LoanFields.id] as int;
-          continue;
-        }
-
         final values = Map<String, Object?>.from(sourceLoan)
           ..remove(LoanFields.id)
           ..[LoanFields.familyRelationId] = relationId
           ..[LoanFields.mortgageMaterialId] = materialId;
+        if (existing.isNotEmpty) {
+          // Legacy records have no stable cross-device identity. Never treat
+          // matching names and principal as permission to discard other data.
+          final targetLoan = existing.single;
+          if (values.entries.any(
+            (entry) => targetLoan[entry.key] != entry.value,
+          )) {
+            throw const FormatException(
+              'The backup contains a loan that conflicts with a local record. '
+              'Restore into a separate database for reconciliation.',
+            );
+          }
+          loanIds[sourceId] = existing.first[LoanFields.id] as int;
+          continue;
+        }
+
         loanIds[sourceId] = await transaction.insert(Loan.tableName, values);
+        final persisted = (await transaction.query(
+          Loan.tableName,
+          where: '${LoanFields.id} = ?',
+          whereArgs: [loanIds[sourceId]],
+        )).single;
+        if (values.entries.any(
+          (entry) => persisted[entry.key] != entry.value,
+        )) {
+          throw const FormatException(
+            'Restored loan values failed reconciliation.',
+          );
+        }
       }
 
       for (final sourceChange in loanChanges) {
         final sourceLoanId = sourceChange[LoanChangeFields.loanId] as int;
         final loanId = loanIds[sourceLoanId];
-        if (loanId == null) continue;
+        if (loanId == null) {
+          throw const FormatException(
+            'A backup audit event could not be mapped.',
+          );
+        }
         final description = sourceChange[LoanChangeFields.description];
         final createdAt = sourceChange[LoanChangeFields.createdAt];
         final existing = await transaction.query(
@@ -1369,6 +1444,7 @@ class DatabaseHelper {
 
   Future close() async {
     final db = await instance.database;
-    db.close();
+    await db.close();
+    _database = null;
   }
 }

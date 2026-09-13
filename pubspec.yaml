@@ -1,5 +1,5 @@
 name: loanx
-description: "A loanx calculator app that helps you calculate your monthly loanx payments. It also helps you understand the different types of loanxs and how much you can borrow. loanx is available on both Android and iOS platforms, making it accessible to a wide range of users."
+description: "Local loan and collateral record management with receipts and Google Drive backup."
 publish_to: "none"
 version: 1.0.1+13
 
@@ -24,6 +24,7 @@ dependencies:
   encrypt: ^5.0.3
   ffi: ^2.2.0
   archive: ^4.2.0
+  crypto: ^3.0.7
   # faker: ^2.2.0
   path: ^1.9.1
   path_provider:
@@ -92,6 +93,8 @@ dependencies:
   #   git: https://github.com/sumitsharansatsangi/flutter_background_fetch.git  
 
 dev_dependencies:
+  shared_preferences:
+    git: https://github.com/kumsumit/shared_preferences.git
   # integration_test:
   #   sdk: flutter
   flutter_test:
@@ -107,6 +110,7 @@ dev_dependencies:
   remove_unused_localizations_keys: ^0.0.40   
   integration_test:
     sdk: flutter
+  sqflite_common_ffi: ^2.4.3
   
 
 dependency_overrides: 

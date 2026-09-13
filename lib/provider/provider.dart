@@ -715,7 +715,6 @@ class LoanList extends _$LoanList {
     db = ref.watch(dBProvider).value!;
     final orderBy = '${LoanFields.dateCreated} DESC';
     final result = await db.query(Loan.tableName, orderBy: orderBy);
-    debugPrint(result.toString());
     return result.map((json) => Loan.fromJson(json)).toList();
   }
 
@@ -889,7 +888,6 @@ class LoanList extends _$LoanList {
     // after a restore). Do not rely on the `late` field having been populated
     // by `readAllLoans` first.
     db = await ref.read(dBProvider.future);
-    int id = -1;
     Loan loan = Loan(
       depositorName: depositorName,
       phoneNumber: phoneNumber,
@@ -909,68 +907,88 @@ class LoanList extends _$LoanList {
       familyRelationId: familyRelationId,
       mortgageMaterialId: mortgageMaterialId,
     );
-    if (oldLoan != null) {
-      loan = loan.copy(
-        id: oldLoan.id,
-        dateCreated: oldLoan.dateCreated,
-        dateFinished: oldLoan.dateFinished,
-        completedBy: oldLoan.completedBy,
-        settlementAmount: oldLoan.settlementAmount,
-        completionReference: oldLoan.completionReference,
-        completionNotes: oldLoan.completionNotes,
-      );
-      id = await db.update(
-        Loan.tableName,
-        loan.toJson(),
-        where: '${LoanFields.id} = ?',
-        whereArgs: [loan.id],
-      );
-      if (id > 0) {
-        await _recordChange(loan.id!, _describeChanges(oldLoan, loan));
-        await updateDBTime();
-        state = AsyncData([
-          for (final s in state.value!)
-            if (s.id == loan.id) loan else s,
-        ]);
-      }
-    } else {
-      id = await db.insert(Loan.tableName, loan.toJson());
-      if (id > 0) {
-        await _recordChange(id, 'Loan record created');
-        await updateDBTime();
-        loan = loan.copy(id: id);
-        if (state.value == null) {
-          state = AsyncData([loan]);
-        } else {
-          state = AsyncData([loan, ...state.value!]);
+    final id = await db.transaction((transaction) async {
+      if (oldLoan != null) {
+        final previous = await _readLoan(transaction, oldLoan.id);
+        loan = loan.copy(
+          id: previous.id,
+          dateCreated: previous.dateCreated,
+          dateFinished: previous.dateFinished,
+          completedBy: previous.completedBy,
+          settlementAmount: previous.settlementAmount,
+          completionReference: previous.completionReference,
+          completionNotes: previous.completionNotes,
+        );
+        final changed = await transaction.update(
+          Loan.tableName,
+          loan.toJson(),
+          where: '${LoanFields.id} = ?',
+          whereArgs: [loan.id],
+        );
+        if (changed != 1) {
+          throw StateError('Loan update did not affect one row.');
         }
+        await _recordChange(
+          transaction,
+          loan.id!,
+          _describeChanges(previous, loan),
+        );
+        return changed;
       }
-    }
+      final createdId = await transaction.insert(Loan.tableName, loan.toJson());
+      await _recordChange(transaction, createdId, 'Loan record created');
+      loan = loan.copy(id: createdId);
+      return createdId;
+    });
+    ref.invalidate(loanChangesProvider(loan.id!));
+    state = AsyncData(await readAllLoans());
+    await updateDBTime();
     return id;
   }
 
   Future<void> updateLoan(Loan loan) async {
-    final previousLoan = state.value
-        ?.where((item) => item.id == loan.id)
-        .firstOrNull;
-    final id = await db.update(
-      Loan.tableName,
-      loan.toJson(),
-      where: '${LoanFields.id} = ?',
-      whereArgs: [loan.id],
-    );
-    if (id > 0) {
-      if (previousLoan != null) {
-        await _recordChange(loan.id!, _describeChanges(previousLoan, loan));
-      } else {
-        await _recordChange(loan.id!, 'Loan record updated');
-      }
-      await updateDBTime();
-      state = AsyncData([
-        for (final s in state.value!)
-          if (s.id == loan.id) loan else s,
-      ]);
+    db = await ref.read(dBProvider.future);
+    try {
+      await db.transaction((transaction) async {
+        // The UI may have mutated its Loan instance. Read the committed record
+        // inside the write transaction so the audit retains the actual before state.
+        final previous = await _readLoan(transaction, loan.id);
+        final changed = await transaction.update(
+          Loan.tableName,
+          loan.toJson(),
+          where: '${LoanFields.id} = ?',
+          whereArgs: [loan.id],
+        );
+        if (changed != 1) {
+          throw StateError('Loan update did not affect one row.');
+        }
+        await _recordChange(
+          transaction,
+          loan.id!,
+          _describeChanges(previous, loan),
+        );
+      });
+    } catch (_) {
+      // A caller can mutate an object in provider state before submitting it.
+      // Reload after rollback so failed writes do not remain visible as saved.
+      state = AsyncData(await readAllLoans());
+      rethrow;
     }
+    ref.invalidate(loanChangesProvider(loan.id!));
+    state = AsyncData(await readAllLoans());
+    await updateDBTime();
+  }
+
+  Future<Loan> _readLoan(DatabaseExecutor executor, int? id) async {
+    if (id == null) throw ArgumentError.notNull('loan.id');
+    final rows = await executor.query(
+      Loan.tableName,
+      where: '${LoanFields.id} = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (rows.isEmpty) throw StateError('Loan no longer exists.');
+    return Loan.fromJson(rows.single);
   }
 
   Future<void> delete(int id) async {
@@ -1013,16 +1031,19 @@ class LoanList extends _$LoanList {
     );
   }
 
-  Future<void> _recordChange(int loanId, String description) async {
-    await db.insert(
+  Future<void> _recordChange(
+    DatabaseExecutor executor,
+    int loanId,
+    String description,
+  ) async {
+    await executor.insert(
       LoanChange.tableName,
       LoanChange(
         loanId: loanId,
         description: description,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
       ).toJson(),
     );
-    ref.invalidate(loanChangesProvider(loanId));
   }
 
   String _describeChanges(Loan before, Loan after) {

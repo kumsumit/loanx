@@ -86,10 +86,10 @@ class Loan {
   }) : dateCreated = dateCreated ?? DateTime.now();
 
   String get dateCreatedFormat =>
-      DateFormat('dd.MM.yy HH:mm:ss').format(dateCreated);
+      DateFormat('dd.MM.yy HH:mm:ss').format(dateCreated.toLocal());
 
   String get dateFinishedFormat =>
-      DateFormat('dd.MM.yy HH:mm:ss').format(dateFinished!);
+      DateFormat('dd.MM.yy HH:mm:ss').format(dateFinished!.toLocal());
 
   /// Returns true if the task has a [dateFinished] value.
   bool isFinished() {
@@ -114,6 +114,13 @@ class Loan {
     String reference = '',
     String notes = '',
   }) {
+    if (!amountReceived.isFinite || amountReceived < 0) {
+      throw ArgumentError.value(
+        amountReceived,
+        'amountReceived',
+        'Must be finite and nonnegative.',
+      );
+    }
     dateFinished = DateTime.now();
     completedBy = receivedBy;
     settlementAmount = amountReceived;
@@ -203,10 +210,12 @@ class Loan {
         (json[LoanFields.earlyRedemptionCharge] as num?)?.toDouble() ?? 0,
     additionalDetails: json[LoanFields.additionalDetails] as String,
     termsAndConditions: json[LoanFields.termsAndConditions] as String? ?? '',
-    dateCreated: DateTime.parse(json[LoanFields.dateCreated] as String),
+    dateCreated: DateTime.parse(
+      json[LoanFields.dateCreated] as String,
+    ).toLocal(),
     dateFinished: json[LoanFields.dateFinished] == null
         ? null
-        : DateTime.parse(json[LoanFields.dateFinished] as String),
+        : DateTime.parse(json[LoanFields.dateFinished] as String).toLocal(),
     completedBy: json[LoanFields.completedBy] as String? ?? '',
     settlementAmount: (json[LoanFields.settlementAmount] as num?)?.toDouble(),
     completionReference: json[LoanFields.completionReference] as String? ?? '',
@@ -215,36 +224,45 @@ class Loan {
     mortgageMaterialId: json[LoanFields.mortgageMaterialId] as int,
   );
 
-  Map<String, Object?> toJson() => {
-    LoanFields.id: id,
-    LoanFields.depositorName: depositorName,
-    LoanFields.phoneNumber: phoneNumber,
-    LoanFields.relativeName: relativeName,
-    LoanFields.address: address,
-    LoanFields.loanAmount: loanAmount,
-    LoanFields.weight: weight,
-    LoanFields.weightUnit: weightUnit,
-    LoanFields.interestRate: interestRate,
-    LoanFields.interestType: interestType,
-    LoanFields.interestFrequency: interestFrequency,
-    LoanFields.mortgageTermYears: mortgageTermYears,
-    LoanFields.lockInDays: lockInDays,
-    LoanFields.earlyRedemptionCharge: earlyRedemptionCharge,
-    LoanFields.additionalDetails: additionalDetails,
-    LoanFields.termsAndConditions: termsAndConditions,
-    LoanFields.dateCreated: DateFormat(
-      'yyyy-MM-dd kk:mm:ss',
-    ).format(dateCreated),
-    LoanFields.dateFinished: dateFinished == null
-        ? null
-        : DateFormat('yyyy-MM-dd kk:mm:ss').format(dateFinished!),
-    LoanFields.completedBy: completedBy,
-    LoanFields.settlementAmount: settlementAmount,
-    LoanFields.completionReference: completionReference,
-    LoanFields.completionNotes: completionNotes,
-    LoanFields.familyRelationId: familyRelationId,
-    LoanFields.mortgageMaterialId: mortgageMaterialId,
-  };
+  Map<String, Object?> toJson() {
+    for (final entry in {
+      LoanFields.loanAmount: loanAmount,
+      LoanFields.interestRate: interestRate,
+      LoanFields.weight: weight,
+      LoanFields.earlyRedemptionCharge: earlyRedemptionCharge,
+      LoanFields.settlementAmount: ?settlementAmount,
+    }.entries) {
+      if (!entry.value.isFinite) {
+        throw ArgumentError.value(entry.value, entry.key, 'Must be finite.');
+      }
+    }
+    return {
+      LoanFields.id: id,
+      LoanFields.depositorName: depositorName,
+      LoanFields.phoneNumber: phoneNumber,
+      LoanFields.relativeName: relativeName,
+      LoanFields.address: address,
+      LoanFields.loanAmount: loanAmount,
+      LoanFields.weight: weight,
+      LoanFields.weightUnit: weightUnit,
+      LoanFields.interestRate: interestRate,
+      LoanFields.interestType: interestType,
+      LoanFields.interestFrequency: interestFrequency,
+      LoanFields.mortgageTermYears: mortgageTermYears,
+      LoanFields.lockInDays: lockInDays,
+      LoanFields.earlyRedemptionCharge: earlyRedemptionCharge,
+      LoanFields.additionalDetails: additionalDetails,
+      LoanFields.termsAndConditions: termsAndConditions,
+      LoanFields.dateCreated: dateCreated.toUtc().toIso8601String(),
+      LoanFields.dateFinished: dateFinished?.toUtc().toIso8601String(),
+      LoanFields.completedBy: completedBy,
+      LoanFields.settlementAmount: settlementAmount,
+      LoanFields.completionReference: completionReference,
+      LoanFields.completionNotes: completionNotes,
+      LoanFields.familyRelationId: familyRelationId,
+      LoanFields.mortgageMaterialId: mortgageMaterialId,
+    };
+  }
 
   double calculateInterest() {
     final duration = (dateFinished ?? DateTime.now())
