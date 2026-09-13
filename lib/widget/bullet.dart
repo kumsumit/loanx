@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-// import 'package:loanx/db/fastdb.dart';
+// import 'package:loanx/db/app_settings.dart';
 
 class BulletPoint extends StatelessWidget {
   const BulletPoint(this.text, {super.key, this.italic = false});

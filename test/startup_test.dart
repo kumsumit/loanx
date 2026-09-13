@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/l10n/codegen_loader.g.dart';
 import 'package:loanx/main.dart';
 import 'package:loanx/provider/provider.dart';
@@ -21,11 +21,11 @@ void main() {
     SharedPreferences.setMockInitialValues({'locale': 'en'});
     await EasyLocalization.ensureInitialized();
     directory = await Directory.systemTemp.createTemp('loanx_startup_');
-    await FastDB.initForTesting(directory);
+    await AppSettings.initForTesting(directory);
   });
 
   tearDown(() async {
-    await FastDB.flush();
+    await AppSettings.flush();
     await directory.delete(recursive: true);
   });
 

@@ -1,4 +1,4 @@
-import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:loanx/db/tostore_database.dart';
 
 import '../domain/party.dart';
 

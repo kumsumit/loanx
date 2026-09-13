@@ -12,7 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/service/backup_service.dart';
-import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/update_service.dart';
 import 'package:loanx/service/upi_validator.dart';
@@ -583,7 +583,7 @@ class MyDrawer extends HookConsumerWidget {
                                           builder: (context, ref, child) {
                                             return OutlinedButton(
                                               onPressed: () async {
-                                                await FastDB.flush();
+                                                await AppSettings.flush();
                                                 if (context.mounted) {
                                                   Navigator.of(context).pop();
                                                   showSnackBar(
@@ -701,7 +701,7 @@ class MyDrawer extends HookConsumerWidget {
                                           builder: (context, ref, child) {
                                             return OutlinedButton(
                                               onPressed: () async {
-                                                await FastDB.flush();
+                                                await AppSettings.flush();
                                                 if (context.mounted) {
                                                   Navigator.of(context).pop();
                                                   showSnackBar(
@@ -811,7 +811,7 @@ class MyDrawer extends HookConsumerWidget {
                                           ),
                                           OutlinedButton(
                                             onPressed: () async {
-                                              await FastDB.flush();
+                                              await AppSettings.flush();
                                               if (context.mounted) {
                                                 Navigator.pop(context);
                                               }
@@ -996,7 +996,7 @@ class MyDrawer extends HookConsumerWidget {
                                                       '${interestRateString[0]}.${interestRateString[1]}',
                                                     ),
                                                   );
-                                              await FastDB.flush();
+                                              await AppSettings.flush();
                                               if (context.mounted) {
                                                 Navigator.of(context).pop();
                                                 showSnackBar(
@@ -1082,7 +1082,7 @@ class MyDrawer extends HookConsumerWidget {
                                     scheduledBackUpTimeMinuteProvider.notifier,
                                   )
                                   .set(picked.minute);
-                              await FastDB.flush();
+                              await AppSettings.flush();
                               await registerBackUp();
                               ref
                                   .read(backUpRegisteredProvider.notifier)
@@ -1149,7 +1149,7 @@ class MyDrawer extends HookConsumerWidget {
                                           }
                                           return;
                                         }
-                                        if (!FastDB.getIsBackUpRegistered()) {
+                                        if (!AppSettings.getIsBackUpRegistered()) {
                                           await registerBackUp();
                                           ref
                                               .read(
@@ -1298,7 +1298,7 @@ class MyDrawer extends HookConsumerWidget {
                         onTap: () async {
                           final isAddingAccount = token.isEmpty;
                           if (!isAddingAccount) {
-                            FastDB.putDriveFileId("");
+                            AppSettings.putDriveFileId("");
                             ref
                                 .read(backupAvailableProvider.notifier)
                                 .set(false);
@@ -1339,7 +1339,7 @@ class MyDrawer extends HookConsumerWidget {
                                 ref
                                     .read(backupAvailableProvider.notifier)
                                     .set(hasBackup);
-                                await FastDB.flush();
+                                await AppSettings.flush();
                                 if (hasBackup) {
                                   mergedBackup =
                                       await BackupService.downloadFileToDevice(
@@ -1658,7 +1658,7 @@ class _DefaultUpiIdSettingState extends State<_DefaultUpiIdSetting> {
   @override
   void initState() {
     super.initState();
-    _upiId = FastDB.getDefaultUpiId();
+    _upiId = AppSettings.getDefaultUpiId();
   }
 
   @override
@@ -1680,8 +1680,8 @@ class _DefaultUpiIdSettingState extends State<_DefaultUpiIdSetting> {
     );
     if (saved == null) return;
 
-    FastDB.putDefaultUpiId(saved);
-    await FastDB.flush();
+    AppSettings.putDefaultUpiId(saved);
+    await AppSettings.flush();
     if (!mounted) return;
     setState(() => _upiId = saved);
     showSnackBar(context, LocaleKeys.defaultUpiIdUpdated.tr());
@@ -1775,7 +1775,7 @@ class _DefaultTermsAndConditionsSettingState
   @override
   void initState() {
     super.initState();
-    _terms = FastDB.getDefaultTermsAndConditions();
+    _terms = AppSettings.getDefaultTermsAndConditions();
   }
 
   @override
@@ -1801,8 +1801,8 @@ class _DefaultTermsAndConditionsSettingState
     );
     if (terms == null) return;
 
-    FastDB.putDefaultTermsAndConditions(terms);
-    await FastDB.flush();
+    AppSettings.putDefaultTermsAndConditions(terms);
+    await AppSettings.flush();
     if (!mounted) return;
     setState(() => _terms = terms);
     showSnackBar(context, LocaleKeys.defaultTermsAndConditionsUpdated.tr());
@@ -1910,8 +1910,8 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
   @override
   void initState() {
     super.initState();
-    _lockInDays = FastDB.getDefaultLockInDays();
-    _charge = FastDB.getDefaultEarlyRedemptionCharge();
+    _lockInDays = AppSettings.getDefaultLockInDays();
+    _charge = AppSettings.getDefaultEarlyRedemptionCharge();
   }
 
   @override
@@ -2022,9 +2022,9 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
       final charge = selectedDays == 0
           ? 0.0
           : double.parse(chargeController.text.trim());
-      FastDB.putDefaultLockInDays(selectedDays);
-      FastDB.putDefaultEarlyRedemptionCharge(charge);
-      await FastDB.flush();
+      AppSettings.putDefaultLockInDays(selectedDays);
+      AppSettings.putDefaultEarlyRedemptionCharge(charge);
+      await AppSettings.flush();
       if (mounted) {
         setState(() {
           _lockInDays = selectedDays;

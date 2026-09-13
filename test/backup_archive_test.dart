@@ -4,13 +4,13 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:loanx/db/fastdb.dart';
-import 'package:loanx/db/flatdb_generated.dart' as db;
+import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/service/backup_archive.dart';
+import 'package:loanx/db/settings_snapshot.dart';
 
 void main() {
   final database = List.generate(512, (index) => index % 256);
-  final settings = db.FlatDbObjectBuilder(themeMode: 1).toBytes();
+  final settings = SettingsSnapshot({'themeMode': 1}).encode();
   List<int> encode() => BackupArchive.encode(
     database: database,
     settings: settings,
@@ -31,7 +31,7 @@ void main() {
     expect(result.database, database);
     expect(result.settings, settings);
     expect(result.formatVersion, 1);
-    FastDB.validateBackupSettings(result.settings!);
+    AppSettings.validateBackupSettings(result.settings!);
   });
 
   test('legacy ZIP and raw database remain readable', () {
@@ -145,19 +145,19 @@ void main() {
         'loanx-backup-test',
       );
       addTearDown(() => directory.delete(recursive: true));
-      await FastDB.initForTesting(directory);
-      FastDB.putDisplayName('Current owner');
-      final original = FastDB.exportBackupSettings();
+      await AppSettings.initForTesting(directory);
+      AppSettings.putDisplayName('Current owner');
+      final original = AppSettings.exportBackupSettings();
       for (final invalid in [
         [1, 2],
-        db.FlatDbObjectBuilder(scheduledBackUpTimeHour: 99).toBytes(),
-        db.FlatDbObjectBuilder(interestRate: double.nan).toBytes(),
+        SettingsSnapshot({'scheduledBackUpTimeHour': 99}).encode(),
+        SettingsSnapshot({'themeMode': 99}).encode(),
       ]) {
         expect(
-          () => FastDB.validateBackupSettings(invalid),
+          () => AppSettings.validateBackupSettings(invalid),
           throwsFormatException,
         );
-        expect(FastDB.exportBackupSettings(), original);
+        expect(AppSettings.exportBackupSettings(), original);
       }
     },
   );

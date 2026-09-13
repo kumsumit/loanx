@@ -15,8 +15,7 @@ dependencies:
   intl: ^0.20.3
   intl_phone_number_input:
     git: https://github.com/kumsumit/intl_phone_number_input.git
-  sqflite_sqlcipher:
-    git: https://github.com/kumsumit/sqflite_sqlcipher.git
+  tostore: ^3.5.1
   flutter_secure_storage:
     git: https://github.com/kumsumit/flutter_secure_storage.git 
   auto_size_text:
@@ -114,7 +113,6 @@ dev_dependencies:
   remove_unused_localizations_keys: ^0.0.40   
   integration_test:
     sdk: flutter
-  sqflite_common_ffi: ^2.4.3
   
 
 dependency_overrides: 

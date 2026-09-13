@@ -9,9 +9,9 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:loanx/widget/snackbar.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:loanx/algo/damerau_lavenstien.dart';
-import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/model/family_relation.dart';
-import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:loanx/db/tostore_database.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/model/mortgage_material.dart';
@@ -51,7 +51,7 @@ final networkCheckerProvider = StreamProvider<bool>((ref) {
 
 @Riverpod(keepAlive: true)
 Future<bool> authenticate(Ref ref) async {
-  if (!FastDB.getSecure()) {
+  if (!AppSettings.getSecure()) {
     return true;
   }
   final LocalAuthentication localAuthentication = LocalAuthentication();
@@ -78,19 +78,19 @@ Future<bool> authenticate(Ref ref) async {
 @riverpod
 class Secure extends _$Secure {
   @override
-  bool build() => FastDB.getSecure();
+  bool build() => AppSettings.getSecure();
 
   Future<void> toggle() async {
     state = !state;
-    FastDB.putSecure(state);
-    await FastDB.flush();
+    AppSettings.putSecure(state);
+    await AppSettings.flush();
   }
 }
 
 @riverpod
 class DriveAccessToken extends _$DriveAccessToken {
   @override
-  String build() => FastDB.getDriveAccessToken();
+  String build() => AppSettings.getDriveAccessToken();
 
   void set(String token) {
     state = token;
@@ -104,19 +104,19 @@ class DriveAccessToken extends _$DriveAccessToken {
 @Riverpod(keepAlive: true)
 class BackUpRegistered extends _$BackUpRegistered {
   @override
-  bool build() => FastDB.getIsBackUpRegistered();
+  bool build() => AppSettings.getIsBackUpRegistered();
 
   Future<void> set(bool isRegistered) async {
     state = isRegistered;
-    FastDB.putIsBackUpRegistered(isRegistered);
-    await FastDB.flush();
+    AppSettings.putIsBackUpRegistered(isRegistered);
+    await AppSettings.flush();
   }
 }
 
 @riverpod
 class DisplayName extends _$DisplayName {
   @override
-  String build() => FastDB.getDisplayName();
+  String build() => AppSettings.getDisplayName();
 
   void set(String displayName) {
     state = displayName;
@@ -130,7 +130,7 @@ class DisplayName extends _$DisplayName {
 @riverpod
 class PhotoUrl extends _$PhotoUrl {
   @override
-  String build() => FastDB.getPhotourl();
+  String build() => AppSettings.getPhotourl();
 
   void set(String photoUrl) {
     state = photoUrl;
@@ -144,7 +144,7 @@ class PhotoUrl extends _$PhotoUrl {
 @riverpod
 class Email extends _$Email {
   @override
-  String build() => FastDB.getEmail();
+  String build() => AppSettings.getEmail();
 
   void set(String email) {
     state = email;
@@ -159,13 +159,13 @@ class Email extends _$Email {
 class ThemeModeManager extends _$ThemeModeManager {
   @override
   ThemeMode build() {
-    return ThemeMode.values[FastDB.getThemeMode()];
+    return ThemeMode.values[AppSettings.getThemeMode()];
   }
 
   Future<void> set() async {
     state = state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    FastDB.putThemeMode(state.index);
-    await FastDB.flush();
+    AppSettings.putThemeMode(state.index);
+    await AppSettings.flush();
   }
 }
 
@@ -173,12 +173,12 @@ class ThemeModeManager extends _$ThemeModeManager {
 class HoldingPeriod extends _$HoldingPeriod {
   @override
   int build() {
-    return FastDB.getHoldingPeriod();
+    return AppSettings.getHoldingPeriod();
   }
 
   void set(int val) {
     state = val;
-    FastDB.putHoldingPeriod(state);
+    AppSettings.putHoldingPeriod(state);
   }
 }
 
@@ -186,12 +186,12 @@ class HoldingPeriod extends _$HoldingPeriod {
 class ScheduledBackUpTimeHour extends _$ScheduledBackUpTimeHour {
   @override
   int build() {
-    return FastDB.getScheduledBackUpTimeHour();
+    return AppSettings.getScheduledBackUpTimeHour();
   }
 
   void set(int scheduledBackUpTimeHour) {
     state = scheduledBackUpTimeHour;
-    FastDB.putScheduledBackUpTimeHour(scheduledBackUpTimeHour);
+    AppSettings.putScheduledBackUpTimeHour(scheduledBackUpTimeHour);
   }
 }
 
@@ -199,12 +199,12 @@ class ScheduledBackUpTimeHour extends _$ScheduledBackUpTimeHour {
 class ScheduledBackUpTimeMinute extends _$ScheduledBackUpTimeMinute {
   @override
   int build() {
-    return FastDB.getScheduledBackUpTimeMinute();
+    return AppSettings.getScheduledBackUpTimeMinute();
   }
 
   void set(int scheduledBackUpTimeMinute) {
     state = scheduledBackUpTimeMinute;
-    FastDB.putScheduledBackUpTimeMinute(scheduledBackUpTimeMinute);
+    AppSettings.putScheduledBackUpTimeMinute(scheduledBackUpTimeMinute);
   }
 }
 
@@ -212,12 +212,12 @@ class ScheduledBackUpTimeMinute extends _$ScheduledBackUpTimeMinute {
 class InterestTypeStatus extends _$InterestTypeStatus {
   @override
   InterestType build() {
-    return InterestType.values[FastDB.getInterestType()];
+    return InterestType.values[AppSettings.getInterestType()];
   }
 
   void set(InterestType interestType) {
     state = interestType;
-    FastDB.putInterestType(interestType.index);
+    AppSettings.putInterestType(interestType.index);
   }
 }
 
@@ -225,12 +225,12 @@ class InterestTypeStatus extends _$InterestTypeStatus {
 class InterestRate extends _$InterestRate {
   @override
   double build() {
-    return FastDB.getInterestRate();
+    return AppSettings.getInterestRate();
   }
 
   void set(double interestRate) {
     state = interestRate;
-    FastDB.putInterestRate(interestRate);
+    AppSettings.putInterestRate(interestRate);
   }
 }
 
@@ -238,12 +238,12 @@ class InterestRate extends _$InterestRate {
 class InterestFrequencyStatus extends _$InterestFrequencyStatus {
   @override
   InterestFrequency build() {
-    return InterestFrequency.values[FastDB.getInterestFrequency()];
+    return InterestFrequency.values[AppSettings.getInterestFrequency()];
   }
 
   void set(InterestFrequency interestFrequency) {
     state = interestFrequency;
-    FastDB.putInterestFrequency(interestFrequency.index);
+    AppSettings.putInterestFrequency(interestFrequency.index);
   }
 }
 
@@ -314,12 +314,12 @@ class SearchBarStatus extends _$SearchBarStatus {
 @Riverpod(keepAlive: true)
 class AppColor extends _$AppColor {
   @override
-  String build() => FastDB.getAppColor();
+  String build() => AppSettings.getAppColor();
 
   Future<void> set() async {
     state = ref.read(pickerColorProvider);
-    FastDB.putAppColor(state);
-    await FastDB.flush();
+    AppSettings.putAppColor(state);
+    await AppSettings.flush();
   }
 
   Future<void> setFromLogo(BuildContext context) async {
@@ -370,7 +370,7 @@ class AppColor extends _$AppColor {
 @riverpod
 class PickerColor extends _$PickerColor {
   @override
-  String build() => FastDB.getAppColor();
+  String build() => AppSettings.getAppColor();
 
   void set(Color color) {
     // state = color.value.toRadixString(16).substring(2);
@@ -1148,6 +1148,6 @@ class LoanList extends _$LoanList {
 }
 
 Future<void> updateDBTime() async {
-  FastDB.putDbUpdateTime(DateTime.now().millisecondsSinceEpoch);
-  await FastDB.flush();
+  AppSettings.putDbUpdateTime(DateTime.now().millisecondsSinceEpoch);
+  await AppSettings.flush();
 }

@@ -22,7 +22,7 @@ import 'package:loanx/theme/app_theme.dart';
 import 'package:loanx/widget/language_picker.dart';
 import 'package:workmanager/workmanager.dart';
 
-import 'db/fastdb.dart';
+import 'db/app_settings.dart';
 
 class _FallbackMaterialLocalizationsDelegate
     extends LocalizationsDelegate<MaterialLocalizations> {
@@ -96,12 +96,12 @@ Future<void> main() async {
 
   var storageReady = false;
   try {
-    await FastDB.init();
-    if (!FastDB.getIsTableCreated()) {
-      FastDB.putHoldingPeriod(5);
-      FastDB.putInterestRate(3.0);
-      FastDB.putScheduledBackUpTimeHour(2);
-      await FastDB.flush();
+    await AppSettings.init();
+    if (!AppSettings.getIsTableCreated()) {
+      AppSettings.putHoldingPeriod(5);
+      AppSettings.putInterestRate(3.0);
+      AppSettings.putScheduledBackUpTimeHour(2);
+      await AppSettings.flush();
     }
     storageReady = true;
   } catch (_) {
@@ -186,7 +186,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         (state == AppLifecycleState.paused ||
             state == AppLifecycleState.detached)) {
       unawaited(
-        FastDB.flush().catchError((Object _, StackTrace _) {
+        AppSettings.flush().catchError((Object _, StackTrace _) {
           debugPrint(
             'LoanX settings could not be saved; previous file retained.',
           );
@@ -222,7 +222,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                 .when(
                   data: (authenticated) => !authenticated
                       ? const AuthFailurePage()
-                      : !FastDB.getIsTableCreated()
+                      : !AppSettings.getIsTableCreated()
                       ? const AskBackupScreen()
                       : const DashBoard(),
                   error: (_, _) => ErrorPage(),

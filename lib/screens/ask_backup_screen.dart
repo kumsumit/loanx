@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/dashboard.dart';
 import 'package:loanx/service/backup_service.dart';
-import 'package:loanx/service/database_helper.dart';
 import 'package:loanx/widget/loading_overlay.dart';
 import 'package:loanx/widget/snackbar.dart';
 
@@ -148,16 +147,12 @@ class AskBackupScreen extends HookWidget {
       ref.invalidate(familyRelationListProvider);
       ref.invalidate(mortgageMaterialListProvider);
       ref.invalidate(weightUnitListProvider);
-      if (!FastDB.getIsTableCreated()) {
-        final database = await ref.read(dBProvider.future);
-        await DatabaseHelper.instance.onCreate(database, 1);
-      }
-      FastDB.putScheduledBackUpTimeHour(02);
-      FastDB.putScheduledBackUpTimeMinute(00);
+      AppSettings.putScheduledBackUpTimeHour(02);
+      AppSettings.putScheduledBackUpTimeMinute(00);
       await registerBackUp();
       backupRegistered.set(true);
-      FastDB.putIsTableCreated(true);
-      await FastDB.flush();
+      AppSettings.putIsTableCreated(true);
+      await AppSettings.flush();
       db.whenData((data) {
         ref
             .read(mortgageMaterialListProvider.notifier)
@@ -191,11 +186,10 @@ class AskBackupScreen extends HookWidget {
   ) async {
     isLoading.value = true;
     try {
-      if (!FastDB.getIsTableCreated()) {
-        final database = await ref.read(dBProvider.future);
-        await DatabaseHelper.instance.onCreate(database, 1);
-        FastDB.putIsTableCreated(true);
-        await FastDB.flush();
+      if (!AppSettings.getIsTableCreated()) {
+        await ref.read(dBProvider.future);
+        AppSettings.putIsTableCreated(true);
+        await AppSettings.flush();
       }
       if (context.mounted) {
         Navigator.pushReplacement(

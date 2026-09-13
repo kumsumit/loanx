@@ -1,26 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:loanx/domain/party.dart';
 import 'package:loanx/service/party_repository.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:loanx/db/tostore_database.dart';
+import 'package:loanx/service/database_helper.dart';
 
 void main() {
-  sqfliteFfiInit();
   late Database db;
   late PartyRepository a;
   late PartyRepository b;
   setUp(() async {
-    db = await databaseFactoryFfi.openDatabase(inMemoryDatabasePath);
-    await db.execute('CREATE TABLE localOwners (id TEXT PRIMARY KEY)');
-    await db.execute('''CREATE TABLE parties (
-      id TEXT PRIMARY KEY, ownerId TEXT NOT NULL, displayName TEXT NOT NULL,
-      phone TEXT, email TEXT, countryCode TEXT, userId TEXT, status TEXT,
-      createdAt TEXT, updatedAt TEXT)''');
-    await db.execute('''CREATE TABLE relationships (
-      id TEXT PRIMARY KEY, ownerId TEXT, partyAId TEXT, partyBId TEXT,
-      status TEXT, createdAt TEXT, updatedAt TEXT,
-      UNIQUE(ownerId, partyAId, partyBId))''');
-    await db.insert('localOwners', {'id': 'a'});
-    await db.insert('localOwners', {'id': 'b'});
+    db = await DatabaseHelper.instance.openMemory(name: 'party-test-${DateTime.now().microsecondsSinceEpoch}');
+    await db.insert('localOwners', {'id': 'a', 'selfPartyId': 'self-a', 'createdAt': DateTime.now().toIso8601String()});
+    await db.insert('localOwners', {'id': 'b', 'selfPartyId': 'self-b', 'createdAt': DateTime.now().toIso8601String()});
     a = PartyRepository(db, ownerId: 'a');
     b = PartyRepository(db, ownerId: 'b');
   });

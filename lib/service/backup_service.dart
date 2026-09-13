@@ -11,12 +11,12 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
-import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/database_helper.dart';
 // import 'package:loanx/widget/snackbar.dart';
 import 'package:path/path.dart';
-import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:workmanager/workmanager.dart';
 
 GoogleSignIn _googleSignIn() => GoogleSignIn.instance;
@@ -93,17 +93,16 @@ class BackupService {
     driveFile.name =
         "backup-${DateTime.now().toIso8601String()}$_backupExtension";
     driveFile.parents = ["appDataFolder"];
-    File file = File(join(await getDatabasesPath(), 'loanx.db'));
+    final database = await DatabaseHelper.instance.database;
+    final backupPath = await database.backup(compress: true);
+    final file = File(backupPath);
     debugPrint(file.path);
     if (file.existsSync()) {
-      await FastDB.flush();
-      // Ensure WAL-backed writes have reached the database file before it is
-      // read into the archive.
-      final database = await DatabaseHelper.instance.database;
-      await database.rawQuery('PRAGMA wal_checkpoint(FULL)');
+      await AppSettings.flush();
+      await database.flush();
       final backupBytes = BackupArchive.encode(
         database: await file.readAsBytes(),
-        settings: FastDB.exportBackupSettings(),
+        settings: AppSettings.exportBackupSettings(),
         appVersion: '1.0.1+13',
         deviceId: await _backupDeviceId(),
         createdAt: DateTime.now().toUtc(),
@@ -117,8 +116,8 @@ class BackupService {
       debugPrint(result.mimeType);
       if (result.id != null) {
         // Retain previous generations until an explicit retention policy exists.
-        FastDB.putDriveFileId(result.id!);
-        await FastDB.flush();
+        AppSettings.putDriveFileId(result.id!);
+        await AppSettings.flush();
         return true;
       }
     }
@@ -155,7 +154,7 @@ class BackupService {
     try {
       bool isDownloaded = false;
       final driveApi = await getDriveApi(account: account);
-      final saveFile = File(join(await getDatabasesPath(), 'loanx.db'));
+      final saveFile = File(join((await getTemporaryDirectory()).path, 'loanx-restore.tostore.zip'));
       if (driveApi != null) {
         final fileList = (await driveApi.files.list(
           spaces: 'appDataFolder',
@@ -182,10 +181,10 @@ class BackupService {
               saveFile,
             );
             if (isDownloaded) {
-              FastDB.putDbUpdateTime(
+              AppSettings.putDbUpdateTime(
                 (driveBackupDate ?? DateTime.now()).millisecondsSinceEpoch,
               );
-              await FastDB.flush();
+              await AppSettings.flush();
             }
           }
         } else {
@@ -238,11 +237,11 @@ class BackupService {
     // before any SQL mutation. Legacy archives lack a manifest but still get
     // size, CRC, shape, settings and database validation.
     if (backup.settings != null) {
-      FastDB.validateBackupSettings(backup.settings!);
+      AppSettings.validateBackupSettings(backup.settings!);
     }
     await _restoreDatabase(backup.database, saveFile);
     if (backup.settings != null) {
-      await FastDB.restoreBackupSettings(backup.settings!);
+      await AppSettings.restoreBackupSettings(backup.settings!);
     }
     return true;
   }
@@ -251,20 +250,12 @@ class BackupService {
     List<int> databaseBytes,
     File saveFile,
   ) async {
-    final tempFile = File(join(dirname(saveFile.path), 'loanx_temp.db'));
+    final tempFile = saveFile;
     try {
       await tempFile.writeAsBytes(databaseBytes, flush: true);
-      final tempDb = await openDatabase(
-        tempFile.path,
-        readOnly: true,
-        singleInstance: true,
-        password: 'yourhgjgujjhjhjhsecure_passwordhfjffffhgf',
-      );
-      try {
-        await DatabaseHelper.restoreTables(tempDb);
-      } finally {
-        await tempDb.close();
-      }
+      final database = await DatabaseHelper.instance.database;
+      final restored = await database.restore(tempFile.path);
+      if (!restored) throw const FormatException('ToStore rejected the backup.');
     } finally {
       if (await tempFile.exists()) await tempFile.delete();
     }
@@ -277,7 +268,7 @@ class BackupService {
     final googleSignIn = _googleSignIn();
     account ??= _activeGoogleAccount;
     if (account == null) {
-      if (FastDB.getDriveAccessToken().isNotEmpty) {
+      if (AppSettings.getDriveAccessToken().isNotEmpty) {
         // Access tokens are short-lived. Re-obtain one from the account on
         // each Drive operation instead of trusting a persisted expiry time.
         account = await googleSignIn.attemptLightweightAuthentication();
@@ -293,13 +284,13 @@ class BackupService {
       _activeGoogleAccount = account;
       await saveData(account, promptIfNeeded: promptIfNeeded);
       final authHeaders = {
-        "Authorization": "Bearer ${FastDB.getDriveAccessToken()}",
-        "X-Goog-AuthUser": "${FastDB.getDriveUser()}",
+        "Authorization": "Bearer ${AppSettings.getDriveAccessToken()}",
+        "X-Goog-AuthUser": "${AppSettings.getDriveUser()}",
       };
       final authenticateClient = GoogleAuthClient(authHeaders);
       return drive.DriveApi(authenticateClient);
     }
-    _lastError = FastDB.getDriveAccessToken().isEmpty
+    _lastError = AppSettings.getDriveAccessToken().isEmpty
         ? 'Google Sign-In was cancelled or did not return an account.'
         : 'Google Sign-In could not restore the saved account. '
               'Check the Android OAuth package name and SHA-1 fingerprint, '
@@ -313,17 +304,17 @@ class BackupService {
     bool promptIfNeeded = true,
   }) async {
     _activeGoogleAccount = account;
-    FastDB.putDisplayName(account.displayName ?? "");
-    FastDB.putPhotourl(account.photoUrl ?? "");
+    AppSettings.putDisplayName(account.displayName ?? "");
+    AppSettings.putPhotourl(account.photoUrl ?? "");
     if (account.photoUrl != null) {
       http.get(Uri.parse(account.photoUrl!)).then((value) {
         if (value.statusCode == 200) {
           final bytes = value.bodyBytes;
-          FastDB.putPhoto(bytes);
+          AppSettings.putPhoto(bytes);
         }
       });
     }
-    FastDB.putEmail(account.email);
+    AppSettings.putEmail(account.email);
 
     const scopes = [drive.DriveApi.driveAppdataScope];
     // Reuse an existing Drive grant without presenting Google UI. Interactive
@@ -343,33 +334,33 @@ class BackupService {
     // The plugin refreshes its access token through the signed-in account.
     // Do not store a made-up expiry time; it caused every token to appear
     // expired immediately.
-    FastDB.putDriveAccessTokenExpires(0);
-    FastDB.putDriveAccessToken(authorization.accessToken);
+    AppSettings.putDriveAccessTokenExpires(0);
+    AppSettings.putDriveAccessToken(authorization.accessToken);
 
     final headers = await account.authorizationClient.authorizationHeaders(
       scopes,
       promptIfNecessary: false,
     );
     if (headers?["X-Goog-AuthUser"] != null) {
-      FastDB.putDriveUser(int.tryParse(headers!["X-Goog-AuthUser"] ?? "") ?? 0);
+      AppSettings.putDriveUser(int.tryParse(headers!["X-Goog-AuthUser"] ?? "") ?? 0);
     }
-    await FastDB.flush();
+    await AppSettings.flush();
     return authorization;
   }
 
   static Future<void> removeData() async {
     _activeGoogleAccount = null;
-    FastDB.putDisplayName("");
-    FastDB.putPhotourl("");
-    FastDB.putEmail("");
-    FastDB.putDriveAccessTokenExpires(0);
-    FastDB.putDriveAccessToken("");
-    FastDB.putDriveUser(0);
-    FastDB.putDriveFileId("");
-    FastDB.putIsBackUpRegistered(false);
-    await Workmanager().cancelByUniqueName(FastDB.getBackupTaskId());
-    FastDB.putBackupTaskId("");
-    await FastDB.flush();
+    AppSettings.putDisplayName("");
+    AppSettings.putPhotourl("");
+    AppSettings.putEmail("");
+    AppSettings.putDriveAccessTokenExpires(0);
+    AppSettings.putDriveAccessToken("");
+    AppSettings.putDriveUser(0);
+    AppSettings.putDriveFileId("");
+    AppSettings.putIsBackUpRegistered(false);
+    await Workmanager().cancelByUniqueName(AppSettings.getBackupTaskId());
+    AppSettings.putBackupTaskId("");
+    await AppSettings.flush();
   }
 }
 
@@ -391,16 +382,16 @@ class GoogleAuthClient extends http.BaseClient {
 }
 
 Future<void> registerBackUp() async {
-  if (FastDB.getBackupTaskId().isNotEmpty) {
-    await Workmanager().cancelByUniqueName(FastDB.getBackupTaskId());
+  if (AppSettings.getBackupTaskId().isNotEmpty) {
+    await Workmanager().cancelByUniqueName(AppSettings.getBackupTaskId());
   }
   final now = DateTime.now();
   var scheduledTime = DateTime(
     now.year,
     now.month,
     now.day,
-    FastDB.getScheduledBackUpTimeHour(),
-    FastDB.getScheduledBackUpTimeMinute(),
+    AppSettings.getScheduledBackUpTimeHour(),
+    AppSettings.getScheduledBackUpTimeMinute(),
   );
   if (!scheduledTime.isAfter(now)) {
     scheduledTime = scheduledTime.add(const Duration(days: 1));
@@ -413,8 +404,8 @@ Future<void> registerBackUp() async {
     frequency: Duration(hours: 24),
     constraints: Constraints(networkType: NetworkType.connected),
   );
-  FastDB.putBackupTaskId(uniqueID);
-  await FastDB.flush();
+  AppSettings.putBackupTaskId(uniqueID);
+  await AppSettings.flush();
 }
 
 @pragma('vm:entry-point')
@@ -423,7 +414,7 @@ void callbackDispatcher() {
     if (task == dailyBackUpUpload) {
       WidgetsFlutterBinding.ensureInitialized();
       await initializeGoogleSignIn();
-      await FastDB.init();
+      await AppSettings.init();
       return await BackupService.performBackup(promptIfNeeded: false);
     }
     // if(task == dailyBackUpDownload ){

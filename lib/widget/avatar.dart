@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/db/app_settings.dart';
 
 class ProfilePicture extends StatelessWidget {
   final String? imageUrl;
@@ -74,7 +74,7 @@ class LocalProfilePicture extends StatelessWidget {
       backgroundColor: Theme.of(context).colorScheme.onPrimary,
       child: ClipOval(
         child: Image.memory(
-          Uint8List.fromList(FastDB.getPhoto()),
+          Uint8List.fromList(AppSettings.getPhoto()),
           width: 70,
           height: 70,
           fit: BoxFit.cover,

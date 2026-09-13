@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
-import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/family_relation.dart';
@@ -62,24 +62,24 @@ class LoanInput extends HookConsumerWidget {
     final currentMortgageMaterial = useState<MortgageMaterial?>(null);
     final interestType = useState<InterestType>(
       InterestType.values[loan == null
-          ? FastDB.getInterestType()
+          ? AppSettings.getInterestType()
           : loan!.interestType],
     );
     final interestFrequency = useState<InterestFrequency>(
       InterestFrequency.values[loan == null
-          ? FastDB.getInterestFrequency()
+          ? AppSettings.getInterestFrequency()
           : loan!.interestFrequency],
     );
     final mortgageTermYears = useState<int>(
-      (loan?.mortgageTermYears ?? FastDB.getHoldingPeriod()).clamp(1, 30),
+      (loan?.mortgageTermYears ?? AppSettings.getHoldingPeriod()).clamp(1, 30),
     );
     final lockInDays = useState<int>(
-      loan?.lockInDays ?? FastDB.getDefaultLockInDays(),
+      loan?.lockInDays ?? AppSettings.getDefaultLockInDays(),
     );
     final initialInterestRate =
         loan?.interestRate ??
         ref.read(interestRateProvider) ??
-        FastDB.getInterestRate();
+        AppSettings.getInterestRate();
     final interestRateWhole = useState<int>(
       initialInterestRate.floor().clamp(0, 50),
     );
@@ -103,7 +103,7 @@ class LoanInput extends HookConsumerWidget {
       };
     }, [interestRateWholeController, interestRateFractionController]);
     final initialEarlyRedemptionCharge =
-        loan?.earlyRedemptionCharge ?? FastDB.getDefaultEarlyRedemptionCharge();
+        loan?.earlyRedemptionCharge ?? AppSettings.getDefaultEarlyRedemptionCharge();
     final depositorController = useTextEditingController(
       text: loan?.depositorName ?? '',
     );
@@ -143,7 +143,7 @@ class LoanInput extends HookConsumerWidget {
       text: loan?.additionalDetails ?? '',
     );
     final termsAndConditionsController = useTextEditingController(
-      text: loan?.termsAndConditions ?? FastDB.getDefaultTermsAndConditions(),
+      text: loan?.termsAndConditions ?? AppSettings.getDefaultTermsAndConditions(),
     );
     // This form is reused each time the add/edit route is opened. Persisting
     // its offset in PageStorage can make a new loan form reopen halfway down

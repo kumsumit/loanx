@@ -9,7 +9,7 @@ import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/db/fastdb.dart';
+import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/service/upi_validator.dart';
@@ -685,7 +685,7 @@ class _DetailsContent extends ConsumerWidget {
     final payment = await showDialog<({String upiId, double amount})>(
       context: context,
       builder: (_) => _UpiPaymentFormDialog(
-        initialUpiId: FastDB.getDefaultUpiId(),
+        initialUpiId: AppSettings.getDefaultUpiId(),
         initialAmount: collectable,
       ),
     );
