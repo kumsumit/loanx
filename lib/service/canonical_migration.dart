@@ -5,7 +5,7 @@ import '../db/tostore_database.dart';
 /// Canonical identity helpers retained by repositories after the clean ToStore
 /// cutover. There is intentionally no SQLite schema migration path.
 abstract final class CanonicalMigration {
-  static const version = 9;
+  static const version = 10;
 
   static String newId() {
     final random = Random.secure();
@@ -25,8 +25,14 @@ abstract final class CanonicalMigration {
     String currency = 'INR',
     String? uid,
   }) async {
-    final owners = await db.query('localOwners', where: ownerId == null ? null : 'id = ?', whereArgs: ownerId == null ? null : [ownerId]);
-    if (owners.length != 1) throw StateError('A single local owner is required.');
+    final owners = await db.query(
+      'localOwners',
+      where: ownerId == null ? null : 'id = ?',
+      whereArgs: ownerId == null ? null : [ownerId],
+    );
+    if (owners.length != 1) {
+      throw StateError('A single local owner is required.');
+    }
     final owner = owners.single;
     final id = owner['id'] as String;
     final now = DateTime.now().toUtc().toIso8601String();
@@ -34,21 +40,41 @@ abstract final class CanonicalMigration {
     if (other == null) {
       other = newId();
       await db.insert('parties', {
-        'id': other, 'ownerId': id, 'displayName': row['depositorName'] ?? '',
-        'phone': row['phoneNumber'], 'email': row['email'], 'status': 'ACTIVE',
-        'createdAt': now, 'updatedAt': now,
+        'id': other,
+        'ownerId': id,
+        'displayName': row['depositorName'] ?? '',
+        'phone': row['phoneNumber'],
+        'email': row['email'],
+        'status': 'ACTIVE',
+        'createdAt': now,
+        'updatedAt': now,
       });
     } else {
-      final party = await db.query('parties', where: 'id = ? AND ownerId = ? AND status = ?', whereArgs: [other, id, 'ACTIVE']);
-      if (party.length != 1) throw StateError('The selected party is unavailable in this workspace.');
+      final party = await db.query(
+        'parties',
+        where: 'id = ? AND ownerId = ? AND status = ?',
+        whereArgs: [other, id, 'ACTIVE'],
+      );
+      if (party.length != 1) {
+        throw StateError(
+          'The selected party is unavailable in this workspace.',
+        );
+      }
     }
-    if (other == owner['selfPartyId']) throw ArgumentError('Lender and borrower must differ.');
-    if (!RegExp(r'^[A-Z]{3}$').hasMatch(currency)) throw ArgumentError('Invalid currency code.');
+    if (other == owner['selfPartyId']) {
+      throw ArgumentError('Lender and borrower must differ.');
+    }
+    if (!RegExp(r'^[A-Z]{3}$').hasMatch(currency)) {
+      throw ArgumentError('Invalid currency code.');
+    }
     return {
-      'uid': uid ?? newId(), 'ownerId': id,
+      'uid': uid ?? newId(),
+      'ownerId': id,
       'lenderPartyId': borrowing ? other : owner['selfPartyId'],
       'borrowerPartyId': borrowing ? owner['selfPartyId'] : other,
-      'relationshipId': null, 'currency': currency, 'calculationVersion': 'legacy-v1',
+      'relationshipId': null,
+      'currency': currency,
+      'calculationVersion': 'legacy-v1',
     };
   }
 
@@ -56,17 +82,29 @@ abstract final class CanonicalMigration {
     var total = BigInt.zero;
     var scale = 0;
     for (final value in values) {
-      if (!value.isFinite) throw const FormatException('Nonfinite financial value.');
+      if (!value.isFinite) {
+        throw const FormatException('Nonfinite financial value.');
+      }
       final pieces = value.toString().toLowerCase().split('e');
       final decimal = pieces[0].split('.');
       var digits = BigInt.parse(decimal.join());
-      var places = (decimal.length == 2 ? decimal[1].length : 0) - (pieces.length == 2 ? int.parse(pieces[1]) : 0);
-      if (places < 0) { digits *= BigInt.from(10).pow(-places); places = 0; }
-      if (places > scale) { total *= BigInt.from(10).pow(places - scale); scale = places; }
+      var places =
+          (decimal.length == 2 ? decimal[1].length : 0) -
+          (pieces.length == 2 ? int.parse(pieces[1]) : 0);
+      if (places < 0) {
+        digits *= BigInt.from(10).pow(-places);
+        places = 0;
+      }
+      if (places > scale) {
+        total *= BigInt.from(10).pow(places - scale);
+        scale = places;
+      }
       total += digits * BigInt.from(10).pow(scale - places);
     }
     final sign = total.isNegative ? '-' : '';
     final digits = total.abs().toString().padLeft(scale + 1, '0');
-    return scale == 0 ? '$sign$digits' : '$sign${digits.substring(0, digits.length - scale)}.${digits.substring(digits.length - scale)}';
+    return scale == 0
+        ? '$sign$digits'
+        : '$sign${digits.substring(0, digits.length - scale)}.${digits.substring(digits.length - scale)}';
   }
 }

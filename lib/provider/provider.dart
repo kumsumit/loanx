@@ -17,6 +17,7 @@ import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/model/weight_unit.dart';
 import 'package:loanx/service/database_helper.dart';
+import 'package:loanx/service/canonical_migration.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 part 'provider.g.dart';
@@ -935,7 +936,35 @@ class LoanList extends _$LoanList {
         );
         return changed;
       }
-      final createdId = await transaction.insert(Loan.tableName, loan.toJson());
+      var owners = await transaction.query('localOwners');
+      if (owners.isEmpty) {
+        final now = DateTime.now().toUtc().toIso8601String();
+        final ownerId = CanonicalMigration.newId();
+        final selfPartyId = CanonicalMigration.newId();
+        await transaction.insert('localOwners', {
+          'id': ownerId,
+          'selfPartyId': selfPartyId,
+          'createdAt': now,
+        });
+        await transaction.insert('parties', {
+          'id': selfPartyId,
+          'ownerId': ownerId,
+          'displayName': 'Local owner',
+          'status': 'ACTIVE',
+          'createdAt': now,
+          'updatedAt': now,
+        });
+        owners = await transaction.query('localOwners');
+      }
+      final identity = await CanonicalMigration.identityForNewLoan(
+        transaction,
+        loan.toJson(),
+        ownerId: owners.single['id'] as String,
+      );
+      final createdId = await transaction.insert(Loan.tableName, {
+        ...loan.toJson(),
+        ...identity,
+      });
       await _recordChange(transaction, createdId, 'Loan record created');
       loan = loan.copy(id: createdId);
       return createdId;

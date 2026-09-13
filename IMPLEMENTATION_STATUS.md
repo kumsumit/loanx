@@ -1,6 +1,6 @@
 # LoanX implementation status
 
-Updated 2026-09-13. This is an implementation checkpoint, not a launch certification.
+Updated 2026-09-14. This is an implementation checkpoint, not a launch certification.
 
 ## Repository assessment
 
@@ -46,6 +46,21 @@ Android device and live Drive acceptance checks remain open as listed below.
 
 ## Verification evidence
 
+### Canonical identity and financial foundation (2026-09-14)
+
+- New local loans receive stable UUIDs, an owner scope, distinct lender and
+  borrower Party references, currency, and an explicit `legacy-v1` calculation
+  version in the same transaction as the legacy row and change record.
+- `Money` stores exact integer minor units with an explicit currency scale.
+  `finance-v1` defines rate precision, rounding, day-count conventions, zero,
+  simple, flat and reducing-balance interest, fee/interest/principal allocation,
+  overpayment credit, grace periods, and derived delinquency.
+- Repayments and reversals are append-only, owner-scoped financial events.
+  Operation IDs are idempotent, payload mismatches fail, double reversal is
+  rejected, and each write commits with its audit event atomically.
+- `flutter analyze --no-pub`: **no issues found**.
+- `flutter test --no-pub`: **52 passed, 0 failed, 0 skipped**.
+
 - Before changes: `flutter test --no-pub`: 22 passed, 0 failed.
 - `flutter pub get`: passed; dependencies and lockfile resolved.
 - `flutter test --no-pub`: **49 passed, 0 failed, 0 skipped**. Includes archive
@@ -85,8 +100,8 @@ and signing configuration; a local build is not a production deployment.
 | Requirement | Status | Next evidence needed |
 | --- | --- | --- |
 | Current safety milestone | Verified on host/build; device check open | 49 tests, clean analysis, signed APK; Android device smoke test still needed |
-| Canonical owner/User/Party/Relationship/Loan model | Not started | Additive migration, reference and amount reconciliation |
-| Exact financial engine and repayment ledger | Not started | Versioned contracts, allocation/reversal/idempotency tests |
+| Canonical owner/User/Party/Relationship/Loan model | In progress | New writes are canonical; existing stored rows still need additive backfill and reconciliation |
+| Exact financial engine and repayment ledger | In progress | Exact engine and local append-only ledger verified; terms persistence, schedules, UI and shared server vectors remain |
 | Borrower and lender views | Not started | Local repository-backed flows supporting both directions |
 | Collateral lifecycle and private attachments | Not started | Offline files, lifecycle and ownership tests |
 | Crash-safe complete backup/restore | In progress | SQL/settings/files atomic recovery and consistent snapshot tests |

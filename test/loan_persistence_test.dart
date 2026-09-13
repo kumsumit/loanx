@@ -23,16 +23,39 @@ void main() {
     directory = await Directory.systemTemp.createTemp('loan-test-');
     await AppSettings.initForTesting(directory);
     database = await DatabaseHelper.instance.openMemory(name: 'loan-test');
-    container = ProviderContainer(overrides: [dBProvider.overrideWith(() => _TestDB(database))]);
+    container = ProviderContainer(
+      overrides: [dBProvider.overrideWith(() => _TestDB(database))],
+    );
     await container.read(dBProvider.future);
     await container.read(loanListProvider.future);
   });
-  tearDown(() async { container.dispose(); await database.close(); await directory.delete(recursive: true); });
+  tearDown(() async {
+    container.dispose();
+    await database.close();
+    await directory.delete(recursive: true);
+  });
 
-  Future<int> createLoan() => container.read(loanListProvider.notifier).add(
-        null, 'Borrower', '1234567890', '', '', 1000, 10, 'g', 0,
-        InterestType.simple.index, InterestFrequency.monthly.index, 5, 0, 0,
-        '', '', 1, 1,
+  Future<int> createLoan() => container
+      .read(loanListProvider.notifier)
+      .add(
+        null,
+        'Borrower',
+        '1234567890',
+        '',
+        '',
+        1000,
+        10,
+        'g',
+        0,
+        InterestType.simple.index,
+        InterestFrequency.monthly.index,
+        5,
+        0,
+        0,
+        '',
+        '',
+        1,
+        1,
       );
 
   test('loan writes and completion audit are persisted', () async {
@@ -40,9 +63,21 @@ void main() {
     final loan = container.read(loanListProvider).requireValue.single;
     loan.complete(receivedBy: 'Recipient', amountReceived: 1000);
     await container.read(loanListProvider.notifier).updateLoan(loan);
-    final changes = await database.query(LoanChange.tableName, where: 'loanId = ?', whereArgs: [id], orderBy: 'id');
+    final changes = await database.query(
+      LoanChange.tableName,
+      where: 'loanId = ?',
+      whereArgs: [id],
+      orderBy: 'id',
+    );
     expect(changes, hasLength(2));
     expect(changes.last['description'], contains('Recipient'));
     expect(await database.query(Loan.tableName), hasLength(1));
+    final stored = (await database.query(Loan.tableName)).single;
+    expect(stored['uid'], isNotEmpty);
+    expect(stored['ownerId'], isNotEmpty);
+    expect(stored['lenderPartyId'], isNotEmpty);
+    expect(stored['borrowerPartyId'], isNotEmpty);
+    expect(stored['lenderPartyId'], isNot(stored['borrowerPartyId']));
+    expect(await database.query('parties'), hasLength(2));
   });
 }

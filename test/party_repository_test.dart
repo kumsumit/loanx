@@ -9,9 +9,19 @@ void main() {
   late PartyRepository a;
   late PartyRepository b;
   setUp(() async {
-    db = await DatabaseHelper.instance.openMemory(name: 'party-test-${DateTime.now().microsecondsSinceEpoch}');
-    await db.insert('localOwners', {'id': 'a', 'selfPartyId': 'self-a', 'createdAt': DateTime.now().toIso8601String()});
-    await db.insert('localOwners', {'id': 'b', 'selfPartyId': 'self-b', 'createdAt': DateTime.now().toIso8601String()});
+    db = await DatabaseHelper.instance.openMemory(
+      name: 'party-test-${DateTime.now().microsecondsSinceEpoch}',
+    );
+    await db.insert('localOwners', {
+      'id': 'a',
+      'selfPartyId': 'self-a',
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+    await db.insert('localOwners', {
+      'id': 'b',
+      'selfPartyId': 'self-b',
+      'createdAt': DateTime.now().toIso8601String(),
+    });
     a = PartyRepository(db, ownerId: 'a');
     b = PartyRepository(db, ownerId: 'b');
   });
