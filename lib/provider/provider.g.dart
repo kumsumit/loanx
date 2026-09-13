@@ -1357,3 +1357,4 @@ abstract class _$LoanList extends $AsyncNotifier<List<Loan>> {
     return element.handleCreate(ref, build);
   }
 }
+

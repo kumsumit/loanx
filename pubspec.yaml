@@ -86,6 +86,8 @@ dependencies:
   rust_lib_loanx:
     path: rust_builder
   flutter_rust_bridge: 2.13.0
+  freezed_annotation:
+    git: https://github.com/kumsumit/freezed_annotation.git
   # device_preview:
   #   git: https://github.com/sumitsharansatsangi/device_preview.git
 
@@ -93,6 +95,8 @@ dependencies:
   #   git: https://github.com/sumitsharansatsangi/flutter_background_fetch.git  
 
 dev_dependencies:
+  freezed: 
+    git: https://github.com/kumsumit/freezed.git
   shared_preferences:
     git: https://github.com/kumsumit/shared_preferences.git
   # integration_test:
