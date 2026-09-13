@@ -31,7 +31,11 @@ class EyePainter extends CustomPainter {
   final Color bgColor;
   final Color fgColor;
 
-  EyePainter(this.animationValue, {required this.bgColor, required this.fgColor});
+  EyePainter(
+    this.animationValue, {
+    required this.bgColor,
+    required this.fgColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {

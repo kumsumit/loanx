@@ -82,6 +82,9 @@ dependencies:
     git: https://github.com/sumitsharansatsangi/flutter_smart_auth.git  
   profile_picker_plus:
     git: https://github.com/kumsumit/profile_picker_plus.git  
+  rust_lib_loanx:
+    path: rust_builder
+  flutter_rust_bridge: 2.13.0
   # device_preview:
   #   git: https://github.com/sumitsharansatsangi/device_preview.git
 
@@ -102,6 +105,8 @@ dev_dependencies:
   icons_launcher:
     git: "https://github.com/kumsumit/icons_launcher.git"   
   remove_unused_localizations_keys: ^0.0.40   
+  integration_test:
+    sdk: flutter
   
 
 dependency_overrides: 

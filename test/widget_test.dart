@@ -13,7 +13,9 @@ void main() {
     final message = BackupService.userFacingGoogleSignInError(error);
     expect(
       message,
-      contains('No Google account was selected. Please choose an account to continue.'),
+      contains(
+        'No Google account was selected. Please choose an account to continue.',
+      ),
     );
   });
 
@@ -24,6 +26,9 @@ void main() {
     );
 
     final message = BackupService.userFacingGoogleSignInError(error);
-    expect(message, contains('Google account connection failed. Please try again.'));
+    expect(
+      message,
+      contains('Google account connection failed. Please try again.'),
+    );
   });
 }
