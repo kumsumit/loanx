@@ -13,6 +13,7 @@ class AuthClient {
     'LOANX_SERVER_CERTIFICATE_BASE64',
   );
   final FlutterSecureStorage _storage;
+  static const _sessionKey = 'loanx.auth-session.v1';
   String? _challenge;
   String get _certificate {
     if (_address.isEmpty || _name.isEmpty || _certificate64.isEmpty) {
@@ -48,17 +49,13 @@ class AuthClient {
       preferredLanguage: language,
     );
     if (!result.success) return false;
-    await _storage.write(key: 'loanx.access-token', value: result.accessToken);
-    await _storage.write(
-      key: 'loanx.refresh-token',
-      value: result.refreshToken,
-    );
+    await _storeTokens(result.accessToken, result.refreshToken);
     _challenge = null;
     return true;
   }
 
   Future<void> updateLanguage(String language) async {
-    final token = await _storage.read(key: 'loanx.access-token');
+    final token = (await _readTokens())?.accessToken;
     if (token == null || token.isEmpty) return;
     final result = await network.updateLanguage(
       serverAddress: _address,
@@ -74,7 +71,7 @@ class AuthClient {
   }
 
   Future<bool> restoreSession() async {
-    final refreshToken = await _storage.read(key: 'loanx.refresh-token');
+    final refreshToken = (await _readTokens())?.refreshToken;
     if (refreshToken == null || refreshToken.isEmpty) return false;
     try {
       final result = await network
@@ -86,15 +83,11 @@ class AuthClient {
             refreshToken: refreshToken,
           )
           .timeout(const Duration(seconds: 10));
-      if (!result.success) return false;
-      await _storage.write(
-        key: 'loanx.access-token',
-        value: result.accessToken,
-      );
-      await _storage.write(
-        key: 'loanx.refresh-token',
-        value: result.refreshToken,
-      );
+      if (!result.success) {
+        await clearLocalSession();
+        return false;
+      }
+      await _storeTokens(result.accessToken, result.refreshToken);
       final pendingLanguage = AppSettings.getPendingPreferredLanguage();
       if (pendingLanguage.isNotEmpty) {
         try {
@@ -109,6 +102,67 @@ class AuthClient {
     } catch (_) {
       return false;
     }
+  }
+
+  Future<void> logout() async {
+    final token = (await _readTokens())?.accessToken;
+    if (token == null || token.isEmpty) {
+      await clearLocalSession();
+      return;
+    }
+    final result = await network.logoutSession(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: token,
+    );
+    if (!result.success) {
+      throw StateError(result.errorMessage ?? 'Unable to revoke session');
+    }
+    await clearLocalSession();
+  }
+
+  Future<void> clearLocalSession() async {
+    await _storage.delete(key: _sessionKey);
+    // Remove pre-upgrade token records after migration or logout.
+    await _storage.delete(key: 'loanx.access-token');
+    await _storage.delete(key: 'loanx.refresh-token');
+  }
+
+  Future<void> _storeTokens(String accessToken, String refreshToken) async {
+    final encoded = jsonEncode({
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
+    });
+    await _storage.write(key: _sessionKey, value: encoded);
+    await _storage.delete(key: 'loanx.access-token');
+    await _storage.delete(key: 'loanx.refresh-token');
+  }
+
+  Future<_StoredTokens?> _readTokens() async {
+    final encoded = await _storage.read(key: _sessionKey);
+    if (encoded != null && encoded.isNotEmpty) {
+      try {
+        final value = jsonDecode(encoded) as Map<String, dynamic>;
+        final access = value['access_token'] as String?;
+        final refresh = value['refresh_token'] as String?;
+        if (access != null && refresh != null) {
+          return _StoredTokens(access, refresh);
+        }
+      } catch (_) {
+        await clearLocalSession();
+        return null;
+      }
+    }
+    // One-time migration from the two-record implementation.
+    final access = await _storage.read(key: 'loanx.access-token');
+    final refresh = await _storage.read(key: 'loanx.refresh-token');
+    if (access == null || refresh == null || access.isEmpty || refresh.isEmpty) {
+      return null;
+    }
+    await _storeTokens(access, refresh);
+    return _StoredTokens(access, refresh);
   }
 
   String _deviceId() {
@@ -131,6 +185,12 @@ class AuthClient {
     if (c.isEmpty) throw ArgumentError('Unsupported country');
     return '+$c${p.nsn}';
   }
+}
+
+class _StoredTokens {
+  const _StoredTokens(this.accessToken, this.refreshToken);
+  final String accessToken;
+  final String refreshToken;
 }
 
 AuthClient? activeAuthClient;

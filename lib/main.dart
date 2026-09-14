@@ -135,6 +135,7 @@ Future<void> main() async {
       path: 'lib/l10n',
       assetLoader: const CodegenLoader(),
       fallbackLocale: const Locale('en'),
+      useFallbackTranslations: true,
       useOnlyLangCode: true,
       child: ProviderScope(
         child: MyApp(

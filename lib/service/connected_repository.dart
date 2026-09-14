@@ -187,8 +187,9 @@ final class ConnectedRepository {
         whereArgs: [id],
       );
       if (previous.isNotEmpty) {
-        if (previous.single['ownerId'] != ownerId)
+        if (previous.single['ownerId'] != ownerId) {
           throw StateError('Notification is unavailable');
+        }
         return _notification(previous.single);
       }
       final now = DateTime.now().toUtc().toIso8601String();
@@ -213,8 +214,9 @@ final class ConnectedRepository {
     int limit = 50,
     int offset = 0,
   }) async {
-    if (limit < 1 || limit > 100 || offset < 0)
+    if (limit < 1 || limit > 100 || offset < 0) {
       throw ArgumentError('Invalid pagination');
+    }
     final rows = await database.transaction(
       (tx) => tx.query(
         'notifications',
@@ -267,8 +269,9 @@ final class ConnectedRepository {
       'RECEIPT',
       'DOCUMENT',
       'COLLATERAL',
-    }.contains(type))
+    }.contains(type)) {
       throw ArgumentError('Unsupported shared resource type');
+    }
     final previous = await database.query(
       'sharedResources',
       where: 'id = ?',
@@ -280,8 +283,9 @@ final class ConnectedRepository {
           value.loanUid != loanUid ||
           value.recipientPartyId != recipientPartyId ||
           value.resourceType != type ||
-          value.resourceId != resourceId)
+          value.resourceId != resourceId) {
         throw StateError('Operation ID was already used with different data');
+      }
       return value;
     }
     final row = <String, Object?>{

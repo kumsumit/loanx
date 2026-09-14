@@ -26,13 +26,14 @@ void main() {
       {'id': 'self', 'ownerId': 'a', 'displayName': 'Me'},
       {'id': 'mohan', 'ownerId': 'a', 'displayName': 'Mohan Kumar'},
       {'id': 'private', 'ownerId': 'b', 'displayName': 'Private Borrower'},
-    ])
+    ]) {
       await db.insert('parties', {
         ...row,
         'status': 'ACTIVE',
         'createdAt': now,
         'updatedAt': now,
       });
+    }
     await db.insert('loans', {
       'depositorName': 'Mohan Kumar',
       'phoneNumber': '',

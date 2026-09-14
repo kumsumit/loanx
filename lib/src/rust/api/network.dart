@@ -87,6 +87,22 @@ Future<AuthTokens> refreshSession({
   refreshToken: refreshToken,
 );
 
+/// Revokes the current server-side session. Local credentials should only be
+/// removed after success, or explicitly as a user-selected offline logout.
+Future<NetworkResult> logoutSession({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+}) => RustLib.instance.api.crateApiNetworkLogoutSession(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+);
+
 /// Negotiates the LoanX protocol through Rust so Flutter never owns QUIC or
 /// Protobuf transport details. `trusted_certificate_pem` must authenticate
 /// `server_name`; certificate validation is never disabled.

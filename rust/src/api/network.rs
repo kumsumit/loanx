@@ -296,6 +296,45 @@ pub async fn refresh_session(
     }
 }
 
+/// Revokes the current server-side session. Local credentials should only be
+/// removed after success, or explicitly as a user-selected offline logout.
+#[flutter_rust_bridge::frb]
+pub async fn logout_session(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+) -> NetworkResult {
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::Logout(v1::LogoutRequest {}),
+    )
+    .await
+    {
+        Ok(v1::response::Result::Logout(_)) => NetworkResult {
+            success: true,
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(v)) => NetworkResult {
+            success: false,
+            error_message: Some(v.message),
+        },
+        Ok(_) => NetworkResult {
+            success: false,
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(e) => NetworkResult {
+            success: false,
+            error_message: Some(e.to_string()),
+        },
+    }
+}
+
 async fn send_request(
     address: &str,
     name: &str,
