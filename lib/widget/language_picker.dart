@@ -28,6 +28,41 @@ Future<void> showAppLanguagePicker(BuildContext context) async {
   }
 }
 
+class _LanguagePickerLayout {
+  const _LanguagePickerLayout._({
+    required this.isDense,
+    required this.showHero,
+    required this.pagePadding,
+    required this.bottomPadding,
+    required this.sectionGap,
+    required this.listGap,
+    required this.sheetHeightFactor,
+  });
+
+  factory _LanguagePickerLayout.of(Size size, {required bool preferCompact}) {
+    final isDense = preferCompact || size.width < 360 || size.height < 640;
+    return _LanguagePickerLayout._(
+      isDense: isDense,
+      // The language controls are more valuable than decoration on a short
+      // screen. The hero remains useful on normal and large screens.
+      showHero: !preferCompact && size.height >= 560,
+      pagePadding: isDense ? 12 : 20,
+      bottomPadding: isDense ? 12 : 16,
+      sectionGap: isDense ? 12 : 22,
+      listGap: isDense ? 10 : 14,
+      sheetHeightFactor: isDense ? .92 : .82,
+    );
+  }
+
+  final bool isDense;
+  final bool showHero;
+  final double pagePadding;
+  final double bottomPadding;
+  final double sectionGap;
+  final double listGap;
+  final double sheetHeightFactor;
+}
+
 class StartupLanguageScreen extends StatefulWidget {
   const StartupLanguageScreen({required this.onLanguageSelected, super.key});
   final VoidCallback onLanguageSelected;
@@ -55,6 +90,12 @@ class _StartupLanguageScreenState extends State<StartupLanguageScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
+    final layout = _LanguagePickerLayout.of(
+      MediaQuery.sizeOf(context),
+      // On a J2-class device, language selection is more useful than the
+      // decorative hero, even when Android reports a tall logical screen.
+      preferCompact: DeviceCapabilitiesScope.of(context).reduceEffects,
+    );
     return Scaffold(
       body: DecoratedBox(
         decoration: BoxDecoration(
@@ -75,37 +116,53 @@ class _StartupLanguageScreenState extends State<StartupLanguageScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 920),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                padding: EdgeInsets.fromLTRB(
+                  layout.pagePadding,
+                  layout.pagePadding,
+                  layout.pagePadding,
+                  layout.bottomPadding,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _LanguageHero(colors: colors, basicEffects: basicEffects),
-                    const SizedBox(height: 22),
+                    if (layout.showHero) ...[
+                      _LanguageHero(
+                        colors: colors,
+                        basicEffects: basicEffects,
+                        compact: layout.isDense,
+                      ),
+                      SizedBox(height: layout.sectionGap),
+                    ],
                     Text(
                       LocaleKeys.chooseAppLanguage.tr(),
-                      style: Theme.of(context).textTheme.headlineLarge,
+                      style: layout.isDense
+                          ? Theme.of(context).textTheme.titleLarge
+                          : Theme.of(context).textTheme.headlineLarge,
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      LocaleKeys.youCanChangeThisLaterFromAppPreferences.tr(),
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colors.onSurfaceVariant,
+                    if (!layout.isDense) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        LocaleKeys.youCanChangeThisLaterFromAppPreferences.tr(),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
+                    ],
+                    SizedBox(height: layout.sectionGap),
                     _LanguageSearch(
                       onChanged: (value) => setState(() => _query = value),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: layout.listGap),
                     Expanded(
                       child: _LanguageGrid(
                         selectedLocale: _selectedLocale,
                         query: _query,
+                        compact: layout.isDense,
                         onSelected: (locale) =>
                             setState(() => _selectedLocale = locale),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: layout.listGap),
                     FilledButton.icon(
                       key: const Key('language-continue'),
                       onPressed: _continue,
@@ -113,7 +170,7 @@ class _StartupLanguageScreenState extends State<StartupLanguageScreen> {
                       icon: const Icon(Icons.arrow_forward_rounded),
                       label: Text(LocaleKeys.continueAction.tr()),
                       style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(58),
+                        minimumSize: Size.fromHeight(layout.isDense ? 48 : 58),
                       ),
                     ),
                   ],
@@ -140,55 +197,79 @@ class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
   String query = '';
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: MediaQuery.sizeOf(context).height * .82,
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            LocaleKeys.chooseAppLanguage.tr(),
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 14),
-          _LanguageSearch(onChanged: (value) => setState(() => query = value)),
-          const SizedBox(height: 14),
-          Expanded(
-            child: _LanguageGrid(
-              selectedLocale: selectedLocale,
-              query: query,
-              onSelected: (locale) => setState(() => selectedLocale = locale),
+  Widget build(BuildContext context) {
+    final layout = _LanguagePickerLayout.of(
+      MediaQuery.sizeOf(context),
+      preferCompact: DeviceCapabilitiesScope.of(context).reduceEffects,
+    );
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * layout.sheetHeightFactor,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          layout.pagePadding,
+          4,
+          layout.pagePadding,
+          layout.bottomPadding,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              LocaleKeys.chooseAppLanguage.tr(),
+              style: layout.isDense
+                  ? Theme.of(context).textTheme.titleLarge
+                  : Theme.of(context).textTheme.headlineSmall,
             ),
-          ),
-          const SizedBox(height: 14),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, selectedLocale),
-            child: Text(LocaleKeys.continueAction.tr()),
-          ),
-        ],
+            SizedBox(height: layout.listGap),
+            _LanguageSearch(
+              onChanged: (value) => setState(() => query = value),
+            ),
+            SizedBox(height: layout.listGap),
+            Expanded(
+              child: _LanguageGrid(
+                selectedLocale: selectedLocale,
+                query: query,
+                compact: layout.isDense,
+                onSelected: (locale) => setState(() => selectedLocale = locale),
+              ),
+            ),
+            SizedBox(height: layout.listGap),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                minimumSize: Size.fromHeight(layout.isDense ? 48 : 40),
+              ),
+              onPressed: () => Navigator.pop(context, selectedLocale),
+              child: Text(LocaleKeys.continueAction.tr()),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _LanguageHero extends StatelessWidget {
-  const _LanguageHero({required this.colors, required this.basicEffects});
+  const _LanguageHero({
+    required this.colors,
+    required this.basicEffects,
+    required this.compact,
+  });
   final ColorScheme colors;
   final bool basicEffects;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => Align(
     alignment: AlignmentDirectional.centerStart,
     child: Container(
-      width: 96,
-      height: 82,
+      width: compact ? 72 : 96,
+      height: compact ? 64 : 82,
       decoration: BoxDecoration(
         color: basicEffects ? colors.primary : null,
         gradient: basicEffects
             ? null
             : LinearGradient(colors: [colors.primary, colors.tertiary]),
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(compact ? 20 : 26),
         boxShadow: basicEffects
             ? null
             : [
@@ -199,7 +280,11 @@ class _LanguageHero extends StatelessWidget {
                 ),
               ],
       ),
-      child: Icon(Icons.translate_rounded, size: 42, color: colors.onPrimary),
+      child: Icon(
+        Icons.translate_rounded,
+        size: compact ? 34 : 42,
+        color: colors.onPrimary,
+      ),
     ),
   );
 }
@@ -225,10 +310,12 @@ class _LanguageGrid extends StatelessWidget {
   const _LanguageGrid({
     required this.selectedLocale,
     required this.query,
+    required this.compact,
     required this.onSelected,
   });
   final Locale selectedLocale;
   final String query;
+  final bool compact;
   final ValueChanged<Locale> onSelected;
 
   @override
@@ -254,14 +341,15 @@ class _LanguageGrid extends StatelessWidget {
           itemCount: languages.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
-            mainAxisExtent: 82,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+            mainAxisExtent: compact ? 68 : 82,
+            crossAxisSpacing: compact ? 8 : 10,
+            mainAxisSpacing: compact ? 8 : 10,
           ),
           itemBuilder: (context, index) {
             final language = languages[index];
             return _LanguageCard(
               language: language,
+              compact: compact,
               selected:
                   selectedLocale.languageCode == language.locale.languageCode,
               onTap: () => onSelected(language.locale),
@@ -276,10 +364,12 @@ class _LanguageGrid extends StatelessWidget {
 class _LanguageCard extends StatelessWidget {
   const _LanguageCard({
     required this.language,
+    required this.compact,
     required this.selected,
     required this.onTap,
   });
   final AppLanguage language;
+  final bool compact;
   final bool selected;
   final VoidCallback onTap;
 
@@ -289,7 +379,7 @@ class _LanguageCard extends StatelessWidget {
     return Material(
       color: selected ? colors.primaryContainer : colors.surfaceContainerLowest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(compact ? 14 : 18),
         side: BorderSide(
           color: selected ? colors.primary : colors.outlineVariant,
           width: selected ? 2 : 1,
@@ -300,12 +390,15 @@ class _LanguageCard extends StatelessWidget {
         key: Key('language-${language.locale.languageCode}'),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 10 : 16,
+            vertical: compact ? 6 : 10,
+          ),
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: compact ? 34 : 42,
+                height: compact ? 34 : 42,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: selected
@@ -323,7 +416,7 @@ class _LanguageCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: compact ? 8 : 12),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -333,7 +426,9 @@ class _LanguageCard extends StatelessWidget {
                       language.nativeName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: compact
+                          ? Theme.of(context).textTheme.titleSmall
+                          : Theme.of(context).textTheme.titleMedium,
                     ),
                     if (language.nativeName != language.englishName)
                       Text(

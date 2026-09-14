@@ -36,277 +36,229 @@ class MyDrawer extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = useState(false);
     final scrollController = useScrollController(keepScrollOffset: false);
+    final layout = _DrawerLayout.of(MediaQuery.sizeOf(context));
     return LoadingOverlay(
       isLoading: isLoading.value,
-      child: Drawer(
-        child: Scrollbar(
-          controller: scrollController,
-          thumbVisibility: true,
-          child: ListView(
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          listTileTheme: Theme.of(context).listTileTheme.copyWith(
+            dense: layout.isDense,
+            visualDensity: layout.isDense
+                ? VisualDensity.compact
+                : VisualDensity.standard,
+          ),
+        ),
+        child: Drawer(
+          width: layout.width,
+          child: Scrollbar(
             controller: scrollController,
-            primary: false,
-            physics: const AlwaysScrollableScrollPhysics(),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  // A solid fill avoids gradient render-target corruption on
-                  // older Android GPUs.
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            thumbVisibility: true,
+            child: ListView(
+              controller: scrollController,
+              primary: false,
+              physics: const AlwaysScrollableScrollPhysics(),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.zero,
+              children: [
+                SizedBox(
+                  height: layout.headerHeight,
+                  child: DrawerHeader(
+                    margin: EdgeInsets.only(bottom: layout.sectionGap),
+                    padding: EdgeInsets.fromLTRB(
+                      layout.horizontalPadding,
+                      12,
+                      layout.horizontalPadding,
+                      12,
+                    ),
+                    decoration: BoxDecoration(
+                      // A solid fill avoids gradient render-target corruption on
+                      // older Android GPUs.
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          LocaleKeys.loanx2.tr(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            fontSize: 26,
-                          ),
-                        ),
-                        Consumer(
-                          builder: (context, ref, child) {
-                            final networkStatus = ref.watch(
-                              networkCheckerProvider,
-                            );
-                            final imageUrl = ref.watch(photoUrlProvider);
-                            final displayName = ref.watch(displayNameProvider);
-                            return networkStatus.when(
-                              data: (data) {
-                                return data
-                                    ? ProfilePicture(
-                                        imageUrl: imageUrl,
-                                        displayName: displayName,
-                                      )
-                                    : LocalProfilePicture(
-                                        displayName: displayName,
-                                      );
-                              },
-                              error: (obj, trace) {
-                                return ProfilePicture(
-                                  imageUrl: ref.watch(photoUrlProvider),
-                                  displayName: ref.watch(displayNameProvider),
-                                );
-                              },
-                              loading: () => ProfilePicture(
-                                imageUrl: ref.watch(photoUrlProvider),
-                                displayName: ref.watch(displayNameProvider),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Consumer(
-                                builder: (context, ref, child) {
-                                  return AutoSizeText(
-                                    ref.watch(displayNameProvider),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimary,
-                                    ),
-                                    minFontSize: 10,
-                                  );
-                                },
-                              ),
-                              Consumer(
-                                builder: (context, ref, child) {
-                                  return AutoSizeText(
-                                    ref.watch(emailProvider),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimary,
-                                    ),
-                                    maxLines:
-                                        3, // Set the maximum number of lines
-                                    overflow: TextOverflow.visible,
-                                    minFontSize: 10,
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        Consumer(
-                          builder: (context, ref, child) {
-                            return InkWell(
-                              onTap: ref.watch(backupDownloadStatusProvider)
-                                  ? null
-                                  : () async {
-                                      await ref
-                                          .read(
-                                            themeModeManagerProvider.notifier,
-                                          )
-                                          .set();
-                                    },
-                              child:
-                                  ref.watch(themeModeManagerProvider).index == 2
-                                  ? Icon(
-                                      Icons.light_mode,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimary,
-                                    )
-                                  : Icon(
-                                      Icons.dark_mode,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimary,
-                                    ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (kDebugMode)
-                Container(
-                  color: Theme.of(context).colorScheme.errorContainer,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Text(
-                    'DEBUG APPLICATION',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-              ExpansionTile(
-                leading: StyledIcon(Icons.info_outline),
-                title: StyledText(LocaleKeys.aboutLoanx.tr()),
-                subtitle: StyledSubtitle(LocaleKeys.learnAboutTheApp.tr()),
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerLow,
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                children: [
-                  const Divider(indent: 16, endIndent: 16),
-                  ListTile(
-                    leading: StyledIcon(Icons.article_outlined),
-                    title: StyledText(LocaleKeys.whatIsLoanx.tr()),
-                    subtitle: StyledSubtitle(
-                      LocaleKeys.learnWhatLoanxCanDo.tr(),
-                    ),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) {
-                          return Dialog(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(height: 10),
-                                    StyledHeading(LocaleKeys.about.tr()),
-                                    BulletPoint(
-                                      'Traditionally practiced, now technologically advanced.',
-                                      italic: true,
-                                    ),
-                                    BulletPoint(
-                                      'A revolutionary app to keep records of loans provided by the unorganized sector of the Lenders across the world without any paperwork.',
-                                    ),
-                                    BulletPoint(
-                                      'LoanX is a simple and easy to use app that allows you to track your loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their loan records.',
-                                    ),
-                                    BulletPoint(
-                                      'With LoanX, you can easily create, update, and delete loan records, as well as view your loan history.',
-                                    ),
-                                    BulletPoint(
-                                      'The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss.',
-                                    ),
-                                    BulletPoint(
-                                      'Currently, Loanx is available on only Android, But soon will be accessible to other platforms too for making it accessible to a wide range of users.',
-                                    ),
-                                    BulletPoint(
-                                      'Whether you\'re a seasoned loan professional or just starting out, Loanx is the perfect app to help you manage your loans smoothly, efficiently and economically.',
-                                    ),
-                                    OutlinedButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text(LocaleKeys.ok.tr()),
-                                    ),
-                                  ],
-                                ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              LocaleKeys.loanx2.tr(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fontSize: 26,
                               ),
                             ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
-              ExpansionTile(
-                leading: StyledIcon(Icons.tune_rounded),
-                title: StyledText(LocaleKeys.appPreferences.tr()),
-                subtitle: StyledSubtitle(LocaleKeys.securityAndAppearance.tr()),
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerLow,
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                children: [
-                  const Divider(indent: 16, endIndent: 16),
-                  ListTile(
-                    leading: StyledIcon(Icons.translate_rounded),
-                    title: StyledText(LocaleKeys.appLanguage.tr()),
-                    subtitle: StyledSubtitle(appLanguageName(context.locale)),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => showAppLanguagePicker(context),
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final secure = ref.watch(secureProvider);
-                      return ListTile(
-                        leading: StyledIcon(
-                          secure
-                              ? Icons.lock_open_rounded
-                              : Icons.lock_outlined,
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final networkStatus = ref.watch(
+                                  networkCheckerProvider,
+                                );
+                                final imageUrl = ref.watch(photoUrlProvider);
+                                final displayName = ref.watch(
+                                  displayNameProvider,
+                                );
+                                return networkStatus.when(
+                                  data: (data) {
+                                    return data
+                                        ? ProfilePicture(
+                                            imageUrl: imageUrl,
+                                            displayName: displayName,
+                                          )
+                                        : LocalProfilePicture(
+                                            displayName: displayName,
+                                          );
+                                  },
+                                  error: (obj, trace) {
+                                    return ProfilePicture(
+                                      imageUrl: ref.watch(photoUrlProvider),
+                                      displayName: ref.watch(
+                                        displayNameProvider,
+                                      ),
+                                    );
+                                  },
+                                  loading: () => ProfilePicture(
+                                    imageUrl: ref.watch(photoUrlProvider),
+                                    displayName: ref.watch(displayNameProvider),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                        title: StyledText(
-                          secure
-                              ? LocaleKeys.disableAppLock.tr()
-                              : LocaleKeys.enableAppLock.tr(),
+                        const Spacer(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Consumer(
+                                    builder: (context, ref, child) {
+                                      return AutoSizeText(
+                                        ref.watch(displayNameProvider),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                        ),
+                                        minFontSize: 10,
+                                      );
+                                    },
+                                  ),
+                                  if (!layout.isDense)
+                                    Consumer(
+                                      builder: (context, ref, child) {
+                                        return AutoSizeText(
+                                          ref.watch(emailProvider),
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimary,
+                                          ),
+                                          maxLines:
+                                              3, // Set the maximum number of lines
+                                          overflow: TextOverflow.visible,
+                                          minFontSize: 10,
+                                        );
+                                      },
+                                    ),
+                                ],
+                              ),
+                            ),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                return InkWell(
+                                  onTap: ref.watch(backupDownloadStatusProvider)
+                                      ? null
+                                      : () async {
+                                          await ref
+                                              .read(
+                                                themeModeManagerProvider
+                                                    .notifier,
+                                              )
+                                              .set();
+                                        },
+                                  child:
+                                      ref
+                                              .watch(themeModeManagerProvider)
+                                              .index ==
+                                          2
+                                      ? Icon(
+                                          Icons.light_mode,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                        )
+                                      : Icon(
+                                          Icons.dark_mode,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
+                                        ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (context) => Dialog(
+                      ],
+                    ),
+                  ),
+                ),
+                if (kDebugMode)
+                  Container(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      'DEBUG APPLICATION',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ExpansionTile(
+                  leading: StyledIcon(Icons.info_outline),
+                  title: StyledText(LocaleKeys.aboutLoanx.tr()),
+                  subtitle: layout.isDense
+                      ? null
+                      : StyledSubtitle(LocaleKeys.learnAboutTheApp.tr()),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerLow,
+                  tilePadding: EdgeInsets.symmetric(
+                    horizontal: layout.horizontalPadding,
+                  ),
+                  childrenPadding: EdgeInsets.fromLTRB(
+                    layout.childPadding,
+                    0,
+                    layout.childPadding,
+                    layout.childPadding,
+                  ),
+                  children: [
+                    const Divider(indent: 16, endIndent: 16),
+                    ListTile(
+                      leading: StyledIcon(Icons.article_outlined),
+                      title: StyledText(LocaleKeys.whatIsLoanx.tr()),
+                      subtitle: StyledSubtitle(
+                        LocaleKeys.learnWhatLoanxCanDo.tr(),
+                      ),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) {
+                            return Dialog(
                               backgroundColor: Theme.of(
                                 context,
                               ).colorScheme.surfaceContainerHighest,
@@ -314,51 +266,410 @@ class MyDrawer extends HookConsumerWidget {
                                 padding: const EdgeInsets.all(8.0),
                                 child: SingleChildScrollView(
                                   child: Column(
-                                    spacing: 10,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(height: 10),
+                                      StyledHeading(LocaleKeys.about.tr()),
+                                      BulletPoint(
+                                        'Traditionally practiced, now technologically advanced.',
+                                        italic: true,
+                                      ),
+                                      BulletPoint(
+                                        'A revolutionary app to keep records of loans provided by the unorganized sector of the Lenders across the world without any paperwork.',
+                                      ),
+                                      BulletPoint(
+                                        'LoanX is a simple and easy to use app that allows you to track your loans. It is designed to be user-friendly and intuitive, making it easy for anyone to manage their loan records.',
+                                      ),
+                                      BulletPoint(
+                                        'With LoanX, you can easily create, update, and delete loan records, as well as view your loan history.',
+                                      ),
+                                      BulletPoint(
+                                        'The app also provides a feature to backup your data, ensuring that your information is secure and accessible in case of any data loss.',
+                                      ),
+                                      BulletPoint(
+                                        'Currently, Loanx is available on only Android, But soon will be accessible to other platforms too for making it accessible to a wide range of users.',
+                                      ),
+                                      BulletPoint(
+                                        'Whether you\'re a seasoned loan professional or just starting out, Loanx is the perfect app to help you manage your loans smoothly, efficiently and economically.',
+                                      ),
+                                      OutlinedButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(LocaleKeys.ok.tr()),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  leading: StyledIcon(Icons.tune_rounded),
+                  title: StyledText(LocaleKeys.appPreferences.tr()),
+                  subtitle: layout.isDense
+                      ? null
+                      : StyledSubtitle(LocaleKeys.securityAndAppearance.tr()),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerLow,
+                  tilePadding: EdgeInsets.symmetric(
+                    horizontal: layout.horizontalPadding,
+                  ),
+                  childrenPadding: EdgeInsets.fromLTRB(
+                    layout.childPadding,
+                    0,
+                    layout.childPadding,
+                    layout.childPadding,
+                  ),
+                  children: [
+                    const Divider(indent: 16, endIndent: 16),
+                    ListTile(
+                      leading: StyledIcon(Icons.translate_rounded),
+                      title: StyledText(LocaleKeys.appLanguage.tr()),
+                      subtitle: StyledSubtitle(appLanguageName(context.locale)),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => showAppLanguagePicker(context),
+                    ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final secure = ref.watch(secureProvider);
+                        return ListTile(
+                          leading: StyledIcon(
+                            secure
+                                ? Icons.lock_open_rounded
+                                : Icons.lock_outlined,
+                          ),
+                          title: StyledText(
+                            secure
+                                ? LocaleKeys.disableAppLock.tr()
+                                : LocaleKeys.enableAppLock.tr(),
+                          ),
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => Dialog(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      spacing: 10,
+                                      children: [
+                                        SizedBox(height: 10),
+                                        StyledHeading(
+                                          LocaleKeys.confirmation.tr(),
+                                        ),
+                                        StyledSubtitle(
+                                          secure
+                                              ? 'Disable the app lock on this device?'
+                                                    .tr()
+                                              : 'Enable an app lock on this device?'
+                                                    .tr(),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            OutlinedButton(
+                                              child: Text(
+                                                LocaleKeys.cancel.tr(),
+                                              ),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            OutlinedButton(
+                                              child: Text(LocaleKeys.ok2.tr()),
+                                              onPressed: () async {
+                                                await ref
+                                                    .read(
+                                                      secureProvider.notifier,
+                                                    )
+                                                    .toggle();
+                                                if (context.mounted) {
+                                                  Navigator.of(context).pop();
+                                                  if (secure) {
+                                                    showSnackBar(
+                                                      context,
+                                                      "App gets unsecured, Now you need to restart the app"
+                                                          .tr(),
+                                                    );
+                                                  } else {
+                                                    showSnackBar(
+                                                      context,
+                                                      "App gets secured, Now you need to restart the app"
+                                                          .tr(),
+                                                    );
+                                                  }
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 10),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: StyledIcon(Icons.color_lens),
+                      title: StyledText(LocaleKeys.appColor.tr()),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => Dialog(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  spacing: 10,
+                                  children: [
+                                    SizedBox(height: 10),
+                                    StyledHeading(LocaleKeys.pickAColor.tr()),
+                                    Consumer(
+                                      builder: (context, ref, child) {
+                                        final color = ref.watch(
+                                          pickerColorProvider,
+                                        );
+                                        return ColorPicker(
+                                          pickerColor: Color(
+                                            int.parse(color, radix: 16),
+                                          ),
+                                          onColorChanged: ref
+                                              .read(
+                                                pickerColorProvider.notifier,
+                                              )
+                                              .set,
+                                        );
+                                      },
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: <Widget>[
+                                        OutlinedButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text(LocaleKeys.cancel.tr()),
+                                        ),
+                                        Consumer(
+                                          builder: (context, ref, child) {
+                                            return OutlinedButton(
+                                              child: Text(LocaleKeys.ok2.tr()),
+                                              onPressed: () async {
+                                                await ref
+                                                    .read(
+                                                      appColorProvider.notifier,
+                                                    )
+                                                    .set();
+                                                if (context.mounted) {
+                                                  Navigator.of(context).pop();
+                                                  showSnackBar(
+                                                    context,
+                                                    LocaleKeys.appColorChanged
+                                                        .tr(),
+                                                  );
+                                                }
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    Consumer(
+                                      builder: (context, ref, child) {
+                                        return OutlinedButton(
+                                          onPressed: () async {
+                                            await ref
+                                                .read(appColorProvider.notifier)
+                                                .setFromLogo(context);
+                                            if (context.mounted) {
+                                              Navigator.pop(context);
+                                            }
+                                          },
+                                          child: Text(
+                                            LocaleKeys.setColorUsingImage.tr(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    SizedBox(height: 10),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  leading: StyledIcon(Icons.calculate_outlined),
+                  title: StyledText(LocaleKeys.loanDefaults.tr()),
+                  subtitle: layout.isDense
+                      ? null
+                      : StyledSubtitle(
+                          LocaleKeys.interestAndMortgageSettings.tr(),
+                        ),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerLow,
+                  tilePadding: EdgeInsets.symmetric(
+                    horizontal: layout.horizontalPadding,
+                  ),
+                  childrenPadding: EdgeInsets.fromLTRB(
+                    layout.childPadding,
+                    0,
+                    layout.childPadding,
+                    layout.childPadding,
+                  ),
+                  children: [
+                    const Divider(indent: 16, endIndent: 16),
+                    ListTile(
+                      leading: StyledIcon(Icons.currency_exchange),
+                      title: StyledText(LocaleKeys.mortgageTerm.tr()),
+                      subtitle: Consumer(
+                        builder: (context, ref, child) {
+                          final holdingPeriod = ref.watch(
+                            holdingPeriodProvider,
+                          );
+                          return StyledSubtitle(
+                            LocaleKeys.defaultYears.tr(
+                              namedArgs: {'years': holdingPeriod.toString()},
+                            ),
+                          );
+                        },
+                      ),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) {
+                            return Dialog(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SingleChildScrollView(
+                                  child: Column(
                                     children: [
                                       SizedBox(height: 10),
                                       StyledHeading(
-                                        LocaleKeys.confirmation.tr(),
+                                        LocaleKeys.changeMortgageHoldingPeriod
+                                            .tr(),
+                                        maxLines: 2,
+                                      ),
+                                      Consumer(
+                                        builder: (context, ref, child) {
+                                          final holdingPeriod = ref.watch(
+                                            holdingPeriodProvider,
+                                          );
+                                          debugPrint(holdingPeriod.toString());
+                                          return Slider(
+                                            value: holdingPeriod.toDouble(),
+                                            min: 0,
+                                            max: 30,
+                                            divisions: 30,
+                                            label: holdingPeriod.toString(),
+                                            onChanged: (value) {
+                                              if (value.toInt() == 0) {
+                                                showErrorSnackBar(
+                                                  context,
+                                                  "Holding Period can't be 0"
+                                                      .tr(),
+                                                );
+                                                return;
+                                              }
+                                              if (value.toInt() !=
+                                                  holdingPeriod.toInt()) {
+                                                ref
+                                                    .read(
+                                                      holdingPeriodProvider
+                                                          .notifier,
+                                                    )
+                                                    .set(value.toInt());
+                                              }
+                                            },
+                                          );
+                                        },
+                                      ),
+                                      Consumer(
+                                        builder: (context, ref, child) {
+                                          final holdingPeriod = ref.watch(
+                                            holdingPeriodProvider,
+                                          );
+                                          return StyledSubtitle(
+                                            LocaleKeys.mortgageHoldingPeriod.tr(
+                                              namedArgs: {
+                                                'years': holdingPeriod
+                                                    .toString(),
+                                              },
+                                            ),
+                                          );
+                                        },
                                       ),
                                       StyledSubtitle(
-                                        secure
-                                            ? 'Disable the app lock on this device?'
-                                                  .tr()
-                                            : 'Enable an app lock on this device?'
-                                                  .tr(),
+                                        LocaleKeys.defaultHoldingPeriodIs5Years
+                                            .tr(),
+                                        fontSize: 12,
                                       ),
+                                      SizedBox(height: 10),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceEvenly,
                                         children: [
                                           OutlinedButton(
-                                            child: Text(LocaleKeys.cancel.tr()),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
-                                          OutlinedButton(
-                                            child: Text(LocaleKeys.ok2.tr()),
                                             onPressed: () async {
-                                              await ref
-                                                  .read(secureProvider.notifier)
-                                                  .toggle();
-                                              if (context.mounted) {
-                                                Navigator.of(context).pop();
-                                                if (secure) {
-                                                  showSnackBar(
-                                                    context,
-                                                    "App gets unsecured, Now you need to restart the app"
-                                                        .tr(),
-                                                  );
-                                                } else {
-                                                  showSnackBar(
-                                                    context,
-                                                    "App gets secured, Now you need to restart the app"
-                                                        .tr(),
-                                                  );
-                                                }
-                                              }
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text(LocaleKeys.cancel.tr()),
+                                          ),
+                                          Consumer(
+                                            builder: (context, ref, child) {
+                                              return OutlinedButton(
+                                                onPressed: () async {
+                                                  await AppSettings.flush();
+                                                  if (context.mounted) {
+                                                    Navigator.of(context).pop();
+                                                    showSnackBar(
+                                                      context,
+                                                      "Mortgage Holding Period changed"
+                                                          .tr(),
+                                                    );
+                                                  }
+                                                },
+                                                child: Text(
+                                                  LocaleKeys.ok.tr(),
+                                                  style: TextStyle(
+                                                    fontSize: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium!
+                                                        .fontSize,
+                                                  ),
+                                                ),
+                                              );
                                             },
                                           ),
                                         ],
@@ -368,326 +679,357 @@ class MyDrawer extends HookConsumerWidget {
                                   ),
                                 ),
                               ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: StyledIcon(Icons.input),
+                      title: StyledText(LocaleKeys.interestType.tr()),
+                      subtitle: Consumer(
+                        builder: (context, ref, child) {
+                          final interestType = ref.watch(
+                            interestTypeStatusProvider,
+                          );
+                          return StyledSubtitle(
+                            LocaleKeys.defaultInterestType.tr(
+                              namedArgs: {'type': interestType.localizedLabel},
                             ),
                           );
                         },
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: StyledIcon(Icons.color_lens),
-                    title: StyledText(LocaleKeys.appColor.tr()),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => Dialog(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                spacing: 10,
-                                children: [
-                                  SizedBox(height: 10),
-                                  StyledHeading(LocaleKeys.pickAColor.tr()),
-                                  Consumer(
-                                    builder: (context, ref, child) {
-                                      final color = ref.watch(
-                                        pickerColorProvider,
-                                      );
-                                      return ColorPicker(
-                                        pickerColor: Color(
-                                          int.parse(color, radix: 16),
-                                        ),
-                                        onColorChanged: ref
-                                            .read(pickerColorProvider.notifier)
-                                            .set,
-                                      );
-                                    },
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: <Widget>[
-                                      OutlinedButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(LocaleKeys.cancel.tr()),
+                      ),
+                      onTap: () async {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) {
+                            return Dialog(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(height: 10),
+                                      StyledHeading(
+                                        LocaleKeys.selectInterestType.tr(),
                                       ),
                                       Consumer(
                                         builder: (context, ref, child) {
-                                          return OutlinedButton(
-                                            child: Text(LocaleKeys.ok2.tr()),
-                                            onPressed: () async {
-                                              await ref
-                                                  .read(
-                                                    appColorProvider.notifier,
-                                                  )
-                                                  .set();
-                                              if (context.mounted) {
-                                                Navigator.of(context).pop();
-                                                showSnackBar(
-                                                  context,
-                                                  LocaleKeys.appColorChanged
-                                                      .tr(),
-                                                );
+                                          final interestType = ref.watch(
+                                            interestTypeStatusProvider,
+                                          );
+                                          return RadioGroup<InterestType>(
+                                            groupValue: interestType,
+                                            onChanged: (value) {
+                                              if (value != null) {
+                                                ref
+                                                    .read(
+                                                      interestTypeStatusProvider
+                                                          .notifier,
+                                                    )
+                                                    .set(value);
                                               }
                                             },
+                                            child: ListView.builder(
+                                              shrinkWrap: true,
+                                              itemCount:
+                                                  InterestType.values.length,
+                                              itemBuilder: (context, index) {
+                                                return RadioListTile(
+                                                  value: InterestType
+                                                      .values[index],
+                                                  title: StyledSubtitle(
+                                                    InterestType
+                                                        .values[index]
+                                                        .localizedLabel,
+                                                  ),
+                                                );
+                                              },
+                                            ),
                                           );
                                         },
                                       ),
-                                    ],
-                                  ),
-                                  Consumer(
-                                    builder: (context, ref, child) {
-                                      return OutlinedButton(
-                                        onPressed: () async {
-                                          await ref
-                                              .read(appColorProvider.notifier)
-                                              .setFromLogo(context);
-                                          if (context.mounted) {
-                                            Navigator.pop(context);
-                                          }
-                                        },
-                                        child: Text(
-                                          LocaleKeys.setColorUsingImage.tr(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(height: 10),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              ExpansionTile(
-                leading: StyledIcon(Icons.calculate_outlined),
-                title: StyledText(LocaleKeys.loanDefaults.tr()),
-                subtitle: StyledSubtitle(
-                  LocaleKeys.interestAndMortgageSettings.tr(),
-                ),
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerLow,
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                children: [
-                  const Divider(indent: 16, endIndent: 16),
-                  ListTile(
-                    leading: StyledIcon(Icons.currency_exchange),
-                    title: StyledText(LocaleKeys.mortgageTerm.tr()),
-                    subtitle: Consumer(
-                      builder: (context, ref, child) {
-                        final holdingPeriod = ref.watch(holdingPeriodProvider);
-                        return StyledSubtitle(
-                          LocaleKeys.defaultYears.tr(
-                            namedArgs: {'years': holdingPeriod.toString()},
-                          ),
-                        );
-                      },
-                    ),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) {
-                          return Dialog(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    SizedBox(height: 10),
-                                    StyledHeading(
-                                      LocaleKeys.changeMortgageHoldingPeriod
-                                          .tr(),
-                                      maxLines: 2,
-                                    ),
-                                    Consumer(
-                                      builder: (context, ref, child) {
-                                        final holdingPeriod = ref.watch(
-                                          holdingPeriodProvider,
-                                        );
-                                        debugPrint(holdingPeriod.toString());
-                                        return Slider(
-                                          value: holdingPeriod.toDouble(),
-                                          min: 0,
-                                          max: 30,
-                                          divisions: 30,
-                                          label: holdingPeriod.toString(),
-                                          onChanged: (value) {
-                                            if (value.toInt() == 0) {
-                                              showErrorSnackBar(
-                                                context,
-                                                "Holding Period can't be 0"
-                                                    .tr(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          OutlinedButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(LocaleKeys.cancel.tr()),
+                                          ),
+                                          Consumer(
+                                            builder: (context, ref, child) {
+                                              return OutlinedButton(
+                                                onPressed: () async {
+                                                  await AppSettings.flush();
+                                                  if (context.mounted) {
+                                                    Navigator.of(context).pop();
+                                                    showSnackBar(
+                                                      context,
+                                                      LocaleKeys
+                                                          .interestTypeChangedSuccessfully
+                                                          .tr(),
+                                                    );
+                                                  }
+                                                },
+                                                child: Text(
+                                                  LocaleKeys.ok.tr(),
+                                                  style: TextStyle(
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
+                                                  ),
+                                                ),
                                               );
-                                              return;
-                                            }
-                                            if (value.toInt() !=
-                                                holdingPeriod.toInt()) {
-                                              ref
-                                                  .read(
-                                                    holdingPeriodProvider
-                                                        .notifier,
-                                                  )
-                                                  .set(value.toInt());
-                                            }
-                                          },
-                                        );
-                                      },
-                                    ),
-                                    Consumer(
-                                      builder: (context, ref, child) {
-                                        final holdingPeriod = ref.watch(
-                                          holdingPeriodProvider,
-                                        );
-                                        return StyledSubtitle(
-                                          LocaleKeys.mortgageHoldingPeriod.tr(
-                                            namedArgs: {
-                                              'years': holdingPeriod.toString(),
                                             },
                                           ),
-                                        );
-                                      },
-                                    ),
-                                    StyledSubtitle(
-                                      LocaleKeys.defaultHoldingPeriodIs5Years
-                                          .tr(),
-                                      fontSize: 12,
-                                    ),
-                                    SizedBox(height: 10),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        OutlinedButton(
-                                          onPressed: () async {
-                                            Navigator.pop(context);
-                                          },
-                                          child: Text(LocaleKeys.cancel.tr()),
-                                        ),
-                                        Consumer(
-                                          builder: (context, ref, child) {
-                                            return OutlinedButton(
-                                              onPressed: () async {
-                                                await AppSettings.flush();
-                                                if (context.mounted) {
-                                                  Navigator.of(context).pop();
-                                                  showSnackBar(
-                                                    context,
-                                                    "Mortgage Holding Period changed"
-                                                        .tr(),
-                                                  );
-                                                }
-                                              },
-                                              child: Text(
-                                                LocaleKeys.ok.tr(),
-                                                style: TextStyle(
-                                                  fontSize: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium!
-                                                      .fontSize,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 10),
-                                  ],
+                                        ],
+                                      ),
+                                      SizedBox(height: 10),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: StyledIcon(Icons.input),
-                    title: StyledText(LocaleKeys.interestType.tr()),
-                    subtitle: Consumer(
-                      builder: (context, ref, child) {
-                        final interestType = ref.watch(
-                          interestTypeStatusProvider,
-                        );
-                        return StyledSubtitle(
-                          LocaleKeys.defaultInterestType.tr(
-                            namedArgs: {'type': interestType.localizedLabel},
-                          ),
+                            );
+                          },
                         );
                       },
                     ),
-                    onTap: () async {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) {
-                          return Dialog(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(height: 10),
-                                    StyledHeading(
-                                      LocaleKeys.selectInterestType.tr(),
-                                    ),
-                                    Consumer(
-                                      builder: (context, ref, child) {
-                                        final interestType = ref.watch(
-                                          interestTypeStatusProvider,
-                                        );
-                                        return RadioGroup<InterestType>(
-                                          groupValue: interestType,
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final interestFrequency = ref.watch(
+                          interestFrequencyStatusProvider,
+                        );
+                        return ListTile(
+                          leading: StyledIcon(Icons.calendar_month_outlined),
+                          title: StyledText(LocaleKeys.interestFrequency2.tr()),
+                          subtitle: StyledSubtitle(
+                            LocaleKeys.defaultInterestFrequency.tr(
+                              namedArgs: {
+                                'frequency': interestFrequency.localizedLabel,
+                              },
+                            ),
+                          ),
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => Dialog(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      children: [
+                                        SizedBox(height: 10),
+                                        StyledHeading(
+                                          LocaleKeys.interestFrequency.tr(),
+                                        ),
+                                        RadioGroup<InterestFrequency>(
+                                          groupValue: interestFrequency,
                                           onChanged: (value) {
                                             if (value != null) {
                                               ref
                                                   .read(
-                                                    interestTypeStatusProvider
+                                                    interestFrequencyStatusProvider
                                                         .notifier,
                                                   )
                                                   .set(value);
                                             }
                                           },
-                                          child: ListView.builder(
-                                            shrinkWrap: true,
-                                            itemCount:
-                                                InterestType.values.length,
-                                            itemBuilder: (context, index) {
-                                              return RadioListTile(
-                                                value:
-                                                    InterestType.values[index],
-                                                title: StyledSubtitle(
-                                                  InterestType
-                                                      .values[index]
-                                                      .localizedLabel,
+                                          child: Wrap(
+                                            alignment: WrapAlignment.center,
+                                            spacing: 20.0,
+                                            children: [
+                                              for (final option
+                                                  in InterestFrequency.values)
+                                                RadioListTile(
+                                                  value: option,
+                                                  title: StyledSubtitle(
+                                                    option.localizedLabel,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                        StyledText(
+                                          LocaleKeys.interestFrequencySet.tr(
+                                            namedArgs: {
+                                              'frequency': interestFrequency
+                                                  .localizedLabel,
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(height: 10),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            OutlinedButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text(
+                                                LocaleKeys.cancel.tr(),
+                                              ),
+                                            ),
+                                            OutlinedButton(
+                                              onPressed: () async {
+                                                await AppSettings.flush();
+                                                if (context.mounted) {
+                                                  Navigator.pop(context);
+                                                }
+                                              },
+                                              child: Text(LocaleKeys.ok2.tr()),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 10),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: StyledIcon(Icons.percent),
+                      title: StyledText(LocaleKeys.interestRate.tr()),
+                      subtitle: Consumer(
+                        builder: (context, ref, child) {
+                          final interestRate = ref.watch(interestRateProvider);
+                          return StyledSubtitle(
+                            LocaleKeys.defaultInterestRate.tr(
+                              namedArgs: {'rate': interestRate.toString()},
+                            ),
+                          );
+                        },
+                      ),
+                      onTap: () {
+                        List<String> interestRateString = [];
+                        showDialog(
+                          context: context,
+                          builder: (context) => Dialog(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  spacing: 10,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(height: 10),
+                                    StyledHeading(
+                                      LocaleKeys.changeInterestRate.tr(),
+                                    ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Consumer(
+                                            builder: (context, ref, child) {
+                                              final interestRate = ref.watch(
+                                                interestRateProvider,
+                                              );
+                                              interestRateString = interestRate
+                                                  .toString()
+                                                  .split(".");
+                                              return CupertinoPicker(
+                                                itemExtent: 32,
+                                                scrollController:
+                                                    FixedExtentScrollController(
+                                                      initialItem: interestRate
+                                                          .toInt(),
+                                                    ),
+                                                selectionOverlay:
+                                                    const CupertinoPickerDefaultSelectionOverlay(
+                                                      capEndEdge: false,
+                                                    ),
+                                                onSelectedItemChanged: (val) {
+                                                  interestRateString[0] = val
+                                                      .toString();
+                                                },
+                                                children: List.generate(
+                                                  51,
+                                                  (index) => StyledSubtitle(
+                                                    index.toString(),
+                                                  ),
                                                 ),
                                               );
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(width: 5),
+                                        Center(
+                                          child: StyledSubtitle(
+                                            ".",
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        SizedBox(width: 5),
+                                        Expanded(
+                                          child: Consumer(
+                                            builder: (context, ref, child) {
+                                              return CupertinoPicker(
+                                                itemExtent: 32,
+                                                scrollController:
+                                                    FixedExtentScrollController(
+                                                      initialItem:
+                                                          int.tryParse(
+                                                            interestRateString[1],
+                                                          ) ??
+                                                          0,
+                                                    ),
+                                                selectionOverlay:
+                                                    CupertinoPickerDefaultSelectionOverlay(
+                                                      // background: Theme.of(context).colorScheme.primary,
+                                                      capStartEdge: false,
+                                                    ),
+                                                onSelectedItemChanged: (val) {
+                                                  interestRateString[1] = val
+                                                      .toString();
+                                                },
+                                                children: List.generate(
+                                                  100,
+                                                  (index) => StyledSubtitle(
+                                                    index.toString(),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        SizedBox(width: 5),
+                                        Center(
+                                          child: StyledSubtitle(
+                                            "%",
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        SizedBox(width: 5),
+                                      ],
+                                    ),
+                                    Consumer(
+                                      builder: (context, ref, child) {
+                                        final interestRate = ref.watch(
+                                          interestRateProvider,
+                                        );
+                                        return StyledSubtitle(
+                                          LocaleKeys.currentInterestRate.tr(
+                                            namedArgs: {
+                                              'rate': interestRate.toString(),
                                             },
                                           ),
                                         );
                                       },
                                     ),
+                                    SizedBox(height: 10),
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
@@ -702,25 +1044,40 @@ class MyDrawer extends HookConsumerWidget {
                                           builder: (context, ref, child) {
                                             return OutlinedButton(
                                               onPressed: () async {
+                                                if (interestRateString[1]
+                                                        .length >
+                                                    2) {
+                                                  interestRateString[1] =
+                                                      interestRateString[1]
+                                                          .substring(0, 2);
+                                                } else if (interestRateString[1]
+                                                        .length ==
+                                                    1) {
+                                                  interestRateString[1] =
+                                                      "0${interestRateString[1]}";
+                                                }
+                                                ref
+                                                    .read(
+                                                      interestRateProvider
+                                                          .notifier,
+                                                    )
+                                                    .set(
+                                                      double.parse(
+                                                        '${interestRateString[0]}.${interestRateString[1]}',
+                                                      ),
+                                                    );
                                                 await AppSettings.flush();
                                                 if (context.mounted) {
                                                   Navigator.of(context).pop();
                                                   showSnackBar(
                                                     context,
                                                     LocaleKeys
-                                                        .interestTypeChangedSuccessfully
+                                                        .interestRateChanged
                                                         .tr(),
                                                   );
                                                 }
                                               },
-                                              child: Text(
-                                                LocaleKeys.ok.tr(),
-                                                style: TextStyle(
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                ),
-                                              ),
+                                              child: Text(LocaleKeys.ok.tr()),
                                             );
                                           },
                                         ),
@@ -731,873 +1088,632 @@ class MyDrawer extends HookConsumerWidget {
                                 ),
                               ),
                             ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final interestFrequency = ref.watch(
-                        interestFrequencyStatusProvider,
-                      );
-                      return ListTile(
-                        leading: StyledIcon(Icons.calendar_month_outlined),
-                        title: StyledText(LocaleKeys.interestFrequency2.tr()),
-                        subtitle: StyledSubtitle(
-                          LocaleKeys.defaultInterestFrequency.tr(
-                            namedArgs: {
-                              'frequency': interestFrequency.localizedLabel,
-                            },
-                          ),
-                        ),
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => Dialog(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      SizedBox(height: 10),
-                                      StyledHeading(
-                                        LocaleKeys.interestFrequency.tr(),
-                                      ),
-                                      RadioGroup<InterestFrequency>(
-                                        groupValue: interestFrequency,
-                                        onChanged: (value) {
-                                          if (value != null) {
-                                            ref
-                                                .read(
-                                                  interestFrequencyStatusProvider
-                                                      .notifier,
-                                                )
-                                                .set(value);
-                                          }
-                                        },
-                                        child: Wrap(
-                                          alignment: WrapAlignment.center,
-                                          spacing: 20.0,
-                                          children: [
-                                            for (final option
-                                                in InterestFrequency.values)
-                                              RadioListTile(
-                                                value: option,
-                                                title: StyledSubtitle(
-                                                  option.localizedLabel,
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      StyledText(
-                                        LocaleKeys.interestFrequencySet.tr(
-                                          namedArgs: {
-                                            'frequency': interestFrequency
-                                                .localizedLabel,
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          OutlinedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text(LocaleKeys.cancel.tr()),
-                                          ),
-                                          OutlinedButton(
-                                            onPressed: () async {
-                                              await AppSettings.flush();
-                                              if (context.mounted) {
-                                                Navigator.pop(context);
-                                              }
-                                            },
-                                            child: Text(LocaleKeys.ok2.tr()),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 10),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: StyledIcon(Icons.percent),
-                    title: StyledText(LocaleKeys.interestRate.tr()),
-                    subtitle: Consumer(
-                      builder: (context, ref, child) {
-                        final interestRate = ref.watch(interestRateProvider);
-                        return StyledSubtitle(
-                          LocaleKeys.defaultInterestRate.tr(
-                            namedArgs: {'rate': interestRate.toString()},
                           ),
                         );
                       },
                     ),
-                    onTap: () {
-                      List<String> interestRateString = [];
-                      showDialog(
-                        context: context,
-                        builder: (context) => Dialog(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                spacing: 10,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(height: 10),
-                                  StyledHeading(
-                                    LocaleKeys.changeInterestRate.tr(),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Consumer(
-                                          builder: (context, ref, child) {
-                                            final interestRate = ref.watch(
-                                              interestRateProvider,
-                                            );
-                                            interestRateString = interestRate
-                                                .toString()
-                                                .split(".");
-                                            return CupertinoPicker(
-                                              itemExtent: 32,
-                                              scrollController:
-                                                  FixedExtentScrollController(
-                                                    initialItem: interestRate
-                                                        .toInt(),
-                                                  ),
-                                              selectionOverlay:
-                                                  const CupertinoPickerDefaultSelectionOverlay(
-                                                    capEndEdge: false,
-                                                  ),
-                                              onSelectedItemChanged: (val) {
-                                                interestRateString[0] = val
-                                                    .toString();
-                                              },
-                                              children: List.generate(
-                                                51,
-                                                (index) => StyledSubtitle(
-                                                  index.toString(),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
-                                      Center(
-                                        child: StyledSubtitle(
-                                          ".",
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
-                                      Expanded(
-                                        child: Consumer(
-                                          builder: (context, ref, child) {
-                                            return CupertinoPicker(
-                                              itemExtent: 32,
-                                              scrollController:
-                                                  FixedExtentScrollController(
-                                                    initialItem:
-                                                        int.tryParse(
-                                                          interestRateString[1],
-                                                        ) ??
-                                                        0,
-                                                  ),
-                                              selectionOverlay:
-                                                  CupertinoPickerDefaultSelectionOverlay(
-                                                    // background: Theme.of(context).colorScheme.primary,
-                                                    capStartEdge: false,
-                                                  ),
-                                              onSelectedItemChanged: (val) {
-                                                interestRateString[1] = val
-                                                    .toString();
-                                              },
-                                              children: List.generate(
-                                                100,
-                                                (index) => StyledSubtitle(
-                                                  index.toString(),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
-                                      Center(
-                                        child: StyledSubtitle(
-                                          "%",
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
-                                    ],
-                                  ),
-                                  Consumer(
-                                    builder: (context, ref, child) {
-                                      final interestRate = ref.watch(
-                                        interestRateProvider,
-                                      );
-                                      return StyledSubtitle(
-                                        LocaleKeys.currentInterestRate.tr(
-                                          namedArgs: {
-                                            'rate': interestRate.toString(),
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(height: 10),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      OutlinedButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text(LocaleKeys.cancel.tr()),
-                                      ),
-                                      Consumer(
-                                        builder: (context, ref, child) {
-                                          return OutlinedButton(
-                                            onPressed: () async {
-                                              if (interestRateString[1].length >
-                                                  2) {
-                                                interestRateString[1] =
-                                                    interestRateString[1]
-                                                        .substring(0, 2);
-                                              } else if (interestRateString[1]
-                                                      .length ==
-                                                  1) {
-                                                interestRateString[1] =
-                                                    "0${interestRateString[1]}";
-                                              }
-                                              ref
-                                                  .read(
-                                                    interestRateProvider
-                                                        .notifier,
-                                                  )
-                                                  .set(
-                                                    double.parse(
-                                                      '${interestRateString[0]}.${interestRateString[1]}',
-                                                    ),
-                                                  );
-                                              await AppSettings.flush();
-                                              if (context.mounted) {
-                                                Navigator.of(context).pop();
-                                                showSnackBar(
-                                                  context,
-                                                  LocaleKeys.interestRateChanged
-                                                      .tr(),
-                                                );
-                                              }
-                                            },
-                                            child: Text(LocaleKeys.ok.tr()),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 10),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const _DefaultLockInSetting(),
-                  const _DefaultTermsAndConditionsSetting(),
-                  const _DefaultUpiIdSetting(),
-                ],
-              ),
-              ExpansionTile(
-                leading: StyledIcon(Icons.cloud_outlined),
-                title: StyledText(LocaleKeys.backupGoogleDrive.tr()),
-                subtitle: Consumer(
-                  builder: (context, ref, child) {
-                    final email = ref.watch(emailProvider);
-                    return StyledSubtitle(
-                      email.isEmpty ? LocaleKeys.notConnected.tr() : email,
-                    );
-                  },
+                    const _DefaultLockInSetting(),
+                    const _DefaultTermsAndConditionsSetting(),
+                    const _DefaultUpiIdSetting(),
+                  ],
                 ),
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerLow,
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                children: [
-                  const Divider(indent: 16, endIndent: 16),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final hour = ref.watch(scheduledBackUpTimeHourProvider);
-                      final minute = ref.watch(
-                        scheduledBackUpTimeMinuteProvider,
-                      );
-                      final isBackUpRegistered = ref.watch(
-                        backUpRegisteredProvider,
-                      );
-                      final time = TimeOfDay(hour: hour, minute: minute);
-                      if (isBackUpRegistered) {
-                        return ListTile(
-                          leading: StyledIcon(Icons.settings_backup_restore),
-                          title: StyledText(LocaleKeys.changeBackupTime.tr()),
-                          subtitle: StyledSubtitle(
-                            LocaleKeys.defaultTime.tr(
-                              namedArgs: {'time': time.format(context)},
-                            ),
-                          ),
-                          onTap: () async {
-                            final TimeOfDay? picked = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay(
-                                hour: hour,
-                                minute: minute,
-                              ),
+                ExpansionTile(
+                  leading: StyledIcon(Icons.cloud_outlined),
+                  title: StyledText(LocaleKeys.backupGoogleDrive.tr()),
+                  subtitle: layout.isDense
+                      ? null
+                      : Consumer(
+                          builder: (context, ref, child) {
+                            final email = ref.watch(emailProvider);
+                            return StyledSubtitle(
+                              email.isEmpty
+                                  ? LocaleKeys.notConnected.tr()
+                                  : email,
                             );
-                            if (picked != null) {
-                              ref
-                                  .read(
-                                    scheduledBackUpTimeHourProvider.notifier,
-                                  )
-                                  .set(picked.hour);
-                              ref
-                                  .read(
-                                    scheduledBackUpTimeMinuteProvider.notifier,
-                                  )
-                                  .set(picked.minute);
-                              await AppSettings.flush();
-                              await registerBackUp();
-                              ref
-                                  .read(backUpRegisteredProvider.notifier)
-                                  .set(true);
-                              if (context.mounted) {
-                                Navigator.pop(context);
-                                showSnackBar(
-                                  context,
-                                  LocaleKeys.backupTimeUpdated.tr(
-                                    namedArgs: {'time': picked.format(context)},
-                                  ),
-                                );
-                              }
-                            }
                           },
-                        );
-                      } else {
-                        return SizedBox();
-                      }
-                    },
+                        ),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerLow,
+                  tilePadding: EdgeInsets.symmetric(
+                    horizontal: layout.horizontalPadding,
                   ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final token = ref.watch(driveAccessTokenProvider);
-                      if (token.isEmpty) {
-                        return SizedBox();
-                      }
-                      return ref.watch(backupDownloadStatusProvider)
-                          ? SizedBox()
-                          : ListTile(
-                              leading: StyledIcon(Icons.backup),
-                              title: StyledText(LocaleKeys.backUpNow.tr()),
-                              subtitle: ref.watch(backupStatusProvider)
-                                  ? Text(
-                                      "Creating your secure Google Drive backup…"
-                                          .tr(),
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
+                  childrenPadding: EdgeInsets.fromLTRB(
+                    layout.childPadding,
+                    0,
+                    layout.childPadding,
+                    layout.childPadding,
+                  ),
+                  children: [
+                    const Divider(indent: 16, endIndent: 16),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final hour = ref.watch(scheduledBackUpTimeHourProvider);
+                        final minute = ref.watch(
+                          scheduledBackUpTimeMinuteProvider,
+                        );
+                        final isBackUpRegistered = ref.watch(
+                          backUpRegisteredProvider,
+                        );
+                        final time = TimeOfDay(hour: hour, minute: minute);
+                        if (isBackUpRegistered) {
+                          return ListTile(
+                            leading: StyledIcon(Icons.settings_backup_restore),
+                            title: StyledText(LocaleKeys.changeBackupTime.tr()),
+                            subtitle: StyledSubtitle(
+                              LocaleKeys.defaultTime.tr(
+                                namedArgs: {'time': time.format(context)},
+                              ),
+                            ),
+                            onTap: () async {
+                              final TimeOfDay? picked = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay(
+                                  hour: hour,
+                                  minute: minute,
+                                ),
+                              );
+                              if (picked != null) {
+                                ref
+                                    .read(
+                                      scheduledBackUpTimeHourProvider.notifier,
                                     )
-                                  : null,
-                              onTap: ref.watch(backupStatusProvider)
-                                  ? null
-                                  : () async {
-                                      ref
-                                          .read(backupStatusProvider.notifier)
-                                          .set(true);
-                                      isLoading.value = true;
-                                      try {
-                                        final connected = await ref
-                                            .read(networkCheckerProvider.future)
-                                            .timeout(
-                                              const Duration(seconds: 10),
+                                    .set(picked.hour);
+                                ref
+                                    .read(
+                                      scheduledBackUpTimeMinuteProvider
+                                          .notifier,
+                                    )
+                                    .set(picked.minute);
+                                await AppSettings.flush();
+                                await registerBackUp();
+                                ref
+                                    .read(backUpRegisteredProvider.notifier)
+                                    .set(true);
+                                if (context.mounted) {
+                                  Navigator.pop(context);
+                                  showSnackBar(
+                                    context,
+                                    LocaleKeys.backupTimeUpdated.tr(
+                                      namedArgs: {
+                                        'time': picked.format(context),
+                                      },
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          );
+                        } else {
+                          return SizedBox();
+                        }
+                      },
+                    ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final token = ref.watch(driveAccessTokenProvider);
+                        if (token.isEmpty) {
+                          return SizedBox();
+                        }
+                        return ref.watch(backupDownloadStatusProvider)
+                            ? SizedBox()
+                            : ListTile(
+                                leading: StyledIcon(Icons.backup),
+                                title: StyledText(LocaleKeys.backUpNow.tr()),
+                                subtitle: ref.watch(backupStatusProvider)
+                                    ? Text(
+                                        "Creating your secure Google Drive backup…"
+                                            .tr(),
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
+                                        ),
+                                      )
+                                    : null,
+                                onTap: ref.watch(backupStatusProvider)
+                                    ? null
+                                    : () async {
+                                        ref
+                                            .read(backupStatusProvider.notifier)
+                                            .set(true);
+                                        isLoading.value = true;
+                                        try {
+                                          final connected = await ref
+                                              .read(
+                                                networkCheckerProvider.future,
+                                              )
+                                              .timeout(
+                                                const Duration(seconds: 10),
+                                              );
+                                          if (!connected) {
+                                            if (context.mounted) {
+                                              showErrorSnackBar(
+                                                context,
+                                                LocaleKeys.notConnected.tr(),
+                                              );
+                                            }
+                                            return;
+                                          }
+                                          if (!AppSettings.getIsBackUpRegistered()) {
+                                            await registerBackUp();
+                                            ref
+                                                .read(
+                                                  backUpRegisteredProvider
+                                                      .notifier,
+                                                )
+                                                .set(true);
+                                          }
+                                          final status =
+                                              await BackupService.performBackup(
+                                                promptIfNeeded: true,
+                                              );
+                                          if (!context.mounted) return;
+                                          if (status) {
+                                            ref
+                                                .read(
+                                                  backupAvailableProvider
+                                                      .notifier,
+                                                )
+                                                .set(true);
+                                            showSnackBar(
+                                              context,
+                                              LocaleKeys
+                                                  .backupCreatedSuccessfully
+                                                  .tr(),
                                             );
-                                        if (!connected) {
+                                          } else {
+                                            showErrorSnackBar(
+                                              context,
+                                              BackupService.lastError,
+                                            );
+                                          }
+                                        } catch (error, stackTrace) {
+                                          debugPrint(
+                                            'Manual backup failed: '
+                                            '$error\n$stackTrace',
+                                          );
                                           if (context.mounted) {
                                             showErrorSnackBar(
                                               context,
-                                              LocaleKeys.notConnected.tr(),
+                                              'Could not create the backup. '
+                                              'Please try again.',
                                             );
                                           }
-                                          return;
-                                        }
-                                        if (!AppSettings.getIsBackUpRegistered()) {
-                                          await registerBackUp();
+                                        } finally {
                                           ref
                                               .read(
-                                                backUpRegisteredProvider
-                                                    .notifier,
+                                                backupStatusProvider.notifier,
                                               )
-                                              .set(true);
+                                              .set(false);
+                                          if (context.mounted) {
+                                            isLoading.value = false;
+                                          }
                                         }
-                                        final status =
-                                            await BackupService.performBackup(
-                                              promptIfNeeded: true,
-                                            );
-                                        if (!context.mounted) return;
-                                        if (status) {
-                                          ref
-                                              .read(
-                                                backupAvailableProvider
-                                                    .notifier,
-                                              )
-                                              .set(true);
-                                          showSnackBar(
+                                      },
+                              );
+                      },
+                    ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final token = ref.watch(driveAccessTokenProvider);
+                        final backupAvailable = ref.watch(
+                          backupAvailableProvider,
+                        );
+                        if (token.isEmpty || !backupAvailable) {
+                          return SizedBox();
+                        }
+                        return ref.watch(backupStatusProvider)
+                            ? SizedBox()
+                            : ListTile(
+                                leading: StyledIcon(Icons.download),
+                                title: StyledText(
+                                  LocaleKeys.restoreLatestBackup.tr(),
+                                ),
+                                subtitle:
+                                    ref.watch(backupDownloadStatusProvider)
+                                    ? Text(
+                                        LocaleKeys.restoringYourBackup.tr(),
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Theme.of(
                                             context,
-                                            LocaleKeys.backupCreatedSuccessfully
-                                                .tr(),
-                                          );
-                                        } else {
-                                          showErrorSnackBar(
-                                            context,
-                                            BackupService.lastError,
-                                          );
-                                        }
-                                      } catch (error, stackTrace) {
-                                        debugPrint(
-                                          'Manual backup failed: '
-                                          '$error\n$stackTrace',
-                                        );
-                                        if (context.mounted) {
-                                          showErrorSnackBar(
-                                            context,
-                                            'Could not create the backup. '
-                                            'Please try again.',
-                                          );
-                                        }
-                                      } finally {
-                                        ref
-                                            .read(backupStatusProvider.notifier)
-                                            .set(false);
-                                        if (context.mounted) {
-                                          isLoading.value = false;
-                                        }
-                                      }
-                                    },
-                            );
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final token = ref.watch(driveAccessTokenProvider);
-                      final backupAvailable = ref.watch(
-                        backupAvailableProvider,
-                      );
-                      if (token.isEmpty || !backupAvailable) {
-                        return SizedBox();
-                      }
-                      return ref.watch(backupStatusProvider)
-                          ? SizedBox()
-                          : ListTile(
-                              leading: StyledIcon(Icons.download),
-                              title: StyledText(
-                                LocaleKeys.restoreLatestBackup.tr(),
-                              ),
-                              subtitle: ref.watch(backupDownloadStatusProvider)
-                                  ? Text(
-                                      LocaleKeys.restoringYourBackup.tr(),
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
-                                    )
-                                  : null,
-                              onTap: () async {
-                                ref
-                                    .read(backupDownloadStatusProvider.notifier)
-                                    .set(true);
-                                isLoading.value = true;
-                                try {
-                                  final connected = await ref
-                                      .read(networkCheckerProvider.future)
-                                      .timeout(const Duration(seconds: 10));
-                                  if (!connected) {
-                                    if (context.mounted) {
-                                      showErrorSnackBar(
-                                        context,
-                                        LocaleKeys.notConnected.tr(),
-                                      );
-                                    }
-                                    return;
-                                  }
-                                  final restored =
-                                      await BackupService.downloadFileToDevice();
-                                  if (!context.mounted) return;
-                                  if (restored) {
-                                    _refreshAfterRestore(ref);
-                                    showSnackBar(
-                                      context,
-                                      LocaleKeys.backupRestoredSuccessfully
-                                          .tr(),
-                                    );
-                                  } else {
-                                    showErrorSnackBar(
-                                      context,
-                                      BackupService.lastError,
-                                    );
-                                  }
-                                } catch (_) {
-                                  if (context.mounted) {
-                                    showErrorSnackBar(
-                                      context,
-                                      "Could not restore the backup. Please try again.",
-                                    );
-                                  }
-                                } finally {
+                                          ).colorScheme.error,
+                                        ),
+                                      )
+                                    : null,
+                                onTap: () async {
                                   ref
                                       .read(
                                         backupDownloadStatusProvider.notifier,
                                       )
-                                      .set(false);
-                                  if (context.mounted) isLoading.value = false;
-                                }
-                              },
-                            );
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final token = ref.watch(driveAccessTokenProvider);
-                      return ListTile(
-                        leading: StyledIcon(Icons.change_circle_outlined),
-                        title: StyledText(
-                          token.isEmpty
-                              ? LocaleKeys.addAccount.tr()
-                              : LocaleKeys.changeAccount.tr(),
-                        ),
-                        onTap: () async {
-                          final isAddingAccount = token.isEmpty;
-                          if (!isAddingAccount) {
-                            AppSettings.putDriveFileId("");
-                            ref
-                                .read(backupAvailableProvider.notifier)
-                                .set(false);
-                          }
-                          isLoading.value = true;
-                          try {
-                            var mergedBackup = false;
-                            var mergeFailed = false;
-                            final chngAccount = await changeAccount(
-                              context,
-                            ).timeout(const Duration(seconds: 90));
-                            if (chngAccount.length == 2) {
-                              final authentication = chngAccount[0];
-                              final account = chngAccount[1];
-                              if (account != null) {
-                                ref
-                                    .read(displayNameProvider.notifier)
-                                    .set(account.displayName ?? "");
-                                ref
-                                    .read(photoUrlProvider.notifier)
-                                    .set(account.photoUrl ?? "");
-                                ref
-                                    .read(emailProvider.notifier)
-                                    .set(account.email);
-                                ref
-                                    .read(driveAccessTokenProvider.notifier)
-                                    .set(authentication.accessToken ?? "");
-                                ref
-                                    .read(backUpRegisteredProvider.notifier)
-                                    .set(true);
-                                // Account details are published before the Drive
-                                // lookup, so the drawer updates as soon as sign-in
-                                // succeeds. The lookup only controls restore access.
-                                final hasBackup =
-                                    await BackupService.hasBackupOnDrive(
-                                      account: account,
-                                    );
-                                ref
-                                    .read(backupAvailableProvider.notifier)
-                                    .set(hasBackup);
-                                await AppSettings.flush();
-                                if (hasBackup) {
-                                  mergedBackup =
-                                      await BackupService.downloadFileToDevice(
-                                        account: account,
+                                      .set(true);
+                                  isLoading.value = true;
+                                  try {
+                                    final connected = await ref
+                                        .read(networkCheckerProvider.future)
+                                        .timeout(const Duration(seconds: 10));
+                                    if (!connected) {
+                                      if (context.mounted) {
+                                        showErrorSnackBar(
+                                          context,
+                                          LocaleKeys.notConnected.tr(),
+                                        );
+                                      }
+                                      return;
+                                    }
+                                    final restored =
+                                        await BackupService.downloadFileToDevice();
+                                    if (!context.mounted) return;
+                                    if (restored) {
+                                      _refreshAfterRestore(ref);
+                                      showSnackBar(
+                                        context,
+                                        LocaleKeys.backupRestoredSuccessfully
+                                            .tr(),
                                       );
-                                  if (mergedBackup) {
-                                    _refreshAfterRestore(ref);
-                                  } else {
-                                    mergeFailed = true;
+                                    } else {
+                                      showErrorSnackBar(
+                                        context,
+                                        BackupService.lastError,
+                                      );
+                                    }
+                                  } catch (_) {
+                                    if (context.mounted) {
+                                      showErrorSnackBar(
+                                        context,
+                                        "Could not restore the backup. Please try again.",
+                                      );
+                                    }
+                                  } finally {
+                                    ref
+                                        .read(
+                                          backupDownloadStatusProvider.notifier,
+                                        )
+                                        .set(false);
+                                    if (context.mounted) {
+                                      isLoading.value = false;
+                                    }
                                   }
-                                }
-                              }
-                              if (context.mounted) {
-                                if (mergeFailed) {
-                                  showErrorSnackBar(
-                                    context,
-                                    'Account connected, but its backup could '
-                                    'not be merged. ${BackupService.lastError}',
-                                  );
-                                } else {
-                                  showSnackBar(
-                                    context,
-                                    mergedBackup
-                                        ? LocaleKeys.backupRestoredSuccessfully
-                                              .tr()
-                                        : isAddingAccount
-                                        ? 'Google account connected.'
-                                        : 'Google account updated.',
-                                  );
-                                }
-                              }
-                            } else if (context.mounted) {
-                              showSnackBar(
-                                context,
-                                LocaleKeys.youHaveNotSelectedAnyAccount.tr(),
+                                },
                               );
-                            }
-                          } catch (error, stackTrace) {
-                            debugPrint(
-                              'Google account connection failed: $error\n$stackTrace',
-                            );
-                            if (context.mounted) {
-                              final message =
-                                  BackupService.userFacingGoogleSignInError(
-                                    error,
-                                  );
-                              if (BackupService.isUserCancelledGoogleSignIn(
-                                error,
-                              )) {
-                                showSnackBar(context, message);
-                              } else {
-                                showErrorSnackBar(context, message);
-                              }
-                            }
-                          } finally {
-                            if (context.mounted) {
-                              isLoading.value = false;
-                            }
-                          }
-                        },
-                      );
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final token = ref.watch(driveAccessTokenProvider);
-                      if (token.isEmpty) {
-                        return SizedBox();
-                      }
-                      return ListTile(
-                        leading: StyledIcon(Icons.account_circle_outlined),
-                        title: StyledText(LocaleKeys.viewConnectedAccount.tr()),
-                        subtitle: StyledSubtitle(ref.watch(emailProvider)),
-                        onTap: () {
-                          final name = ref.read(displayNameProvider);
-                          final email = ref.read(emailProvider);
-                          showModalBottomSheet<void>(
-                            context: context,
-                            showDragHandle: true,
-                            builder: (sheetContext) => Padding(
-                              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 30,
-                                    child: const Icon(
-                                      Icons.person_outline,
-                                      size: 32,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    name.isEmpty
-                                        ? LocaleKeys.googleAccount.tr()
-                                        : name,
-                                    style: Theme.of(
-                                      sheetContext,
-                                    ).textTheme.titleLarge,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(email),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'This account stores your LoanX backups in Google Drive.'
-                                        .tr(),
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(
-                                      sheetContext,
-                                    ).textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final token = ref.watch(driveAccessTokenProvider);
-                      if (token.isEmpty) {
-                        return SizedBox();
-                      }
-                      return ListTile(
-                        leading: StyledIcon(Icons.logout),
-                        title: StyledText(
-                          LocaleKeys.disconnectGoogleAccount.tr(),
-                        ),
-                        onTap: () async {
-                          isLoading.value = true;
-                          try {
-                            await removeAccount();
-                            ref.read(displayNameProvider.notifier).set("");
-                            ref.read(photoUrlProvider.notifier).set("");
-                            ref.read(emailProvider.notifier).set("");
-                            ref.read(driveAccessTokenProvider.notifier).set("");
-                            ref
-                                .read(backUpRegisteredProvider.notifier)
-                                .set(false);
-                            ref
-                                .read(backupAvailableProvider.notifier)
-                                .set(false);
-                            if (context.mounted) {
-                              showSnackBar(
-                                context,
-                                LocaleKeys.googleAccountDisconnected.tr(),
-                              );
-                            }
-                          } catch (error, stackTrace) {
-                            debugPrint(
-                              'Google account disconnect failed: '
-                              '$error\n$stackTrace',
-                            );
-                            if (context.mounted) {
-                              showErrorSnackBar(
-                                context,
-                                'Could not disconnect the Google account.',
-                              );
-                            }
-                          } finally {
-                            if (context.mounted) isLoading.value = false;
-                          }
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
-              ExpansionTile(
-                leading: StyledIcon(Icons.support_agent_outlined),
-                title: StyledText(LocaleKeys.helpFeedback.tr()),
-                subtitle: StyledSubtitle(
-                  LocaleKeys.supportSharingAndUpdates.tr(),
-                ),
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerLow,
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                children: [
-                  const Divider(indent: 16, endIndent: 16),
-                  ListTile(
-                    leading: StyledIcon(Icons.star_rate),
-                    title: StyledText(LocaleKeys.rateLoanx.tr()),
-                    onTap: _openReview,
-                  ),
-                  ListTile(
-                    leading: StyledIcon(Icons.share),
-                    title: StyledText(LocaleKeys.shareApp.tr()),
-                    onTap: () {
-                      final box = context.findRenderObject() as RenderBox?;
-                      SharePlus.instance.share(
-                        ShareParams(
-                          text: LocaleKeys.shareAppMessage.tr(),
-                          subject: LocaleKeys.shareAppSubject.tr(),
-                          sharePositionOrigin:
-                              box!.localToGlobal(Offset.zero) & box.size,
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: StyledIcon(Icons.edit_square),
-                    title: StyledText(LocaleKeys.contactSupport.tr()),
-                    onTap: () {
-                      _launchURL('https://forms.gle/zSRbdvU45hvPWEYp7');
-                    },
-                  ),
-                  ListTile(
-                    leading: StyledIcon(Icons.policy),
-                    title: StyledText(LocaleKeys.privacyPolicy.tr()),
-                    onTap: () {
-                      _launchURL(
-                        'https://loanx.kumpali.com/privacy-policy.html',
-                      );
-                    },
-                  ),
-                  if (Platform.isAndroid || Platform.isIOS)
-                    ListTile(
-                      leading: StyledIcon(Icons.update),
-                      title: StyledText(LocaleKeys.checkForUpdates.tr()),
-                      onTap: () => checkForUpdates(context, true),
-                    ),
-                  ListTile(
-                    leading: StyledIcon(Icons.info_outline),
-                    title: Consumer(
-                      builder: (context, ref, child) {
-                        return ref
-                            .watch(appVersionProvider)
-                            .when(
-                              data: (appVersion) {
-                                return StyledText(
-                                  LocaleKeys.versionNumber.tr(
-                                    namedArgs: {'version': appVersion},
-                                  ),
-                                );
-                              },
-                              error: (obj, trace) {
-                                return Text(
-                                  LocaleKeys.versionUnavailable.tr(),
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                                );
-                              },
-                              loading: () =>
-                                  StyledText(LocaleKeys.version.tr()),
-                            );
                       },
                     ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final token = ref.watch(driveAccessTokenProvider);
+                        return ListTile(
+                          leading: StyledIcon(Icons.change_circle_outlined),
+                          title: StyledText(
+                            token.isEmpty
+                                ? LocaleKeys.addAccount.tr()
+                                : LocaleKeys.changeAccount.tr(),
+                          ),
+                          onTap: () async {
+                            final isAddingAccount = token.isEmpty;
+                            if (!isAddingAccount) {
+                              AppSettings.putDriveFileId("");
+                              ref
+                                  .read(backupAvailableProvider.notifier)
+                                  .set(false);
+                            }
+                            isLoading.value = true;
+                            try {
+                              var mergedBackup = false;
+                              var mergeFailed = false;
+                              final chngAccount = await changeAccount(
+                                context,
+                              ).timeout(const Duration(seconds: 90));
+                              if (chngAccount.length == 2) {
+                                final authentication = chngAccount[0];
+                                final account = chngAccount[1];
+                                if (account != null) {
+                                  ref
+                                      .read(displayNameProvider.notifier)
+                                      .set(account.displayName ?? "");
+                                  ref
+                                      .read(photoUrlProvider.notifier)
+                                      .set(account.photoUrl ?? "");
+                                  ref
+                                      .read(emailProvider.notifier)
+                                      .set(account.email);
+                                  ref
+                                      .read(driveAccessTokenProvider.notifier)
+                                      .set(authentication.accessToken ?? "");
+                                  ref
+                                      .read(backUpRegisteredProvider.notifier)
+                                      .set(true);
+                                  // Account details are published before the Drive
+                                  // lookup, so the drawer updates as soon as sign-in
+                                  // succeeds. The lookup only controls restore access.
+                                  final hasBackup =
+                                      await BackupService.hasBackupOnDrive(
+                                        account: account,
+                                      );
+                                  ref
+                                      .read(backupAvailableProvider.notifier)
+                                      .set(hasBackup);
+                                  await AppSettings.flush();
+                                  if (hasBackup) {
+                                    mergedBackup =
+                                        await BackupService.downloadFileToDevice(
+                                          account: account,
+                                        );
+                                    if (mergedBackup) {
+                                      _refreshAfterRestore(ref);
+                                    } else {
+                                      mergeFailed = true;
+                                    }
+                                  }
+                                }
+                                if (context.mounted) {
+                                  if (mergeFailed) {
+                                    showErrorSnackBar(
+                                      context,
+                                      'Account connected, but its backup could '
+                                      'not be merged. ${BackupService.lastError}',
+                                    );
+                                  } else {
+                                    showSnackBar(
+                                      context,
+                                      mergedBackup
+                                          ? LocaleKeys
+                                                .backupRestoredSuccessfully
+                                                .tr()
+                                          : isAddingAccount
+                                          ? 'Google account connected.'
+                                          : 'Google account updated.',
+                                    );
+                                  }
+                                }
+                              } else if (context.mounted) {
+                                showSnackBar(
+                                  context,
+                                  LocaleKeys.youHaveNotSelectedAnyAccount.tr(),
+                                );
+                              }
+                            } catch (error, stackTrace) {
+                              debugPrint(
+                                'Google account connection failed: $error\n$stackTrace',
+                              );
+                              if (context.mounted) {
+                                final message =
+                                    BackupService.userFacingGoogleSignInError(
+                                      error,
+                                    );
+                                if (BackupService.isUserCancelledGoogleSignIn(
+                                  error,
+                                )) {
+                                  showSnackBar(context, message);
+                                } else {
+                                  showErrorSnackBar(context, message);
+                                }
+                              }
+                            } finally {
+                              if (context.mounted) {
+                                isLoading.value = false;
+                              }
+                            }
+                          },
+                        );
+                      },
+                    ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final token = ref.watch(driveAccessTokenProvider);
+                        if (token.isEmpty) {
+                          return SizedBox();
+                        }
+                        return ListTile(
+                          leading: StyledIcon(Icons.account_circle_outlined),
+                          title: StyledText(
+                            LocaleKeys.viewConnectedAccount.tr(),
+                          ),
+                          subtitle: StyledSubtitle(ref.watch(emailProvider)),
+                          onTap: () {
+                            final name = ref.read(displayNameProvider);
+                            final email = ref.read(emailProvider);
+                            showModalBottomSheet<void>(
+                              context: context,
+                              showDragHandle: true,
+                              builder: (sheetContext) => Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  24,
+                                  8,
+                                  24,
+                                  32,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 30,
+                                      child: const Icon(
+                                        Icons.person_outline,
+                                        size: 32,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      name.isEmpty
+                                          ? LocaleKeys.googleAccount.tr()
+                                          : name,
+                                      style: Theme.of(
+                                        sheetContext,
+                                      ).textTheme.titleLarge,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(email),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'This account stores your LoanX backups in Google Drive.'
+                                          .tr(),
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(
+                                        sheetContext,
+                                      ).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final token = ref.watch(driveAccessTokenProvider);
+                        if (token.isEmpty) {
+                          return SizedBox();
+                        }
+                        return ListTile(
+                          leading: StyledIcon(Icons.logout),
+                          title: StyledText(
+                            LocaleKeys.disconnectGoogleAccount.tr(),
+                          ),
+                          onTap: () async {
+                            isLoading.value = true;
+                            try {
+                              await removeAccount();
+                              ref.read(displayNameProvider.notifier).set("");
+                              ref.read(photoUrlProvider.notifier).set("");
+                              ref.read(emailProvider.notifier).set("");
+                              ref
+                                  .read(driveAccessTokenProvider.notifier)
+                                  .set("");
+                              ref
+                                  .read(backUpRegisteredProvider.notifier)
+                                  .set(false);
+                              ref
+                                  .read(backupAvailableProvider.notifier)
+                                  .set(false);
+                              if (context.mounted) {
+                                showSnackBar(
+                                  context,
+                                  LocaleKeys.googleAccountDisconnected.tr(),
+                                );
+                              }
+                            } catch (error, stackTrace) {
+                              debugPrint(
+                                'Google account disconnect failed: '
+                                '$error\n$stackTrace',
+                              );
+                              if (context.mounted) {
+                                showErrorSnackBar(
+                                  context,
+                                  'Could not disconnect the Google account.',
+                                );
+                              }
+                            } finally {
+                              if (context.mounted) isLoading.value = false;
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  leading: StyledIcon(Icons.support_agent_outlined),
+                  title: StyledText(LocaleKeys.helpFeedback.tr()),
+                  subtitle: layout.isDense
+                      ? null
+                      : StyledSubtitle(
+                          LocaleKeys.supportSharingAndUpdates.tr(),
+                        ),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerLow,
+                  tilePadding: EdgeInsets.symmetric(
+                    horizontal: layout.horizontalPadding,
                   ),
-                ],
-              ),
-              SizedBox(height: MediaQuery.paddingOf(context).bottom + 32),
-            ],
+                  childrenPadding: EdgeInsets.fromLTRB(
+                    layout.childPadding,
+                    0,
+                    layout.childPadding,
+                    layout.childPadding,
+                  ),
+                  children: [
+                    const Divider(indent: 16, endIndent: 16),
+                    ListTile(
+                      leading: StyledIcon(Icons.star_rate),
+                      title: StyledText(LocaleKeys.rateLoanx.tr()),
+                      onTap: _openReview,
+                    ),
+                    ListTile(
+                      leading: StyledIcon(Icons.share),
+                      title: StyledText(LocaleKeys.shareApp.tr()),
+                      onTap: () {
+                        final box = context.findRenderObject() as RenderBox?;
+                        SharePlus.instance.share(
+                          ShareParams(
+                            text: LocaleKeys.shareAppMessage.tr(),
+                            subject: LocaleKeys.shareAppSubject.tr(),
+                            sharePositionOrigin:
+                                box!.localToGlobal(Offset.zero) & box.size,
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: StyledIcon(Icons.edit_square),
+                      title: StyledText(LocaleKeys.contactSupport.tr()),
+                      onTap: () {
+                        _launchURL('https://forms.gle/zSRbdvU45hvPWEYp7');
+                      },
+                    ),
+                    ListTile(
+                      leading: StyledIcon(Icons.policy),
+                      title: StyledText(LocaleKeys.privacyPolicy.tr()),
+                      onTap: () {
+                        _launchURL(
+                          'https://loanx.kumpali.com/privacy-policy.html',
+                        );
+                      },
+                    ),
+                    if (Platform.isAndroid || Platform.isIOS)
+                      ListTile(
+                        leading: StyledIcon(Icons.update),
+                        title: StyledText(LocaleKeys.checkForUpdates.tr()),
+                        onTap: () => checkForUpdates(context, true),
+                      ),
+                    ListTile(
+                      leading: StyledIcon(Icons.info_outline),
+                      title: Consumer(
+                        builder: (context, ref, child) {
+                          return ref
+                              .watch(appVersionProvider)
+                              .when(
+                                data: (appVersion) {
+                                  return StyledText(
+                                    LocaleKeys.versionNumber.tr(
+                                      namedArgs: {'version': appVersion},
+                                    ),
+                                  );
+                                },
+                                error: (obj, trace) {
+                                  return Text(
+                                    LocaleKeys.versionUnavailable.tr(),
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                                  );
+                                },
+                                loading: () =>
+                                    StyledText(LocaleKeys.version.tr()),
+                              );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: MediaQuery.paddingOf(context).bottom + 32),
+              ],
+            ),
           ),
         ),
       ),
@@ -1644,6 +1760,43 @@ class MyDrawer extends HookConsumerWidget {
       throw 'Could not launch $url';
     }
   }
+}
+
+/// Keeps navigation usable on small phones and short landscape windows without
+/// removing any drawer action.
+class _DrawerLayout {
+  const _DrawerLayout._({
+    required this.width,
+    required this.headerHeight,
+    required this.horizontalPadding,
+    required this.childPadding,
+    required this.sectionGap,
+    required this.isDense,
+  });
+
+  factory _DrawerLayout.of(Size size) {
+    final isNarrow = size.width < 360;
+    final isDense = isNarrow || size.height < 640;
+    return _DrawerLayout._(
+      width: isNarrow
+          ? 280
+          : size.width >= 600
+          ? 360
+          : 304,
+      headerHeight: isDense ? 128 : 160,
+      horizontalPadding: isDense ? 12 : 16,
+      childPadding: isDense ? 4 : 8,
+      sectionGap: isDense ? 4 : 8,
+      isDense: isDense,
+    );
+  }
+
+  final double width;
+  final double headerHeight;
+  final double horizontalPadding;
+  final double childPadding;
+  final double sectionGap;
+  final bool isDense;
 }
 
 class _DefaultUpiIdSetting extends StatefulWidget {
