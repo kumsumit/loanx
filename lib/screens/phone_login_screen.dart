@@ -8,7 +8,7 @@ import 'package:loanx/widget/phone.dart';
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({required this.onContinue, super.key});
 
-  final ValueChanged<PhoneNumber> onContinue;
+  final Future<String?> Function(PhoneNumber) onContinue;
 
   @override
   State<PhoneLoginScreen> createState() => _PhoneLoginScreenState();
@@ -18,6 +18,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   final _phoneController = TextEditingController();
   PhoneNumber _phoneNumber = PhoneNumber(isoCode: 'IN', nsn: '');
   bool _isValid = false;
+  bool _isSubmitting = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -42,10 +44,19 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     });
   }
 
-  void _continue() {
-    if (!_isValid) return;
+  Future<void> _continue() async {
+    if (!_isValid || _isSubmitting) return;
     FocusManager.instance.primaryFocus?.unfocus();
-    widget.onContinue(_phoneNumber);
+    setState(() {
+      _isSubmitting = true;
+      _error = null;
+    });
+    final error = await widget.onContinue(_phoneNumber);
+    if (!mounted) return;
+    setState(() {
+      _isSubmitting = false;
+      _error = error;
+    });
   }
 
   @override
@@ -110,11 +121,21 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     onSubmit: _continue,
                   ),
                   const SizedBox(height: 20),
+                  if (_error != null) ...[
+                    _InlineError(message: _error!),
+                    const SizedBox(height: 16),
+                  ],
                   SizedBox(
                     height: 52,
                     child: FilledButton(
-                      onPressed: _isValid ? _continue : null,
-                      child: Text(LocaleKeys.continueAction.tr()),
+                      key: const Key('send-otp'),
+                      onPressed: _isValid && !_isSubmitting ? _continue : null,
+                      child: _isSubmitting
+                          ? const SizedBox.square(
+                              dimension: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(LocaleKeys.continueAction.tr()),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -130,6 +151,35 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InlineError extends StatelessWidget {
+  const _InlineError({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.errorContainer,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline_rounded, color: colors.onErrorContainer),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: colors.onErrorContainer),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -9,6 +9,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/screens/ask_backup_screen.dart';
+import 'package:loanx/screens/account_type_screen.dart';
 import 'package:loanx/screens/error.dart';
 import 'package:loanx/screens/unauthorized.dart';
 import 'package:loanx/l10n/codegen_loader.g.dart';
@@ -16,13 +17,24 @@ import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/auth_screen.dart';
 import 'package:loanx/screens/dashboard.dart';
+import 'package:loanx/screens/phone_login_screen.dart';
+import 'package:loanx/screens/otp_verification_screen.dart';
 import 'package:loanx/service/backup_service.dart';
+import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/src/rust/frb_generated.dart';
 import 'package:loanx/theme/app_theme.dart';
 import 'package:loanx/widget/language_picker.dart';
 import 'package:workmanager/workmanager.dart';
 
 import 'db/app_settings.dart';
+
+typedef OtpSender = Future<void> Function(PhoneNumber phoneNumber);
+typedef OtpVerifier =
+    Future<bool> Function(
+      PhoneNumber phoneNumber,
+      String code,
+      String preferredLanguage,
+    );
 
 class _FallbackMaterialLocalizationsDelegate
     extends LocalizationsDelegate<MaterialLocalizations> {
@@ -108,6 +120,12 @@ Future<void> main() async {
     debugPrint('LoanX local storage initialization failed: $error');
     if (kDebugMode) debugPrintStack(stackTrace: stackTrace);
   }
+  activeAuthClient = AuthClient();
+  if (AppSettings.getPhoneAuthVerified() &&
+      !await activeAuthClient!.restoreSession()) {
+    AppSettings.putPhoneAuthVerified(false);
+    await AppSettings.flush();
+  }
   FlutterNativeSplash.remove();
   runApp(
     EasyLocalization(
@@ -118,7 +136,13 @@ Future<void> main() async {
       assetLoader: const CodegenLoader(),
       fallbackLocale: const Locale('en'),
       useOnlyLangCode: true,
-      child: ProviderScope(child: MyApp(storageReady: storageReady)),
+      child: ProviderScope(
+        child: MyApp(
+          storageReady: storageReady,
+          sendOtp: activeAuthClient!.requestOtp,
+          verifyOtp: activeAuthClient!.verifyOtp,
+        ),
+      ),
     ),
   );
   unawaited(initializeOptionalServices());
@@ -153,9 +177,16 @@ Future<void> initializeOptionalServices({
 }
 
 class MyApp extends ConsumerStatefulWidget {
-  const MyApp({super.key, this.storageReady = true});
+  const MyApp({
+    super.key,
+    this.storageReady = true,
+    this.sendOtp,
+    this.verifyOtp,
+  });
 
   final bool storageReady;
+  final OtpSender? sendOtp;
+  final OtpVerifier? verifyOtp;
 
   @override
   ConsumerState<MyApp> createState() => _MyAppState();
@@ -163,6 +194,9 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   bool? _hasSelectedLanguage;
+  bool? _hasSelectedInterest;
+  bool? _hasVerifiedPhone;
+  PhoneNumber? _pendingPhoneNumber;
 
   @override
   void initState() {
@@ -174,11 +208,78 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _hasSelectedLanguage ??= context.savedLocale != null;
+    _hasSelectedInterest ??= AppSettings.getOnboardingInterest() >= 0;
+    _hasVerifiedPhone ??= AppSettings.getPhoneAuthVerified();
   }
 
   void _languageSelected() {
     if (_hasSelectedLanguage == true) return;
     setState(() => _hasSelectedLanguage = true);
+  }
+
+  Future<void> _interestSelected(AccountType type) async {
+    AppSettings.putOnboardingInterest(type.index);
+    await AppSettings.flush();
+    if (!mounted) return;
+    setState(() => _hasSelectedInterest = true);
+  }
+
+  Future<String?> _sendOtp(PhoneNumber phoneNumber) async {
+    if (widget.sendOtp == null) {
+      return LocaleKeys.phoneVerificationUnavailable.tr();
+    }
+    try {
+      await widget.sendOtp!(phoneNumber);
+      if (!mounted) return null;
+      setState(() => _pendingPhoneNumber = phoneNumber);
+      return null;
+    } catch (_) {
+      return LocaleKeys.couldNotSendCode.tr();
+    }
+  }
+
+  Future<String?> _verifyOtp(String code) async {
+    final phoneNumber = _pendingPhoneNumber;
+    if (phoneNumber == null || widget.verifyOtp == null) {
+      return LocaleKeys.phoneVerificationUnavailable.tr();
+    }
+    try {
+      final verified = await widget.verifyOtp!(
+        phoneNumber,
+        code,
+        context.locale.languageCode,
+      );
+      if (!verified) return LocaleKeys.invalidVerificationCode.tr();
+      AppSettings.putPhoneAuthVerified(true);
+      AppSettings.putVerifiedPhoneNumber(_e164Phone(phoneNumber));
+      AppSettings.putPendingPreferredLanguage('');
+      await AppSettings.flush();
+      if (!mounted) return null;
+      setState(() {
+        _hasVerifiedPhone = true;
+        _pendingPhoneNumber = null;
+      });
+      return null;
+    } catch (_) {
+      return LocaleKeys.couldNotVerifyCode.tr();
+    }
+  }
+
+  String _e164Phone(PhoneNumber phoneNumber) {
+    final countryCode = switch (phoneNumber.isoCode) {
+      'IN' => '91',
+      'NP' => '977',
+      'BD' => '880',
+      'BT' => '975',
+      _ => '',
+    };
+    return '+$countryCode${phoneNumber.nsn}';
+  }
+
+  Future<String?> _resendOtp() async {
+    final phoneNumber = _pendingPhoneNumber;
+    if (phoneNumber == null) return LocaleKeys.couldNotSendCode.tr();
+    return _sendOtp(phoneNumber);
   }
 
   @override
@@ -218,6 +319,18 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
           ? ErrorPage()
           : _hasSelectedLanguage != true
           ? StartupLanguageScreen(onLanguageSelected: _languageSelected)
+          : _hasVerifiedPhone != true
+          ? _pendingPhoneNumber == null
+                ? PhoneLoginScreen(onContinue: _sendOtp)
+                : OtpVerificationScreen(
+                    phoneNumber: _pendingPhoneNumber!,
+                    onVerify: _verifyOtp,
+                    onResend: _resendOtp,
+                    onChangeNumber: () =>
+                        setState(() => _pendingPhoneNumber = null),
+                  )
+          : _hasSelectedInterest != true
+          ? AccountTypeScreen(onContinue: _interestSelected)
           : ref
                 .watch(authenticateProvider)
                 .when(

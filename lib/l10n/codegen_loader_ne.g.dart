@@ -492,4 +492,8 @@ const Map<String, dynamic> translations = {
   "lenderAccountDescription": "ऋण दिनुहोस् र भुक्तानी व्यवस्थापन गर्नुहोस्",
   "borrowerAccount": "ऋणी",
   "borrowerAccountDescription": "आफ्ना ऋण र भुक्तानीहरूको विवरण राख्नुहोस्",
+  "bothLendingAndBorrowing": "दुवै",
+  "bothAccountDescription": "फरक सम्बन्धहरूमा ऋण दिनुहोस् र लिनुहोस्",
+  "preferenceCanChangeLater":
+      "यसले केवल तपाईंको अनुभवलाई व्यक्तिगत बनाउँछ। पछि परिवर्तन गर्न सक्नुहुन्छ।",
 };

@@ -22,6 +22,9 @@ void main() {
     await EasyLocalization.ensureInitialized();
     directory = await Directory.systemTemp.createTemp('loanx_startup_');
     await AppSettings.initForTesting(directory);
+    AppSettings.putOnboardingInterest(2);
+    AppSettings.putPhoneAuthVerified(true);
+    await AppSettings.flush();
   });
 
   tearDown(() async {

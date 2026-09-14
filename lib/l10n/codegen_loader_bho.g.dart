@@ -489,4 +489,8 @@ const Map<String, dynamic> translations = {
   "lenderAccountDescription": "कर्ज दीं आ भुगतान संभालीं",
   "borrowerAccount": "कर्ज लेवे वाला",
   "borrowerAccountDescription": "आपन कर्ज आ भुगतान के हिसाब रखीं",
+  "bothLendingAndBorrowing": "दुनो",
+  "bothAccountDescription": "अलग-अलग रिश्ता में कर्ज दीं आ लीं",
+  "preferenceCanChangeLater":
+      "ई खाली रउआ अनुभव के निजी बनावेला। बाद में बदल सकत बानी।",
 };

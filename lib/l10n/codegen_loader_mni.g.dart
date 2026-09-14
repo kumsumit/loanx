@@ -486,4 +486,8 @@ const Map<String, dynamic> translations = {
   "lenderAccountDescription": "শেন পীয়ু অমসুং শিংদোকপা মেনেজ তৌ",
   "borrowerAccount": "শেন লৌবা",
   "borrowerAccountDescription": "নঙগী শেন অমসুং শিংদোকপা য়েংশিনউ",
+  "bothLendingAndBorrowing": "অনীমক",
+  "bothAccountDescription": "তোঙান-তোঙানবা মরীশিংদা শেন পীয়ু অমসুং লৌরো",
+  "preferenceCanChangeLater":
+      "মসি নঙগী এক্সপেরিয়েন্সতমক পার্সোনালাইজ তৌই। মতুংদা হোংদোকপা য়াই।",
 };

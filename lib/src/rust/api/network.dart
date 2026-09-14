@@ -6,8 +6,86 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `write_frame`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`
+// These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `write_frame`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+
+Future<ChatCredentials> requestChatCredentials({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+}) => RustLib.instance.api.crateApiNetworkRequestChatCredentials(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+);
+
+Future<OtpChallenge> requestOtp({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String phoneE164,
+}) => RustLib.instance.api.crateApiNetworkRequestOtp(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  phoneE164: phoneE164,
+);
+
+Future<AuthTokens> verifyOtp({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String challengeId,
+  required String phoneE164,
+  required String otp,
+  required String preferredLanguage,
+}) => RustLib.instance.api.crateApiNetworkVerifyOtp(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  challengeId: challengeId,
+  phoneE164: phoneE164,
+  otp: otp,
+  preferredLanguage: preferredLanguage,
+);
+
+Future<NetworkResult> updateLanguage({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String preferredLanguage,
+}) => RustLib.instance.api.crateApiNetworkUpdateLanguage(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  preferredLanguage: preferredLanguage,
+);
+
+Future<AuthTokens> refreshSession({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String refreshToken,
+}) => RustLib.instance.api.crateApiNetworkRefreshSession(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  refreshToken: refreshToken,
+);
 
 /// Negotiates the LoanX protocol through Rust so Flutter never owns QUIC or
 /// Protobuf transport details. `trusted_certificate_pem` must authenticate
@@ -25,6 +103,129 @@ Future<ServerHello> connectAndHello({
   deviceId: deviceId,
   clientBuild: clientBuild,
 );
+
+class AuthTokens {
+  final bool success;
+  final String accessToken;
+  final String refreshToken;
+  final String userId;
+  final String? errorMessage;
+
+  const AuthTokens({
+    required this.success,
+    required this.accessToken,
+    required this.refreshToken,
+    required this.userId,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      accessToken.hashCode ^
+      refreshToken.hashCode ^
+      userId.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthTokens &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          accessToken == other.accessToken &&
+          refreshToken == other.refreshToken &&
+          userId == other.userId &&
+          errorMessage == other.errorMessage;
+}
+
+class ChatCredentials {
+  final bool success;
+  final String jid;
+  final String accessToken;
+  final PlatformInt64 expiresAtMs;
+  final String websocketUrl;
+  final String? errorMessage;
+
+  const ChatCredentials({
+    required this.success,
+    required this.jid,
+    required this.accessToken,
+    required this.expiresAtMs,
+    required this.websocketUrl,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      jid.hashCode ^
+      accessToken.hashCode ^
+      expiresAtMs.hashCode ^
+      websocketUrl.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChatCredentials &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          jid == other.jid &&
+          accessToken == other.accessToken &&
+          expiresAtMs == other.expiresAtMs &&
+          websocketUrl == other.websocketUrl &&
+          errorMessage == other.errorMessage;
+}
+
+class NetworkResult {
+  final bool success;
+  final String? errorMessage;
+
+  const NetworkResult({required this.success, this.errorMessage});
+
+  @override
+  int get hashCode => success.hashCode ^ errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NetworkResult &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          errorMessage == other.errorMessage;
+}
+
+class OtpChallenge {
+  final bool success;
+  final String challengeId;
+  final int expiresInSeconds;
+  final String? errorMessage;
+
+  const OtpChallenge({
+    required this.success,
+    required this.challengeId,
+    required this.expiresInSeconds,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      challengeId.hashCode ^
+      expiresInSeconds.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OtpChallenge &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          challengeId == other.challengeId &&
+          expiresInSeconds == other.expiresInSeconds &&
+          errorMessage == other.errorMessage;
+}
 
 class ServerHello {
   final bool success;

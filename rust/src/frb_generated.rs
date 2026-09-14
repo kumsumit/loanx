@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 198214573;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1895575839;
 
 // Section: executor
 
@@ -160,6 +160,259 @@ fn wire__crate__api__simple__init_app_impl(
         },
     )
 }
+fn wire__crate__api__network__refresh_session_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "refresh_session",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_refresh_token = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::refresh_session(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_refresh_token,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__network__request_chat_credentials_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "request_chat_credentials",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_access_token = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::request_chat_credentials(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_access_token,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__network__request_otp_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "request_otp",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_phone_e164 = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::request_otp(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_phone_e164,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__network__update_language_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "update_language",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_access_token = <String>::sse_decode(&mut deserializer);
+            let api_preferred_language = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::update_language(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_access_token,
+                                api_preferred_language,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__network__verify_otp_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "verify_otp",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_challenge_id = <String>::sse_decode(&mut deserializer);
+            let api_phone_e164 = <String>::sse_decode(&mut deserializer);
+            let api_otp = <String>::sse_decode(&mut deserializer);
+            let api_preferred_language = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::verify_otp(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_challenge_id,
+                                api_phone_e164,
+                                api_otp,
+                                api_preferred_language,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 
 // Section: dart2rust
 
@@ -171,10 +424,55 @@ impl SseDecode for String {
     }
 }
 
+impl SseDecode for crate::api::network::AuthTokens {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_success = <bool>::sse_decode(deserializer);
+        let mut var_accessToken = <String>::sse_decode(deserializer);
+        let mut var_refreshToken = <String>::sse_decode(deserializer);
+        let mut var_userId = <String>::sse_decode(deserializer);
+        let mut var_errorMessage = <Option<String>>::sse_decode(deserializer);
+        return crate::api::network::AuthTokens {
+            success: var_success,
+            access_token: var_accessToken,
+            refresh_token: var_refreshToken,
+            user_id: var_userId,
+            error_message: var_errorMessage,
+        };
+    }
+}
+
 impl SseDecode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         deserializer.cursor.read_u8().unwrap() != 0
+    }
+}
+
+impl SseDecode for crate::api::network::ChatCredentials {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_success = <bool>::sse_decode(deserializer);
+        let mut var_jid = <String>::sse_decode(deserializer);
+        let mut var_accessToken = <String>::sse_decode(deserializer);
+        let mut var_expiresAtMs = <i64>::sse_decode(deserializer);
+        let mut var_websocketUrl = <String>::sse_decode(deserializer);
+        let mut var_errorMessage = <Option<String>>::sse_decode(deserializer);
+        return crate::api::network::ChatCredentials {
+            success: var_success,
+            jid: var_jid,
+            access_token: var_accessToken,
+            expires_at_ms: var_expiresAtMs,
+            websocket_url: var_websocketUrl,
+            error_message: var_errorMessage,
+        };
+    }
+}
+
+impl SseDecode for i64 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_i64::<NativeEndian>().unwrap()
     }
 }
 
@@ -202,6 +500,18 @@ impl SseDecode for Vec<u8> {
     }
 }
 
+impl SseDecode for crate::api::network::NetworkResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_success = <bool>::sse_decode(deserializer);
+        let mut var_errorMessage = <Option<String>>::sse_decode(deserializer);
+        return crate::api::network::NetworkResult {
+            success: var_success,
+            error_message: var_errorMessage,
+        };
+    }
+}
+
 impl SseDecode for Option<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -210,6 +520,22 @@ impl SseDecode for Option<String> {
         } else {
             return None;
         }
+    }
+}
+
+impl SseDecode for crate::api::network::OtpChallenge {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_success = <bool>::sse_decode(deserializer);
+        let mut var_challengeId = <String>::sse_decode(deserializer);
+        let mut var_expiresInSeconds = <u32>::sse_decode(deserializer);
+        let mut var_errorMessage = <Option<String>>::sse_decode(deserializer);
+        return crate::api::network::OtpChallenge {
+            success: var_success,
+            challenge_id: var_challengeId,
+            expires_in_seconds: var_expiresInSeconds,
+            error_message: var_errorMessage,
+        };
     }
 }
 
@@ -270,6 +596,16 @@ fn pde_ffi_dispatcher_primary_impl(
     match func_id {
         1 => wire__crate__api__network__connect_and_hello_impl(port, ptr, rust_vec_len, data_len),
         3 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        4 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__network__request_chat_credentials_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        6 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -289,6 +625,99 @@ fn pde_ffi_dispatcher_sync_impl(
 
 // Section: rust2dart
 
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::AuthTokens {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.success.into_into_dart().into_dart(),
+            self.access_token.into_into_dart().into_dart(),
+            self.refresh_token.into_into_dart().into_dart(),
+            self.user_id.into_into_dart().into_dart(),
+            self.error_message.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::AuthTokens
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::AuthTokens>
+    for crate::api::network::AuthTokens
+{
+    fn into_into_dart(self) -> crate::api::network::AuthTokens {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::ChatCredentials {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.success.into_into_dart().into_dart(),
+            self.jid.into_into_dart().into_dart(),
+            self.access_token.into_into_dart().into_dart(),
+            self.expires_at_ms.into_into_dart().into_dart(),
+            self.websocket_url.into_into_dart().into_dart(),
+            self.error_message.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::ChatCredentials
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::ChatCredentials>
+    for crate::api::network::ChatCredentials
+{
+    fn into_into_dart(self) -> crate::api::network::ChatCredentials {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::NetworkResult {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.success.into_into_dart().into_dart(),
+            self.error_message.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::NetworkResult
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::NetworkResult>
+    for crate::api::network::NetworkResult
+{
+    fn into_into_dart(self) -> crate::api::network::NetworkResult {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::OtpChallenge {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.success.into_into_dart().into_dart(),
+            self.challenge_id.into_into_dart().into_dart(),
+            self.expires_in_seconds.into_into_dart().into_dart(),
+            self.error_message.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::OtpChallenge
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::OtpChallenge>
+    for crate::api::network::OtpChallenge
+{
+    fn into_into_dart(self) -> crate::api::network::OtpChallenge {
+        self
+    }
+}
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::network::ServerHello {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -322,10 +751,40 @@ impl SseEncode for String {
     }
 }
 
+impl SseEncode for crate::api::network::AuthTokens {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.success, serializer);
+        <String>::sse_encode(self.access_token, serializer);
+        <String>::sse_encode(self.refresh_token, serializer);
+        <String>::sse_encode(self.user_id, serializer);
+        <Option<String>>::sse_encode(self.error_message, serializer);
+    }
+}
+
 impl SseEncode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_u8(self as _).unwrap();
+    }
+}
+
+impl SseEncode for crate::api::network::ChatCredentials {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.success, serializer);
+        <String>::sse_encode(self.jid, serializer);
+        <String>::sse_encode(self.access_token, serializer);
+        <i64>::sse_encode(self.expires_at_ms, serializer);
+        <String>::sse_encode(self.websocket_url, serializer);
+        <Option<String>>::sse_encode(self.error_message, serializer);
+    }
+}
+
+impl SseEncode for i64 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_i64::<NativeEndian>(self).unwrap();
     }
 }
 
@@ -349,6 +808,14 @@ impl SseEncode for Vec<u8> {
     }
 }
 
+impl SseEncode for crate::api::network::NetworkResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.success, serializer);
+        <Option<String>>::sse_encode(self.error_message, serializer);
+    }
+}
+
 impl SseEncode for Option<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -356,6 +823,16 @@ impl SseEncode for Option<String> {
         if let Some(value) = self {
             <String>::sse_encode(value, serializer);
         }
+    }
+}
+
+impl SseEncode for crate::api::network::OtpChallenge {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.success, serializer);
+        <String>::sse_encode(self.challenge_id, serializer);
+        <u32>::sse_encode(self.expires_in_seconds, serializer);
+        <Option<String>>::sse_encode(self.error_message, serializer);
     }
 }
 

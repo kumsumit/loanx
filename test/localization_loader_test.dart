@@ -19,4 +19,21 @@ void main() {
     expect(translations, isNotNull);
     expect(translations!['Loan details'], isNot('Loan details'));
   });
+
+  test('account interest copy is translated in every locale', () async {
+    for (final code in CodegenLoader.mapLocales.keys) {
+      final translations = await loader.load('', Locale(code));
+      for (final key in [
+        'bothLendingAndBorrowing',
+        'bothAccountDescription',
+        'preferenceCanChangeLater',
+      ]) {
+        expect(
+          translations![key],
+          isNotEmpty,
+          reason: 'Missing $key translation for $code',
+        );
+      }
+    }
+  });
 }

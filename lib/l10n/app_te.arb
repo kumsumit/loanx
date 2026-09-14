@@ -421,5 +421,8 @@
   "lenderAccount": "రుణదాత",
   "lenderAccountDescription": "రుణాలు ఇచ్చి తిరిగి చెల్లింపులను నిర్వహించండి",
   "borrowerAccount": "రుణగ్రహీత",
-  "borrowerAccountDescription": "మీ రుణాలు మరియు తిరిగి చెల్లింపులను గమనించండి"
+  "borrowerAccountDescription": "మీ రుణాలు మరియు తిరిగి చెల్లింపులను గమనించండి",
+  "bothLendingAndBorrowing": "రెండూ",
+  "bothAccountDescription": "వేర్వేరు సంబంధాల్లో రుణాలు ఇవ్వండి మరియు తీసుకోండి",
+  "preferenceCanChangeLater": "ఇది మీ అనుభవాన్ని మాత్రమే వ్యక్తిగతీకరిస్తుంది. తర్వాత మార్చవచ్చు."
 }

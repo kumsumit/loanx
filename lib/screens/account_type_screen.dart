@@ -2,11 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 
-enum AccountType { lender, borrower }
+/// An onboarding preference, never an authorization role or capability gate.
+enum AccountType { lender, borrower, both }
 
 class AccountTypeScreen extends StatefulWidget {
   const AccountTypeScreen({required this.onContinue, super.key});
-
   final ValueChanged<AccountType> onContinue;
 
   @override
@@ -14,82 +14,150 @@ class AccountTypeScreen extends StatefulWidget {
 }
 
 class _AccountTypeScreenState extends State<AccountTypeScreen> {
-  AccountType? _selectedType;
+  AccountType _selectedType = AccountType.both;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final choices = [
+      (
+        type: AccountType.lender,
+        icon: Icons.trending_up_rounded,
+        title: LocaleKeys.lenderAccount.tr(),
+        description: LocaleKeys.lenderAccountDescription.tr(),
+      ),
+      (
+        type: AccountType.borrower,
+        icon: Icons.account_balance_wallet_outlined,
+        title: LocaleKeys.borrowerAccount.tr(),
+        description: LocaleKeys.borrowerAccountDescription.tr(),
+      ),
+      (
+        type: AccountType.both,
+        icon: Icons.swap_horiz_rounded,
+        title: LocaleKeys.bothLendingAndBorrowing.tr(),
+        description: LocaleKeys.bothAccountDescription.tr(),
+      ),
+    ];
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Align(
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: colors.primaryContainer,
-                        shape: BoxShape.circle,
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.surface,
+              colors.primaryContainer.withValues(alpha: .35),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _InterestHero(colors: colors),
+                    const SizedBox(height: 28),
+                    Text(
+                      LocaleKeys.chooseAccountType.tr(),
+                      style: theme.textTheme.headlineLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      LocaleKeys.accountTypePrompt.tr(),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: colors.onSurfaceVariant,
                       ),
-                      child: Icon(
-                        Icons.account_balance_wallet_outlined,
-                        size: 42,
-                        color: colors.primary,
+                    ),
+                    const SizedBox(height: 26),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final cards = choices
+                            .map(
+                              (choice) => _AccountTypeCard(
+                                key: Key('interest-${choice.type.name}'),
+                                icon: choice.icon,
+                                title: choice.title,
+                                description: choice.description,
+                                selected: _selectedType == choice.type,
+                                onTap: () =>
+                                    setState(() => _selectedType = choice.type),
+                              ),
+                            )
+                            .toList();
+                        if (constraints.maxWidth < 620) {
+                          return Column(
+                            children: [
+                              for (
+                                var index = 0;
+                                index < cards.length;
+                                index++
+                              ) ...[
+                                cards[index],
+                                if (index < cards.length - 1)
+                                  const SizedBox(height: 12),
+                              ],
+                            ],
+                          );
+                        }
+                        return IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (
+                                var index = 0;
+                                index < cards.length;
+                                index++
+                              ) ...[
+                                Expanded(child: cards[index]),
+                                if (index < cards.length - 1)
+                                  const SizedBox(width: 12),
+                              ],
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 28),
+                    FilledButton.icon(
+                      key: const Key('interest-continue'),
+                      onPressed: () => widget.onContinue(_selectedType),
+                      iconAlignment: IconAlignment.end,
+                      icon: const Icon(Icons.arrow_forward_rounded),
+                      label: Text(LocaleKeys.continueAction.tr()),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(58),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 28),
-                  Text(
-                    LocaleKeys.chooseAccountType.tr(),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
+                    const SizedBox(height: 14),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.tune_rounded,
+                          size: 18,
+                          color: colors.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            LocaleKeys.preferenceCanChangeLater.tr(),
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    LocaleKeys.accountTypePrompt.tr(),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  _AccountTypeCard(
-                    icon: Icons.handshake_outlined,
-                    title: LocaleKeys.lenderAccount.tr(),
-                    description: LocaleKeys.lenderAccountDescription.tr(),
-                    selected: _selectedType == AccountType.lender,
-                    onTap: () =>
-                        setState(() => _selectedType = AccountType.lender),
-                  ),
-                  const SizedBox(height: 14),
-                  _AccountTypeCard(
-                    icon: Icons.person_outline_rounded,
-                    title: LocaleKeys.borrowerAccount.tr(),
-                    description: LocaleKeys.borrowerAccountDescription.tr(),
-                    selected: _selectedType == AccountType.borrower,
-                    onTap: () =>
-                        setState(() => _selectedType = AccountType.borrower),
-                  ),
-                  const SizedBox(height: 28),
-                  SizedBox(
-                    height: 52,
-                    child: FilledButton(
-                      onPressed: _selectedType == null
-                          ? null
-                          : () => widget.onContinue(_selectedType!),
-                      child: Text(LocaleKeys.continueAction.tr()),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -99,6 +167,55 @@ class _AccountTypeScreenState extends State<AccountTypeScreen> {
   }
 }
 
+class _InterestHero extends StatelessWidget {
+  const _InterestHero({required this.colors});
+  final ColorScheme colors;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: AlignmentDirectional.centerStart,
+    child: Container(
+      width: 104,
+      height: 88,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [colors.primary, colors.tertiary]),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: colors.primary.withValues(alpha: .24),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.handshake_rounded, size: 44, color: colors.onPrimary),
+          PositionedDirectional(
+            end: 13,
+            bottom: 12,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(
+                  Icons.sync_alt_rounded,
+                  size: 16,
+                  color: colors.onPrimaryContainer,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _AccountTypeCard extends StatelessWidget {
   const _AccountTypeCard({
     required this.icon,
@@ -106,8 +223,8 @@ class _AccountTypeCard extends StatelessWidget {
     required this.description,
     required this.selected,
     required this.onTap,
+    super.key,
   });
-
   final IconData icon;
   final String title;
   final String description;
@@ -117,66 +234,67 @@ class _AccountTypeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-
     return Semantics(
       selected: selected,
       button: true,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: selected ? colors.primaryContainer : colors.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: selected ? colors.primary : colors.outlineVariant,
-              width: selected ? 2 : 1,
-            ),
+      child: Material(
+        color: selected
+            ? colors.primaryContainer
+            : colors.surfaceContainerLowest,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: selected ? colors.primary : colors.outlineVariant,
+            width: selected ? 2 : 1,
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? colors.primary.withValues(alpha: .12)
-                      : colors.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: colors.primary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? colors.primary
+                            : colors.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: selected
+                            ? colors.onPrimary
+                            : colors.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
+                    const Spacer(),
+                    Icon(
+                      selected
+                          ? Icons.check_circle_rounded
+                          : Icons.circle_outlined,
+                      color: selected ? colors.primary : colors.outline,
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Icon(
-                selected
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_unchecked_rounded,
-                color: selected ? colors.primary : colors.outline,
-              ),
-            ],
+                const SizedBox(height: 16),
+                Text(title, style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 6),
+                Text(
+                  description,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

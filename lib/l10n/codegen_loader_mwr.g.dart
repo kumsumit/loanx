@@ -482,4 +482,8 @@ const Map<String, dynamic> translations = {
   "lenderAccountDescription": "उधार देवो अर भुगतान संभाळो",
   "borrowerAccount": "उधार लेण आळो",
   "borrowerAccountDescription": "आपरे उधार अर भुगतान रो हिसाब राखो",
+  "bothLendingAndBorrowing": "दोनों",
+  "bothAccountDescription": "अलग-अलग रिश्तां में उधार देवो अर लेवो",
+  "preferenceCanChangeLater":
+      "ई सिरफ थारो अनुभव निजी बणावै है। पाछै बदल सको हो।",
 };

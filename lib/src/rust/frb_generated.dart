@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 198214573;
+  int get rustContentHash => 1895575839;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -90,6 +90,50 @@ abstract class RustLibApi extends BaseApi {
   String crateApiSimpleGreet({required String name});
 
   Future<void> crateApiSimpleInitApp();
+
+  Future<AuthTokens> crateApiNetworkRefreshSession({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String refreshToken,
+  });
+
+  Future<ChatCredentials> crateApiNetworkRequestChatCredentials({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+  });
+
+  Future<OtpChallenge> crateApiNetworkRequestOtp({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String phoneE164,
+  });
+
+  Future<NetworkResult> crateApiNetworkUpdateLanguage({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String preferredLanguage,
+  });
+
+  Future<AuthTokens> crateApiNetworkVerifyOtp({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String challengeId,
+    required String phoneE164,
+    required String otp,
+    required String preferredLanguage,
+  });
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -203,6 +247,285 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiSimpleInitAppConstMeta =>
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
+  @override
+  Future<AuthTokens> crateApiNetworkRefreshSession({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String refreshToken,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(refreshToken, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_auth_tokens,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkRefreshSessionConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          refreshToken,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkRefreshSessionConstMeta =>
+      const TaskConstMeta(
+        debugName: "refresh_session",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "refreshToken",
+        ],
+      );
+
+  @override
+  Future<ChatCredentials> crateApiNetworkRequestChatCredentials({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_chat_credentials,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkRequestChatCredentialsConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkRequestChatCredentialsConstMeta =>
+      const TaskConstMeta(
+        debugName: "request_chat_credentials",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+        ],
+      );
+
+  @override
+  Future<OtpChallenge> crateApiNetworkRequestOtp({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String phoneE164,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(phoneE164, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 6,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_otp_challenge,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkRequestOtpConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          phoneE164,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkRequestOtpConstMeta => const TaskConstMeta(
+    debugName: "request_otp",
+    argNames: [
+      "serverAddress",
+      "serverName",
+      "trustedCertificatePem",
+      "deviceId",
+      "phoneE164",
+    ],
+  );
+
+  @override
+  Future<NetworkResult> crateApiNetworkUpdateLanguage({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String preferredLanguage,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_String(preferredLanguage, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_network_result,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkUpdateLanguageConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+          preferredLanguage,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkUpdateLanguageConstMeta =>
+      const TaskConstMeta(
+        debugName: "update_language",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+          "preferredLanguage",
+        ],
+      );
+
+  @override
+  Future<AuthTokens> crateApiNetworkVerifyOtp({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String challengeId,
+    required String phoneE164,
+    required String otp,
+    required String preferredLanguage,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(challengeId, serializer);
+          sse_encode_String(phoneE164, serializer);
+          sse_encode_String(otp, serializer);
+          sse_encode_String(preferredLanguage, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_auth_tokens,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkVerifyOtpConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          challengeId,
+          phoneE164,
+          otp,
+          preferredLanguage,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkVerifyOtpConstMeta => const TaskConstMeta(
+    debugName: "verify_otp",
+    argNames: [
+      "serverAddress",
+      "serverName",
+      "trustedCertificatePem",
+      "deviceId",
+      "challengeId",
+      "phoneE164",
+      "otp",
+      "preferredLanguage",
+    ],
+  );
+
   @protected
   String dco_decode_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -210,9 +533,46 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  AuthTokens dco_decode_auth_tokens(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return AuthTokens(
+      success: dco_decode_bool(arr[0]),
+      accessToken: dco_decode_String(arr[1]),
+      refreshToken: dco_decode_String(arr[2]),
+      userId: dco_decode_String(arr[3]),
+      errorMessage: dco_decode_opt_String(arr[4]),
+    );
+  }
+
+  @protected
   bool dco_decode_bool(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as bool;
+  }
+
+  @protected
+  ChatCredentials dco_decode_chat_credentials(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return ChatCredentials(
+      success: dco_decode_bool(arr[0]),
+      jid: dco_decode_String(arr[1]),
+      accessToken: dco_decode_String(arr[2]),
+      expiresAtMs: dco_decode_i_64(arr[3]),
+      websocketUrl: dco_decode_String(arr[4]),
+      errorMessage: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeI64(raw);
   }
 
   @protected
@@ -228,9 +588,35 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NetworkResult dco_decode_network_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return NetworkResult(
+      success: dco_decode_bool(arr[0]),
+      errorMessage: dco_decode_opt_String(arr[1]),
+    );
+  }
+
+  @protected
   String? dco_decode_opt_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  OtpChallenge dco_decode_otp_challenge(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return OtpChallenge(
+      success: dco_decode_bool(arr[0]),
+      challengeId: dco_decode_String(arr[1]),
+      expiresInSeconds: dco_decode_u_32(arr[2]),
+      errorMessage: dco_decode_opt_String(arr[3]),
+    );
   }
 
   @protected
@@ -275,9 +661,51 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  AuthTokens sse_decode_auth_tokens(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_accessToken = sse_decode_String(deserializer);
+    var var_refreshToken = sse_decode_String(deserializer);
+    var var_userId = sse_decode_String(deserializer);
+    var var_errorMessage = sse_decode_opt_String(deserializer);
+    return AuthTokens(
+      success: var_success,
+      accessToken: var_accessToken,
+      refreshToken: var_refreshToken,
+      userId: var_userId,
+      errorMessage: var_errorMessage,
+    );
+  }
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
+  ChatCredentials sse_decode_chat_credentials(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_jid = sse_decode_String(deserializer);
+    var var_accessToken = sse_decode_String(deserializer);
+    var var_expiresAtMs = sse_decode_i_64(deserializer);
+    var var_websocketUrl = sse_decode_String(deserializer);
+    var var_errorMessage = sse_decode_opt_String(deserializer);
+    return ChatCredentials(
+      success: var_success,
+      jid: var_jid,
+      accessToken: var_accessToken,
+      expiresAtMs: var_expiresAtMs,
+      websocketUrl: var_websocketUrl,
+      errorMessage: var_errorMessage,
+    );
+  }
+
+  @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getPlatformInt64();
   }
 
   @protected
@@ -300,6 +728,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  NetworkResult sse_decode_network_result(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_errorMessage = sse_decode_opt_String(deserializer);
+    return NetworkResult(success: var_success, errorMessage: var_errorMessage);
+  }
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -308,6 +744,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     } else {
       return null;
     }
+  }
+
+  @protected
+  OtpChallenge sse_decode_otp_challenge(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_challengeId = sse_decode_String(deserializer);
+    var var_expiresInSeconds = sse_decode_u_32(deserializer);
+    var var_errorMessage = sse_decode_opt_String(deserializer);
+    return OtpChallenge(
+      success: var_success,
+      challengeId: var_challengeId,
+      expiresInSeconds: var_expiresInSeconds,
+      errorMessage: var_errorMessage,
+    );
   }
 
   @protected
@@ -359,9 +810,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_auth_tokens(AuthTokens self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_String(self.accessToken, serializer);
+    sse_encode_String(self.refreshToken, serializer);
+    sse_encode_String(self.userId, serializer);
+    sse_encode_opt_String(self.errorMessage, serializer);
+  }
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
+  void sse_encode_chat_credentials(
+    ChatCredentials self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_String(self.jid, serializer);
+    sse_encode_String(self.accessToken, serializer);
+    sse_encode_i_64(self.expiresAtMs, serializer);
+    sse_encode_String(self.websocketUrl, serializer);
+    sse_encode_opt_String(self.errorMessage, serializer);
+  }
+
+  @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putPlatformInt64(self);
   }
 
   @protected
@@ -384,6 +865,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_network_result(NetworkResult self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_opt_String(self.errorMessage, serializer);
+  }
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -391,6 +879,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (self != null) {
       sse_encode_String(self, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_otp_challenge(OtpChallenge self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_String(self.challengeId, serializer);
+    sse_encode_u_32(self.expiresInSeconds, serializer);
+    sse_encode_opt_String(self.errorMessage, serializer);
   }
 
   @protected

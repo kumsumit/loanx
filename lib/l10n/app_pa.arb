@@ -421,5 +421,8 @@
   "lenderAccount": "ਕਰਜ਼ਦਾਤਾ",
   "lenderAccountDescription": "ਕਰਜ਼ੇ ਦਿਓ ਅਤੇ ਮੁੜ-ਭੁਗਤਾਨ ਸੰਭਾਲੋ",
   "borrowerAccount": "ਕਰਜ਼ਦਾਰ",
-  "borrowerAccountDescription": "ਆਪਣੇ ਕਰਜ਼ਿਆਂ ਅਤੇ ਮੁੜ-ਭੁਗਤਾਨਾਂ ਦਾ ਧਿਆਨ ਰੱਖੋ"
+  "borrowerAccountDescription": "ਆਪਣੇ ਕਰਜ਼ਿਆਂ ਅਤੇ ਮੁੜ-ਭੁਗਤਾਨਾਂ ਦਾ ਧਿਆਨ ਰੱਖੋ",
+  "bothLendingAndBorrowing": "ਦੋਵੇਂ",
+  "bothAccountDescription": "ਵੱਖ-ਵੱਖ ਰਿਸ਼ਤਿਆਂ ਵਿੱਚ ਕਰਜ਼ਾ ਦਿਓ ਅਤੇ ਲਓ",
+  "preferenceCanChangeLater": "ਇਹ ਸਿਰਫ਼ ਤੁਹਾਡੇ ਅਨੁਭਵ ਨੂੰ ਨਿੱਜੀ ਬਣਾਉਂਦਾ ਹੈ। ਤੁਸੀਂ ਇਸਨੂੰ ਬਾਅਦ ਵਿੱਚ ਬਦਲ ਸਕਦੇ ਹੋ।"
 }

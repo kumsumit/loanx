@@ -421,5 +421,8 @@
   "lenderAccount": "ಸಾಲದಾತ",
   "lenderAccountDescription": "ಸಾಲ ನೀಡಿ ಮತ್ತು ಮರುಪಾವತಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
   "borrowerAccount": "ಸಾಲಗಾರ",
-  "borrowerAccountDescription": "ನಿಮ್ಮ ಸಾಲಗಳು ಮತ್ತು ಮರುಪಾವತಿಗಳನ್ನು ಗಮನಿಸಿ"
+  "borrowerAccountDescription": "ನಿಮ್ಮ ಸಾಲಗಳು ಮತ್ತು ಮರುಪಾವತಿಗಳನ್ನು ಗಮನಿಸಿ",
+  "bothLendingAndBorrowing": "ಎರಡೂ",
+  "bothAccountDescription": "ವಿಭಿನ್ನ ಸಂಬಂಧಗಳಲ್ಲಿ ಸಾಲ ನೀಡಿ ಮತ್ತು ಪಡೆಯಿರಿ",
+  "preferenceCanChangeLater": "ಇದು ನಿಮ್ಮ ಅನುಭವವನ್ನು ಮಾತ್ರ ವೈಯಕ್ತೀಕರಿಸುತ್ತದೆ. ನಂತರ ಬದಲಾಯಿಸಬಹುದು."
 }

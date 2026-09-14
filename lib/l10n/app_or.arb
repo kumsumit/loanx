@@ -421,5 +421,8 @@
   "lenderAccount": "ଋଣଦାତା",
   "lenderAccountDescription": "ଋଣ ଦିଅନ୍ତୁ ଏବଂ ପରିଶୋଧ ପରିଚାଳନା କରନ୍ତୁ",
   "borrowerAccount": "ଋଣଗ୍ରହୀତା",
-  "borrowerAccountDescription": "ଆପଣଙ୍କ ଋଣ ଏବଂ ପରିଶୋଧ ଉପରେ ନଜର ରଖନ୍ତୁ"
+  "borrowerAccountDescription": "ଆପଣଙ୍କ ଋଣ ଏବଂ ପରିଶୋଧ ଉପରେ ନଜର ରଖନ୍ତୁ",
+  "bothLendingAndBorrowing": "ଉଭୟ",
+  "bothAccountDescription": "ବିଭିନ୍ନ ସମ୍ପର୍କରେ ଋଣ ଦିଅନ୍ତୁ ଏବଂ ନିଅନ୍ତୁ",
+  "preferenceCanChangeLater": "ଏହା କେବଳ ଆପଣଙ୍କ ଅନୁଭୂତିକୁ ବ୍ୟକ୍ତିଗତ କରେ। ପରେ ବଦଳାଇ ପାରିବେ।"
 }

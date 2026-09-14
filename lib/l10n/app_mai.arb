@@ -421,5 +421,8 @@
   "lenderAccount": "ऋणदाता",
   "lenderAccountDescription": "ऋण दिअ आ भुगतान प्रबंधित करू",
   "borrowerAccount": "ऋण लेनिहार",
-  "borrowerAccountDescription": "अपन ऋण आ भुगतानक हिसाब राखू"
+  "borrowerAccountDescription": "अपन ऋण आ भुगतानक हिसाब राखू",
+  "bothLendingAndBorrowing": "दुनू",
+  "bothAccountDescription": "अलग-अलग संबंधमे ऋण दिअ आ लिअ",
+  "preferenceCanChangeLater": "ई केवल अहाँक अनुभवकेँ व्यक्तिगत बनबैत अछि। बादमे बदलि सकैत छी।"
 }

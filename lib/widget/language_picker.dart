@@ -1,27 +1,31 @@
-import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:loanx/l10n/locale_keys.g.dart';
+import 'package:loanx/db/app_settings.dart';
+import 'package:loanx/service/auth_client.dart';
 
-const appLanguages = <({Locale locale, String nativeName})>[
-  (locale: Locale('as'), nativeName: 'অসমীয়া'),
-  (locale: Locale('bho'), nativeName: 'भोजपुरी'),
-  (locale: Locale('en'), nativeName: 'English'),
-  (locale: Locale('bn'), nativeName: 'বাংলা'),
-  (locale: Locale('bra'), nativeName: 'ब्रज भाषा'),
-  (locale: Locale('gu'), nativeName: 'ગુજરાતી'),
-  (locale: Locale('hi'), nativeName: 'हिन्दी'),
-  (locale: Locale('kn'), nativeName: 'ಕನ್ನಡ'),
-  (locale: Locale('mai'), nativeName: 'मैथिली'),
-  (locale: Locale('ml'), nativeName: 'മലയാളം'),
-  (locale: Locale('mni'), nativeName: 'মৈতৈলোন্'),
-  (locale: Locale('mr'), nativeName: 'मराठी'),
-  (locale: Locale('mwr'), nativeName: 'मारवाड़ी'),
-  (locale: Locale('ne'), nativeName: 'नेपाली'),
-  (locale: Locale('or'), nativeName: 'ଓଡ଼ିଆ'),
-  (locale: Locale('pa'), nativeName: 'ਪੰਜਾਬੀ'),
-  (locale: Locale('ta'), nativeName: 'தமிழ்'),
-  (locale: Locale('te'), nativeName: 'తెలుగు'),
-  (locale: Locale('ur'), nativeName: 'اردو'),
+typedef AppLanguage = ({Locale locale, String nativeName, String englishName});
+
+const appLanguages = <AppLanguage>[
+  (locale: Locale('as'), nativeName: 'অসমীয়া', englishName: 'Assamese'),
+  (locale: Locale('bho'), nativeName: 'भोजपुरी', englishName: 'Bhojpuri'),
+  (locale: Locale('en'), nativeName: 'English', englishName: 'English'),
+  (locale: Locale('bn'), nativeName: 'বাংলা', englishName: 'Bengali'),
+  (locale: Locale('bra'), nativeName: 'ब्रज भाषा', englishName: 'Braj'),
+  (locale: Locale('gu'), nativeName: 'ગુજરાતી', englishName: 'Gujarati'),
+  (locale: Locale('hi'), nativeName: 'हिन्दी', englishName: 'Hindi'),
+  (locale: Locale('kn'), nativeName: 'ಕನ್ನಡ', englishName: 'Kannada'),
+  (locale: Locale('mai'), nativeName: 'मैथिली', englishName: 'Maithili'),
+  (locale: Locale('ml'), nativeName: 'മലയാളം', englishName: 'Malayalam'),
+  (locale: Locale('mni'), nativeName: 'মৈতৈলোন্', englishName: 'Manipuri'),
+  (locale: Locale('mr'), nativeName: 'मराठी', englishName: 'Marathi'),
+  (locale: Locale('mwr'), nativeName: 'मारवाड़ी', englishName: 'Marwari'),
+  (locale: Locale('ne'), nativeName: 'नेपाली', englishName: 'Nepali'),
+  (locale: Locale('or'), nativeName: 'ଓଡ଼ିଆ', englishName: 'Odia'),
+  (locale: Locale('pa'), nativeName: 'ਪੰਜਾਬੀ', englishName: 'Punjabi'),
+  (locale: Locale('ta'), nativeName: 'தமிழ்', englishName: 'Tamil'),
+  (locale: Locale('te'), nativeName: 'తెలుగు', englishName: 'Telugu'),
+  (locale: Locale('ur'), nativeName: 'اردو', englishName: 'Urdu'),
 ];
 
 String appLanguageName(Locale locale) => appLanguages
@@ -32,110 +36,340 @@ String appLanguageName(Locale locale) => appLanguages
     .nativeName;
 
 Future<void> showAppLanguagePicker(BuildContext context) async {
-  final selectedLocale = await showDialog<Locale>(
+  final selectedLocale = await showModalBottomSheet<Locale>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(LocaleKeys.chooseAppLanguage.tr()),
-      contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-      content: SingleChildScrollView(
-        child: RadioGroup<String>(
-          groupValue: context.locale.languageCode,
-          onChanged: (languageCode) {
-            if (languageCode == null) return;
-            Navigator.of(dialogContext).pop(Locale(languageCode));
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final language in appLanguages)
-                RadioListTile<String>(
-                  value: language.locale.languageCode,
-                  title: Text(language.nativeName),
-                ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
-          child: Text(LocaleKeys.cancel.tr()),
-        ),
-      ],
-    ),
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (_) => _LanguagePickerSheet(initialLocale: context.locale),
   );
   if (selectedLocale != null && context.mounted) {
     await context.setLocale(selectedLocale);
+    AppSettings.putPendingPreferredLanguage(selectedLocale.languageCode);
+    await AppSettings.flush();
+    try {
+      await activeAuthClient?.updateLanguage(selectedLocale.languageCode);
+      AppSettings.putPendingPreferredLanguage('');
+      await AppSettings.flush();
+    } catch (_) {
+      // The local choice remains active and is retained for a later sync.
+    }
   }
 }
 
-class StartupLanguageScreen extends StatelessWidget {
+class StartupLanguageScreen extends StatefulWidget {
   const StartupLanguageScreen({required this.onLanguageSelected, super.key});
-
   final VoidCallback onLanguageSelected;
 
-  Future<void> _selectLanguage(BuildContext context, Locale locale) async {
-    await context.setLocale(locale);
-    if (!context.mounted) return;
-    onLanguageSelected();
+  @override
+  State<StartupLanguageScreen> createState() => _StartupLanguageScreenState();
+}
+
+class _StartupLanguageScreenState extends State<StartupLanguageScreen> {
+  late Locale _selectedLocale;
+  String _query = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _selectedLocale = context.locale;
+  }
+
+  Future<void> _continue() async {
+    await context.setLocale(_selectedLocale);
+    if (mounted) widget.onLanguageSelected();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.surface,
+              colors.primaryContainer.withValues(alpha: .35),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: colors.primaryContainer,
-                      shape: BoxShape.circle,
+              constraints: const BoxConstraints(maxWidth: 920),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _LanguageHero(colors: colors),
+                    const SizedBox(height: 22),
+                    Text(
+                      LocaleKeys.chooseAppLanguage.tr(),
+                      style: Theme.of(context).textTheme.headlineLarge,
                     ),
-                    child: Icon(
-                      Icons.translate_rounded,
-                      size: 44,
-                      color: colors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    LocaleKeys.chooseAppLanguage.tr(),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    LocaleKeys.youCanChangeThisLaterFromAppPreferences.tr(),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  for (final language in appLanguages) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () =>
-                            _selectLanguage(context, language.locale),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: Text(language.nativeName),
+                    const SizedBox(height: 6),
+                    Text(
+                      LocaleKeys.youCanChangeThisLaterFromAppPreferences.tr(),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: colors.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 18),
+                    _LanguageSearch(
+                      onChanged: (value) => setState(() => _query = value),
+                    ),
+                    const SizedBox(height: 14),
+                    Expanded(
+                      child: _LanguageGrid(
+                        selectedLocale: _selectedLocale,
+                        query: _query,
+                        onSelected: (locale) =>
+                            setState(() => _selectedLocale = locale),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    FilledButton.icon(
+                      key: const Key('language-continue'),
+                      onPressed: _continue,
+                      iconAlignment: IconAlignment.end,
+                      icon: const Icon(Icons.arrow_forward_rounded),
+                      label: Text(LocaleKeys.continueAction.tr()),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(58),
+                      ),
+                    ),
                   ],
-                ],
+                ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LanguagePickerSheet extends StatefulWidget {
+  const _LanguagePickerSheet({required this.initialLocale});
+  final Locale initialLocale;
+
+  @override
+  State<_LanguagePickerSheet> createState() => _LanguagePickerSheetState();
+}
+
+class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
+  late Locale selectedLocale = widget.initialLocale;
+  String query = '';
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: MediaQuery.sizeOf(context).height * .82,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            LocaleKeys.chooseAppLanguage.tr(),
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 14),
+          _LanguageSearch(onChanged: (value) => setState(() => query = value)),
+          const SizedBox(height: 14),
+          Expanded(
+            child: _LanguageGrid(
+              selectedLocale: selectedLocale,
+              query: query,
+              onSelected: (locale) => setState(() => selectedLocale = locale),
+            ),
+          ),
+          const SizedBox(height: 14),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, selectedLocale),
+            child: Text(LocaleKeys.continueAction.tr()),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _LanguageHero extends StatelessWidget {
+  const _LanguageHero({required this.colors});
+  final ColorScheme colors;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: AlignmentDirectional.centerStart,
+    child: Container(
+      width: 96,
+      height: 82,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [colors.primary, colors.tertiary]),
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: [
+          BoxShadow(
+            color: colors.primary.withValues(alpha: .24),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Icon(Icons.translate_rounded, size: 42, color: colors.onPrimary),
+    ),
+  );
+}
+
+class _LanguageSearch extends StatelessWidget {
+  const _LanguageSearch({required this.onChanged});
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    key: const Key('language-search'),
+    onChanged: onChanged,
+    textInputAction: TextInputAction.search,
+    decoration: InputDecoration(
+      hintText: LocaleKeys.searchLanguage.tr(),
+      prefixIcon: const Icon(Icons.search_rounded),
+      suffixIcon: const Icon(Icons.tune_rounded),
+    ),
+  );
+}
+
+class _LanguageGrid extends StatelessWidget {
+  const _LanguageGrid({
+    required this.selectedLocale,
+    required this.query,
+    required this.onSelected,
+  });
+  final Locale selectedLocale;
+  final String query;
+  final ValueChanged<Locale> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final normalizedQuery = query.trim().toLowerCase();
+    final languages = appLanguages.where((language) {
+      return language.nativeName.toLowerCase().contains(normalizedQuery) ||
+          language.englishName.toLowerCase().contains(normalizedQuery);
+    }).toList();
+    if (languages.isEmpty) {
+      return Center(child: Text(LocaleKeys.noDataFound.tr()));
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 760
+            ? 3
+            : constraints.maxWidth >= 500
+            ? 2
+            : 1;
+        return GridView.builder(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          itemCount: languages.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisExtent: 82,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemBuilder: (context, index) {
+            final language = languages[index];
+            return _LanguageCard(
+              language: language,
+              selected:
+                  selectedLocale.languageCode == language.locale.languageCode,
+              onTap: () => onSelected(language.locale),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _LanguageCard extends StatelessWidget {
+  const _LanguageCard({
+    required this.language,
+    required this.selected,
+    required this.onTap,
+  });
+  final AppLanguage language;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: selected ? colors.primaryContainer : colors.surfaceContainerLowest,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: selected ? colors.primary : colors.outlineVariant,
+          width: selected ? 2 : 1,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: Key('language-${language.locale.languageCode}'),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? colors.primary
+                      : colors.surfaceContainerHigh,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  language.locale.languageCode.toUpperCase(),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: selected
+                        ? colors.onPrimary
+                        : colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      language.nativeName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    if (language.nativeName != language.englishName)
+                      Text(
+                        language.englishName,
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Icon(
+                selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+                color: selected ? colors.primary : colors.outline,
+              ),
+            ],
           ),
         ),
       ),

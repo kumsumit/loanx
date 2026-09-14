@@ -35,6 +35,7 @@ abstract final class LocaleKeys {
   static const chooseAppLanguage = "Choose app language";
   static const youCanChangeThisLaterFromAppPreferences =
       "You can change this later from App preferences.";
+  static const searchLanguage = "searchLanguage";
   static const simpleInterest = "simpleInterest";
   static const compoundInterest = "compoundInterest";
   static const addLoan = "addLoan";
@@ -486,6 +487,17 @@ abstract final class LocaleKeys {
   static const googleAccountConnected = "Google account connected.";
   static const googleAccountUpdated = "Google account updated.";
   static const phoneLoginPrompt = "phoneLoginPrompt";
+  static const verifyYourNumber = "verifyYourNumber";
+  static const otpSentTo = "otpSentTo";
+  static const sixDigitVerificationCode = "sixDigitVerificationCode";
+  static const verifyAndContinue = "verifyAndContinue";
+  static const resendCode = "resendCode";
+  static const resendCodeIn = "resendCodeIn";
+  static const changePhoneNumber = "changePhoneNumber";
+  static const phoneVerificationUnavailable = "phoneVerificationUnavailable";
+  static const couldNotSendCode = "couldNotSendCode";
+  static const invalidVerificationCode = "invalidVerificationCode";
+  static const couldNotVerifyCode = "couldNotVerifyCode";
   static const phoneNumber = "phoneNumber";
   static const continueAction = "continueAction";
   static const validMobileNumberHelper = "validMobileNumberHelper";
@@ -495,4 +507,7 @@ abstract final class LocaleKeys {
   static const lenderAccountDescription = "lenderAccountDescription";
   static const borrowerAccount = "borrowerAccount";
   static const borrowerAccountDescription = "borrowerAccountDescription";
+  static const bothLendingAndBorrowing = "bothLendingAndBorrowing";
+  static const bothAccountDescription = "bothAccountDescription";
+  static const preferenceCanChangeLater = "preferenceCanChangeLater";
 }
