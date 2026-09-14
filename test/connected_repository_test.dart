@@ -77,4 +77,42 @@ void main() {
     );
     await expectLater(repo.messages('missing'), throwsStateError);
   });
+  test('notifications and shares remain recipient scoped', () async {
+    await repo.createNotification(
+      recipientPartyId: 'self',
+      type: 'REPAYMENT',
+      title: 'Payment received',
+      body: 'A repayment was recorded',
+      operationId: 'notice-1',
+    );
+    await repo.createNotification(
+      recipientPartyId: 'other',
+      type: 'PRIVATE',
+      title: 'Other',
+      body: 'Not for self',
+      operationId: 'notice-2',
+    );
+    expect((await repo.notifications()).map((e) => e.id), ['notice-1']);
+    await repo.markNotificationRead('notice-1');
+    expect((await repo.notifications(unreadOnly: true)), isEmpty);
+    await db.insert('loans', {
+      'depositorName': 'Mohan',
+      'loanAmount': 100.0,
+      'uid': 'loan-1',
+      'ownerId': 'owner',
+      'lenderPartyId': 'self',
+      'borrowerPartyId': 'other',
+      'currency': 'INR',
+    });
+    final share = await repo.shareResource(
+      loanUid: 'loan-1',
+      recipientPartyId: 'self',
+      resourceType: 'statement',
+      resourceId: 'statement-1',
+      operationId: 'share-1',
+    );
+    expect((await repo.sharedWithMe()).single.resourceType, 'STATEMENT');
+    await repo.revokeShare(share.id);
+    expect(await repo.sharedWithMe(), isEmpty);
+  });
 }

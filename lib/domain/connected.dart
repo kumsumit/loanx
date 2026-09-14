@@ -61,3 +61,19 @@ class LoanNotification {
   final DateTime createdAt;
   final DateTime? readAt;
 }
+
+class SharedResource {
+  const SharedResource({
+    required this.id,
+    required this.loanUid,
+    required this.recipientPartyId,
+    required this.resourceType,
+    required this.resourceId,
+    required this.sharedAt,
+    this.revokedAt,
+  });
+  final String id, loanUid, recipientPartyId, resourceType, resourceId;
+  final DateTime sharedAt;
+  final DateTime? revokedAt;
+  bool get isActive => revokedAt == null;
+}

@@ -164,6 +164,168 @@ final class ConnectedRepository {
   Future<void> markDelivered(String messageId) =>
       _mark(messageId, 'deliveredAt');
   Future<void> markRead(String messageId) => _mark(messageId, 'readAt');
+
+  Future<LoanNotification> createNotification({
+    required String recipientPartyId,
+    required String type,
+    required String title,
+    required String body,
+    String? entityType,
+    String? entityId,
+    String? operationId,
+  }) async {
+    final id = operationId ?? domainId();
+    _id(id);
+    final safeType = _text(type, 80, true)!;
+    final safeTitle = _text(title, 200, true)!;
+    final safeBody = _text(body, 1000, true)!;
+    return database.transaction((tx) async {
+      await _party(tx, recipientPartyId);
+      final previous = await tx.query(
+        'notifications',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (previous.isNotEmpty) {
+        if (previous.single['ownerId'] != ownerId)
+          throw StateError('Notification is unavailable');
+        return _notification(previous.single);
+      }
+      final now = DateTime.now().toUtc().toIso8601String();
+      final row = <String, Object?>{
+        'id': id,
+        'ownerId': ownerId,
+        'recipientPartyId': recipientPartyId,
+        'type': safeType,
+        'entityType': entityType,
+        'entityId': entityId,
+        'title': safeTitle,
+        'body': safeBody,
+        'createdAt': now,
+      };
+      await tx.insert('notifications', row);
+      return _notification(row);
+    });
+  }
+
+  Future<List<LoanNotification>> notifications({
+    bool unreadOnly = false,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    if (limit < 1 || limit > 100 || offset < 0)
+      throw ArgumentError('Invalid pagination');
+    final rows = await database.transaction(
+      (tx) => tx.query(
+        'notifications',
+        where: 'ownerId = ? AND recipientPartyId = ?',
+        whereArgs: [ownerId, selfPartyId],
+        orderBy: 'createdAt DESC, id DESC',
+        limit: limit,
+        offset: offset,
+      ),
+    );
+    return rows
+        .where(
+          (row) =>
+              !unreadOnly || !(row['readAt']?.toString().isNotEmpty ?? false),
+        )
+        .map(_notification)
+        .toList(growable: false);
+  }
+
+  Future<void> markNotificationRead(String id) async {
+    final changed = await database.update(
+      'notifications',
+      {'readAt': DateTime.now().toUtc().toIso8601String()},
+      where: 'id = ? AND ownerId = ? AND recipientPartyId = ?',
+      whereArgs: [id, ownerId, selfPartyId],
+    );
+    if (changed != 1) throw StateError('Notification is unavailable');
+    await database.flush();
+  }
+
+  Future<SharedResource> shareResource({
+    required String loanUid,
+    required String recipientPartyId,
+    required String resourceType,
+    required String resourceId,
+    String? operationId,
+  }) async {
+    final id = operationId ?? domainId();
+    _id(id);
+    await _party(database, recipientPartyId);
+    final loans = await database.query(
+      'loans',
+      where: 'uid = ? AND ownerId = ?',
+      whereArgs: [loanUid, ownerId],
+    );
+    if (loans.isEmpty) throw StateError('Loan is unavailable');
+    final type = _text(resourceType, 50, true)!.toUpperCase();
+    if (!const {
+      'STATEMENT',
+      'RECEIPT',
+      'DOCUMENT',
+      'COLLATERAL',
+    }.contains(type))
+      throw ArgumentError('Unsupported shared resource type');
+    final previous = await database.query(
+      'sharedResources',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (previous.isNotEmpty) {
+      final value = _shared(previous.single);
+      if (previous.single['ownerId'] != ownerId ||
+          value.loanUid != loanUid ||
+          value.recipientPartyId != recipientPartyId ||
+          value.resourceType != type ||
+          value.resourceId != resourceId)
+        throw StateError('Operation ID was already used with different data');
+      return value;
+    }
+    final row = <String, Object?>{
+      'id': id,
+      'ownerId': ownerId,
+      'loanUid': loanUid,
+      'recipientPartyId': recipientPartyId,
+      'resourceType': type,
+      'resourceId': resourceId,
+      'visibility': 'SHARED',
+      'sharedAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    await database.insert('sharedResources', row);
+    return _shared(row);
+  }
+
+  Future<List<SharedResource>> sharedWithMe({int limit = 50}) async {
+    if (limit < 1 || limit > 100) throw ArgumentError('Invalid pagination');
+    final rows = await database.transaction(
+      (tx) => tx.query(
+        'sharedResources',
+        where: 'ownerId = ? AND recipientPartyId = ?',
+        whereArgs: [ownerId, selfPartyId],
+        orderBy: 'sharedAt DESC',
+        limit: limit,
+      ),
+    );
+    return rows
+        .where((row) => !(row['revokedAt']?.toString().isNotEmpty ?? false))
+        .map(_shared)
+        .toList(growable: false);
+  }
+
+  Future<void> revokeShare(String id) async {
+    final changed = await database.update(
+      'sharedResources',
+      {'revokedAt': DateTime.now().toUtc().toIso8601String()},
+      where: 'id = ? AND ownerId = ?',
+      whereArgs: [id, ownerId],
+    );
+    if (changed != 1) throw StateError('Shared resource is unavailable');
+    await database.flush();
+  }
+
   Future<void> _mark(String id, String field) async {
     final rows = await database.query(
       'messages',
@@ -253,5 +415,29 @@ final class ConnectedRepository {
         ? null
         : DateTime.parse(r['deliveredAt'] as String),
     readAt: r['readAt'] == null ? null : DateTime.parse(r['readAt'] as String),
+  );
+  static LoanNotification _notification(Map<String, Object?> r) =>
+      LoanNotification(
+        id: r['id'] as String,
+        type: r['type'] as String,
+        title: r['title'] as String,
+        body: r['body'] as String,
+        entityType: r['entityType'] as String?,
+        entityId: r['entityId'] as String?,
+        createdAt: DateTime.parse(r['createdAt'] as String),
+        readAt: r['readAt'] == null
+            ? null
+            : DateTime.parse(r['readAt'] as String),
+      );
+  static SharedResource _shared(Map<String, Object?> r) => SharedResource(
+    id: r['id'] as String,
+    loanUid: r['loanUid'] as String,
+    recipientPartyId: r['recipientPartyId'] as String,
+    resourceType: r['resourceType'] as String,
+    resourceId: r['resourceId'] as String,
+    sharedAt: DateTime.parse(r['sharedAt'] as String),
+    revokedAt: r['revokedAt'] == null
+        ? null
+        : DateTime.parse(r['revokedAt'] as String),
   );
 }
