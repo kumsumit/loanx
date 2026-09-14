@@ -92,6 +92,8 @@ class AppSettings {
   static bool getLanguageSelectionCompleted() =>
       _get('languageSelectionCompleted', false);
   static String getVerifiedPhoneNumber() => _get('verifiedPhoneNumber', '');
+  static String getVerifiedPhoneCountryCode() =>
+      _get('verifiedPhoneCountryCode', 'IN');
   static String getDeviceId() => _get('deviceId', '');
   static String getPendingPreferredLanguage() =>
       _get('pendingPreferredLanguage', '');
@@ -135,6 +137,8 @@ class AppSettings {
       _put('languageSelectionCompleted', v);
   static void putVerifiedPhoneNumber(String v) =>
       _put('verifiedPhoneNumber', v);
+  static void putVerifiedPhoneCountryCode(String v) =>
+      _put('verifiedPhoneCountryCode', v);
   static void putDeviceId(String v) => _put('deviceId', v);
   static void putPendingPreferredLanguage(String v) =>
       _put('pendingPreferredLanguage', v);

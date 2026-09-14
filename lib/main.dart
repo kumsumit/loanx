@@ -290,6 +290,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       if (!verified) return LocaleKeys.invalidVerificationCode.tr();
       AppSettings.putPhoneAuthVerified(true);
       AppSettings.putVerifiedPhoneNumber(_e164Phone(phoneNumber));
+      AppSettings.putVerifiedPhoneCountryCode(phoneNumber.isoCode);
       AppSettings.putPendingPreferredLanguage('');
       await AppSettings.flush();
       if (!mounted) return null;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:loanx/db/app_settings.dart';
+import 'package:loanx/domain/country_catalog.dart';
+import 'package:loanx/service/plan_pricing.dart';
 
 /// Captures an onboarding preference only. Subscription activation must be
 /// confirmed by the billing provider and enforced by the server.
@@ -14,6 +16,15 @@ class PlanSelectionScreen extends StatefulWidget {
 
 class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   String _selectedPlan = 'pro';
+  late final CountryConfig _country;
+  late final Future<PlanPrice> _proPrice;
+
+  @override
+  void initState() {
+    super.initState();
+    _country = CountryCatalog.byCode(AppSettings.getVerifiedPhoneCountryCode());
+    _proPrice = PlanPricingService().proPriceFor(_country);
+  }
 
   Future<void> _continue() async {
     AppSettings.putSelectedPlan(_selectedPlan);
@@ -50,24 +61,43 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _PlanOption(
-                    selected: _selectedPlan == 'pro',
-                    title: 'LoanX Pro',
-                    price: '₹399 / year',
-                    previousPrice: '₹699 / year',
-                    subtitle: 'Introductory price in India',
-                    features: const [
-                      'Cloud sync and multi-device access',
-                      'Connected borrower relationships',
-                      'Automated reminders and shared statements',
-                    ],
-                    onTap: () => setState(() => _selectedPlan = 'pro'),
+                  FutureBuilder<PlanPrice>(
+                    future: _proPrice,
+                    builder: (context, snapshot) {
+                      final price = snapshot.data;
+                      final priceUnavailable = snapshot.hasError;
+                      return _PlanOption(
+                        selected: _selectedPlan == 'pro',
+                        title: 'LoanX Pro',
+                        price: price == null
+                            ? priceUnavailable
+                                  ? 'Price unavailable'
+                                  : 'Loading price…'
+                            : '${price.currentLabel} / year',
+                        previousPrice: price == null
+                            ? null
+                            : '${price.previousLabel} / year',
+                        subtitle: price == null
+                            ? priceUnavailable
+                                  ? 'Connect to the internet to get the current ${_country.currency} estimate'
+                                  : 'Getting the current price for ${_country.name}'
+                            : price.isEstimate
+                            ? 'Estimated current price in ${price.currency}'
+                            : 'Introductory price in ${price.currency}',
+                        features: const [
+                          'Cloud sync and multi-device access',
+                          'Connected borrower relationships',
+                          'Automated reminders and shared statements',
+                        ],
+                        onTap: () => setState(() => _selectedPlan = 'pro'),
+                      );
+                    },
                   ),
                   const SizedBox(height: 14),
                   _PlanOption(
                     selected: _selectedPlan == 'free',
                     title: 'Free',
-                    price: '₹0',
+                    price: '${_country.symbol}0 ${_country.currency}',
                     subtitle: 'Local loan management',
                     features: const [
                       'Loans, repayments, receipts and reports',
