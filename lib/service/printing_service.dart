@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:loanx/model/loan.dart';
+import 'package:loanx/service/currency_presentation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -9,12 +10,6 @@ import 'package:printing/printing.dart';
 /// exposed by an installed print service (for example the manufacturer's app).
 class LoanPrintingService {
   LoanPrintingService._();
-
-  static final NumberFormat _currency = NumberFormat.currency(
-    locale: 'en_IN',
-    symbol: '₹',
-    decimalDigits: 2,
-  );
 
   static Future<void> printLoan(Loan loan) async {
     final bytes = await _buildReceipt(loan).save();
@@ -35,6 +30,7 @@ class LoanPrintingService {
   }
 
   static pw.Document _buildReceipt(Loan loan) {
+    final currency = CurrencyPresentation.formatter(loan.currency);
     final interest = loan.calculateInterest();
     final earlyRedemptionCharge = loan.calculateEarlyRedemptionCharge();
     final total = loan.calculateCollectable();
@@ -46,7 +42,7 @@ class LoanPrintingService {
       if (loan.relativeName.isNotEmpty) ['Relative', loan.relativeName],
       if (loan.address.isNotEmpty) ['Address', loan.address],
       ['Created', loan.dateCreatedFormat],
-      ['Principal', _currency.format(loan.loanAmount)],
+      ['Principal', currency.format(loan.loanAmount)],
       if (loan.weight > 0) ...[
         [
           'Mortgage weight',
@@ -54,7 +50,7 @@ class LoanPrintingService {
         ],
         [
           'Loan value per ${loan.weightUnit}',
-          _currency.format(loan.loanAmount / loan.weight),
+          currency.format(loan.loanAmount / loan.weight),
         ],
       ],
       ['Interest rate', '${loan.interestRate.toStringAsFixed(2)}%'],
@@ -66,20 +62,20 @@ class LoanPrintingService {
         ['Lock-in ends', DateFormat('dd MMM yyyy').format(loan.lockInEndsAt)],
         [
           'Early redemption charge',
-          _currency.format(loan.earlyRedemptionCharge),
+          currency.format(loan.earlyRedemptionCharge),
         ],
       ],
-      ['Accrued interest', _currency.format(interest)],
+      ['Accrued interest', currency.format(interest)],
       if (earlyRedemptionCharge > 0)
         [
           'Applied early redemption charge',
-          _currency.format(earlyRedemptionCharge),
+          currency.format(earlyRedemptionCharge),
         ],
-      ['Total due', _currency.format(total)],
+      ['Total due', currency.format(total)],
       ['Status', isCompleted ? 'Completed' : 'Active'],
       if (isCompleted) ['Completed on', loan.dateFinishedFormat],
       if (loan.settlementAmount != null)
-        ['Settlement amount', _currency.format(loan.settlementAmount)],
+        ['Settlement amount', currency.format(loan.settlementAmount)],
       if (loan.completedBy.isNotEmpty) ['Received by', loan.completedBy],
       if (loan.completionReference.isNotEmpty)
         ['Reference', loan.completionReference],

@@ -1,5 +1,4 @@
 import 'package:loanx/l10n/locale_keys.g.dart';
-import 'package:loanx/l10n/intl_locale.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/app_settings.dart';
+import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/family_relation.dart';
@@ -15,6 +15,7 @@ import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/model/weight_unit.dart';
 import 'package:loanx/provider/provider.dart';
+import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/widget/phone.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_dropdown.dart';
@@ -103,7 +104,8 @@ class LoanInput extends HookConsumerWidget {
       };
     }, [interestRateWholeController, interestRateFractionController]);
     final initialEarlyRedemptionCharge =
-        loan?.earlyRedemptionCharge ?? AppSettings.getDefaultEarlyRedemptionCharge();
+        loan?.earlyRedemptionCharge ??
+        AppSettings.getDefaultEarlyRedemptionCharge();
     final depositorController = useTextEditingController(
       text: loan?.depositorName ?? '',
     );
@@ -118,6 +120,9 @@ class LoanInput extends HookConsumerWidget {
     );
     final loanAmountController = useTextEditingController(
       text: loan?.loanAmount.toString() ?? '',
+    );
+    final currency = useState<String>(
+      loan?.currency ?? CurrencyPresentation.defaultCurrency,
     );
     useListenable(loanAmountController);
     final weightController = useTextEditingController(
@@ -143,7 +148,9 @@ class LoanInput extends HookConsumerWidget {
       text: loan?.additionalDetails ?? '',
     );
     final termsAndConditionsController = useTextEditingController(
-      text: loan?.termsAndConditions ?? AppSettings.getDefaultTermsAndConditions(),
+      text:
+          loan?.termsAndConditions ??
+          AppSettings.getDefaultTermsAndConditions(),
     );
     // This form is reused each time the add/edit route is opened. Persisting
     // its offset in PageStorage can make a new loan form reopen halfway down
@@ -153,7 +160,7 @@ class LoanInput extends HookConsumerWidget {
         interestRateWhole.value + (interestRateFraction.value / 100);
     final lockInSummary = lockInDays.value == 0
         ? LocaleKeys.noLockIn.tr()
-        : '${lockInDays.value} days · ₹${earlyRedemptionCharge.value.toStringAsFixed(2)}';
+        : '${lockInDays.value} days · ${CurrencyPresentation.format(earlyRedemptionCharge.value, currency.value)}';
 
     return Scaffold(
       appBar: AppBar(title: Text(appBarTitle)),
@@ -435,7 +442,8 @@ class LoanInput extends HookConsumerWidget {
                         decoration: InputDecoration(
                           labelText: LocaleKeys.earlyRedemptionCharge.tr(),
                           hintText: LocaleKeys.fixedAmount.tr(),
-                          prefixText: '₹ ',
+                          prefixText:
+                              '${CurrencyPresentation.countryForCurrency(currency.value).symbol} ',
                         ),
                         validator: (value) {
                           if (lockInDays.value == 0) return null;
@@ -550,6 +558,37 @@ class LoanInput extends HookConsumerWidget {
                 labelText: LocaleKeys.principalAmount.tr(),
                 keyboardType: TextInputType.number,
               ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: currency.value,
+                decoration: const InputDecoration(
+                  labelText: 'Currency',
+                  prefixIcon: Icon(Icons.currency_exchange_outlined),
+                ),
+                items:
+                    {
+                      for (final country in CountryCatalog.all)
+                        country.currency: country,
+                    }.entries.map((entry) {
+                      final country = entry.value;
+                      return DropdownMenuItem(
+                        value: entry.key,
+                        child: Text(
+                          '${country.name} — ${country.symbol} ${entry.key}',
+                        ),
+                      );
+                    }).toList(),
+                onChanged: loan == null
+                    ? (value) {
+                        if (value != null) currency.value = value;
+                      }
+                    : null,
+              ),
+              if (loan != null)
+                const Padding(
+                  padding: EdgeInsets.only(top: 6),
+                  child: Text('Currency is fixed once a loan is created.'),
+                ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -641,13 +680,10 @@ class LoanInput extends HookConsumerWidget {
                       ),
                     ),
                     trailing: Text(
-                      NumberFormat.currency(
-                        locale: 'en_IN',
-                        symbol: '₹',
-                        decimalDigits: 0,
-                      ).format(
+                      CurrencyPresentation.format(
                         (_parseDouble(loanAmountController.text) /
                             mortgageWeight.value),
+                        currency.value,
                       ),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
@@ -773,6 +809,7 @@ class LoanInput extends HookConsumerWidget {
                             interestFrequency: interestFrequency.value,
                             lockInDays: lockInDays.value,
                             earlyRedemptionCharge: earlyCharge,
+                            currency: currency.value,
                             notes: additionalDetailsController.text.trim(),
                             termsAndConditions: termsAndConditionsController
                                 .text
@@ -803,6 +840,7 @@ class LoanInput extends HookConsumerWidget {
                                   termsAndConditionsController.text.trim(),
                                   relation.id!,
                                   material.id!,
+                                  currency.value,
                                 );
                           } catch (error, stackTrace) {
                             debugPrint('Unable to save loan: $error');
@@ -886,20 +924,17 @@ class LoanInput extends HookConsumerWidget {
     required InterestFrequency interestFrequency,
     required int lockInDays,
     required double earlyRedemptionCharge,
+    required String currency,
     required String notes,
     required String termsAndConditions,
   }) async {
-    final currency = NumberFormat.currency(
-      locale: intlLocaleName(context.locale),
-      symbol: '₹',
-      decimalDigits: 2,
-    );
+    final money = CurrencyPresentation.formatter(currency);
     final details = <MapEntry<String, String>>[
       MapEntry('Borrower', borrowerName),
       MapEntry('Phone', phoneNumber),
       MapEntry('Address', address),
       MapEntry('Reference', '$referenceName · $relation'),
-      MapEntry('Principal', currency.format(principal)),
+      MapEntry('Principal', money.format(principal)),
       MapEntry('Pledged item', pledgedMaterial),
       if (mortgageWeight > 0)
         MapEntry(
@@ -909,7 +944,7 @@ class LoanInput extends HookConsumerWidget {
       if (mortgageWeight > 0)
         MapEntry(
           'Loan value per $weightUnit',
-          currency.format(principal / mortgageWeight),
+          money.format(principal / mortgageWeight),
         ),
       MapEntry(
         'Mortgage term',
@@ -933,7 +968,7 @@ class LoanInput extends HookConsumerWidget {
       if (lockInDays > 0)
         MapEntry(
           'Early redemption charge',
-          currency.format(earlyRedemptionCharge),
+          money.format(earlyRedemptionCharge),
         ),
       if (notes.isNotEmpty) MapEntry('Notes', notes),
       if (termsAndConditions.isNotEmpty)

@@ -1,5 +1,4 @@
 import 'package:loanx/l10n/locale_keys.g.dart';
-import 'package:loanx/l10n/intl_locale.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,6 +9,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/loan_details.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
+import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/widget/empty_state.dart';
 import 'package:loanx/widget/snackbar.dart';
 
@@ -40,11 +40,10 @@ class MortgageListView extends StatelessWidget {
         final loanSelectionList = ref.watch(loanSelectionListProvider);
         final selected = loanSelectionList.contains(loan.id);
         final colors = Theme.of(context).colorScheme;
-        final amount = NumberFormat.currency(
-          locale: intlLocaleName(context.locale),
-          symbol: '₹',
-          decimalDigits: 0,
-        ).format(loan.loanAmount);
+        final amount = CurrencyPresentation.format(
+          loan.loanAmount,
+          loan.currency,
+        );
         return GestureDetector(
           onHorizontalDragEnd: (details) async {
             if (details.velocity.pixelsPerSecond.dx > 0 && !loan.isFinished()) {

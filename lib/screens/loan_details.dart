@@ -12,6 +12,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
+import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/service/upi_validator.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
@@ -147,11 +148,7 @@ class LoanDetails extends ConsumerWidget {
   }) {
     final copy = _shareCopy(locale);
     final localeName = intlLocaleName(locale);
-    final currency = NumberFormat.currency(
-      locale: localeName,
-      symbol: '₹',
-      decimalDigits: 0,
-    );
+    final currency = CurrencyPresentation.formatter(loan.currency);
     final date = DateFormat('d MMM yyyy', localeName);
     final dateTime = DateFormat('d MMM yyyy, h:mm a', localeName);
     final collectable = loan.calculateCollectable();
@@ -239,7 +236,8 @@ class LoanDetails extends ConsumerWidget {
                 ),
                 decoration: InputDecoration(
                   labelText: LocaleKeys.amountReceived.tr(),
-                  prefixText: '₹ ',
+                  prefixText:
+                      '${CurrencyPresentation.countryForCurrency(loan.currency).symbol} ',
                 ),
               ),
               const SizedBox(height: 12),
@@ -326,11 +324,7 @@ class _DetailsContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
-    final currency = NumberFormat.currency(
-      locale: 'en_IN',
-      symbol: '₹',
-      decimalDigits: 0,
-    );
+    final currency = CurrencyPresentation.formatter(loan.currency);
     final interest = loan.calculateInterest();
     final earlyRedemptionCharge = loan.calculateEarlyRedemptionCharge();
     final collectable = loan.calculateCollectable();
@@ -409,7 +403,9 @@ class _DetailsContent extends ConsumerWidget {
                   ),
                 ],
               ),
-              if (!loan.isFinished()) ...[
+              if (!loan.isFinished() &&
+                  loan.currency == 'INR' &&
+                  CurrencyPresentation.defaultCountry.code == 'IN') ...[
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -436,6 +432,11 @@ class _DetailsContent extends ConsumerWidget {
         Card(
           child: Column(
             children: [
+              _DetailRow(
+                icon: Icons.currency_exchange_outlined,
+                label: 'Currency',
+                value: loan.currency,
+              ),
               _DetailRow(
                 icon: Icons.percent_rounded,
                 label: 'Interest',
@@ -663,6 +664,7 @@ class _DetailsContent extends ConsumerWidget {
       builder: (_) => _UpiPaymentFormDialog(
         initialUpiId: AppSettings.getDefaultUpiId(),
         initialAmount: collectable,
+        currency: loan.currency,
       ),
     );
 
@@ -680,11 +682,7 @@ class _DetailsContent extends ConsumerWidget {
         ),
       },
     );
-    final currency = NumberFormat.currency(
-      locale: 'en_IN',
-      symbol: '₹',
-      decimalDigits: 2,
-    );
+    final currency = CurrencyPresentation.formatter(loan.currency);
 
     await showDialog<void>(
       context: context,
@@ -806,10 +804,12 @@ class _UpiPaymentFormDialog extends StatefulWidget {
   const _UpiPaymentFormDialog({
     required this.initialUpiId,
     required this.initialAmount,
+    required this.currency,
   });
 
   final String initialUpiId;
   final double initialAmount;
+  final String currency;
 
   @override
   State<_UpiPaymentFormDialog> createState() => _UpiPaymentFormDialogState();
@@ -877,7 +877,8 @@ class _UpiPaymentFormDialogState extends State<_UpiPaymentFormDialog> {
               ),
               decoration: InputDecoration(
                 labelText: LocaleKeys.amount.tr(),
-                prefixText: '₹ ',
+                prefixText:
+                    '${CurrencyPresentation.countryForCurrency(widget.currency).symbol} ',
               ),
               validator: (value) {
                 final amount = double.tryParse(value?.trim() ?? '');

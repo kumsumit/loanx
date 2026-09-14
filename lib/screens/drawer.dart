@@ -13,6 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/service/backup_service.dart';
+import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/update_service.dart';
@@ -2134,7 +2135,8 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
                     ),
                     decoration: InputDecoration(
                       labelText: LocaleKeys.earlyRedemptionCharge.tr(),
-                      prefixText: '₹ ',
+                      prefixText:
+                          '${CurrencyPresentation.defaultCountry.symbol} ',
                     ),
                     validator: (value) {
                       final amount = double.tryParse(value?.trim() ?? '');

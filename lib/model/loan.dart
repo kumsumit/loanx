@@ -27,6 +27,7 @@ class LoanFields {
   static final String settlementAmount = 'settlementAmount';
   static final String completionReference = 'completionReference';
   static final String completionNotes = 'completionNotes';
+  static final String currency = 'currency';
   static final String familyRelationId = "familyRelationId";
   static final String mortgageMaterialId = "mortgageMaterialId";
 }
@@ -39,6 +40,7 @@ class Loan {
   String relativeName;
   String address;
   double loanAmount;
+  String currency;
   double weight;
   String weightUnit;
   double interestRate;
@@ -65,6 +67,7 @@ class Loan {
     required this.relativeName,
     required this.address,
     required this.loanAmount,
+    this.currency = 'INR',
     this.weight = 0,
     this.weightUnit = 'g',
     required this.interestRate,
@@ -145,6 +148,7 @@ class Loan {
     String? relativeName,
     String? address,
     double? loanAmount,
+    String? currency,
     double? interestRate,
     double? weight,
     String? weightUnit,
@@ -171,6 +175,7 @@ class Loan {
     relativeName: relativeName ?? this.relativeName,
     address: address ?? this.address,
     loanAmount: loanAmount ?? this.loanAmount,
+    currency: currency ?? this.currency,
     weight: weight ?? this.weight,
     weightUnit: weightUnit ?? this.weightUnit,
     interestRate: interestRate ?? this.interestRate,
@@ -198,6 +203,7 @@ class Loan {
     relativeName: json[LoanFields.relativeName] as String,
     address: json[LoanFields.address] as String,
     loanAmount: (json[LoanFields.loanAmount] as num).toDouble(),
+    currency: json[LoanFields.currency] as String? ?? 'INR',
     weight: (json[LoanFields.weight] as num?)?.toDouble() ?? 0,
     weightUnit: json[LoanFields.weightUnit] as String? ?? 'g',
     interestRate: json[LoanFields.interestRate] as double,
@@ -236,6 +242,13 @@ class Loan {
         throw ArgumentError.value(entry.value, entry.key, 'Must be finite.');
       }
     }
+    if (!RegExp(r'^[A-Z]{3}$').hasMatch(currency)) {
+      throw ArgumentError.value(
+        currency,
+        LoanFields.currency,
+        'Invalid ISO code.',
+      );
+    }
     return {
       LoanFields.id: id,
       LoanFields.depositorName: depositorName,
@@ -243,6 +256,7 @@ class Loan {
       LoanFields.relativeName: relativeName,
       LoanFields.address: address,
       LoanFields.loanAmount: loanAmount,
+      LoanFields.currency: currency,
       LoanFields.weight: weight,
       LoanFields.weightUnit: weightUnit,
       LoanFields.interestRate: interestRate,

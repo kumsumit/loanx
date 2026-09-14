@@ -1,12 +1,13 @@
 import 'package:loanx/l10n/locale_keys.g.dart';
-import 'package:loanx/l10n/intl_locale.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/provider/provider.dart';
+import 'package:loanx/model/loan.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/screens/mortgage_list_view.dart';
+import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/widget/search_bar.dart';
 
 // import 'keyboard_input.dart';
@@ -77,19 +78,20 @@ class _PortfolioSummary extends ConsumerWidget {
         .when(
           data: (loans) {
             final active = loans.where((loan) => !loan.isFinished()).toList();
-            final principal = active.fold<double>(
-              0,
-              (value, loan) => value + loan.loanAmount,
-            );
-            final receivable = active.fold<double>(
-              0,
-              (value, loan) => value + loan.calculateCollectable(),
-            );
-            final money = NumberFormat.currency(
-              locale: intlLocaleName(context.locale),
-              symbol: '₹',
-              decimalDigits: 2,
-            );
+            final grouped = <String, List<Loan>>{};
+            for (final loan in active) {
+              grouped.putIfAbsent(loan.currency, () => []).add(loan);
+            }
+            String totals(num Function(Loan loan) value) => grouped.entries
+                .map(
+                  (entry) => CurrencyPresentation.format(
+                    entry.value.fold<num>(0, (sum, loan) => sum + value(loan)),
+                    entry.key,
+                  ),
+                )
+                .join(' · ');
+            final principal = totals((loan) => loan.loanAmount);
+            final receivable = totals((loan) => loan.calculateCollectable());
             return Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Container(
@@ -124,7 +126,7 @@ class _PortfolioSummary extends ConsumerWidget {
                         fit: BoxFit.scaleDown,
                         alignment: AlignmentDirectional.centerStart,
                         child: Text(
-                          money.format(receivable),
+                          receivable.isEmpty ? '—' : receivable,
                           maxLines: 1,
                           style: Theme.of(context).textTheme.headlineLarge
                               ?.copyWith(
@@ -147,7 +149,7 @@ class _PortfolioSummary extends ConsumerWidget {
                         Expanded(
                           child: _SummaryMetric(
                             icon: Icons.account_balance_wallet_outlined,
-                            value: money.format(principal),
+                            value: principal.isEmpty ? '—' : principal,
                             label: 'Principal outstanding',
                           ),
                         ),

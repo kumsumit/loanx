@@ -10,6 +10,7 @@ import 'package:loanx/widget/snackbar.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:loanx/algo/damerau_lavenstien.dart';
 import 'package:loanx/db/app_settings.dart';
+import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/model/family_relation.dart';
 import 'package:loanx/db/tostore_database.dart';
 import 'package:loanx/model/loan.dart';
@@ -883,8 +884,9 @@ class LoanList extends _$LoanList {
     String additionalDetails,
     String termsAndConditions,
     int familyRelationId,
-    int mortgageMaterialId,
-  ) async {
+    int mortgageMaterialId, [
+    String? currency,
+  ]) async {
     // `add` can be called while this notifier is rebuilding (for example just
     // after a restore). Do not rely on the `late` field having been populated
     // by `readAllLoans` first.
@@ -895,6 +897,10 @@ class LoanList extends _$LoanList {
       relativeName: relativeName,
       address: address,
       loanAmount: loanAmount,
+      // Existing records retain their original currency. New records use the
+      // country selected during verified phone onboarding.
+      currency:
+          oldLoan?.currency ?? currency ?? CurrencyPresentation.defaultCurrency,
       weight: weight,
       weightUnit: weightUnit,
       interestType: interestType,

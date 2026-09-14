@@ -233,7 +233,7 @@ final class LocalSearchService {
           (repayments[id] ?? BigInt.zero) +
           (e['type'] == 'reversal' ? -amount : amount);
     }
-    BigInt total = BigInt.zero;
+    final totalsByCurrency = <String, BigInt>{};
     Map<String, Object?>? winner;
     BigInt high = BigInt.from(-1);
     for (final l in loans) {
@@ -243,7 +243,9 @@ final class LocalSearchService {
       final value =
           (_loanMinor(l) - (repayments[l['uid'].toString()] ?? BigInt.zero));
       final safe = value < BigInt.zero ? BigInt.zero : value;
-      total += safe;
+      final currency = (l['currency'] as String?) ?? 'INR';
+      totalsByCurrency[currency] =
+          (totalsByCurrency[currency] ?? BigInt.zero) + safe;
       if (safe > high) {
         high = safe;
         winner = l;
@@ -258,7 +260,11 @@ final class LocalSearchService {
       title: most
           ? (winner!['depositorName'] ?? 'Borrower').toString()
           : 'Total outstanding',
-      subtitle: '${most ? winner!['currency'] : 'INR'} ${most ? high : total}',
+      subtitle: most
+          ? '${winner!['currency'] ?? 'INR'} $high'
+          : totalsByCurrency.entries
+                .map((entry) => '${entry.key} ${entry.value}')
+                .join(' · '),
       matchReason: 'Deterministic balance aggregation',
       score: 100,
     );
