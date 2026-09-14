@@ -16,6 +16,8 @@ import io.flutter.plugin.common.MethodChannel.Result
 import android.content.pm.PackageManager
 import android.content.Intent
 import android.provider.ContactsContract
+import android.app.ActivityManager
+import android.os.Build
 //import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 //import com.google.android.play.core.appupdate.AppUpdateOptions
 //import com.google.android.play.core.install.model.AppUpdateType
@@ -37,6 +39,8 @@ class MainActivity : FlutterFragmentActivity() {
                 result.success(getAppVersionCode())
             } else if (call.method.equals("sdk")) {
                 result.success(android.os.Build.VERSION.RELEASE)
+            } else if (call.method.equals("deviceCapabilities")) {
+                result.success(deviceCapabilities())
             } else if (call.method.equals("openReview")) {
                 openReview(result)
             } else if (call.method.equals("createContact")) {
@@ -53,6 +57,23 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
+    }
+
+    private fun deviceCapabilities(): Map<String, Any> {
+        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        val glEsVersion = activityManager.deviceConfigurationInfo.reqGlEsVersion
+        return mapOf(
+            "isAndroid" to true,
+            "sdkInt" to Build.VERSION.SDK_INT,
+            "memoryClassMb" to activityManager.memoryClass,
+            "isLowRamDevice" to if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                activityManager.isLowRamDevice
+            } else {
+                false
+            },
+            "supports64Bit" to Build.SUPPORTED_64_BIT_ABIS.isNotEmpty(),
+            "openGlEsMajor" to ((glEsVersion shr 16) and 0xffff)
+        )
     }
 
     private fun openReview(result: Result) {

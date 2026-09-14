@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
+import 'package:loanx/service/device_capabilities.dart';
 import 'package:pinput/pinput.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
@@ -85,6 +86,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
     final countryCode = switch (widget.phoneNumber.isoCode) {
       'IN' => '91',
       'NP' => '977',
@@ -107,14 +109,17 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     return Scaffold(
       body: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.surface,
-              colors.primaryContainer.withValues(alpha: .32),
-            ],
-          ),
+          color: basicEffects ? colors.surface : null,
+          gradient: basicEffects
+              ? null
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colors.surface,
+                    colors.primaryContainer.withValues(alpha: .32),
+                  ],
+                ),
         ),
         child: SafeArea(
           child: Center(
@@ -141,17 +146,24 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         width: 88,
                         height: 88,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [colors.primary, colors.tertiary],
-                          ),
+                          color: basicEffects ? colors.primary : null,
+                          gradient: basicEffects
+                              ? null
+                              : LinearGradient(
+                                  colors: [colors.primary, colors.tertiary],
+                                ),
                           borderRadius: BorderRadius.circular(26),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colors.primary.withValues(alpha: .22),
-                              blurRadius: 28,
-                              offset: const Offset(0, 12),
-                            ),
-                          ],
+                          boxShadow: basicEffects
+                              ? null
+                              : [
+                                  BoxShadow(
+                                    color: colors.primary.withValues(
+                                      alpha: .22,
+                                    ),
+                                    blurRadius: 28,
+                                    offset: const Offset(0, 12),
+                                  ),
+                                ],
                         ),
                         child: Icon(
                           Icons.sms_outlined,

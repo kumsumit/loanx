@@ -14,7 +14,6 @@ import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/service/upi_validator.dart';
 import 'package:loanx/widget/snackbar.dart';
-import 'package:loanx/widget/language_picker.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -62,9 +61,6 @@ class LoanDetails extends ConsumerWidget {
             tooltip: LocaleKeys.shareLoanDetails.tr(),
             icon: const Icon(Icons.share_outlined),
             onPressed: () async {
-              final shareLocale = await _chooseShareLanguage(context);
-              if (shareLocale == null || !context.mounted) return;
-
               final relations = ref.read(familyRelationListProvider).value;
               final materials = ref.read(mortgageMaterialListProvider).value;
               final relation = relations?.firstWhere(
@@ -77,11 +73,11 @@ class LoanDetails extends ConsumerWidget {
               SharePlus.instance.share(
                 ShareParams(
                   subject: _shareCopy(
-                    shareLocale,
+                    context.locale,
                   ).detailsFor(currentLoan.depositorName),
                   text: _shareText(
                     currentLoan,
-                    locale: shareLocale,
+                    locale: context.locale,
                     relativeRelation: relation?.name,
                     mortgageName: material?.name,
                   ),
@@ -201,26 +197,6 @@ class LoanDetails extends ConsumerWidget {
       copy.sentVia,
     ];
     return lines.join('\n');
-  }
-
-  Future<Locale?> _chooseShareLanguage(BuildContext context) {
-    final copy = _shareCopy(context.locale);
-    return showDialog<Locale>(
-      context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: Text(copy.chooseShareLanguage),
-        children: [
-          for (final language in appLanguages)
-            SimpleDialogOption(
-              onPressed: () => Navigator.of(dialogContext).pop(language.locale),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(language.nativeName),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 
   Future<void> _markComplete(
@@ -1110,87 +1086,55 @@ class _LoadError extends StatelessWidget {
 class _ShareCopy {
   const _ShareCopy(this.code);
   final String code;
-  String pick(String en, String hindi, String bengali) {
+  String pick(String key) {
     final catalog = CodegenLoader.mapLocales[code];
-    final translated = catalog?[en];
+    final translated = catalog?[key];
     if (translated is String && translated.isNotEmpty) return translated;
-    return code == 'hi'
-        ? hindi
-        : code == 'bn'
-        ? bengali
-        : en;
+    return CodegenLoader.mapLocales['en']?[key] as String? ?? key;
   }
 
-  String get chooseShareLanguage => pick(
-    'Choose app language',
-    'जानकारी साझा करने की भाषा चुनें',
-    'তথ্য শেয়ার করার ভাষা বেছে নিন',
-  );
-  String get loanDetails => pick('Loan details', 'लोन का विवरण', 'ঋণের বিবরণ');
+  String get loanDetails => pick(LocaleKeys.loanDetails);
   String detailsFor(String name) {
     final template =
         CodegenLoader.mapLocales[code]?['loanDetailsFor'] as String?;
     return (template ?? 'Loan details for {name}').replaceAll('{name}', name);
   }
 
-  String get borrower => pick('Borrower', 'उधारकर्ता', 'ঋণগ্রহীতা');
-  String get phone => pick('Phone', 'फ़ोन', 'ফোন');
-  String get address => pick('Address', 'पता', 'ঠিকানা');
-  String get relativeName =>
-      pick('Relative Name', 'रिश्तेदार का नाम', 'আত্মীয়ের নাম');
-  String get mortgageName =>
-      pick('Mortgage material', 'गिरवी वस्तु', 'বন্ধকী বস্তু');
-  String get weight => pick('Weight', 'वज़न', 'ওজন');
-  String get loanAmount =>
-      pick('Principal amount', 'लोन की राशि', 'ঋণের পরিমাণ');
-  String get interest => pick('Interest', 'ब्याज', 'সুদ');
-  String get mortgageTerm =>
-      pick('Mortgage term', 'गिरवी अवधि', 'বন্ধকের মেয়াদ');
-  String get years => pick('years', 'वर्ष', 'বছর');
-  String get days => pick('days', 'दिन', 'দিন');
-  String yearCount(int count) => _template('yearsCount', count, years);
-  String dayCount(int count) => _template('daysCount', count, days);
-  String get lockInPeriod =>
-      pick('Lock-in period', 'लॉक-इन अवधि', 'লক-ইন সময়কাল');
-  String get until => pick('until', 'तक', 'পর্যন্ত');
-  String get earlyRedemptionCharge => pick(
-    'Early redemption charge',
-    'समय से पहले छुड़ाने का शुल्क',
-    'আগে ছাড়ানোর ফি',
-  );
-  String get beforeThisDate => pick(
-    'if redeemed before this date',
-    'इस तारीख से पहले छुड़ाने पर',
-    'এই তারিখের আগে ছাড়ালে',
-  );
+  String get borrower => pick(LocaleKeys.borrower);
+  String get phone => pick(LocaleKeys.phone);
+  String get address => pick(LocaleKeys.address);
+  String get relativeName => pick(LocaleKeys.relativeName);
+  String get mortgageName => pick(LocaleKeys.mortgageMaterial);
+  String get weight => pick(LocaleKeys.weight);
+  String get loanAmount => pick(LocaleKeys.principalAmount);
+  String get interest => pick(LocaleKeys.interest);
+  String get mortgageTerm => pick(LocaleKeys.mortgageTerm);
+  String yearCount(int count) => _template(LocaleKeys.yearsCount, count);
+  String dayCount(int count) => _template(LocaleKeys.daysCount, count);
+  String get lockInPeriod => pick(LocaleKeys.lockInPeriod);
+  String get until => pick(LocaleKeys.until);
+  String get earlyRedemptionCharge => pick(LocaleKeys.earlyRedemptionCharge);
+  String get beforeThisDate => pick(LocaleKeys.ifRedeemedBeforeThisDate);
   String estimatedDue(String date) =>
-      '${pick('COLLECTABLE AMOUNT', 'अनुमानित देय राशि', 'আনুমানিক বকেয়া')} ($date)';
-  String get status => pick('Status', 'स्थिति', 'অবস্থা');
-  String get active => pick('Active', 'सक्रिय', 'সক্রিয়');
-  String get completed => pick('Completed', 'पूर्ण', 'সম্পন্ন');
-  String get created => pick('Created', 'बनाया गया', 'তৈরি হয়েছে');
-  String get receivedBy =>
-      pick('Item received by', 'प्राप्तकर्ता', 'গ্রহণকারী');
-  String get amountReceived =>
-      pick('Amount received', 'प्राप्त राशि', 'প্রাপ্ত পরিমাণ');
-  String get additionalDetails =>
-      pick('Additional details', 'अतिरिक्त विवरण', 'অতিরিক্ত বিবরণ');
-  String get termsAndConditions =>
-      pick('Terms and conditions', 'नियम और शर्तें', 'শর্তাবলি');
-  String get notRecorded =>
-      pick('Not recorded', 'दर्ज नहीं', 'রেকর্ড করা হয়নি');
-  String get sentVia =>
-      '${pick('Sent via :', 'इसके द्वारा भेजा गया:', 'এর মাধ্যমে পাঠানো:')} LoanX';
+      '${pick(LocaleKeys.collectableAmount)} ($date)';
+  String get status => pick(LocaleKeys.status);
+  String get active => pick(LocaleKeys.active);
+  String get completed => pick(LocaleKeys.completed);
+  String get created => pick(LocaleKeys.created);
+  String get receivedBy => pick(LocaleKeys.itemReceivedBy);
+  String get amountReceived => pick(LocaleKeys.amountReceived);
+  String get additionalDetails => pick(LocaleKeys.additionalDetails);
+  String get termsAndConditions => pick(LocaleKeys.termsAndConditions);
+  String get notRecorded => pick(LocaleKeys.notRecorded);
+  String get sentVia => '${pick(LocaleKeys.sentVia)} LoanX';
   String interestType(InterestType type) => type == InterestType.simple
-      ? pick('Simple', 'साधारण', 'সরল')
-      : pick('Compound', 'चक्रवृद्धि', 'চক্রবৃদ্ধি');
+      ? pick(LocaleKeys.simple)
+      : pick(LocaleKeys.compound);
 
-  String _template(String key, int count, String unit) {
-    final template = CodegenLoader.mapLocales[code]?[key] as String?;
-    return template
-            ?.replaceAll('{count}', '$count')
-            .replaceAll('{years}', '$count') ??
-        '$count $unit';
+  String _template(String key, int count) {
+    return pick(
+      key,
+    ).replaceAll('{count}', '$count').replaceAll('{years}', '$count');
   }
 
   String systemValue(String value) {

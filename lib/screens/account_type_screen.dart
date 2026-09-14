@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
+import 'package:loanx/service/device_capabilities.dart';
 
 /// An onboarding preference, never an authorization role or capability gate.
 enum AccountType { lender, borrower, both }
@@ -20,6 +21,7 @@ class _AccountTypeScreenState extends State<AccountTypeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
     final choices = [
       (
         type: AccountType.lender,
@@ -44,14 +46,17 @@ class _AccountTypeScreenState extends State<AccountTypeScreen> {
     return Scaffold(
       body: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.surface,
-              colors.primaryContainer.withValues(alpha: .35),
-            ],
-          ),
+          color: basicEffects ? colors.surface : null,
+          gradient: basicEffects
+              ? null
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colors.surface,
+                    colors.primaryContainer.withValues(alpha: .35),
+                  ],
+                ),
         ),
         child: SafeArea(
           child: Center(
@@ -62,7 +67,7 @@ class _AccountTypeScreenState extends State<AccountTypeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _InterestHero(colors: colors),
+                    _InterestHero(colors: colors, basicEffects: basicEffects),
                     const SizedBox(height: 28),
                     Text(
                       LocaleKeys.chooseAccountType.tr(),
@@ -168,8 +173,9 @@ class _AccountTypeScreenState extends State<AccountTypeScreen> {
 }
 
 class _InterestHero extends StatelessWidget {
-  const _InterestHero({required this.colors});
+  const _InterestHero({required this.colors, required this.basicEffects});
   final ColorScheme colors;
+  final bool basicEffects;
 
   @override
   Widget build(BuildContext context) => Align(
@@ -178,15 +184,20 @@ class _InterestHero extends StatelessWidget {
       width: 104,
       height: 88,
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [colors.primary, colors.tertiary]),
+        color: basicEffects ? colors.primary : null,
+        gradient: basicEffects
+            ? null
+            : LinearGradient(colors: [colors.primary, colors.tertiary]),
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: .24),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        boxShadow: basicEffects
+            ? null
+            : [
+                BoxShadow(
+                  color: colors.primary.withValues(alpha: .24),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
       ),
       child: Stack(
         alignment: Alignment.center,

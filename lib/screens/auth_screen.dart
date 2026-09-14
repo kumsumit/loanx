@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/provider/provider.dart';
+import 'package:loanx/service/device_capabilities.dart';
 
 class AuthScreen extends HookConsumerWidget {
   const AuthScreen({super.key});
@@ -38,14 +39,18 @@ class AuthScreen extends HookConsumerWidget {
 
     ref.watch(appColorProvider);
     final colors = Theme.of(context).colorScheme;
+    final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [colors.primary, colors.tertiary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: basicEffects ? colors.primary : null,
+          gradient: basicEffects
+              ? null
+              : LinearGradient(
+                  colors: [colors.primary, colors.tertiary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
         ),
         child: SafeArea(
           child: Center(
@@ -61,13 +66,15 @@ class AuthScreen extends HookConsumerWidget {
                     decoration: BoxDecoration(
                       color: colors.surface,
                       borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colors.onSurface.withValues(alpha: 0.12),
-                          blurRadius: 30,
-                          offset: Offset(0, 12),
-                        ),
-                      ],
+                      boxShadow: basicEffects
+                          ? null
+                          : [
+                              BoxShadow(
+                                color: colors.onSurface.withValues(alpha: 0.12),
+                                blurRadius: 30,
+                                offset: Offset(0, 12),
+                              ),
+                            ],
                     ),
                     child: Image.asset("assets/logo.png"),
                   ),

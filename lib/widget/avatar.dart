@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:loanx/db/app_settings.dart';
+import 'package:loanx/service/device_capabilities.dart';
 
 class ProfilePicture extends StatelessWidget {
   final String? imageUrl;
@@ -15,6 +16,7 @@ class ProfilePicture extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageCacheSize = _imageCacheSize(context);
     return CircleAvatar(
       radius: 35,
       backgroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -25,6 +27,9 @@ class ProfilePicture extends StatelessWidget {
                 width: 70,
                 height: 70,
                 fit: BoxFit.cover,
+                cacheWidth: imageCacheSize,
+                cacheHeight: imageCacheSize,
+                filterQuality: FilterQuality.low,
                 errorBuilder:
                     (
                       BuildContext context,
@@ -37,6 +42,14 @@ class ProfilePicture extends StatelessWidget {
             )
           : _buildInitialsAvatar(),
     );
+  }
+
+  int _imageCacheSize(BuildContext context) {
+    if (DeviceCapabilitiesScope.of(context).useBasicEffects) return 140;
+    return (70 * MediaQuery.devicePixelRatioOf(context))
+        .round()
+        .clamp(140, 420)
+        .toInt();
   }
 
   Widget _buildInitialsAvatar() {
@@ -69,6 +82,7 @@ class LocalProfilePicture extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageCacheSize = _imageCacheSize(context);
     return CircleAvatar(
       radius: 35,
       backgroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -78,6 +92,12 @@ class LocalProfilePicture extends StatelessWidget {
           width: 70,
           height: 70,
           fit: BoxFit.cover,
+          // Local photos can originate from an arbitrary camera resolution.
+          // Decode only what this avatar can display, with a lower cap on the
+          // conservative device profile.
+          cacheWidth: imageCacheSize,
+          cacheHeight: imageCacheSize,
+          filterQuality: FilterQuality.low,
           errorBuilder:
               (BuildContext context, Object exception, StackTrace? stackTrace) {
                 return _buildInitialsAvatar();
@@ -85,6 +105,14 @@ class LocalProfilePicture extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  int _imageCacheSize(BuildContext context) {
+    if (DeviceCapabilitiesScope.of(context).useBasicEffects) return 140;
+    return (70 * MediaQuery.devicePixelRatioOf(context))
+        .round()
+        .clamp(140, 420)
+        .toInt();
   }
 
   Widget _buildInitialsAvatar() {

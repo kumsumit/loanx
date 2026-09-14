@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:loanx/l10n/app_languages.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/widget/language_picker.dart';
 import 'package:loanx/widget/phone.dart';

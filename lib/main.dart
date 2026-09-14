@@ -13,6 +13,7 @@ import 'package:loanx/screens/account_type_screen.dart';
 import 'package:loanx/screens/error.dart';
 import 'package:loanx/screens/unauthorized.dart';
 import 'package:loanx/l10n/codegen_loader.g.dart';
+import 'package:loanx/l10n/app_languages.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/auth_screen.dart';
@@ -21,6 +22,7 @@ import 'package:loanx/screens/phone_login_screen.dart';
 import 'package:loanx/screens/otp_verification_screen.dart';
 import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/service/auth_client.dart';
+import 'package:loanx/service/device_capabilities.dart';
 import 'package:loanx/src/rust/frb_generated.dart';
 import 'package:loanx/theme/app_theme.dart';
 import 'package:loanx/widget/language_picker.dart';
@@ -48,7 +50,7 @@ class _FallbackMaterialLocalizationsDelegate
     final materialLocale =
         GlobalMaterialLocalizations.delegate.isSupported(locale)
         ? locale
-        : const Locale('en');
+        : appDefaultLocale;
     return GlobalMaterialLocalizations.delegate.load(materialLocale);
   }
 
@@ -68,7 +70,7 @@ class _FallbackCupertinoLocalizationsDelegate
     final cupertinoLocale =
         GlobalCupertinoLocalizations.delegate.isSupported(locale)
         ? locale
-        : const Locale('en');
+        : appDefaultLocale;
     return GlobalCupertinoLocalizations.delegate.load(cupertinoLocale);
   }
 
@@ -80,6 +82,7 @@ Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   final phoneMetadataReady = await initializePhoneMetadata();
+  final deviceCapabilities = await DeviceCapabilityService.load();
   await RustLib.init();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   FlutterError.onError = (details) {
@@ -130,18 +133,17 @@ Future<void> main() async {
   FlutterNativeSplash.remove();
   runApp(
     EasyLocalization(
-      supportedLocales: appLanguages
-          .map((language) => language.locale)
-          .toList(),
+      supportedLocales: appSupportedLocales,
       path: 'lib/l10n',
       assetLoader: const CodegenLoader(),
-      fallbackLocale: const Locale('en'),
+      fallbackLocale: appDefaultLocale,
       useFallbackTranslations: true,
       useOnlyLangCode: true,
       child: ProviderScope(
         child: MyApp(
           storageReady: storageReady,
           phoneMetadataReady: phoneMetadataReady,
+          deviceCapabilities: deviceCapabilities,
           sendOtp: activeAuthClient!.requestOtp,
           verifyOtp: activeAuthClient!.verifyOtp,
         ),
@@ -193,12 +195,14 @@ class MyApp extends ConsumerStatefulWidget {
     super.key,
     this.storageReady = true,
     this.phoneMetadataReady = true,
+    this.deviceCapabilities = const DeviceCapabilities.standard(),
     this.sendOtp,
     this.verifyOtp,
   });
 
   final bool storageReady;
   final bool phoneMetadataReady;
+  final DeviceCapabilities deviceCapabilities;
   final OtpSender? sendOtp;
   final OtpVerifier? verifyOtp;
 
@@ -363,6 +367,10 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         ...context.localizationDelegates,
       ],
       supportedLocales: context.supportedLocales,
+      builder: (context, child) => DeviceCapabilitiesScope(
+        capabilities: widget.deviceCapabilities,
+        child: child ?? const SizedBox.shrink(),
+      ),
     );
   }
 }

@@ -1,39 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:loanx/l10n/app_languages.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/service/auth_client.dart';
-
-typedef AppLanguage = ({Locale locale, String nativeName, String englishName});
-
-const appLanguages = <AppLanguage>[
-  (locale: Locale('as'), nativeName: 'অসমীয়া', englishName: 'Assamese'),
-  (locale: Locale('bho'), nativeName: 'भोजपुरी', englishName: 'Bhojpuri'),
-  (locale: Locale('en'), nativeName: 'English', englishName: 'English'),
-  (locale: Locale('bn'), nativeName: 'বাংলা', englishName: 'Bengali'),
-  (locale: Locale('bra'), nativeName: 'ब्रज भाषा', englishName: 'Braj'),
-  (locale: Locale('gu'), nativeName: 'ગુજરાતી', englishName: 'Gujarati'),
-  (locale: Locale('hi'), nativeName: 'हिन्दी', englishName: 'Hindi'),
-  (locale: Locale('kn'), nativeName: 'ಕನ್ನಡ', englishName: 'Kannada'),
-  (locale: Locale('mai'), nativeName: 'मैथिली', englishName: 'Maithili'),
-  (locale: Locale('ml'), nativeName: 'മലയാളം', englishName: 'Malayalam'),
-  (locale: Locale('mni'), nativeName: 'মৈতৈলোন্', englishName: 'Manipuri'),
-  (locale: Locale('mr'), nativeName: 'मराठी', englishName: 'Marathi'),
-  (locale: Locale('mwr'), nativeName: 'मारवाड़ी', englishName: 'Marwari'),
-  (locale: Locale('ne'), nativeName: 'नेपाली', englishName: 'Nepali'),
-  (locale: Locale('or'), nativeName: 'ଓଡ଼ିଆ', englishName: 'Odia'),
-  (locale: Locale('pa'), nativeName: 'ਪੰਜਾਬੀ', englishName: 'Punjabi'),
-  (locale: Locale('ta'), nativeName: 'தமிழ்', englishName: 'Tamil'),
-  (locale: Locale('te'), nativeName: 'తెలుగు', englishName: 'Telugu'),
-  (locale: Locale('ur'), nativeName: 'اردو', englishName: 'Urdu'),
-];
-
-String appLanguageName(Locale locale) => appLanguages
-    .firstWhere(
-      (language) => language.locale.languageCode == locale.languageCode,
-      orElse: () => appLanguages.first,
-    )
-    .nativeName;
+import 'package:loanx/service/device_capabilities.dart';
 
 Future<void> showAppLanguagePicker(BuildContext context) async {
   final selectedLocale = await showModalBottomSheet<Locale>(
@@ -83,17 +54,21 @@ class _StartupLanguageScreenState extends State<StartupLanguageScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
     return Scaffold(
       body: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.surface,
-              colors.primaryContainer.withValues(alpha: .35),
-            ],
-          ),
+          color: basicEffects ? colors.surface : null,
+          gradient: basicEffects
+              ? null
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colors.surface,
+                    colors.primaryContainer.withValues(alpha: .35),
+                  ],
+                ),
         ),
         child: SafeArea(
           child: Center(
@@ -104,7 +79,7 @@ class _StartupLanguageScreenState extends State<StartupLanguageScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _LanguageHero(colors: colors),
+                    _LanguageHero(colors: colors, basicEffects: basicEffects),
                     const SizedBox(height: 22),
                     Text(
                       LocaleKeys.chooseAppLanguage.tr(),
@@ -198,8 +173,9 @@ class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
 }
 
 class _LanguageHero extends StatelessWidget {
-  const _LanguageHero({required this.colors});
+  const _LanguageHero({required this.colors, required this.basicEffects});
   final ColorScheme colors;
+  final bool basicEffects;
 
   @override
   Widget build(BuildContext context) => Align(
@@ -208,15 +184,20 @@ class _LanguageHero extends StatelessWidget {
       width: 96,
       height: 82,
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [colors.primary, colors.tertiary]),
+        color: basicEffects ? colors.primary : null,
+        gradient: basicEffects
+            ? null
+            : LinearGradient(colors: [colors.primary, colors.tertiary]),
         borderRadius: BorderRadius.circular(26),
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: .24),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        boxShadow: basicEffects
+            ? null
+            : [
+                BoxShadow(
+                  color: colors.primary.withValues(alpha: .24),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
       ),
       child: Icon(Icons.translate_rounded, size: 42, color: colors.onPrimary),
     ),
