@@ -95,17 +95,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       _ => '',
     };
     final phone = '+$countryCode${widget.phoneNumber.nsn}';
-    final pinTheme = PinTheme(
-      width: 50,
-      height: 58,
-      textStyle: theme.textTheme.titleLarge,
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-    );
-
     return Scaffold(
       body: DecoratedBox(
         decoration: BoxDecoration(
@@ -189,31 +178,66 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       ),
                     ),
                     const SizedBox(height: 34),
-                    Semantics(
-                      label: LocaleKeys.sixDigitVerificationCode.tr(),
-                      child: Pinput(
-                        key: const Key('otp-input'),
-                        length: 6,
-                        controller: _controller,
-                        autofocus: true,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        defaultPinTheme: pinTheme,
-                        focusedPinTheme: pinTheme.copyWith(
-                          decoration: pinTheme.decoration?.copyWith(
-                            border: Border.all(color: colors.primary, width: 2),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Pinput inserts five 8px separators for a six-digit
+                        // code. Size each box from the available width so the
+                        // row remains visible on compact Android screens.
+                        const separatorWidth = 8.0;
+                        const pinCount = 6;
+                        final pinWidth =
+                            ((constraints.maxWidth -
+                                        (pinCount - 1) * separatorWidth) /
+                                    pinCount)
+                                .clamp(0.0, 50.0);
+                        final pinTheme = PinTheme(
+                          width: pinWidth,
+                          height: 58,
+                          textStyle: theme.textTheme.titleLarge,
+                          decoration: BoxDecoration(
+                            color: colors.surfaceContainerLowest,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: colors.outlineVariant),
                           ),
-                        ),
-                        errorPinTheme: pinTheme.copyWith(
-                          decoration: pinTheme.decoration?.copyWith(
-                            border: Border.all(color: colors.error),
+                        );
+
+                        return Semantics(
+                          label: LocaleKeys.sixDigitVerificationCode.tr(),
+                          child: Pinput(
+                            key: const Key('otp-input'),
+                            length: pinCount,
+                            controller: _controller,
+                            autofocus: true,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            defaultPinTheme: pinTheme,
+                            // Pinput has platform-specific defaults for
+                            // submitted cells. Keep every state on the same
+                            // responsive dimensions; otherwise entered cells
+                            // can grow wider than the available row.
+                            submittedPinTheme: pinTheme,
+                            followingPinTheme: pinTheme,
+                            disabledPinTheme: pinTheme,
+                            focusedPinTheme: pinTheme.copyWith(
+                              decoration: pinTheme.decoration?.copyWith(
+                                border: Border.all(
+                                  color: colors.primary,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            errorPinTheme: pinTheme.copyWith(
+                              decoration: pinTheme.decoration?.copyWith(
+                                border: Border.all(color: colors.error),
+                              ),
+                            ),
+                            onChanged: (_) => setState(() => _error = null),
+                            onCompleted: _verify,
                           ),
-                        ),
-                        onChanged: (_) => setState(() => _error = null),
-                        onCompleted: _verify,
-                      ),
+                        );
+                      },
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 16),

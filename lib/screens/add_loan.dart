@@ -231,14 +231,19 @@ class LoanInput extends HookConsumerWidget {
                       onChanged: (value) {
                         if (value != null) interestType.value = value;
                       },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 12,
+                        runSpacing: 4,
                         children: [
-                          Radio<InterestType>(value: InterestType.simple),
-                          StyledSubtitle(LocaleKeys.simple.tr()),
-                          SizedBox(width: 20),
-                          Radio<InterestType>(value: InterestType.compound),
-                          StyledSubtitle(LocaleKeys.compound.tr()),
+                          _InterestRadioOption<InterestType>(
+                            value: InterestType.simple,
+                            label: LocaleKeys.simple.tr(),
+                          ),
+                          _InterestRadioOption<InterestType>(
+                            value: InterestType.compound,
+                            label: LocaleKeys.compound.tr(),
+                          ),
                         ],
                       ),
                     ),
@@ -367,36 +372,26 @@ class LoanInput extends HookConsumerWidget {
                         onChanged: (value) {
                           if (value != null) interestFrequency.value = value;
                         },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 12,
+                          runSpacing: 4,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Radio<InterestFrequency>(
-                                  value: InterestFrequency.monthly,
-                                ),
-                                StyledSubtitle(LocaleKeys.monthly.tr()),
-                                SizedBox(width: 20),
-                                Radio<InterestFrequency>(
-                                  value: InterestFrequency.quarterly,
-                                ),
-                                StyledSubtitle(LocaleKeys.quarterly.tr()),
-                              ],
+                            _InterestRadioOption<InterestFrequency>(
+                              value: InterestFrequency.monthly,
+                              label: LocaleKeys.monthly.tr(),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Radio<InterestFrequency>(
-                                  value: InterestFrequency.yearly,
-                                ),
-                                StyledSubtitle(LocaleKeys.yearly.tr()),
-                                SizedBox(width: 20),
-                                Radio<InterestFrequency>(
-                                  value: InterestFrequency.halfYearly,
-                                ),
-                                StyledSubtitle(LocaleKeys.halfYearly.tr()),
-                              ],
+                            _InterestRadioOption<InterestFrequency>(
+                              value: InterestFrequency.quarterly,
+                              label: LocaleKeys.quarterly.tr(),
+                            ),
+                            _InterestRadioOption<InterestFrequency>(
+                              value: InterestFrequency.yearly,
+                              label: LocaleKeys.yearly.tr(),
+                            ),
+                            _InterestRadioOption<InterestFrequency>(
+                              value: InterestFrequency.halfYearly,
+                              label: LocaleKeys.halfYearly.tr(),
                             ),
                           ],
                         ),
@@ -1094,6 +1089,25 @@ class _ConfirmationDetail extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         SelectableText(value, style: Theme.of(context).textTheme.bodyLarge),
+      ],
+    ),
+  );
+}
+
+class _InterestRadioOption<T> extends StatelessWidget {
+  const _InterestRadioOption({required this.value, required this.label});
+
+  final T value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Radio<T>(value: value),
+        StyledSubtitle(label),
       ],
     ),
   );

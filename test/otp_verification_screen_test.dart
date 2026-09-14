@@ -63,4 +63,20 @@ void main() {
     expect(find.text('Invalid code'), findsOneWidget);
     expect(find.byType(OtpVerificationScreen), findsOneWidget);
   });
+
+  testWidgets('fits the six-digit input on a compact phone viewport', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(app(verify: (_) async => null));
+    await tester.pump();
+
+    await tester.enterText(find.byKey(const Key('otp-input')), '123');
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('otp-input')), findsOneWidget);
+  });
 }
