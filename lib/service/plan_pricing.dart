@@ -47,27 +47,70 @@ class PlanPricingService {
 
   final http.Client _client;
 
+  static const _requestTimeout = Duration(seconds: 3);
+
   Future<PlanPrice> proPriceFor(CountryConfig country) async {
     if (country.currency == _catalogueCurrency) {
       return _priceFor(country, 1, isEstimate: false);
     }
 
     try {
-      final response = await _client
-          .get(Uri.https('open.er-api.com', '/v6/latest/$_catalogueCurrency'))
-          .timeout(const Duration(seconds: 3));
-      if (response.statusCode != 200) throw const FormatException();
-      final body = jsonDecode(response.body);
-      if (body is! Map<String, dynamic>) throw const FormatException();
-      final rates = body['rates'];
-      final rate = rates is Map ? rates[country.currency] : null;
-      if (rate is! num || !rate.isFinite || rate <= 0) {
-        throw const FormatException();
-      }
-      return _priceFor(country, rate.toDouble(), isEstimate: true);
+      final rate = await _fetchPrimaryRate(country.currency);
+      return _priceFor(country, rate, isEstimate: true);
     } catch (_) {
-      throw const PlanPricingUnavailable();
+      try {
+        final rate = await _fetchFallbackRate(country.currency);
+        return _priceFor(country, rate, isEstimate: true);
+      } catch (_) {
+        throw const PlanPricingUnavailable();
+      }
     }
+  }
+
+  /// Primary source. Its response supplies rates as `rates: { ISO: value }`.
+  Future<double> _fetchPrimaryRate(String currency) async {
+    final response = await _client
+        .get(Uri.https('open.er-api.com', '/v6/latest/$_catalogueCurrency'))
+        .timeout(_requestTimeout);
+    return _rateFromRatesResponse(response, currency);
+  }
+
+  /// Independent fallback for temporary outages or malformed primary data.
+  ///
+  /// The currency API publishes one JSON document per base currency, e.g.
+  /// `{ "inr": { "usd": 0.011 } }`. It is only used for the on-screen
+  /// estimate and never for billing or entitlement decisions.
+  Future<double> _fetchFallbackRate(String currency) async {
+    final response = await _client
+        .get(
+          Uri.https(
+            'cdn.jsdelivr.net',
+            '/npm/@fawazahmed0/currency-api@latest/v1/currencies/${_catalogueCurrency.toLowerCase()}.json',
+          ),
+        )
+        .timeout(_requestTimeout);
+    if (response.statusCode != 200) throw const FormatException();
+    final body = jsonDecode(response.body);
+    if (body is! Map<String, dynamic>) throw const FormatException();
+    final rates = body[_catalogueCurrency.toLowerCase()];
+    final rate = rates is Map ? rates[currency.toLowerCase()] : null;
+    return _validatedRate(rate);
+  }
+
+  double _rateFromRatesResponse(http.Response response, String currency) {
+    if (response.statusCode != 200) throw const FormatException();
+    final body = jsonDecode(response.body);
+    if (body is! Map<String, dynamic>) throw const FormatException();
+    final rates = body['rates'];
+    final rate = rates is Map ? rates[currency] : null;
+    return _validatedRate(rate);
+  }
+
+  double _validatedRate(Object? value) {
+    if (value is! num || !value.isFinite || value <= 0) {
+      throw const FormatException();
+    }
+    return value.toDouble();
   }
 
   PlanPrice _priceFor(

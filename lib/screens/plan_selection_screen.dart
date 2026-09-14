@@ -97,7 +97,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   _PlanOption(
                     selected: _selectedPlan == 'free',
                     title: 'Free',
-                    price: '${_country.symbol}0 ${_country.currency}',
+                    price: '${_country.symbol}0 (${_country.currency})',
                     subtitle: 'Local loan management',
                     features: const [
                       'Loans, repayments, receipts and reports',
