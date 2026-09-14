@@ -23,6 +23,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   bool _isSubmitting = false;
   String? _error;
   CountryResolution? _resolution;
+  String _defaultCountryCode = 'IN';
+  int _phoneWidgetGeneration = 0;
 
   @override
   void initState() {
@@ -35,7 +37,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     if (!mounted) return;
     setState(() {
       _resolution = resolution;
-      _phoneNumber = PhoneNumber(isoCode: resolution.countryCode, nsn: '');
+      // Do not replace a number entered while the asynchronous lookup ran.
+      // `initialValue` resets the third-party widget's controller, so it must
+      // never be driven from the value emitted on every keystroke.
+      if (_phoneController.text.isEmpty) {
+        _defaultCountryCode = resolution.countryCode;
+        _phoneNumber = PhoneNumber(isoCode: resolution.countryCode, nsn: '');
+        _phoneWidgetGeneration++;
+      }
     });
   }
 
@@ -131,10 +140,15 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   const SizedBox(height: 36),
                   PhoneWidget(
-                    key: ValueKey(_phoneNumber.isoCode),
+                    key: ValueKey(_phoneWidgetGeneration),
                     labelText: LocaleKeys.phoneNumber.tr(),
                     hint: LocaleKeys.phoneNumber.tr(),
-                    initialValue: _phoneNumber,
+                    // The controller owns typed text. This stays blank except
+                    // when the auto-default changes before input begins.
+                    initialValue: PhoneNumber(
+                      isoCode: _defaultCountryCode,
+                      nsn: '',
+                    ),
                     textEditingController: _phoneController,
                     onChanged: _onPhoneChanged,
                     onSubmit: _continue,
