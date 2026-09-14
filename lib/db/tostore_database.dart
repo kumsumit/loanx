@@ -22,10 +22,17 @@ abstract interface class DatabaseExecutor {
     int? limit,
     int? offset,
   });
-  Future<int> insert(String table, Map<String, Object?> values,
-      {ConflictAlgorithm? conflictAlgorithm});
-  Future<int> update(String table, Map<String, Object?> values,
-      {String? where, List<Object?>? whereArgs});
+  Future<int> insert(
+    String table,
+    Map<String, Object?> values, {
+    ConflictAlgorithm? conflictAlgorithm,
+  });
+  Future<int> update(
+    String table,
+    Map<String, Object?> values, {
+    String? where,
+    List<Object?>? whereArgs,
+  });
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs});
 }
 
@@ -56,14 +63,21 @@ final class LoanxDatabase implements LoanxDatabasePort {
   LoanxDatabase(this.store);
   final ToStore store;
 
+  static const _queryPageSize = 1000;
+
   static const _numericIdTables = {
-    'loans', 'loanChanges', 'familyRelations', 'mortgageMaterials', 'weightUnits',
+    'loans',
+    'loanChanges',
+    'familyRelations',
+    'mortgageMaterials',
+    'weightUnits',
   };
 
   Object? _toStoreValue(String table, String field, Object? value) {
     if (value == null) return null;
     if ((field == 'id' && _numericIdTables.contains(table)) ||
-        (field == 'loanId') || field == 'familyRelationId' ||
+        (field == 'loanId') ||
+        field == 'familyRelationId' ||
         field == 'mortgageMaterialId') {
       return value.toString();
     }
@@ -72,13 +86,19 @@ final class LoanxDatabase implements LoanxDatabasePort {
 
   Map<String, Object?> _toStoreRow(String table, Map<String, Object?> row) => {
     for (final entry in row.entries)
-      if (entry.value != null) entry.key: _toStoreValue(table, entry.key, entry.value),
+      if (entry.value != null)
+        entry.key: _toStoreValue(table, entry.key, entry.value),
   };
 
   Map<String, Object?> _fromStoreRow(String table, Map<String, dynamic> row) {
     final result = <String, Object?>{...row};
     if (_numericIdTables.contains(table)) {
-      for (final field in const ['id', 'loanId', 'familyRelationId', 'mortgageMaterialId']) {
+      for (final field in const [
+        'id',
+        'loanId',
+        'familyRelationId',
+        'mortgageMaterialId',
+      ]) {
         final value = result[field];
         if (value is String) result[field] = int.tryParse(value) ?? value;
       }
@@ -86,52 +106,102 @@ final class LoanxDatabase implements LoanxDatabasePort {
     return result;
   }
 
-  dynamic _conditions(dynamic builder, String table, String? clause,
-      List<Object?> args) {
+  dynamic _conditions(
+    dynamic builder,
+    String table,
+    String? clause,
+    List<Object?> args,
+  ) {
     if (clause == null || clause.trim().isEmpty) return builder;
     var index = 0;
     for (var part in clause.split(RegExp(r'\s+AND\s+', caseSensitive: false))) {
       part = part.trim();
-      final lower = RegExp(r'^LOWER\((\w+)\)\s*=\s*LOWER\(\?\)$', caseSensitive: false).firstMatch(part);
+      final lower = RegExp(
+        r'^LOWER\((\w+)\)\s*=\s*LOWER\(\?\)$',
+        caseSensitive: false,
+      ).firstMatch(part);
       if (lower != null) {
-        builder = builder.where(lower.group(1)!, '=', args[index++].toString().toLowerCase());
+        builder = builder.where(
+          lower.group(1)!,
+          '=',
+          args[index++].toString().toLowerCase(),
+        );
         continue;
       }
-      final match = RegExp(r'^(\w+)\s*(=|!=|<>|>=|<=|>|<|LIKE)\s*\?$', caseSensitive: false).firstMatch(part);
+      final match = RegExp(
+        r'^(\w+)\s*(=|!=|<>|>=|<=|>|<|LIKE)\s*\?$',
+        caseSensitive: false,
+      ).firstMatch(part);
       if (match == null || index >= args.length) {
         throw DatabaseException('Unsupported query predicate: $clause');
       }
       final field = match.group(1)!;
-      builder = builder.where(field, match.group(2)!.toUpperCase(),
-          _toStoreValue(table, field, args[index++]));
+      builder = builder.where(
+        field,
+        match.group(2)!.toUpperCase(),
+        _toStoreValue(table, field, args[index++]),
+      );
     }
     return builder;
   }
 
   @override
-  Future<List<Map<String, Object?>>> query(String table,
-      {List<String>? columns, String? where, List<Object?>? whereArgs,
-      String? orderBy, int? limit, int? offset}) async {
-    dynamic builder = store.query(table);
-    builder = _conditions(builder, table, where, whereArgs ?? const []);
-    if (columns != null) builder = builder.select(columns);
-    if (orderBy != null) {
-      for (final item in orderBy.split(',')) {
-        final bits = item.trim().split(RegExp(r'\s+'));
-        final descending = bits.any((v) => v.toUpperCase() == 'DESC');
-        builder = descending ? builder.orderByDesc(bits.first) : builder.orderByAsc(bits.first);
+  Future<List<Map<String, Object?>>> query(
+    String table, {
+    List<String>? columns,
+    String? where,
+    List<Object?>? whereArgs,
+    String? orderBy,
+    int? limit,
+    int? offset,
+  }) async {
+    Future<dynamic> readPage(int pageLimit, int pageOffset) async {
+      dynamic builder = store.query(table);
+      builder = _conditions(builder, table, where, whereArgs ?? const []);
+      if (columns != null) builder = builder.select(columns);
+      if (orderBy != null) {
+        for (final item in orderBy.split(',')) {
+          final bits = item.trim().split(RegExp(r'\s+'));
+          final descending = bits.any((v) => v.toUpperCase() == 'DESC');
+          builder = descending
+              ? builder.orderByDesc(bits.first)
+              : builder.orderByAsc(bits.first);
+        }
       }
+      builder = builder.limit(pageLimit);
+      if (pageOffset > 0) builder = builder.offset(pageOffset);
+      return await builder;
     }
-    if (limit != null) builder = builder.limit(limit);
-    if (offset != null) builder = builder.offset(offset);
-    final dynamic result = await builder;
-    if (result.hasErrors == true) throw DatabaseException(result.message.toString());
-    return [for (final dynamic row in result.data) _fromStoreRow(table, Map<String, dynamic>.from(row as Map))];
+
+    final rows = <Map<String, Object?>>[];
+    var pageOffset = offset ?? 0;
+    var remaining = limit;
+    while (remaining == null || remaining > 0) {
+      final pageLimit = remaining == null
+          ? _queryPageSize
+          : remaining.clamp(1, _queryPageSize);
+      final dynamic result = await readPage(pageLimit, pageOffset);
+      if (result.hasErrors == true) {
+        throw DatabaseException(result.message.toString());
+      }
+      final data = result.data as List<dynamic>;
+      rows.addAll([
+        for (final dynamic row in data)
+          _fromStoreRow(table, Map<String, dynamic>.from(row as Map)),
+      ]);
+      if (data.length < pageLimit) break;
+      pageOffset += data.length;
+      if (remaining != null) remaining -= data.length;
+    }
+    return rows;
   }
 
   @override
-  Future<int> insert(String table, Map<String, Object?> values,
-      {ConflictAlgorithm? conflictAlgorithm}) async {
+  Future<int> insert(
+    String table,
+    Map<String, Object?> values, {
+    ConflictAlgorithm? conflictAlgorithm,
+  }) async {
     final row = _toStoreRow(table, values);
     final dynamic result = conflictAlgorithm == ConflictAlgorithm.replace
         ? await store.upsert(table, row)
@@ -145,8 +215,12 @@ final class LoanxDatabase implements LoanxDatabasePort {
   }
 
   @override
-  Future<int> update(String table, Map<String, Object?> values,
-      {String? where, List<Object?>? whereArgs}) async {
+  Future<int> update(
+    String table,
+    Map<String, Object?> values, {
+    String? where,
+    List<Object?>? whereArgs,
+  }) async {
     dynamic builder = store.update(table, _toStoreRow(table, values));
     builder = _conditions(builder, table, where, whereArgs ?? const []);
     if (where == null) builder = builder.allowUpdateAll();
@@ -159,17 +233,25 @@ final class LoanxDatabase implements LoanxDatabasePort {
   }
 
   @override
-  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) async {
+  Future<int> delete(
+    String table, {
+    String? where,
+    List<Object?>? whereArgs,
+  }) async {
     dynamic builder = store.delete(table);
     builder = _conditions(builder, table, where, whereArgs ?? const []);
     if (where == null) builder = builder.allowDeleteAll();
     final dynamic result = await builder;
-    if (result.hasErrors == true) throw DatabaseException(result.message.toString());
+    if (result.hasErrors == true) {
+      throw DatabaseException(result.message.toString());
+    }
     return result.successCount as int;
   }
 
   @override
-  Future<T> transaction<T>(Future<T> Function(DatabaseExecutor tx) action) async {
+  Future<T> transaction<T>(
+    Future<T> Function(DatabaseExecutor tx) action,
+  ) async {
     T? value;
     Object? actionError;
     StackTrace? actionStack;
@@ -182,8 +264,12 @@ final class LoanxDatabase implements LoanxDatabasePort {
         rethrow;
       }
     });
-    if (actionError != null) Error.throwWithStackTrace(actionError!, actionStack!);
-    if (result.hasErrors) throw DatabaseException(result.statuses.map((s) => s.message).join('; '));
+    if (actionError != null) {
+      Error.throwWithStackTrace(actionError!, actionStack!);
+    }
+    if (result.hasErrors) {
+      throw DatabaseException(result.statuses.map((s) => s.message).join('; '));
+    }
     return value as T;
   }
 
@@ -199,7 +285,8 @@ final class LoanxDatabase implements LoanxDatabasePort {
   Future<void> setVersion(int version) => store.setVersion(version);
 
   @override
-  Future<String> backup({bool compress = true}) => store.backup(compress: compress);
+  Future<String> backup({bool compress = true}) =>
+      store.backup(compress: compress);
 
   @override
   Future<bool> restore(String path) => store.restore(path);
@@ -209,7 +296,11 @@ final class LoanxDatabase implements LoanxDatabasePort {
       store.getValue(key, isGlobal: isGlobal);
 
   @override
-  Future<void> setValue(String key, dynamic value, {bool isGlobal = false}) async {
+  Future<void> setValue(
+    String key,
+    dynamic value, {
+    bool isGlobal = false,
+  }) async {
     final result = await store.setValue(key, value, isGlobal: isGlobal);
     if (result.hasErrors) throw DatabaseException(result.message);
   }
@@ -251,20 +342,30 @@ final class LoanxBatch {
   final LoanxDatabase _database;
   final List<Future<Object?> Function()> _operations = [];
 
-  void insert(String table, Map<String, Object?> values,
-      {ConflictAlgorithm? conflictAlgorithm}) {
-    _operations.add(() => _database.insert(table, values, conflictAlgorithm: conflictAlgorithm));
+  void insert(
+    String table,
+    Map<String, Object?> values, {
+    ConflictAlgorithm? conflictAlgorithm,
+  }) {
+    _operations.add(
+      () =>
+          _database.insert(table, values, conflictAlgorithm: conflictAlgorithm),
+    );
   }
 
   void delete(String table, {String? where, List<Object?>? whereArgs}) {
-    _operations.add(() => _database.delete(table, where: where, whereArgs: whereArgs));
+    _operations.add(
+      () => _database.delete(table, where: where, whereArgs: whereArgs),
+    );
   }
 
   Future<List<Object?>> commit({bool continueOnError = false}) async {
     final values = <Object?>[];
     await _database.transaction((_) async {
       for (final operation in _operations) {
-        try { values.add(await operation()); } catch (_) {
+        try {
+          values.add(await operation());
+        } catch (_) {
           if (!continueOnError) rethrow;
           values.add(null);
         }

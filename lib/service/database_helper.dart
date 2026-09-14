@@ -48,7 +48,10 @@ final class DatabaseHelper {
         persistRecoveryOnCommit: true,
         defaultTransactionIsolationLevel:
             TransactionIsolationLevel.serializable,
-        defaultQueryLimit: 0,
+        // ToStore rejects queries when this is zero. The compatibility adapter
+        // explicitly paginates SQL-style unbounded reads, while this default
+        // also protects the few native ToStore calls from accidental scans.
+        defaultQueryLimit: 1000,
         encryptionConfig: EncryptionConfig(
           encryptionType: EncryptionType.aes256Gcm,
           encodingKey: await _key(secure, _encodingKeyName),

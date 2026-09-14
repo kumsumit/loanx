@@ -7,7 +7,7 @@ class MortgageMaterialFields {
 }
 
 class MortgageMaterial {
-  static const String tableName = 'MortgageMaterials';
+  static const String tableName = 'mortgageMaterials';
   final int? id;
   final String name;
   final int isAddedByUser;
