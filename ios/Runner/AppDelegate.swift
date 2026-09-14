@@ -57,6 +57,13 @@ import ContactsUI
         result(self?.getAppVersionCode() ?? -1)
         return
       }
+      if call.method == "countrySignals" {
+        result([
+          "deviceCountry": Locale.current.regionCode ?? "",
+          "timezone": TimeZone.current.identifier
+        ])
+        return
+      }
       guard call.method == "createContact" else {
         result(FlutterMethodNotImplemented)
         return

@@ -18,6 +18,9 @@ import android.content.Intent
 import android.provider.ContactsContract
 import android.app.ActivityManager
 import android.os.Build
+import android.telephony.TelephonyManager
+import java.util.Locale
+import java.util.TimeZone
 //import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 //import com.google.android.play.core.appupdate.AppUpdateOptions
 //import com.google.android.play.core.install.model.AppUpdateType
@@ -41,6 +44,8 @@ class MainActivity : FlutterFragmentActivity() {
                 result.success(android.os.Build.VERSION.RELEASE)
             } else if (call.method.equals("deviceCapabilities")) {
                 result.success(deviceCapabilities())
+            } else if (call.method.equals("countrySignals")) {
+                result.success(countrySignals())
             } else if (call.method.equals("openReview")) {
                 openReview(result)
             } else if (call.method.equals("createContact")) {
@@ -57,6 +62,17 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
+    }
+
+    private fun countrySignals(): Map<String, String> {
+        val telephony = getSystemService(TELEPHONY_SERVICE) as? TelephonyManager
+        return mapOf(
+            "deviceCountry" to Locale.getDefault().country,
+            "simCountry" to (telephony?.simCountryIso ?: ""),
+            // This may be empty when Android protects network-derived location.
+            "networkCountry" to (telephony?.networkCountryIso ?: ""),
+            "timezone" to TimeZone.getDefault().id
+        )
     }
 
     private fun deviceCapabilities(): Map<String, Any> {

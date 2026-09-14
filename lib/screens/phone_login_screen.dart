@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/l10n/app_languages.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
+import 'package:loanx/service/country_resolver.dart';
 import 'package:loanx/widget/language_picker.dart';
 import 'package:loanx/widget/phone.dart';
 
@@ -21,6 +22,22 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   bool _isValid = false;
   bool _isSubmitting = false;
   String? _error;
+  CountryResolution? _resolution;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCountryDefault();
+  }
+
+  Future<void> _loadCountryDefault() async {
+    final resolution = await CountryResolver().resolve();
+    if (!mounted) return;
+    setState(() {
+      _resolution = resolution;
+      _phoneNumber = PhoneNumber(isoCode: resolution.countryCode, nsn: '');
+    });
+  }
 
   @override
   void dispose() {
@@ -114,13 +131,24 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   ),
                   const SizedBox(height: 36),
                   PhoneWidget(
+                    key: ValueKey(_phoneNumber.isoCode),
                     labelText: LocaleKeys.phoneNumber.tr(),
                     hint: LocaleKeys.phoneNumber.tr(),
-                    initialValue: PhoneNumber(isoCode: 'IN', nsn: ''),
+                    initialValue: _phoneNumber,
                     textEditingController: _phoneController,
                     onChanged: _onPhoneChanged,
                     onSubmit: _continue,
                   ),
+                  if (_resolution != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      'Country selected: ${_resolution!.country.name}',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   if (_error != null) ...[
                     _InlineError(message: _error!),

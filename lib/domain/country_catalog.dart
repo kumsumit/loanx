@@ -297,6 +297,8 @@ abstract final class CountryCatalog {
     CountryConfig("EH", "ESH", "Western Sahara", "MAD", "د.م.", "+212"),
   ];
   static final _byCode = {for (final c in all) c.code: c};
+  static bool contains(String? code) =>
+      _byCode.containsKey(code?.toUpperCase());
   static CountryConfig byCode(String? code) =>
       _byCode[code?.toUpperCase()] ?? _byCode['IN']!;
   static String e164(String? code, String number) =>

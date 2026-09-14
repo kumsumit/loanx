@@ -74,7 +74,9 @@ class _PhoneWidgetState extends State<PhoneWidget> {
   @override
   Widget build(BuildContext context) {
     return MaterialInternationalPhoneNumber(
-      defaultCountry: countries.first,
+      defaultCountry: CountryCatalog.byCode(
+        widget.initialValue.isoCode,
+      ).phoneCountry,
       filterFunction: (value) {
         return countries
             .where(
