@@ -11,7 +11,7 @@ anyhow = "1"
 flutter_rust_bridge = "=2.13.0"
 prost = "0.14"
 rand = "0.10"
-s2n-quic = "1.88"
+s2n-quic = { version = "1.88", default-features = false, features = ["provider-address-token-default", "provider-tls-rustls"] }
 tokio = { version = "1", features = ["io-util"] }
 
 [build-dependencies]

@@ -49,18 +49,29 @@ void main() {
 
   test('optional service failures are isolated from each other', () async {
     var backgroundStarted = false;
-    var metadataStarted = false;
     await initializeOptionalServices(
       googleSignIn: () async => throw StateError('provider unavailable'),
       backgroundJobs: () async {
         backgroundStarted = true;
       },
-      phoneMetadata: () async {
-        metadataStarted = true;
-      },
     );
     expect(backgroundStarted, isTrue);
-    expect(metadataStarted, isTrue);
+  });
+
+  test('phone metadata is initialized before the UI starts', () async {
+    var started = false;
+    final ready = await initializePhoneMetadata(
+      loader: () async => started = true,
+    );
+    expect(started, isTrue);
+    expect(ready, isTrue);
+  });
+
+  test('phone metadata failure is reported as not ready', () async {
+    final ready = await initializePhoneMetadata(
+      loader: () async => throw StateError('metadata unavailable'),
+    );
+    expect(ready, isFalse);
   });
 
   testWidgets('new local workspace needs no phone or account role', (
@@ -86,5 +97,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(ErrorPage), findsOneWidget);
     expect(find.byType(AskBackupScreen), findsNothing);
+  });
+
+  testWidgets('phone metadata failure never builds the login screen', (
+    tester,
+  ) async {
+    AppSettings.putPhoneAuthVerified(false);
+    await tester.pumpWidget(
+      EasyLocalization(
+        supportedLocales: const [Locale('en')],
+        path: 'lib/l10n',
+        assetLoader: const CodegenLoader(),
+        fallbackLocale: const Locale('en'),
+        child: const ProviderScope(child: MyApp(phoneMetadataReady: false)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(ErrorPage), findsOneWidget);
   });
 }

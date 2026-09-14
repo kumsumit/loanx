@@ -79,6 +79,7 @@ class _FallbackCupertinoLocalizationsDelegate
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  final phoneMetadataReady = await initializePhoneMetadata();
   await RustLib.init();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   FlutterError.onError = (details) {
@@ -140,6 +141,7 @@ Future<void> main() async {
       child: ProviderScope(
         child: MyApp(
           storageReady: storageReady,
+          phoneMetadataReady: phoneMetadataReady,
           sendOtp: activeAuthClient!.requestOtp,
           verifyOtp: activeAuthClient!.verifyOtp,
         ),
@@ -154,7 +156,6 @@ Future<void> main() async {
 Future<void> initializeOptionalServices({
   Future<void> Function()? googleSignIn,
   Future<void> Function()? backgroundJobs,
-  Future<void> Function()? phoneMetadata,
 }) async {
   Future<void> initialize(String name, Future<void> Function() action) async {
     try {
@@ -170,22 +171,34 @@ Future<void> initializeOptionalServices({
       'background jobs',
       backgroundJobs ?? () => Workmanager().initialize(callbackDispatcher),
     ),
-    initialize(
-      'phone metadata',
-      phoneMetadata ?? () => PhoneMetadataBootstrap.ensureInitialized(),
-    ),
   ]);
+}
+
+/// Phone parsing metadata is required before any phone input widget is built.
+/// Loading it after [runApp] races the login screen and causes a StateError.
+Future<bool> initializePhoneMetadata({Future<void> Function()? loader}) async {
+  try {
+    await (loader ?? PhoneMetadataBootstrap.ensureInitialized).call().timeout(
+      const Duration(seconds: 15),
+    );
+    return true;
+  } catch (_) {
+    debugPrint('LoanX phone metadata initialization unavailable.');
+    return false;
+  }
 }
 
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({
     super.key,
     this.storageReady = true,
+    this.phoneMetadataReady = true,
     this.sendOtp,
     this.verifyOtp,
   });
 
   final bool storageReady;
+  final bool phoneMetadataReady;
   final OtpSender? sendOtp;
   final OtpVerifier? verifyOtp;
 
@@ -316,7 +329,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       theme: AppTheme.light(AppTheme.parseSeed(appColor)),
       darkTheme: AppTheme.dark(AppTheme.parseSeed(appColor)),
       debugShowCheckedModeBanner: false,
-      home: !widget.storageReady
+      home: !widget.storageReady || !widget.phoneMetadataReady
           ? ErrorPage()
           : _hasSelectedLanguage != true
           ? StartupLanguageScreen(onLanguageSelected: _languageSelected)
