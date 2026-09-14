@@ -68,6 +68,7 @@ Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await RustLib.init();
+  await PhoneMetadataBootstrap.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
@@ -144,10 +145,10 @@ Future<void> initializeOptionalServices({
       'background jobs',
       backgroundJobs ?? () => Workmanager().initialize(callbackDispatcher),
     ),
-    initialize(
-      'phone metadata',
-      phoneMetadata ?? () => PhoneMetadataBootstrap.ensureInitialized(),
-    ),
+    // initialize(
+    //   'phone metadata',
+    //   phoneMetadata ?? () => PhoneMetadataBootstrap.ensureInitialized(),
+    // ),
   ]);
 }
 
