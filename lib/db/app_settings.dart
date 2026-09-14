@@ -85,6 +85,9 @@ class AppSettings {
   static bool getIsTableCreated() => _get('isTableCreated', false);
   static int getThemeMode() => _get('themeMode', ThemeMode.system.index);
   static int getOnboardingInterest() => _get('onboardingInterest', -1);
+  static bool getPlanSelectionCompleted() =>
+      _get('planSelectionCompleted', false);
+  static String getSelectedPlan() => _get('selectedPlan', 'free');
   static bool getPhoneAuthVerified() => _get('phoneAuthVerified', false);
   static String getVerifiedPhoneNumber() => _get('verifiedPhoneNumber', '');
   static String getDeviceId() => _get('deviceId', '');
@@ -120,6 +123,11 @@ class AppSettings {
   static List<int> getPhoto() => List<int>.from(_get('photo', const <int>[]));
   static void putThemeMode(int v) => _put('themeMode', v);
   static void putOnboardingInterest(int v) => _put('onboardingInterest', v);
+  static void putPlanSelectionCompleted(bool v) =>
+      _put('planSelectionCompleted', v);
+
+  /// This is a local onboarding preference, never proof of a paid entitlement.
+  static void putSelectedPlan(String v) => _put('selectedPlan', v);
   static void putPhoneAuthVerified(bool v) => _put('phoneAuthVerified', v);
   static void putVerifiedPhoneNumber(String v) =>
       _put('verifiedPhoneNumber', v);

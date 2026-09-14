@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/service/device_capabilities.dart';
 import 'package:pinput/pinput.dart';
@@ -87,14 +88,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
-    final countryCode = switch (widget.phoneNumber.isoCode) {
-      'IN' => '91',
-      'NP' => '977',
-      'BD' => '880',
-      'BT' => '975',
-      _ => '',
-    };
-    final phone = '+$countryCode${widget.phoneNumber.nsn}';
+    final phone = CountryCatalog.e164(
+      widget.phoneNumber.isoCode,
+      widget.phoneNumber.nsn,
+    );
     return Scaffold(
       body: DecoratedBox(
         decoration: BoxDecoration(

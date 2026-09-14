@@ -18,6 +18,8 @@ import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/screens/auth_screen.dart';
 import 'package:loanx/screens/dashboard.dart';
+import 'package:loanx/domain/country_catalog.dart';
+import 'package:loanx/screens/plan_selection_screen.dart';
 import 'package:loanx/screens/phone_login_screen.dart';
 import 'package:loanx/screens/otp_verification_screen.dart';
 import 'package:loanx/service/backup_service.dart';
@@ -283,16 +285,8 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  String _e164Phone(PhoneNumber phoneNumber) {
-    final countryCode = switch (phoneNumber.isoCode) {
-      'IN' => '91',
-      'NP' => '977',
-      'BD' => '880',
-      'BT' => '975',
-      _ => '',
-    };
-    return '+$countryCode${phoneNumber.nsn}';
-  }
+  String _e164Phone(PhoneNumber phoneNumber) =>
+      CountryCatalog.e164(phoneNumber.isoCode, phoneNumber.nsn);
 
   Future<String?> _resendOtp() async {
     final phoneNumber = _pendingPhoneNumber;
@@ -354,6 +348,8 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                 .when(
                   data: (authenticated) => !authenticated
                       ? const AuthFailurePage()
+                      : !AppSettings.getPlanSelectionCompleted()
+                      ? PlanSelectionScreen(onContinue: () => setState(() {}))
                       : !AppSettings.getIsTableCreated()
                       ? const AskBackupScreen()
                       : const DashBoard(),

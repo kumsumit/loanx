@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/app_settings.dart';
+import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/src/rust/api/network.dart' as network;
 
 class AuthClient {
@@ -158,7 +159,10 @@ class AuthClient {
     // One-time migration from the two-record implementation.
     final access = await _storage.read(key: 'loanx.access-token');
     final refresh = await _storage.read(key: 'loanx.refresh-token');
-    if (access == null || refresh == null || access.isEmpty || refresh.isEmpty) {
+    if (access == null ||
+        refresh == null ||
+        access.isEmpty ||
+        refresh.isEmpty) {
       return null;
     }
     await _storeTokens(access, refresh);
@@ -174,17 +178,7 @@ class AuthClient {
     return value;
   }
 
-  String _e164(PhoneNumber p) {
-    final c = switch (p.isoCode) {
-      'IN' => '91',
-      'NP' => '977',
-      'BD' => '880',
-      'BT' => '975',
-      _ => '',
-    };
-    if (c.isEmpty) throw ArgumentError('Unsupported country');
-    return '+$c${p.nsn}';
-  }
+  String _e164(PhoneNumber p) => CountryCatalog.e164(p.isoCode, p.nsn);
 }
 
 class _StoredTokens {
