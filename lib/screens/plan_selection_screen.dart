@@ -36,12 +36,6 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.auto_awesome_rounded,
-                    color: colors.primary,
-                    size: 42,
-                  ),
-                  const SizedBox(height: 20),
                   Text(
                     'Choose how you want to use LoanX',
                     style: theme.textTheme.headlineMedium?.copyWith(

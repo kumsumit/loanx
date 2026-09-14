@@ -89,6 +89,8 @@ class AppSettings {
       _get('planSelectionCompleted', false);
   static String getSelectedPlan() => _get('selectedPlan', 'free');
   static bool getPhoneAuthVerified() => _get('phoneAuthVerified', false);
+  static bool getLanguageSelectionCompleted() =>
+      _get('languageSelectionCompleted', false);
   static String getVerifiedPhoneNumber() => _get('verifiedPhoneNumber', '');
   static String getDeviceId() => _get('deviceId', '');
   static String getPendingPreferredLanguage() =>
@@ -129,6 +131,8 @@ class AppSettings {
   /// This is a local onboarding preference, never proof of a paid entitlement.
   static void putSelectedPlan(String v) => _put('selectedPlan', v);
   static void putPhoneAuthVerified(bool v) => _put('phoneAuthVerified', v);
+  static void putLanguageSelectionCompleted(bool v) =>
+      _put('languageSelectionCompleted', v);
   static void putVerifiedPhoneNumber(String v) =>
       _put('verifiedPhoneNumber', v);
   static void putDeviceId(String v) => _put('deviceId', v);

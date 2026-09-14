@@ -227,13 +227,31 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _hasSelectedLanguage ??= context.savedLocale != null;
+    // Keep an app-owned onboarding marker. The locale package may not expose a
+    // saved locale on every platform/startup path, even after `setLocale`.
+    _hasSelectedLanguage ??=
+        AppSettings.getLanguageSelectionCompleted() ||
+        context.savedLocale != null;
     _hasSelectedInterest ??= AppSettings.getOnboardingInterest() >= 0;
     _hasVerifiedPhone ??= AppSettings.getPhoneAuthVerified();
   }
 
-  void _languageSelected() {
+  Future<void> _languageSelected(Locale locale) async {
     if (_hasSelectedLanguage == true) return;
+    AppSettings.putLanguageSelectionCompleted(true);
+    // Queue this before sign-in. OTP verification persists it on the server;
+    // an existing authenticated session can persist it immediately below.
+    AppSettings.putPendingPreferredLanguage(locale.languageCode);
+    await AppSettings.flush();
+    try {
+      if (await activeAuthClient?.updateLanguage(locale.languageCode) == true) {
+        AppSettings.putPendingPreferredLanguage('');
+        await AppSettings.flush();
+      }
+    } catch (_) {
+      // The queued local preference is retried after the next session restore.
+    }
+    if (!mounted) return;
     setState(() => _hasSelectedLanguage = true);
   }
 

@@ -19,9 +19,11 @@ Future<void> showAppLanguagePicker(BuildContext context) async {
     AppSettings.putPendingPreferredLanguage(selectedLocale.languageCode);
     await AppSettings.flush();
     try {
-      await activeAuthClient?.updateLanguage(selectedLocale.languageCode);
-      AppSettings.putPendingPreferredLanguage('');
-      await AppSettings.flush();
+      if (await activeAuthClient?.updateLanguage(selectedLocale.languageCode) ==
+          true) {
+        AppSettings.putPendingPreferredLanguage('');
+        await AppSettings.flush();
+      }
     } catch (_) {
       // The local choice remains active and is retained for a later sync.
     }
@@ -65,7 +67,7 @@ class _LanguagePickerLayout {
 
 class StartupLanguageScreen extends StatefulWidget {
   const StartupLanguageScreen({required this.onLanguageSelected, super.key});
-  final VoidCallback onLanguageSelected;
+  final Future<void> Function(Locale locale) onLanguageSelected;
 
   @override
   State<StartupLanguageScreen> createState() => _StartupLanguageScreenState();
@@ -83,7 +85,7 @@ class _StartupLanguageScreenState extends State<StartupLanguageScreen> {
 
   Future<void> _continue() async {
     await context.setLocale(_selectedLocale);
-    if (mounted) widget.onLanguageSelected();
+    if (mounted) await widget.onLanguageSelected(_selectedLocale);
   }
 
   @override

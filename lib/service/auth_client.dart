@@ -55,9 +55,13 @@ class AuthClient {
     return true;
   }
 
-  Future<void> updateLanguage(String language) async {
+  /// Returns true only when the authenticated server profile was updated.
+  ///
+  /// A language selected before sign-in remains queued locally and is sent
+  /// during OTP verification or the next restored session.
+  Future<bool> updateLanguage(String language) async {
     final token = (await _readTokens())?.accessToken;
-    if (token == null || token.isEmpty) return;
+    if (token == null || token.isEmpty) return false;
     final result = await network.updateLanguage(
       serverAddress: _address,
       serverName: _name,
@@ -69,6 +73,7 @@ class AuthClient {
     if (!result.success) {
       throw StateError(result.errorMessage ?? 'Language update failed');
     }
+    return true;
   }
 
   Future<bool> restoreSession() async {
@@ -92,9 +97,10 @@ class AuthClient {
       final pendingLanguage = AppSettings.getPendingPreferredLanguage();
       if (pendingLanguage.isNotEmpty) {
         try {
-          await updateLanguage(pendingLanguage);
-          AppSettings.putPendingPreferredLanguage('');
-          await AppSettings.flush();
+          if (await updateLanguage(pendingLanguage)) {
+            AppSettings.putPendingPreferredLanguage('');
+            await AppSettings.flush();
+          }
         } catch (_) {
           // Authentication is valid; preference sync can retry later.
         }

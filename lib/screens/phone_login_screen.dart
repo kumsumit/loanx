@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/l10n/app_languages.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/service/country_resolver.dart';
@@ -22,7 +23,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   bool _isValid = false;
   bool _isSubmitting = false;
   String? _error;
-  CountryResolution? _resolution;
   String _defaultCountryCode = 'IN';
   int _phoneWidgetGeneration = 0;
 
@@ -36,7 +36,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     final resolution = await CountryResolver().resolve();
     if (!mounted) return;
     setState(() {
-      _resolution = resolution;
       // Do not replace a number entered while the asynchronous lookup ran.
       // `initialValue` resets the third-party widget's controller, so it must
       // never be driven from the value emitted on every keystroke.
@@ -90,6 +89,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    // `_resolution` is only the initial, best-effort device default. The phone
+    // input owns subsequent country selections, so render that live value.
+    final selectedCountry = CountryCatalog.byCode(_phoneNumber.isoCode);
 
     return Scaffold(
       body: SafeArea(
@@ -153,16 +155,14 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     onChanged: _onPhoneChanged,
                     onSubmit: _continue,
                   ),
-                  if (_resolution != null) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      'Country selected: ${_resolution!.country.name}',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Country selected: ${selectedCountry.name}',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
                     ),
-                  ],
+                  ),
                   const SizedBox(height: 20),
                   if (_error != null) ...[
                     _InlineError(message: _error!),
