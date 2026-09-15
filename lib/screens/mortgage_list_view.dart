@@ -11,7 +11,7 @@ import 'package:loanx/screens/loan_details.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/service/currency_presentation.dart';
-import 'package:loanx/service/device_capabilities.dart';
+import 'package:loanx/service/device_performance.dart';
 import 'package:loanx/widget/empty_state.dart';
 import 'package:loanx/widget/snackbar.dart';
 
@@ -102,7 +102,7 @@ class MortgageListView extends StatelessWidget {
           child: AnimatedContainer(
             // Avoid keeping every list card in an animation layer on older
             // Android GPUs. The selected state remains visible immediately.
-            duration: DeviceCapabilitiesScope.of(context).reduceEffects
+            duration: DevicePerformance.reducePaintComplexity
                 ? Duration.zero
                 : const Duration(milliseconds: 180),
             margin: const EdgeInsets.only(bottom: 12),

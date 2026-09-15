@@ -7,12 +7,7 @@ import 'package:flutter/services.dart';
 ///
 /// This is intentionally broader than "high-end / low-end".
 /// It describes how aggressively the UI can use expensive visual features.
-enum PerformanceTier {
-  ultra,
-  high,
-  standard,
-  safe,
-}
+enum PerformanceTier { ultra, high, standard, safe }
 
 /// Centralized device-performance configuration for LoanX.
 ///
@@ -71,8 +66,7 @@ class DevicePerformance {
     }
 
     try {
-      final result =
-          await _channel.invokeMethod<dynamic>('deviceCapabilities');
+      final result = await _channel.invokeMethod<dynamic>('deviceCapabilities');
 
       if (result is Map) {
         _capabilities = Map<String, dynamic>.from(result);
@@ -80,9 +74,7 @@ class DevicePerformance {
         _capabilities = <String, dynamic>{};
       }
 
-      _tier = _parseTier(
-        _capabilities['performanceTier'],
-      );
+      _tier = _parseTier(_capabilities['performanceTier']);
     } catch (error, stackTrace) {
       /*
        * Performance adaptation must NEVER prevent LoanX from starting.
@@ -90,13 +82,9 @@ class DevicePerformance {
        * If native capability detection fails, use the conservative
        * STANDARD profile.
        */
-      debugPrint(
-        'DevicePerformance initialization failed: $error',
-      );
+      debugPrint('DevicePerformance initialization failed: $error');
 
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+      debugPrintStack(stackTrace: stackTrace);
 
       _capabilities = <String, dynamic>{};
       _tier = PerformanceTier.standard;
@@ -118,8 +106,7 @@ class DevicePerformance {
   // BASIC DEVICE INFORMATION
   // ---------------------------------------------------------------------------
 
-  static int get sdkInt =>
-      _intValue(_capabilities['sdkInt']) ?? 0;
+  static int get sdkInt => _intValue(_capabilities['sdkInt']) ?? 0;
 
   static String get androidRelease =>
       _stringValue(_capabilities['androidRelease']) ?? '';
@@ -127,27 +114,21 @@ class DevicePerformance {
   static String get manufacturer =>
       _stringValue(_capabilities['manufacturer']) ?? '';
 
-  static String get brand =>
-      _stringValue(_capabilities['brand']) ?? '';
+  static String get brand => _stringValue(_capabilities['brand']) ?? '';
 
-  static String get model =>
-      _stringValue(_capabilities['model']) ?? '';
+  static String get model => _stringValue(_capabilities['model']) ?? '';
 
-  static String get device =>
-      _stringValue(_capabilities['device']) ?? '';
+  static String get device => _stringValue(_capabilities['device']) ?? '';
 
-  static String get product =>
-      _stringValue(_capabilities['product']) ?? '';
+  static String get product => _stringValue(_capabilities['product']) ?? '';
 
-  static String get board =>
-      _stringValue(_capabilities['board']) ?? '';
+  static String get board => _stringValue(_capabilities['board']) ?? '';
 
   // ---------------------------------------------------------------------------
   // CPU
   // ---------------------------------------------------------------------------
 
-  static int get cpuCores =>
-      _intValue(_capabilities['cpuCores']) ?? 1;
+  static int get cpuCores => _intValue(_capabilities['cpuCores']) ?? 1;
 
   // ---------------------------------------------------------------------------
   // MEMORY
@@ -156,15 +137,13 @@ class DevicePerformance {
   static int get memoryClassMb =>
       _intValue(_capabilities['memoryClassMb']) ?? 128;
 
-  static bool get isLowRamDevice =>
-      _boolValue(_capabilities['isLowRamDevice']);
+  static bool get isLowRamDevice => _boolValue(_capabilities['isLowRamDevice']);
 
   // ---------------------------------------------------------------------------
   // ABI
   // ---------------------------------------------------------------------------
 
-  static bool get supports64Bit =>
-      _boolValue(_capabilities['supports64Bit']);
+  static bool get supports64Bit => _boolValue(_capabilities['supports64Bit']);
 
   static List<String> get supportedAbis =>
       _stringList(_capabilities['supportedAbis']);
@@ -185,32 +164,23 @@ class DevicePerformance {
   static int get openGlEsMajor =>
       _intValue(_capabilities['openGlEsMajor']) ?? 0;
 
-  static bool get supportsVulkan =>
-      _boolValue(_capabilities['supportsVulkan']);
+  static bool get supportsVulkan => _boolValue(_capabilities['supportsVulkan']);
 
   static bool get hardwareAccelerationEnabled =>
-      _boolValue(
-        _capabilities['hardwareAccelerationEnabled'],
-      );
+      _boolValue(_capabilities['hardwareAccelerationEnabled']);
 
   static bool get softwareRenderingFallback =>
-      _boolValue(
-        _capabilities['softwareRenderingFallback'],
-      );
+      _boolValue(_capabilities['softwareRenderingFallback']);
 
   // ---------------------------------------------------------------------------
   // COMPATIBILITY
   // ---------------------------------------------------------------------------
 
   static bool get knownProblematicGraphicsDevice =>
-      _boolValue(
-        _capabilities['knownProblematicGraphicsDevice'],
-      );
+      _boolValue(_capabilities['knownProblematicGraphicsDevice']);
 
   static bool get extremelyConstrainedDevice =>
-      _boolValue(
-        _capabilities['extremelyConstrainedDevice'],
-      );
+      _boolValue(_capabilities['extremelyConstrainedDevice']);
 
   // ---------------------------------------------------------------------------
   // PERFORMANCE PROFILE
@@ -224,20 +194,16 @@ class DevicePerformance {
   /// - Blur
   /// - Complex transitions
   /// - More sophisticated visual effects
-  static bool get isUltra =>
-      _tier == PerformanceTier.ultra;
+  static bool get isUltra => _tier == PerformanceTier.ultra;
 
   /// HIGH
-  static bool get isHigh =>
-      _tier == PerformanceTier.high;
+  static bool get isHigh => _tier == PerformanceTier.high;
 
   /// STANDARD
-  static bool get isStandard =>
-      _tier == PerformanceTier.standard;
+  static bool get isStandard => _tier == PerformanceTier.standard;
 
   /// SAFE
-  static bool get isSafe =>
-      _tier == PerformanceTier.safe;
+  static bool get isSafe => _tier == PerformanceTier.safe;
 
   // ---------------------------------------------------------------------------
   // UI ADAPTATION
@@ -303,46 +269,37 @@ class DevicePerformance {
 
   /// Expensive decorative gradients.
   static bool get enableComplexGradients =>
-      _tier == PerformanceTier.ultra ||
-      _tier == PerformanceTier.high;
+      _tier == PerformanceTier.ultra || _tier == PerformanceTier.high;
 
   /// Hero animations.
   static bool get enableHeroAnimations =>
-      _tier == PerformanceTier.ultra ||
-      _tier == PerformanceTier.high;
+      _tier == PerformanceTier.ultra || _tier == PerformanceTier.high;
 
   /// Animated list items.
   static bool get enableListAnimations =>
-      _tier == PerformanceTier.ultra ||
-      _tier == PerformanceTier.high;
+      _tier == PerformanceTier.ultra || _tier == PerformanceTier.high;
 
   /// Animated charts.
   static bool get enableChartAnimations =>
-      _tier == PerformanceTier.ultra ||
-      _tier == PerformanceTier.high;
+      _tier == PerformanceTier.ultra || _tier == PerformanceTier.high;
 
   /// More aggressive image resolution can be used.
-  static bool get preferHighResolutionImages =>
-      _tier == PerformanceTier.ultra;
+  static bool get preferHighResolutionImages => _tier == PerformanceTier.ultra;
 
   /// Standard/high-resolution images are acceptable.
   static bool get preferStandardResolutionImages =>
-      _tier == PerformanceTier.ultra ||
-      _tier == PerformanceTier.high;
+      _tier == PerformanceTier.ultra || _tier == PerformanceTier.high;
 
   /// Use compressed/smaller image assets.
   static bool get preferLowResolutionImages =>
-      _tier == PerformanceTier.standard ||
-      _tier == PerformanceTier.safe;
+      _tier == PerformanceTier.standard || _tier == PerformanceTier.safe;
 
   /// Whether a UI component should avoid expensive painting.
   static bool get reducePaintComplexity =>
-      _tier == PerformanceTier.safe ||
-      _tier == PerformanceTier.standard;
+      _tier == PerformanceTier.safe || _tier == PerformanceTier.standard;
 
   /// Whether lists should aggressively avoid unnecessary work.
-  static bool get optimizeLists =>
-      true;
+  static bool get optimizeLists => true;
 
   /// Number of simultaneously animated elements recommended.
   static int get recommendedConcurrentAnimations {
@@ -422,12 +379,8 @@ class DevicePerformance {
   // ---------------------------------------------------------------------------
 
   /// Returns [rich] for stronger devices and [simple] for weaker devices.
-  static T choose<T>({
-    required T rich,
-    required T simple,
-  }) {
-    if (_tier == PerformanceTier.ultra ||
-        _tier == PerformanceTier.high) {
+  static T choose<T>({required T rich, required T simple}) {
+    if (_tier == PerformanceTier.ultra || _tier == PerformanceTier.high) {
       return rich;
     }
 
@@ -470,7 +423,7 @@ class DevicePerformance {
       'Android: $androidRelease (API $sdkInt)',
       'Device: $manufacturer $model',
       'CPU cores: $cpuCores',
-      'Memory class: ${memoryClassMb} MB',
+      'Memory class: $memoryClassMb MB',
       'Low RAM: $isLowRamDevice',
       '64-bit: $supports64Bit',
       'OpenGL ES: $openGlEsVersion',

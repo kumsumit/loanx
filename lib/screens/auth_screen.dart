@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/service/device_capabilities.dart';
+import 'package:loanx/service/device_performance.dart';
 
 class AuthScreen extends HookConsumerWidget {
   const AuthScreen({super.key});
@@ -39,7 +39,7 @@ class AuthScreen extends HookConsumerWidget {
 
     ref.watch(appColorProvider);
     final colors = Theme.of(context).colorScheme;
-    final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
+    final basicEffects = DevicePerformance.isSafe;
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(

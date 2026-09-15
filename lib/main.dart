@@ -24,7 +24,7 @@ import 'package:loanx/screens/phone_login_screen.dart';
 import 'package:loanx/screens/otp_verification_screen.dart';
 import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/service/auth_client.dart';
-import 'package:loanx/service/device_capabilities.dart';
+import 'package:loanx/service/device_performance.dart';
 import 'package:loanx/src/rust/frb_generated.dart';
 import 'package:loanx/theme/app_theme.dart';
 import 'package:loanx/widget/language_picker.dart';
@@ -84,7 +84,7 @@ Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   final phoneMetadataReady = await initializePhoneMetadata();
-  final deviceCapabilities = await DeviceCapabilityService.load();
+  await DevicePerformance.initialize();
   await RustLib.init();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   FlutterError.onError = (details) {
@@ -145,7 +145,6 @@ Future<void> main() async {
         child: MyApp(
           storageReady: storageReady,
           phoneMetadataReady: phoneMetadataReady,
-          deviceCapabilities: deviceCapabilities,
           sendOtp: activeAuthClient!.requestOtp,
           verifyOtp: activeAuthClient!.verifyOtp,
         ),
@@ -197,14 +196,12 @@ class MyApp extends ConsumerStatefulWidget {
     super.key,
     this.storageReady = true,
     this.phoneMetadataReady = true,
-    this.deviceCapabilities = const DeviceCapabilities.standard(),
     this.sendOtp,
     this.verifyOtp,
   });
 
   final bool storageReady;
   final bool phoneMetadataReady;
-  final DeviceCapabilities deviceCapabilities;
   final OtpSender? sendOtp;
   final OtpVerifier? verifyOtp;
 
@@ -382,10 +379,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         ...context.localizationDelegates,
       ],
       supportedLocales: context.supportedLocales,
-      builder: (context, child) => DeviceCapabilitiesScope(
-        capabilities: widget.deviceCapabilities,
-        child: child ?? const SizedBox.shrink(),
-      ),
+      builder: (context, child) => child ?? const SizedBox.shrink(),
     );
   }
 }

@@ -4,7 +4,7 @@ import 'package:loanx/l10n/app_languages.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/service/auth_client.dart';
-import 'package:loanx/service/device_capabilities.dart';
+import 'package:loanx/service/device_performance.dart';
 
 Future<void> showAppLanguagePicker(BuildContext context) async {
   final selectedLocale = await showModalBottomSheet<Locale>(
@@ -91,12 +91,12 @@ class _StartupLanguageScreenState extends State<StartupLanguageScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
+    final basicEffects = DevicePerformance.isSafe;
     final layout = _LanguagePickerLayout.of(
       MediaQuery.sizeOf(context),
       // On a J2-class device, language selection is more useful than the
       // decorative hero, even when Android reports a tall logical screen.
-      preferCompact: DeviceCapabilitiesScope.of(context).reduceEffects,
+      preferCompact: DevicePerformance.reducePaintComplexity,
     );
     return Scaffold(
       body: DecoratedBox(
@@ -202,7 +202,7 @@ class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
   Widget build(BuildContext context) {
     final layout = _LanguagePickerLayout.of(
       MediaQuery.sizeOf(context),
-      preferCompact: DeviceCapabilitiesScope.of(context).reduceEffects,
+      preferCompact: DevicePerformance.reducePaintComplexity,
     );
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * layout.sheetHeightFactor,

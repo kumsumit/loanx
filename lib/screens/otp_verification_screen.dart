@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
-import 'package:loanx/service/device_capabilities.dart';
+import 'package:loanx/service/device_performance.dart';
 import 'package:pinput/pinput.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
@@ -87,7 +87,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
+    final basicEffects = DevicePerformance.isSafe;
     final phone = CountryCatalog.e164(
       widget.phoneNumber.isoCode,
       widget.phoneNumber.nsn,

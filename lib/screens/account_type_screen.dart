@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
-import 'package:loanx/service/device_capabilities.dart';
+import 'package:loanx/service/device_performance.dart';
 
 /// An onboarding preference, never an authorization role or capability gate.
 enum AccountType { lender, borrower, both }
@@ -21,7 +21,7 @@ class _AccountTypeScreenState extends State<AccountTypeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final basicEffects = DeviceCapabilitiesScope.of(context).useBasicEffects;
+    final basicEffects = DevicePerformance.isSafe;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final screenHeight = MediaQuery.sizeOf(context).height;
     // Keep the entire choice set within reach on common narrow phones. These

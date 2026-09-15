@@ -23,6 +23,7 @@ void main() {
     directory = await Directory.systemTemp.createTemp('loanx_startup_');
     await AppSettings.initForTesting(directory);
     AppSettings.putOnboardingInterest(2);
+    AppSettings.putPlanSelectionCompleted(true);
     AppSettings.putPhoneAuthVerified(true);
     await AppSettings.flush();
   });

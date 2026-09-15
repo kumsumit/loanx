@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:loanx/db/app_settings.dart';
-import 'package:loanx/service/device_capabilities.dart';
+import 'package:loanx/service/device_performance.dart';
 
 class ProfilePicture extends StatelessWidget {
   final String? imageUrl;
@@ -45,7 +45,7 @@ class ProfilePicture extends StatelessWidget {
   }
 
   int _imageCacheSize(BuildContext context) {
-    if (DeviceCapabilitiesScope.of(context).useBasicEffects) return 140;
+    if (DevicePerformance.isSafe) return 140;
     return (70 * MediaQuery.devicePixelRatioOf(context))
         .round()
         .clamp(140, 420)
@@ -108,7 +108,7 @@ class LocalProfilePicture extends StatelessWidget {
   }
 
   int _imageCacheSize(BuildContext context) {
-    if (DeviceCapabilitiesScope.of(context).useBasicEffects) return 140;
+    if (DevicePerformance.isSafe) return 140;
     return (70 * MediaQuery.devicePixelRatioOf(context))
         .round()
         .clamp(140, 420)
