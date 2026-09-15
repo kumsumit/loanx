@@ -13,6 +13,7 @@ class AuthScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final animate = DevicePerformance.enableHeavyAnimations;
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         SystemChrome.setSystemUIOverlayStyle(
@@ -30,7 +31,21 @@ class AuthScreen extends HookConsumerWidget {
 
     final controller = useAnimationController(
       duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+    );
+
+    useEffect(() {
+      if (animate) {
+        controller.repeat(reverse: true);
+      } else {
+        // This screen can remain visible while local authentication is
+        // running. Keeping a ticker alive here makes old software-rendered
+        // devices repaint indefinitely and can starve platform messages.
+        controller
+          ..stop()
+          ..value = 1;
+      }
+      return controller.stop;
+    }, [controller, animate]);
 
     final animation = CurvedAnimation(
       parent: controller,
