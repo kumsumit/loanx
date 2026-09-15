@@ -86,6 +86,13 @@ flutter {
 }
 
 dependencies {
+    // Flutter generates the Android plugin registrant from all resolved Dart
+    // packages, including `integration_test` in dev_dependencies.  The Flutter
+    // Gradle plugin excludes dev plugins from releaseCompileClasspath, leaving
+    // that generated reference unresolved.  Keep the plugin available for the
+    // generated registrant; it is inert outside an instrumentation test.
+    implementation(project(":integration_test"))
+
     implementation("com.google.android.play:review:2.0.2")
     implementation("com.google.android.play:review-ktx:2.0.2")
 

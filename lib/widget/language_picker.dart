@@ -394,7 +394,10 @@ class _LanguageCard extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: compact ? 10 : 16,
-            vertical: compact ? 6 : 10,
+            // Keep the two-line language label within the compact grid tile.
+            // Some font metrics are a couple of pixels taller than their
+            // nominal line height, which otherwise overflows this card.
+            vertical: compact ? 4 : 10,
           ),
           child: Row(
             children: [
