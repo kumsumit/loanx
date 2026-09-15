@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/features/lender/home.dart';
@@ -28,6 +29,7 @@ class DashBoard extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final usesBorrowerExperience = AppSettings.getUsesBorrowerExperience();
     final currentIndex = useState<int>(0);
     final title = useState<String>(LocaleKeys.loanx.tr());
     final theme = Theme.of(context);
@@ -417,27 +419,29 @@ Shared from LoanX
       ),
       drawer: MyDrawer(),
       body: _pages[currentIndex.value],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex.value,
-        onDestinationSelected: (index) {
-          currentIndex.value = index;
-          title.value = index == 0
-              ? LocaleKeys.loanx.tr()
-              : LocaleKeys.manage.tr();
-        },
-        destinations: [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: LocaleKeys.home.tr(),
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.tune_outlined),
-            selectedIcon: Icon(Icons.tune_rounded),
-            label: LocaleKeys.manage2.tr(),
-          ),
-        ],
-      ),
+      bottomNavigationBar: usesBorrowerExperience
+          ? null
+          : NavigationBar(
+              selectedIndex: currentIndex.value,
+              onDestinationSelected: (index) {
+                currentIndex.value = index;
+                title.value = index == 0
+                    ? LocaleKeys.loanx.tr()
+                    : LocaleKeys.manage.tr();
+              },
+              destinations: [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home_rounded),
+                  label: LocaleKeys.home.tr(),
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.tune_outlined),
+                  selectedIcon: Icon(Icons.tune_rounded),
+                  label: LocaleKeys.manage2.tr(),
+                ),
+              ],
+            ),
     );
   }
 }

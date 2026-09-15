@@ -7,25 +7,28 @@ import 'package:loanx/service/device_performance.dart';
 class ProfilePicture extends StatelessWidget {
   final String? imageUrl;
   final String displayName;
+  final double radius;
 
   const ProfilePicture({
     super.key,
     required this.imageUrl,
     required this.displayName,
+    this.radius = 35,
   });
 
   @override
   Widget build(BuildContext context) {
     final imageCacheSize = _imageCacheSize(context);
+    final diameter = radius * 2;
     return CircleAvatar(
-      radius: 35,
+      radius: radius,
       backgroundColor: Theme.of(context).colorScheme.onPrimary,
       child: imageUrl != null && imageUrl!.isNotEmpty
           ? ClipOval(
               child: Image.network(
                 imageUrl!,
-                width: 70,
-                height: 70,
+                width: diameter,
+                height: diameter,
                 fit: BoxFit.cover,
                 cacheWidth: imageCacheSize,
                 cacheHeight: imageCacheSize,
@@ -45,10 +48,11 @@ class ProfilePicture extends StatelessWidget {
   }
 
   int _imageCacheSize(BuildContext context) {
-    if (DevicePerformance.isSafe) return 140;
-    return (70 * MediaQuery.devicePixelRatioOf(context))
+    final logicalSize = (radius * 2).ceil();
+    if (DevicePerformance.isSafe) return logicalSize * 2;
+    return (logicalSize * MediaQuery.devicePixelRatioOf(context))
         .round()
-        .clamp(140, 420)
+        .clamp(logicalSize * 2, logicalSize * 6)
         .toInt();
   }
 
@@ -78,19 +82,26 @@ class ProfilePicture extends StatelessWidget {
 
 class LocalProfilePicture extends StatelessWidget {
   final String displayName;
-  const LocalProfilePicture({super.key, required this.displayName});
+  final double radius;
+
+  const LocalProfilePicture({
+    super.key,
+    required this.displayName,
+    this.radius = 35,
+  });
 
   @override
   Widget build(BuildContext context) {
     final imageCacheSize = _imageCacheSize(context);
+    final diameter = radius * 2;
     return CircleAvatar(
-      radius: 35,
+      radius: radius,
       backgroundColor: Theme.of(context).colorScheme.onPrimary,
       child: ClipOval(
         child: Image.memory(
           Uint8List.fromList(AppSettings.getPhoto()),
-          width: 70,
-          height: 70,
+          width: diameter,
+          height: diameter,
           fit: BoxFit.cover,
           // Local photos can originate from an arbitrary camera resolution.
           // Decode only what this avatar can display, with a lower cap on the
@@ -108,10 +119,11 @@ class LocalProfilePicture extends StatelessWidget {
   }
 
   int _imageCacheSize(BuildContext context) {
-    if (DevicePerformance.isSafe) return 140;
-    return (70 * MediaQuery.devicePixelRatioOf(context))
+    final logicalSize = (radius * 2).ceil();
+    if (DevicePerformance.isSafe) return logicalSize * 2;
+    return (logicalSize * MediaQuery.devicePixelRatioOf(context))
         .round()
-        .clamp(140, 420)
+        .clamp(logicalSize * 2, logicalSize * 6)
         .toInt();
   }
 
