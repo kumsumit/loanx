@@ -7,6 +7,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/features/lender/loan_details.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/widget/empty_state.dart';
+import 'package:loanx/features/borrower/find_lender_screen.dart';
 
 /// Loans where the current device owner is the borrower.
 ///
@@ -46,7 +47,6 @@ class BorrowerHome extends ConsumerWidget {
         ),
         data: (items) => _BorrowerLoanList(loans: items),
       ),
-      
     );
   }
 }
@@ -91,6 +91,20 @@ class _BorrowerLoanList extends StatelessWidget {
                 _OutstandingCard(
                   activeCount: active.length,
                   outstanding: outstanding.isEmpty ? '—' : outstanding,
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    key: const Key('find-lenders'),
+                    icon: const Icon(Icons.travel_explore_rounded),
+                    label: Text('Find lenders near you'.tr()),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const FindLenderScreen(),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
