@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 /// Overall device capability.
 ///
@@ -501,4 +501,35 @@ class DevicePerformance {
 
     return const <String>[];
   }
+}
+
+/// Makes the startup performance profile available to every descendant UI.
+///
+/// The native profile is device-wide and is loaded before [runApp]. Screens
+/// should use this scope when they need a context-aware decision; shared UI
+/// defaults are applied by [AppTheme] at the application boundary.
+class DevicePerformanceScope extends InheritedWidget {
+  const DevicePerformanceScope({
+    required this.tier,
+    required super.child,
+    super.key,
+  });
+
+  final PerformanceTier tier;
+
+  static DevicePerformanceScope of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<DevicePerformanceScope>() ??
+      const DevicePerformanceScope(
+        tier: PerformanceTier.standard,
+        child: SizedBox.shrink(),
+      );
+
+  bool get reducePaintComplexity =>
+      tier == PerformanceTier.standard || tier == PerformanceTier.safe;
+
+  bool get useBasicEffects => tier == PerformanceTier.safe;
+
+  @override
+  bool updateShouldNotify(DevicePerformanceScope oldWidget) =>
+      tier != oldWidget.tier;
 }

@@ -379,7 +379,10 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         ...context.localizationDelegates,
       ],
       supportedLocales: context.supportedLocales,
-      builder: (context, child) => child ?? const SizedBox.shrink(),
+      builder: (context, child) => DevicePerformanceScope(
+        tier: DevicePerformance.tier,
+        child: child ?? const SizedBox.shrink(),
+      ),
     );
   }
 }

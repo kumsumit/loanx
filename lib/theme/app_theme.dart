@@ -1,4 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:loanx/service/device_performance.dart';
+
+class _InstantPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _InstantPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) => child;
+}
 
 abstract final class AppTheme {
   // static const _seed = Color(0xFF087F5B);
@@ -36,11 +50,20 @@ abstract final class AppTheme {
       displayColor: colors.onSurface,
       fontFamily: 'Roboto',
     );
+    final pageTransitions = DevicePerformance.enableComplexTransitions
+        ? const PageTransitionsTheme()
+        : PageTransitionsTheme(
+            builders: <TargetPlatform, PageTransitionsBuilder>{
+              for (final platform in TargetPlatform.values)
+                platform: const _InstantPageTransitionsBuilder(),
+            },
+          );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colors,
       scaffoldBackgroundColor: colors.surface,
+      pageTransitionsTheme: pageTransitions,
       textTheme: textTheme.copyWith(
         headlineLarge: textTheme.headlineLarge?.copyWith(
           fontWeight: FontWeight.w700,
