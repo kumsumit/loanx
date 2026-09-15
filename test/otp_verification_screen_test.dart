@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/l10n/codegen_loader.g.dart';
-import 'package:loanx/screens/otp_verification_screen.dart';
+import 'package:loanx/features/auth/otp_verification_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

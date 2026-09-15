@@ -8,20 +8,20 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
-import 'package:loanx/screens/ask_backup_screen.dart';
-import 'package:loanx/screens/account_type_screen.dart';
-import 'package:loanx/screens/error.dart';
-import 'package:loanx/screens/unauthorized.dart';
+import 'package:loanx/features/lender/ask_backup_screen.dart';
+import 'package:loanx/features/auth/account_type_screen.dart';
+import 'package:loanx/features/lender/error.dart';
+import 'package:loanx/features/auth/unauthorized.dart';
 import 'package:loanx/l10n/codegen_loader.g.dart';
 import 'package:loanx/l10n/app_languages.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/auth_screen.dart';
-import 'package:loanx/screens/dashboard.dart';
+import 'package:loanx/features/lender/auth_screen.dart';
+import 'package:loanx/features/lender/dashboard.dart';
 import 'package:loanx/domain/country_catalog.dart';
-import 'package:loanx/screens/plan_selection_screen.dart';
-import 'package:loanx/screens/phone_login_screen.dart';
-import 'package:loanx/screens/otp_verification_screen.dart';
+import 'package:loanx/features/auth/plan_selection_screen.dart';
+import 'package:loanx/features/auth/phone_login_screen.dart';
+import 'package:loanx/features/auth/otp_verification_screen.dart';
 import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/service/device_performance.dart';
@@ -364,9 +364,19 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                 .when(
                   data: (authenticated) => !authenticated
                       ? const AuthFailurePage()
-                      : !AppSettings.getPlanSelectionCompleted()
+                      // Borrowers use LoanX free of charge. Subscription
+                      // choices apply only when the user opted into lending
+                      // (or both), where connected lender features exist.
+                      : !AppSettings.getUsesBorrowerExperience() &&
+                            !AppSettings.getPlanSelectionCompleted()
                       ? PlanSelectionScreen(onContinue: () => setState(() {}))
-                      : !AppSettings.getIsTableCreated()
+                      // A borrower account is provisioned by the connected
+                      // service and should never be asked to configure a
+                      // personal Google Drive backup before entering LoanX.
+                      // The local database remains available as a cache and
+                      // is initialized lazily by its repositories.
+                      : !AppSettings.getUsesBorrowerExperience() &&
+                            !AppSettings.getIsTableCreated()
                       ? const AskBackupScreen()
                       : const DashBoard(),
                   error: (_, _) => ErrorPage(),

@@ -8,9 +8,10 @@ import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/l10n/codegen_loader.g.dart';
 import 'package:loanx/main.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/ask_backup_screen.dart';
-import 'package:loanx/screens/error.dart';
-import 'package:loanx/screens/unauthorized.dart';
+import 'package:loanx/features/lender/ask_backup_screen.dart';
+import 'package:loanx/features/lender/dashboard.dart';
+import 'package:loanx/features/lender/error.dart';
+import 'package:loanx/features/auth/unauthorized.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -82,6 +83,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AskBackupScreen), findsOneWidget);
     expect(find.textContaining('quickstart'), findsNothing);
+  });
+
+  testWidgets('borrower onboarding bypasses lender plan selection', (
+    tester,
+  ) async {
+    AppSettings.putOnboardingInterest(1); // AccountType.borrower.index
+    AppSettings.putPlanSelectionCompleted(false);
+    await AppSettings.flush();
+
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DashBoard), findsOneWidget);
+    expect(find.byType(AskBackupScreen), findsNothing);
   });
 
   testWidgets('local authentication gates workspace onboarding', (

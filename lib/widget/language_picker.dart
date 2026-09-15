@@ -343,7 +343,9 @@ class _LanguageGrid extends StatelessWidget {
           itemCount: languages.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
-            mainAxisExtent: compact ? 68 : 82,
+            // Two label lines can occupy 64 px on Android. Keep at least
+            // 66 px after the card's vertical insets in either layout.
+            mainAxisExtent: compact ? 72 : 86,
             crossAxisSpacing: compact ? 8 : 10,
             mainAxisSpacing: compact ? 8 : 10,
           ),
@@ -394,30 +396,37 @@ class _LanguageCard extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: compact ? 10 : 16,
-            // Keep the two-line language label within the compact grid tile.
-            // Some font metrics are a couple of pixels taller than their
-            // nominal line height, which otherwise overflows this card.
-            vertical: compact ? 4 : 10,
+            // Keep space around the two-line label without reducing its
+            // available height below the Android font metrics.
+            vertical: compact ? 3 : 10,
           ),
           child: Row(
             children: [
               Container(
-                width: compact ? 34 : 42,
+                // Some locale identifiers have three letters (for example,
+                // BHO). A pill gives them enough room at the normal label
+                // size without wrapping or clipping.
+                width: compact ? 44 : 52,
                 height: compact ? 34 : 42,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: selected
                       ? colors.primary
                       : colors.surfaceContainerHigh,
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(
-                  language.locale.languageCode.toUpperCase(),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: selected
-                        ? colors.onPrimary
-                        : colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    language.locale.languageCode.toUpperCase(),
+                    maxLines: 1,
+                    softWrap: false,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: selected
+                          ? colors.onPrimary
+                          : colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),

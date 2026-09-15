@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/loan_details.dart';
+import 'package:loanx/features/lender/loan_details.dart';
 import 'package:loanx/widget/styled_text.dart';
 
 class SearchAppBar extends HookWidget {

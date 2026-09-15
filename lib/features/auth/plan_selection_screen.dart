@@ -16,17 +16,20 @@ class PlanSelectionScreen extends StatefulWidget {
 
 class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   String _selectedPlan = 'pro';
+  late final bool _requiresPro;
   late final CountryConfig _country;
   late final Future<PlanPrice> _proPrice;
 
   @override
   void initState() {
     super.initState();
+    _requiresPro = AppSettings.getUsesBothExperience();
     _country = CountryCatalog.byCode(AppSettings.getVerifiedPhoneCountryCode());
     _proPrice = PlanPricingService().proPriceFor(_country);
   }
 
   Future<void> _continue() async {
+    if (_requiresPro) _selectedPlan = 'pro';
     AppSettings.putSelectedPlan(_selectedPlan);
     AppSettings.putPlanSelectionCompleted(true);
     await AppSettings.flush();
@@ -55,7 +58,9 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'You can keep managing loans locally for free, or choose Pro for connected features.',
+                    _requiresPro
+                        ? 'Lend and borrow uses the paid LoanX Pro workspace so both portfolios stay available together.'
+                        : 'You can keep managing loans locally for free, or choose Pro for connected features.',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colors.onSurfaceVariant,
                     ),
@@ -94,17 +99,18 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                     },
                   ),
                   const SizedBox(height: 14),
-                  _PlanOption(
-                    selected: _selectedPlan == 'free',
-                    title: 'Free',
-                    price: '${_country.symbol}0 (${_country.currency})',
-                    subtitle: 'Local loan management',
-                    features: const [
-                      'Loans, repayments, receipts and reports',
-                      'External people and Google Drive backup',
-                    ],
-                    onTap: () => setState(() => _selectedPlan = 'free'),
-                  ),
+                  if (!_requiresPro)
+                    _PlanOption(
+                      selected: _selectedPlan == 'free',
+                      title: 'Free',
+                      price: '${_country.symbol}0 (${_country.currency})',
+                      subtitle: 'Local loan management',
+                      features: const [
+                        'Loans, repayments, receipts and reports',
+                        'External people and Google Drive backup',
+                      ],
+                      onTap: () => setState(() => _selectedPlan = 'free'),
+                    ),
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: _continue,

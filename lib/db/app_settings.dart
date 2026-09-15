@@ -85,6 +85,15 @@ class AppSettings {
   static bool getIsTableCreated() => _get('isTableCreated', false);
   static int getThemeMode() => _get('themeMode', ThemeMode.system.index);
   static int getOnboardingInterest() => _get('onboardingInterest', -1);
+
+  /// A borrower-only onboarding preference. This controls the initial local
+  /// workspace experience; it is not an authorization role.
+  static bool getUsesBorrowerExperience() => getOnboardingInterest() == 1;
+
+  /// A combined workspace is available only to the paid lending experience.
+  /// This remains a presentation preference; server-side entitlements must
+  /// still protect paid network features when they are introduced.
+  static bool getUsesBothExperience() => getOnboardingInterest() == 2;
   static bool getPlanSelectionCompleted() =>
       _get('planSelectionCompleted', false);
   static String getSelectedPlan() => _get('selectedPlan', 'free');

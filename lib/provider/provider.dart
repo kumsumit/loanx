@@ -886,6 +886,7 @@ class LoanList extends _$LoanList {
     int familyRelationId,
     int mortgageMaterialId, [
     String? currency,
+    bool borrowing = false,
   ]) async {
     // `add` can be called while this notifier is rebuilding (for example just
     // after a restore). Do not rely on the `late` field having been populated
@@ -966,6 +967,7 @@ class LoanList extends _$LoanList {
         transaction,
         loan.toJson(),
         ownerId: owners.single['id'] as String,
+        borrowing: borrowing,
       );
       final createdId = await transaction.insert(Loan.tableName, {
         ...loan.toJson(),

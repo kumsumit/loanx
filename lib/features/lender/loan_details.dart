@@ -10,7 +10,7 @@ import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/db/app_settings.dart';
-import 'package:loanx/screens/add_loan.dart';
+import 'package:loanx/features/lender/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/service/upi_validator.dart';

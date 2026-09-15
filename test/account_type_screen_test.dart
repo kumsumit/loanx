@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:loanx/screens/account_type_screen.dart';
+import 'package:loanx/features/auth/account_type_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

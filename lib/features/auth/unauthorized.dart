@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/dashboard.dart';
+import 'package:loanx/features/lender/dashboard.dart';
 import 'package:loanx/widget/app_state_page.dart';
 
 class AuthFailurePage extends ConsumerWidget {

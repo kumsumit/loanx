@@ -24,7 +24,12 @@ import 'package:loanx/widget/styled_textfield.dart';
 
 class LoanInput extends HookConsumerWidget {
   final Loan? loan;
-  const LoanInput({super.key, this.loan});
+
+  /// The reusable local-loan form. Borrower entry points should use
+  /// `BorrowerLoanInput`, which passes this explicitly instead of depending on
+  /// an onboarding preference.
+  final bool? isBorrowerLoan;
+  const LoanInput({super.key, this.loan, this.isBorrowerLoan});
 
   double _parseDouble(String input) {
     try {
@@ -51,8 +56,11 @@ class LoanInput extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
+    final borrowing = isBorrowerLoan ?? AppSettings.getUsesBorrowerExperience();
     final appBarTitle = loan == null
-        ? LocaleKeys.addLoanRecord.tr()
+        ? borrowing
+              ? 'Add loan from lender'.tr()
+              : LocaleKeys.addLoanRecord.tr()
         : LocaleKeys.editLoanRecord.tr();
     final isDialogOpen = useState<bool>(false);
     final isSaving = useState<bool>(false);
@@ -464,22 +472,56 @@ class LoanInput extends HookConsumerWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                LocaleKeys.borrowerInformation.tr(),
+                borrowing
+                    ? 'Lender information'.tr()
+                    : LocaleKeys.borrowerInformation.tr(),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 10),
+              if (borrowing) ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.person_outline_rounded),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'You can record a loan from a lender who is not registered with LoanX. Their information stays in your local loan record.'
+                                .tr(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
               StyledTextField(
-                failedValidationMessage: LocaleKeys.borrowerNameCanTBeEmpty
-                    .tr(),
+                failedValidationMessage:
+                    (borrowing
+                            ? 'Lender name cannot be empty'
+                            : LocaleKeys.borrowerNameCanTBeEmpty)
+                        .tr(),
                 textEditingController: depositorController,
-                hintText: LocaleKeys.borrowerName.tr(),
-                labelText: LocaleKeys.borrowerName.tr(),
+                hintText: borrowing
+                    ? 'Lender name'.tr()
+                    : LocaleKeys.borrowerName.tr(),
+                labelText: borrowing
+                    ? 'Lender name'.tr()
+                    : LocaleKeys.borrowerName.tr(),
               ),
               PhoneWidget(
                 key: ValueKey(loan?.id),
-                labelText: LocaleKeys.borrowerMobileNumber.tr(),
+                labelText: borrowing
+                    ? 'Lender mobile number'.tr()
+                    : LocaleKeys.borrowerMobileNumber.tr(),
                 textEditingController: phoneNumberController,
-                hint: LocaleKeys.borrowerMobileNumber.tr(),
+                hint: borrowing
+                    ? 'Lender mobile number'.tr()
+                    : LocaleKeys.borrowerMobileNumber.tr(),
                 initialValue: PhoneNumber(
                   isoCode: "IN",
                   nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
@@ -488,8 +530,12 @@ class LoanInput extends HookConsumerWidget {
               StyledTextField(
                 failedValidationMessage: LocaleKeys.addressCanTBeEmpty.tr(),
                 textEditingController: addressController,
-                hintText: LocaleKeys.borrowerAddress.tr(),
-                labelText: LocaleKeys.borrowerAddress.tr(),
+                hintText: borrowing
+                    ? 'Lender address'.tr()
+                    : LocaleKeys.borrowerAddress.tr(),
+                labelText: borrowing
+                    ? 'Lender address'.tr()
+                    : LocaleKeys.borrowerAddress.tr(),
               ),
               StyledTextField(
                 failedValidationMessage: LocaleKeys.referenceNameCanTBeEmpty
@@ -841,6 +887,7 @@ class LoanInput extends HookConsumerWidget {
                                   relation.id!,
                                   material.id!,
                                   currency.value,
+                                  borrowing,
                                 );
                           } catch (error, stackTrace) {
                             debugPrint('Unable to save loan: $error');

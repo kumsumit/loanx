@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/screens/dashboard.dart';
+import 'package:loanx/features/lender/dashboard.dart';
 import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/widget/loading_overlay.dart';
 import 'package:loanx/widget/snackbar.dart';
