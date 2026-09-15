@@ -64,11 +64,15 @@ class LoanDetails extends ConsumerWidget {
             onPressed: () async {
               final relations = ref.read(familyRelationListProvider).value;
               final materials = ref.read(mortgageMaterialListProvider).value;
-              final relation = relations?.firstWhere(
-                (item) => item.id == currentLoan.familyRelationId,
+              final relation = _findById(
+                relations,
+                currentLoan.familyRelationId,
+                (item) => item.id,
               );
-              final material = materials?.firstWhere(
-                (item) => item.id == currentLoan.mortgageMaterialId,
+              final material = _findById(
+                materials,
+                currentLoan.mortgageMaterialId,
+                (item) => item.id,
               );
               final box = context.findRenderObject() as RenderBox?;
               SharePlus.instance.share(
@@ -118,16 +122,24 @@ class LoanDetails extends ConsumerWidget {
                 .watch(mortgageMaterialListProvider)
                 .when(
                   data: (materials) {
-                    final relation = relations.firstWhere(
-                      (item) => item.id == currentLoan.familyRelationId,
+                    final relation = _findById(
+                      relations,
+                      currentLoan.familyRelationId,
+                      (item) => item.id,
                     );
-                    final material = materials.firstWhere(
-                      (item) => item.id == currentLoan.mortgageMaterialId,
+                    final material = _findById(
+                      materials,
+                      currentLoan.mortgageMaterialId,
+                      (item) => item.id,
                     );
                     return _DetailsContent(
                       loan: currentLoan,
-                      relation: relation.localizedName,
-                      material: material.localizedName,
+                      relation:
+                          relation?.localizedName ??
+                          LocaleKeys.notRecorded.tr(),
+                      material:
+                          material?.localizedName ??
+                          LocaleKeys.notRecorded.tr(),
                     );
                   },
                   error: (_, _) => const _LoadError(),
@@ -308,6 +320,16 @@ class LoanDetails extends ConsumerWidget {
       showSnackBar(context, LocaleKeys.loanMarkedAsComplete.tr());
     }
   }
+}
+
+/// A loan can outlive an optional, user-managed reference record.  Routes must
+/// remain safe while a restore, deletion, or migration refreshes that record.
+T? _findById<T>(Iterable<T>? values, int? id, int? Function(T item) itemId) {
+  if (values == null || id == null) return null;
+  for (final item in values) {
+    if (itemId(item) == id) return item;
+  }
+  return null;
 }
 
 class _DetailsContent extends ConsumerWidget {

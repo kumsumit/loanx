@@ -1,6 +1,7 @@
 import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/extension/system_value_localization.dart';
@@ -10,6 +11,7 @@ import 'package:loanx/screens/loan_details.dart';
 import 'package:loanx/screens/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/service/currency_presentation.dart';
+import 'package:loanx/service/device_capabilities.dart';
 import 'package:loanx/widget/empty_state.dart';
 import 'package:loanx/widget/snackbar.dart';
 
@@ -33,7 +35,7 @@ class MortgageListView extends StatelessWidget {
   Widget _mortgageBuilder(
     BuildContext context,
     Loan loan,
-    MortgageMaterial mortgageMaterial,
+    MortgageMaterial? mortgageMaterial,
   ) {
     return Consumer(
       builder: (context, ref, child) {
@@ -98,7 +100,11 @@ class MortgageListView extends StatelessWidget {
             }
           },
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
+            // Avoid keeping every list card in an animation layer on older
+            // Android GPUs. The selected state remains visible immediately.
+            duration: DeviceCapabilitiesScope.of(context).reduceEffects
+                ? Duration.zero
+                : const Duration(milliseconds: 180),
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -150,8 +156,9 @@ class MortgageListView extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         loan.weight > 0
-                            ? '${mortgageMaterial.localizedName} · ${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}'
-                            : mortgageMaterial.localizedName,
+                            ? '${mortgageMaterial?.localizedName ?? LocaleKeys.notRecorded.tr()} · ${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}'
+                            : mortgageMaterial?.localizedName ??
+                                  LocaleKeys.notRecorded.tr(),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: colors.onSurfaceVariant),
@@ -284,14 +291,18 @@ class MortgageListView extends StatelessWidget {
                   );
                 }
                 return ListView.builder(
-                  shrinkWrap: true,
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                  scrollCacheExtent: const ScrollCacheExtent.pixels(300),
                   itemCount: filteredLoans.length,
                   itemBuilder: (context, index) {
                     final loan = filteredLoans[index];
-                    final mortgageMaterial = mortgageMaterialList.firstWhere(
-                      (item) => item.id == loan.mortgageMaterialId,
-                    );
+                    MortgageMaterial? mortgageMaterial;
+                    for (final item in mortgageMaterialList) {
+                      if (item.id == loan.mortgageMaterialId) {
+                        mortgageMaterial = item;
+                        break;
+                      }
+                    }
                     return _mortgageBuilder(context, loan, mortgageMaterial);
                   },
                 );

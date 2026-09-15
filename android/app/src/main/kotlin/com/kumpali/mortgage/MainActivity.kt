@@ -18,6 +18,9 @@ import android.content.Intent
 import android.provider.ContactsContract
 import android.app.ActivityManager
 import android.os.Build
+import android.os.Bundle
+import android.view.WindowManager
+import io.flutter.embedding.engine.FlutterShellArgs
 import android.telephony.TelephonyManager
 import java.util.Locale
 import java.util.TimeZone
@@ -26,9 +29,45 @@ import java.util.TimeZone
 //import com.google.android.play.core.install.model.AppUpdateType
 //import com.google.android.play.core.install.model.UpdateAvailability
 import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.android.RenderMode
 
 class MainActivity : FlutterFragmentActivity() {
     private val channel = "loanx"
+
+    private val needsSoftwareRendering: Boolean
+        // Older Android graphics stacks on 32-bit-only devices use the
+        // conservative renderer regardless of manufacturer or model.
+        get() = Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1 &&
+            Build.SUPPORTED_64_BIT_ABIS.isEmpty()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        if (needsSoftwareRendering) {
+            // Set before FlutterFragmentActivity creates its engine. Legacy
+            // Android drivers can abort in HWUI with EGL_BAD_CONTEXT, so both
+            // Flutter rendering and the Android window must avoid GPU rendering.
+            intent.putExtra(FlutterShellArgs.ARG_KEY_ENABLE_SOFTWARE_RENDERING, true)
+            intent.putExtra(FlutterShellArgs.ARG_KEY_TOGGLE_IMPELLER, false)
+        } else {
+            // The manifest starts with acceleration disabled: Android cannot
+            // disable a manifest-enabled window with clearFlags alone. Enable
+            // it here for all devices outside the narrowly scoped fallback.
+            window.addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
+        }
+        super.onCreate(savedInstanceState)
+    }
+
+    /**
+     * Software rendering uses a SurfaceView: TextureView requires a hardware
+     * accelerated window. Retain the existing texture fallback on other older
+     * devices and the default surface on newer devices.
+     */
+    override fun getRenderMode(): RenderMode =
+        if (!needsSoftwareRendering && Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1) {
+            RenderMode.texture
+        } else {
+            RenderMode.surface
+        }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
