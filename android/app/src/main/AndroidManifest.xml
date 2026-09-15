@@ -1,63 +1,176 @@
-<manifest xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
-<!-- <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/> -->
-<uses-permission android:name="android.permission.INTERNET"/>
-<uses-permission android:name="android.permission.USE_BIOMETRIC"/>
-<!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-    tools:ignore="ScopedStorage" /> -->
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ============================================================
+         NETWORK
+         ============================================================ -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- ============================================================
+         BIOMETRIC AUTHENTICATION
+         ============================================================ -->
+
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+    <!--
+        Keep storage permissions out unless LoanX genuinely requires them.
+
+        Android's scoped-storage model makes the old broad-storage permissions
+        unnecessary for most modern applications.
+
+        <uses-permission
+            android:name="android.permission.READ_EXTERNAL_STORAGE"
+            android:maxSdkVersion="32" />
+
+        <uses-permission
+            android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+            android:maxSdkVersion="28" />
+
+        <uses-permission
+            android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+            tools:ignore="ScopedStorage" />
+    -->
+
+    <!-- ============================================================
+         APPLICATION
+         ============================================================ -->
+
     <application
-        android:label="Loanx"
         android:name="${applicationName}"
-        android:requestLegacyExternalStorage="true"
+        android:label="Loanx"
         android:icon="@mipmap/ic_launcher"
+
         android:allowBackup="false"
         android:fullBackupContent="false"
-        android:enableOnBackInvokedCallback="true"
-        >
+
+        android:requestLegacyExternalStorage="true"
+
+        android:enableOnBackInvokedCallback="true">
+
+        <!-- ========================================================
+             MAIN FLUTTER ACTIVITY
+             ========================================================
+
+             IMPORTANT:
+
+             Hardware acceleration intentionally starts disabled here.
+
+             MainActivity.kt determines whether GPU rendering should be
+             enabled for the current device before Flutter's content is
+             created.
+
+             Android allows hardware acceleration to be enabled
+             programmatically, but it cannot be disabled afterward if it
+             was enabled through the manifest.
+             ======================================================== -->
+
         <activity
             android:name=".MainActivity"
+
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
+
             android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+
             android:hardwareAccelerated="false"
-            android:windowSoftInputMode="adjustResize">
-            <!-- Specifies an Android theme to apply to this Activity as soon as
-                 the Android process has started. This theme is visible to the user
-                 while the Flutter UI initializes. After that, this theme continues
-                 to determine the Window background behind the Flutter UI. -->
+
+            android:windowSoftInputMode="adjustResize"
+
+            android:configChanges="
+                orientation|
+                keyboardHidden|
+                keyboard|
+                screenSize|
+                smallestScreenSize|
+                locale|
+                layoutDirection|
+                fontScale|
+                screenLayout|
+                density|
+                uiMode">
+
+            <!-- ====================================================
+                 NORMAL FLUTTER THEME
+                 ==================================================== -->
+
             <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
+
+            <!-- ====================================================
+                 APPLICATION LAUNCHER
+                 ==================================================== -->
+
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+
             </intent-filter>
+
         </activity>
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+
+        <!-- ========================================================
+             FLUTTER EMBEDDING V2
+             ======================================================== -->
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
     </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+
+    <!-- ============================================================
+         PACKAGE VISIBILITY
+         ============================================================
+
+         These declarations allow the application to discover Android
+         activities/services capable of handling the relevant intents.
+
+         Flutter's ProcessTextPlugin uses PROCESS_TEXT.
+
+         Custom Tabs / external browser integrations may use
+         CustomTabsService.
+
+         HTTPS VIEW allows browser/web-link handlers to be discovered.
+         ============================================================ -->
+
     <queries>
-        <intent> 
+
+        <!-- HTTPS links / browser handlers -->
+        <intent>
+
             <action android:name="android.intent.action.VIEW" />
+
             <data android:scheme="https" />
+
         </intent>
+
+        <!-- Android Custom Tabs -->
         <intent>
-            <action android:name="android.support.customtabs.action.CustomTabsService" />
+
+            <action
+                android:name="android.support.customtabs.action.CustomTabsService" />
+
         </intent>
+
+        <!-- Flutter text processing integration -->
         <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT"/>
-            <data android:mimeType="text/plain"/>
+
+            <action android:name="android.intent.action.PROCESS_TEXT" />
+
+            <data android:mimeType="text/plain" />
+
         </intent>
+
     </queries>
+
 </manifest>
+```
