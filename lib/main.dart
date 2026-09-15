@@ -82,11 +82,13 @@ class _FallbackCupertinoLocalizationsDelegate
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // Preserve the native launch screen before any startup work. Calling this
+  // after initialization leaves Android trying to draw an unready first frame.
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await EasyLocalization.ensureInitialized();
   final phoneMetadataReady = await initializePhoneMetadata();
   await DevicePerformance.initialize();
   await RustLib.init();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
     if (kDebugMode) {
@@ -151,7 +153,12 @@ Future<void> main() async {
       ),
     ),
   );
-  unawaited(initializeOptionalServices());
+  // Google Drive and Workmanager are not needed to paint the app. Start them
+  // only after Flutter has produced its first frame so their platform-channel
+  // setup cannot contend with cold-start rendering on Android's main thread.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(initializeOptionalServices());
+  });
 }
 
 /// Optional providers initialize independently after the local UI starts.

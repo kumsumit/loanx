@@ -77,11 +77,11 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         /*
-         * The manifest keeps the Android window software-rendered for legacy
-         * Adreno compatibility. For configurations with a known broken
-         * Flutter GPU stack, also pass the renderer choice to Flutter before
-         * its engine is created. Do not toggle the Android window flag at
-         * runtime: it produces an inconsistent renderer configuration.
+         * The manifest keeps hardware acceleration enabled for normal Flutter
+         * rendering. For configurations with a known broken Flutter GPU
+         * stack, pass the software-renderer choice to Flutter before its
+         * engine is created. Do not toggle the Android window flag at runtime:
+         * it produces an inconsistent renderer configuration.
          */
         if (needsSoftwareRendering) {
 

@@ -51,11 +51,9 @@
 
         android:enableOnBackInvokedCallback="true">
 
-        <!-- Keep the Android window software-rendered. This is required for
-             the legacy Adreno driver on the supported Samsung J250F test
-             device, which crashes while creating an accelerated EGL context.
-             Flutter's renderer is separately selected before engine startup
-             by MainActivity. -->
+        <!-- Keep hardware acceleration enabled for normal Flutter rendering.
+             MainActivity opts only known-incompatible legacy devices into
+             Flutter's software renderer before the engine is created. -->
 
         <activity
             android:name=".MainActivity"
@@ -66,7 +64,7 @@
 
             android:theme="@style/LaunchTheme"
 
-            android:hardwareAccelerated="false"
+            android:hardwareAccelerated="true"
 
             android:windowSoftInputMode="adjustResize"
 

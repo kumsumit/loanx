@@ -2,74 +2,177 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/db/tostore_database.dart';
+import 'package:loanx/domain/connected.dart';
+import 'package:loanx/features/borrower/find_lender_screen.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
-import 'package:loanx/features/lender/loan_details.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/widget/empty_state.dart';
-import 'package:loanx/features/borrower/find_lender_screen.dart';
 
-/// Loans where the current device owner is the borrower.
-///
-/// The direction is read from the canonical party IDs, so lender-side records
-/// are never shown in the borrower's "My loans" area.
-final borrowerLoansProvider = FutureProvider<List<Loan>>((ref) async {
-  // Keep this feature in sync after local loan writes performed by the shared
-  // repository, including offline writes.
+class BorrowerLoanSummary {
+  const BorrowerLoanSummary({
+    required this.loan,
+    required this.loanUid,
+    required this.lenderName,
+  });
+
+  final Loan loan;
+  final String loanUid;
+  final String lenderName;
+}
+
+class BorrowerDashboardData {
+  const BorrowerDashboardData({
+    required this.loans,
+    required this.notifications,
+  });
+
+  final List<BorrowerLoanSummary> loans;
+  final List<LoanNotification> notifications;
+}
+
+/// Connected loans where the current device owner is the borrower, together
+/// with notifications that are explicitly tied to those loans/relationships.
+final borrowerDashboardProvider = FutureProvider<BorrowerDashboardData>((
+  ref,
+) async {
+  // Refresh after local loan writes or a sync updates the shared loan cache.
   ref.watch(loanListProvider);
-  final Database db = await ref.read(dBProvider.future);
+  return loadBorrowerDashboard(await ref.read(dBProvider.future));
+});
+
+Future<BorrowerDashboardData> loadBorrowerDashboard(Database db) async {
   final owners = await db.query('localOwners');
-  if (owners.length != 1) return const [];
+  if (owners.length != 1) {
+    return const BorrowerDashboardData(loans: [], notifications: []);
+  }
+
+  final ownerId = owners.single['id'];
   final selfPartyId = owners.single['selfPartyId'];
-  if (selfPartyId is! String || selfPartyId.isEmpty) return const [];
-  final rows = await db.query(
+  if (ownerId is! String ||
+      ownerId.isEmpty ||
+      selfPartyId is! String ||
+      selfPartyId.isEmpty) {
+    return const BorrowerDashboardData(loans: [], notifications: []);
+  }
+
+  final loanRows = await db.query(
     Loan.tableName,
-    where: 'borrowerPartyId = ?',
-    whereArgs: [selfPartyId],
+    where: 'ownerId = ? AND borrowerPartyId = ?',
+    whereArgs: [ownerId, selfPartyId],
     orderBy: '${LoanFields.dateCreated} DESC',
   );
-  return rows.map(Loan.fromJson).toList();
-});
+  final loans = <BorrowerLoanSummary>[];
+  final visibleEntityIds = <String>{};
+
+  for (final row in loanRows) {
+    final relationshipId = row['relationshipId'];
+    final lenderPartyId = row['lenderPartyId'];
+    final loanUid = row['uid'];
+    if (relationshipId is! String ||
+        relationshipId.isEmpty ||
+        lenderPartyId is! String ||
+        lenderPartyId.isEmpty ||
+        loanUid is! String ||
+        loanUid.isEmpty) {
+      continue;
+    }
+
+    final relationships = await db.query(
+      'relationships',
+      where: 'id = ? AND ownerId = ? AND status = ?',
+      whereArgs: [relationshipId, ownerId, 'ACTIVE'],
+    );
+    if (relationships.length != 1) continue;
+
+    final lenders = await db.query(
+      'parties',
+      where: 'id = ? AND ownerId = ? AND status = ?',
+      whereArgs: [lenderPartyId, ownerId, 'ACTIVE'],
+    );
+    if (lenders.length != 1) continue;
+    final lender = lenders.single;
+    final lenderUserId = lender['userId'];
+    if (lenderUserId is! String || lenderUserId.isEmpty) continue;
+
+    loans.add(
+      BorrowerLoanSummary(
+        loan: Loan.fromJson(row),
+        loanUid: loanUid,
+        lenderName:
+            (lender['displayName'] as String?)?.trim().isNotEmpty == true
+            ? (lender['displayName'] as String).trim()
+            : 'LoanX lender'.tr(),
+      ),
+    );
+    visibleEntityIds.addAll([loanUid, relationshipId, lenderPartyId]);
+  }
+
+  if (visibleEntityIds.isEmpty) {
+    return BorrowerDashboardData(loans: loans, notifications: const []);
+  }
+
+  final notificationRows = await db.query(
+    'notifications',
+    where: 'ownerId = ? AND recipientPartyId = ?',
+    whereArgs: [ownerId, selfPartyId],
+    orderBy: 'createdAt DESC, id DESC',
+  );
+  final notifications = notificationRows
+      .where((row) => visibleEntityIds.contains(row['entityId']))
+      .map(
+        (row) => LoanNotification(
+          id: row['id'] as String,
+          type: row['type'] as String,
+          title: row['title'] as String,
+          body: row['body'] as String,
+          entityType: row['entityType'] as String?,
+          entityId: row['entityId'] as String?,
+          createdAt: DateTime.parse(row['createdAt'] as String),
+          readAt: row['readAt'] == null
+              ? null
+              : DateTime.parse(row['readAt'] as String),
+        ),
+      )
+      .toList(growable: false);
+
+  return BorrowerDashboardData(loans: loans, notifications: notifications);
+}
 
 class BorrowerHome extends ConsumerWidget {
   const BorrowerHome({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loans = ref.watch(borrowerLoansProvider);
+    final dashboard = ref.watch(borrowerDashboardProvider);
     return Scaffold(
-      body: loans.when(
+      body: dashboard.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => const EmptyState(
           icon: Icons.error_outline_rounded,
           title: 'Loans could not be loaded',
           message: 'Please restart the app and try again.',
         ),
-        data: (items) => _BorrowerLoanList(loans: items),
+        data: (data) => _BorrowerDashboard(data: data),
       ),
     );
   }
 }
 
-class _BorrowerLoanList extends StatelessWidget {
-  const _BorrowerLoanList({required this.loans});
+class _BorrowerDashboard extends StatelessWidget {
+  const _BorrowerDashboard({required this.data});
 
-  final List<Loan> loans;
+  final BorrowerDashboardData data;
 
   @override
   Widget build(BuildContext context) {
-    final active = loans.where((loan) => !loan.isFinished()).toList();
-    final totals = <String, num>{};
-    for (final loan in active) {
-      totals.update(
-        loan.currency,
-        (value) => value + loan.calculateCollectable(),
-        ifAbsent: () => loan.calculateCollectable(),
-      );
-    }
-    final outstanding = totals.entries
-        .map((entry) => CurrencyPresentation.format(entry.value, entry.key))
-        .join(' · ');
+    final active = data.loans.where((item) => !item.loan.isFinished()).toList();
+    final interestTotals = _totals(active, (loan) => loan.calculateInterest());
+    final amountDueTotals = _totals(
+      active,
+      (loan) => loan.calculateCollectable(),
+    );
+
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -82,15 +185,11 @@ class _BorrowerLoanList extends StatelessWidget {
                   'My loans'.tr(),
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  'All loans you have received, including loans from lenders who do not use LoanX.'
-                      .tr(),
-                ),
                 const SizedBox(height: 16),
-                _OutstandingCard(
+                _LoanSummaryCard(
                   activeCount: active.length,
-                  outstanding: outstanding.isEmpty ? '—' : outstanding,
+                  interest: interestTotals,
+                  amountDue: amountDueTotals,
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -106,44 +205,86 @@ class _BorrowerLoanList extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+                Text(
+                  'Lender notifications'.tr(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                if (data.notifications.isEmpty)
+                  Text('No lender notifications'.tr())
+                else
+                  ...data.notifications.map(
+                    (notification) =>
+                        _NotificationTile(notification: notification),
+                  ),
+                const SizedBox(height: 24),
+                Text(
+                  'Loans from LoanX lenders'.tr(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ],
             ),
           ),
         ),
-        if (loans.isEmpty)
-          const SliverFillRemaining(
+        if (data.loans.isEmpty)
+          SliverFillRemaining(
             hasScrollBody: false,
             child: EmptyState(
               icon: Icons.account_balance_wallet_outlined,
-              title: 'No loans recorded',
-              message: 'Add a loan from any lender to track what you owe.',
+              title: 'No connected loans'.tr(),
+              message:
+                  'Loans issued to you by connected LoanX lenders will appear here.'
+                      .tr(),
             ),
           )
         else
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
             sliver: SliverList.builder(
-              itemCount: loans.length,
-              itemBuilder: (context, index) => _LoanCard(loan: loans[index]),
+              itemCount: data.loans.length,
+              itemBuilder: (context, index) =>
+                  _LoanCard(item: data.loans[index]),
             ),
           ),
       ],
     );
   }
+
+  String _totals(
+    List<BorrowerLoanSummary> items,
+    num Function(Loan loan) value,
+  ) {
+    final totals = <String, num>{};
+    for (final item in items) {
+      totals.update(
+        item.loan.currency,
+        (current) => current + value(item.loan),
+        ifAbsent: () => value(item.loan),
+      );
+    }
+    return totals.entries
+        .map((entry) => CurrencyPresentation.format(entry.value, entry.key))
+        .join(' · ');
+  }
 }
 
-class _OutstandingCard extends StatelessWidget {
-  const _OutstandingCard({
+class _LoanSummaryCard extends StatelessWidget {
+  const _LoanSummaryCard({
     required this.activeCount,
-    required this.outstanding,
+    required this.interest,
+    required this.amountDue,
   });
+
   final int activeCount;
-  final String outstanding;
+  final String interest;
+  final String amountDue;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: colors.primary,
@@ -153,20 +294,25 @@ class _OutstandingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Estimated amount owed'.tr(),
+            'Amount due'.tr(),
             style: TextStyle(color: colors.onPrimary.withValues(alpha: .8)),
           ),
           const SizedBox(height: 4),
           Text(
-            outstanding,
+            amountDue.isEmpty ? '—' : amountDue,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: colors.onPrimary,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
-            '$activeCount active loans'.tr(),
+            '${'Calculated interest'.tr()}: ${interest.isEmpty ? '—' : interest}',
+            style: TextStyle(color: colors.onPrimary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$activeCount ${'active loans'.tr()}',
             style: TextStyle(color: colors.onPrimary.withValues(alpha: .8)),
           ),
         ],
@@ -175,39 +321,151 @@ class _OutstandingCard extends StatelessWidget {
   }
 }
 
+class _NotificationTile extends StatelessWidget {
+  const _NotificationTile({required this.notification});
+
+  final LoanNotification notification;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.only(bottom: 8),
+    child: ListTile(
+      leading: Icon(
+        notification.readAt == null
+            ? Icons.notifications_active_outlined
+            : Icons.notifications_none_rounded,
+      ),
+      title: Text(notification.title),
+      subtitle: Text(notification.body),
+      trailing: notification.readAt == null
+          ? const Icon(Icons.circle, size: 10)
+          : null,
+    ),
+  );
+}
+
 class _LoanCard extends StatelessWidget {
-  const _LoanCard({required this.loan});
-  final Loan loan;
+  const _LoanCard({required this.item});
+
+  final BorrowerLoanSummary item;
 
   @override
   Widget build(BuildContext context) {
+    final loan = item.loan;
     final colors = Theme.of(context).colorScheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          child: Text(
-            loan.depositorName.isEmpty
-                ? '?'
-                : loan.depositorName[0].toUpperCase(),
-          ),
+          child: Text(item.lenderName.characters.first.toUpperCase()),
         ),
-        title: Text(loan.depositorName),
+        title: Text(item.lenderName),
         subtitle: Text(
-          loan.isFinished() ? 'Closed'.tr() : 'External lender'.tr(),
+          '${'Interest'.tr()}: ${CurrencyPresentation.format(loan.calculateInterest(), loan.currency)}',
         ),
-        trailing: Text(
-          CurrencyPresentation.format(
-            loan.calculateCollectable(),
-            loan.currency,
-          ),
-          style: TextStyle(color: colors.primary, fontWeight: FontWeight.w800),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              CurrencyPresentation.format(
+                loan.calculateCollectable(),
+                loan.currency,
+              ),
+              style: TextStyle(
+                color: colors.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(loan.isFinished() ? 'Closed'.tr() : 'Active'.tr()),
+          ],
         ),
-        onTap: () => Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => LoanDetails(loan: loan))),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => _BorrowerLoanDetails(item: item)),
+        ),
       ),
     );
   }
+}
+
+class _BorrowerLoanDetails extends StatelessWidget {
+  const _BorrowerLoanDetails({required this.item});
+
+  final BorrowerLoanSummary item;
+
+  @override
+  Widget build(BuildContext context) {
+    final loan = item.loan;
+    final date = DateFormat.yMMMd(context.locale.toString());
+    return Scaffold(
+      appBar: AppBar(title: Text('Loan details'.tr())),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          _DetailRow(label: 'Lender'.tr(), value: item.lenderName),
+          _DetailRow(
+            label: 'Principal'.tr(),
+            value: CurrencyPresentation.format(loan.loanAmount, loan.currency),
+          ),
+          _DetailRow(
+            label: 'Calculated interest'.tr(),
+            value: CurrencyPresentation.format(
+              loan.calculateInterest(),
+              loan.currency,
+            ),
+          ),
+          _DetailRow(
+            label: 'Amount due'.tr(),
+            value: CurrencyPresentation.format(
+              loan.calculateCollectable(),
+              loan.currency,
+            ),
+          ),
+          _DetailRow(
+            label: 'Interest rate'.tr(),
+            value: '${loan.interestRate}%',
+          ),
+          _DetailRow(
+            label: 'Interest type'.tr(),
+            value: InterestType.values[loan.interestType].name.tr(),
+          ),
+          _DetailRow(
+            label: 'Loan date'.tr(),
+            value: date.format(loan.dateCreated),
+          ),
+          _DetailRow(
+            label: 'Status'.tr(),
+            value: loan.isFinished() ? 'Closed'.tr() : 'Active'.tr(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: Text(label)),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    ),
+  );
 }
