@@ -1,4 +1,3 @@
-```xml
 <?xml version="1.0" encoding="utf-8"?>
 
 <manifest
@@ -52,22 +51,11 @@
 
         android:enableOnBackInvokedCallback="true">
 
-        <!-- ========================================================
-             MAIN FLUTTER ACTIVITY
-             ========================================================
-
-             IMPORTANT:
-
-             Hardware acceleration intentionally starts disabled here.
-
-             MainActivity.kt determines whether GPU rendering should be
-             enabled for the current device before Flutter's content is
-             created.
-
-             Android allows hardware acceleration to be enabled
-             programmatically, but it cannot be disabled afterward if it
-             was enabled through the manifest.
-             ======================================================== -->
+        <!-- Keep the Android window software-rendered. This is required for
+             the legacy Adreno driver on the supported Samsung J250F test
+             device, which crashes while creating an accelerated EGL context.
+             Flutter's renderer is separately selected before engine startup
+             by MainActivity. -->
 
         <activity
             android:name=".MainActivity"
@@ -173,4 +161,3 @@
     </queries>
 
 </manifest>
-```

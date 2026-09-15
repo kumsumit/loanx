@@ -1,4 +1,3 @@
-```kotlin
 package com.kumpali.loanx
 
 import android.app.ActivityManager
@@ -8,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.telephony.TelephonyManager
-import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.android.RenderMode
 import io.flutter.embedding.engine.FlutterEngine
@@ -79,14 +77,11 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         /*
-         * IMPORTANT:
-         *
-         * The manifest intentionally keeps android:hardwareAccelerated="false"
-         * so we can selectively enable it here.
-         *
-         * Android only allows hardware acceleration to be enabled
-         * programmatically. It cannot later be disabled when it was already
-         * enabled through the manifest.
+         * The manifest keeps the Android window software-rendered for legacy
+         * Adreno compatibility. For configurations with a known broken
+         * Flutter GPU stack, also pass the renderer choice to Flutter before
+         * its engine is created. Do not toggle the Android window flag at
+         * runtime: it produces an inconsistent renderer configuration.
          */
         if (needsSoftwareRendering) {
 
@@ -108,16 +103,6 @@ class MainActivity : FlutterFragmentActivity() {
             intent.putExtra(
                 FlutterShellArgs.ARG_KEY_TOGGLE_IMPELLER,
                 false
-            )
-
-        } else {
-
-            /*
-             * Enable Android window hardware acceleration before Flutter
-             * creates its content view.
-             */
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
             )
         }
 
@@ -647,4 +632,3 @@ class MainActivity : FlutterFragmentActivity() {
         val performanceTier: String
     )
 }
-```

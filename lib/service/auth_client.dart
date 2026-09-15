@@ -185,6 +185,7 @@ class AuthClient {
   }
 
   String _e164(PhoneNumber p) => CountryCatalog.e164(p.isoCode, p.nsn);
+
 }
 
 class _StoredTokens {
