@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1076919081;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 238689610;
 
 // Section: executor
 
@@ -315,6 +315,57 @@ fn wire__crate__api__simple__init_app_impl(
                     })?;
                     std::result::Result::Ok(output_ok)
                 })())
+            }
+        },
+    )
+}
+fn wire__crate__api__network__list_shared_loans_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "list_shared_loans",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_access_token = <String>::sse_decode(&mut deserializer);
+            let api_limit = <u32>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::list_shared_loans(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_access_token,
+                                api_limit,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
             }
         },
     )
@@ -996,6 +1047,20 @@ impl SseDecode for Vec<crate::api::network::PublicLender> {
     }
 }
 
+impl SseDecode for Vec<crate::api::network::SharedLoanSummary> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::network::SharedLoanSummary>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for crate::api::network::MyLenderProfile {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1136,6 +1201,32 @@ impl SseDecode for crate::api::network::ServerHello {
     }
 }
 
+impl SseDecode for crate::api::network::SharedLoanSummary {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_loanId = <String>::sse_decode(deserializer);
+        let mut var_lenderPartyId = <String>::sse_decode(deserializer);
+        let mut var_borrowerPartyId = <String>::sse_decode(deserializer);
+        let mut var_principalMinor = <i64>::sse_decode(deserializer);
+        let mut var_currency = <String>::sse_decode(deserializer);
+        let mut var_currencyScale = <u32>::sse_decode(deserializer);
+        let mut var_lifecycle = <String>::sse_decode(deserializer);
+        let mut var_loanDate = <String>::sse_decode(deserializer);
+        let mut var_maturityDate = <String>::sse_decode(deserializer);
+        return crate::api::network::SharedLoanSummary {
+            loan_id: var_loanId,
+            lender_party_id: var_lenderPartyId,
+            borrower_party_id: var_borrowerPartyId,
+            principal_minor: var_principalMinor,
+            currency: var_currency,
+            currency_scale: var_currencyScale,
+            lifecycle: var_lifecycle,
+            loan_date: var_loanDate,
+            maturity_date: var_maturityDate,
+        };
+    }
+}
+
 impl SseDecode for u32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1176,27 +1267,28 @@ fn pde_ffi_dispatcher_primary_impl(
         3 => wire__crate__api__network__connect_and_hello_impl(port, ptr, rust_vec_len, data_len),
         4 => wire__crate__api__network__create_pending_loan_impl(port, ptr, rust_vec_len, data_len),
         6 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__network__logout_session_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__network__my_lender_profile_impl(port, ptr, rust_vec_len, data_len),
-        9 => {
+        7 => wire__crate__api__network__list_shared_loans_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__network__logout_session_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__network__my_lender_profile_impl(port, ptr, rust_vec_len, data_len),
+        10 => {
             wire__crate__api__network__publish_public_lender_impl(port, ptr, rust_vec_len, data_len)
         }
-        10 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
-        11 => {
+        11 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
+        12 => {
             wire__crate__api__network__report_public_lender_impl(port, ptr, rust_vec_len, data_len)
         }
-        12 => wire__crate__api__network__request_chat_credentials_impl(
+        13 => wire__crate__api__network__request_chat_credentials_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        13 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
-        14 => {
+        14 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
+        15 => {
             wire__crate__api__network__search_public_lenders_impl(port, ptr, rust_vec_len, data_len)
         }
-        15 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1463,6 +1555,34 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::network::ServerHello>
         self
     }
 }
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::SharedLoanSummary {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.loan_id.into_into_dart().into_dart(),
+            self.lender_party_id.into_into_dart().into_dart(),
+            self.borrower_party_id.into_into_dart().into_dart(),
+            self.principal_minor.into_into_dart().into_dart(),
+            self.currency.into_into_dart().into_dart(),
+            self.currency_scale.into_into_dart().into_dart(),
+            self.lifecycle.into_into_dart().into_dart(),
+            self.loan_date.into_into_dart().into_dart(),
+            self.maturity_date.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::SharedLoanSummary
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::SharedLoanSummary>
+    for crate::api::network::SharedLoanSummary
+{
+    fn into_into_dart(self) -> crate::api::network::SharedLoanSummary {
+        self
+    }
+}
 
 impl SseEncode for String {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -1562,6 +1682,16 @@ impl SseEncode for Vec<crate::api::network::PublicLender> {
     }
 }
 
+impl SseEncode for Vec<crate::api::network::SharedLoanSummary> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::network::SharedLoanSummary>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for crate::api::network::MyLenderProfile {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -1649,6 +1779,21 @@ impl SseEncode for crate::api::network::ServerHello {
         <u32>::sse_encode(self.maximum_frame_bytes, serializer);
         <Vec<String>>::sse_encode(self.capabilities, serializer);
         <Option<String>>::sse_encode(self.error_message, serializer);
+    }
+}
+
+impl SseEncode for crate::api::network::SharedLoanSummary {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.loan_id, serializer);
+        <String>::sse_encode(self.lender_party_id, serializer);
+        <String>::sse_encode(self.borrower_party_id, serializer);
+        <i64>::sse_encode(self.principal_minor, serializer);
+        <String>::sse_encode(self.currency, serializer);
+        <u32>::sse_encode(self.currency_scale, serializer);
+        <String>::sse_encode(self.lifecycle, serializer);
+        <String>::sse_encode(self.loan_date, serializer);
+        <String>::sse_encode(self.maturity_date, serializer);
     }
 }
 

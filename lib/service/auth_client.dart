@@ -133,6 +133,21 @@ class AuthClient {
     return true;
   }
 
+  Future<List<network.SharedLoanSummary>> listSharedLoans({
+    int limit = 100,
+  }) async {
+    final tokens = await _readTokens();
+    if (tokens == null) return const [];
+    return network.listSharedLoans(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: tokens.accessToken,
+      limit: limit,
+    );
+  }
+
   /// Returns true only when the authenticated server profile was updated.
   ///
   /// A language selected before sign-in remains queued locally and is sent

@@ -7,6 +7,7 @@ import 'package:loanx/features/borrower/find_lender_screen.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/currency_presentation.dart';
+import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/widget/empty_state.dart';
 
 class BorrowerLoanSummary {
@@ -40,8 +41,51 @@ final borrowerDashboardProvider = FutureProvider<BorrowerDashboardData>((
 ) async {
   // Refresh after local loan writes or a sync updates the shared loan cache.
   ref.watch(loanListProvider);
-  return loadBorrowerDashboard(await ref.read(dBProvider.future));
+  final dashboard = await loadBorrowerDashboard(
+    await ref.read(dBProvider.future),
+  );
+  try {
+    final shared = await AuthClient().listSharedLoans();
+    final remote = shared.map((item) {
+      final scale = item.currencyScale.clamp(0, 6);
+      final principal = item.principalMinor / _power10(scale);
+      return BorrowerLoanSummary(
+        loan: Loan(
+          depositorName: 'LoanX lender',
+          phoneNumber: '',
+          relativeName: '',
+          address: '',
+          loanAmount: principal,
+          currency: item.currency,
+          interestRate: 0,
+          interestType: 0,
+          interestFrequency: 0,
+          additionalDetails: 'Shared loan',
+          familyRelationId: 0,
+          mortgageMaterialId: 0,
+          dateCreated: DateTime.tryParse(item.loanDate) ?? DateTime.now(),
+        ),
+        loanUid: item.loanId,
+        lenderPartyId: item.lenderPartyId,
+        lenderName: 'LoanX lender',
+      );
+    }).toList();
+    return BorrowerDashboardData(
+      loans: [...dashboard.loans, ...remote],
+      notifications: dashboard.notifications,
+    );
+  } catch (_) {
+    return dashboard;
+  }
 });
+
+double _power10(int scale) {
+  var value = 1.0;
+  for (var i = 0; i < scale; i++) {
+    value *= 10;
+  }
+  return value;
+}
 
 Future<BorrowerDashboardData> loadBorrowerDashboard(Database db) async {
   final owners = await db.query('localOwners');

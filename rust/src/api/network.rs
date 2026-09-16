@@ -162,6 +162,58 @@ pub async fn create_pending_loan(
 
 #[derive(Debug)]
 #[flutter_rust_bridge::frb]
+pub struct SharedLoanSummary {
+    pub loan_id: String,
+    pub lender_party_id: String,
+    pub borrower_party_id: String,
+    pub principal_minor: i64,
+    pub currency: String,
+    pub currency_scale: u32,
+    pub lifecycle: String,
+    pub loan_date: String,
+    pub maturity_date: String,
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn list_shared_loans(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    limit: u32,
+) -> Vec<SharedLoanSummary> {
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::SharedLoanList(v1::SharedLoanListRequest { limit }),
+    )
+    .await
+    {
+        Ok(v1::response::Result::SharedLoanList(value)) => value
+            .loans
+            .into_iter()
+            .map(|loan| SharedLoanSummary {
+                loan_id: loan.loan_id,
+                lender_party_id: loan.lender_party_id,
+                borrower_party_id: loan.borrower_party_id,
+                principal_minor: loan.principal_minor,
+                currency: loan.currency,
+                currency_scale: loan.currency_scale,
+                lifecycle: loan.lifecycle,
+                loan_date: loan.loan_date,
+                maturity_date: loan.maturity_date,
+            })
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
 pub struct MyLenderProfile {
     pub success: bool,
     pub profile: Option<PublicLender>,

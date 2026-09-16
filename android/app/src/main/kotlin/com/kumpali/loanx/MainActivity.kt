@@ -450,6 +450,22 @@ class MainActivity : FlutterFragmentActivity() {
             return true
         }
 
+        /*
+         * Production crash telemetry: Lava Be_U (Android 10, armeabi-v7a)
+         * has reported a SIGSEGV in Flutter's raster thread while using the
+         * hardware renderer. Keep this exception limited to the observed
+         * model/API combination; other Lava devices should retain GPU
+         * rendering until their own telemetry justifies a fallback.
+         */
+        if (
+            manufacturer == "lava" &&
+            model == "be_u" &&
+            Build.VERSION.SDK_INT == Build.VERSION_CODES.Q &&
+            !capabilities.supports64Bit
+        ) {
+            return true
+        }
+
         return false
     }
 

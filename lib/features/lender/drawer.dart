@@ -179,6 +179,21 @@ class MyDrawer extends HookConsumerWidget {
                                         );
                                       },
                                     ),
+                                  if (AppSettings.getVerifiedPhoneNumber()
+                                      .trim()
+                                      .isNotEmpty)
+                                    AutoSizeText(
+                                      AppSettings.getVerifiedPhoneNumber(),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      minFontSize: 10,
+                                    ),
                                 ],
                               ),
                             ),

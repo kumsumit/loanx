@@ -124,10 +124,12 @@ class LoanInput extends HookConsumerWidget {
     final phoneNumberController = useTextEditingController(
       text: loan?.phoneNumber ?? '',
     );
-    final borrowerPhone = useState<PhoneNumber>(PhoneNumber(
-      isoCode: 'IN',
-      nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
-    ));
+    final borrowerPhone = useState<PhoneNumber>(
+      PhoneNumber(
+        isoCode: 'IN',
+        nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
+      ),
+    );
     final addressController = useTextEditingController(
       text: loan?.address ?? '',
     );
@@ -178,8 +180,169 @@ class LoanInput extends HookConsumerWidget {
         ? LocaleKeys.noLockIn.tr()
         : '${lockInDays.value} days · ${CurrencyPresentation.format(earlyRedemptionCharge.value, currency.value)}';
 
+    Future<void> saveLoan() async {
+      if (isSaving.value) return;
+      if (formKey.currentState == null || !formKey.currentState!.validate()) {
+        return;
+      }
+      final relation = currentFamilyRelation.value;
+      final material = currentMortgageMaterial.value;
+      if (relation == null ||
+          relation.id == null ||
+          material == null ||
+          material.id == null) {
+        showSnackBar(
+          context,
+          'Select a family relation and pledged material'.tr(),
+        );
+        return;
+      }
+      final principal = _parseDouble(loanAmountController.text);
+      if (principal <= 0) {
+        showErrorSnackBar(
+          context,
+          LocaleKeys.enterAPrincipalAmountGreaterThanZero.tr(),
+        );
+        return;
+      }
+      if (!borrowing && phoneNumberController.text.trim().isNotEmpty) {
+        final verified = await _verifyBorrowerPhone(
+          context,
+          borrowerPhone.value,
+        );
+        if (!verified || !context.mounted) return;
+      }
+      final earlyCharge = lockInDays.value == 0
+          ? 0.0
+          : _parseDouble(earlyRedemptionChargeController.text);
+      final weight = _parseDouble(weightController.text);
+      final confirmed = await _confirmSave(
+        context,
+        isEditing: loan != null,
+        borrowerName: depositorController.text.trim(),
+        phoneNumber: phoneNumberController.text.trim(),
+        address: addressController.text.trim(),
+        referenceName: relativeNameController.text.trim(),
+        relation: relation.name,
+        principal: principal,
+        pledgedMaterial: material.name,
+        mortgageWeight: weight,
+        weightUnit: weightUnit.value,
+        mortgageTermYears: mortgageTermYears.value,
+        interestType: interestType.value,
+        interestRate: currentInterestRate,
+        interestFrequency: interestFrequency.value,
+        lockInDays: lockInDays.value,
+        earlyRedemptionCharge: earlyCharge,
+        currency: currency.value,
+        notes: additionalDetailsController.text.trim(),
+        termsAndConditions: termsAndConditionsController.text.trim(),
+      );
+      if (!confirmed || !context.mounted) return;
+      isSaving.value = true;
+      int status;
+      try {
+        status = await ref
+            .read(loanListProvider.notifier)
+            .add(
+              loan,
+              depositorController.text.trim(),
+              phoneNumberController.text.trim(),
+              relativeNameController.text.trim(),
+              addressController.text.trim(),
+              principal,
+              weight,
+              weightUnit.value,
+              currentInterestRate,
+              interestType.value.index,
+              interestFrequency.value.index,
+              mortgageTermYears.value,
+              lockInDays.value,
+              earlyCharge,
+              additionalDetailsController.text.trim(),
+              termsAndConditionsController.text.trim(),
+              relation.id!,
+              material.id!,
+              currency.value,
+              borrowing,
+            );
+      } catch (error, stackTrace) {
+        debugPrint('Unable to save loan: $error');
+        debugPrintStack(stackTrace: stackTrace);
+        if (context.mounted) {
+          showErrorSnackBar(
+            context,
+            LocaleKeys.unableToSaveLoan.tr(namedArgs: {'error': '$error'}),
+          );
+        }
+        return;
+      } finally {
+        if (context.mounted) isSaving.value = false;
+      }
+      if (status > 0) {
+        if (!borrowing && phoneNumberController.text.trim().isNotEmpty) {
+          try {
+            await AuthClient().createPendingLoan(
+              borrowerPhoneE164: CountryCatalog.e164(
+                borrowerPhone.value.isoCode,
+                borrowerPhone.value.nsn,
+              ),
+              borrowerName: depositorController.text.trim(),
+              operationId: CanonicalMigration.newId(),
+              loanPayload: {
+                'principal_minor': (principal * 100).round(),
+                'currency': currency.value,
+                'currency_scale': 2,
+                'loan_date': DateTime.now().toUtc().toIso8601String().substring(
+                  0,
+                  10,
+                ),
+                'maturity_date': null,
+              },
+            );
+          } catch (error) {
+            if (context.mounted) {
+              showErrorSnackBar(
+                context,
+                'Loan saved locally but could not be shared: $error',
+              );
+            }
+          }
+        }
+        if (loan != null) {
+          ref.read(loanSelectionListProvider.notifier).remove(loan!.id ?? 0);
+        }
+        if (context.mounted) {
+          Navigator.pop(context);
+          showSnackBar(
+            context,
+            (loan == null
+                    ? LocaleKeys.loanCreatedSuccessfully
+                    : LocaleKeys.loanUpdatedSuccessfully)
+                .tr(),
+          );
+        }
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text(appBarTitle)),
+      floatingActionButton: loan != null
+          ? FloatingActionButton.extended(
+              onPressed: saveLoan,
+              icon: isSaving.value
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save_rounded),
+              label: Text(
+                isSaving.value
+                    ? LocaleKeys.saving.tr()
+                    : LocaleKeys.saveChanges.tr(),
+              ),
+            )
+          : null,
       body: Padding(
         padding: EdgeInsets.only(left: 20, right: 20),
         child: Form(
@@ -787,190 +950,32 @@ class LoanInput extends HookConsumerWidget {
                 labelText: LocaleKeys.notesOptional.tr(),
                 maxLines: 3,
               ),
-              Consumer(
-                builder: (context, ref, child) {
-                  return SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: () async {
-                        if (isSaving.value) return;
-                        if (formKey.currentState != null &&
-                            formKey.currentState!.validate()) {
-                          final relation = currentFamilyRelation.value;
-                          final material = currentMortgageMaterial.value;
-                          if (relation == null ||
-                              relation.id == null ||
-                              material == null ||
-                              material.id == null) {
-                            showSnackBar(
-                              context,
-                              'Select a family relation and pledged material'
-                                  .tr(),
-                            );
-                            return;
-                          }
-                          final principal = _parseDouble(
-                            loanAmountController.text,
-                          );
-                          if (principal <= 0) {
-                            showErrorSnackBar(
-                              context,
-                              LocaleKeys.enterAPrincipalAmountGreaterThanZero
-                                  .tr(),
-                            );
-                            return;
-                          }
-                          if (!borrowing &&
-                              phoneNumberController.text.trim().isNotEmpty) {
-                            final verified = await _verifyBorrowerPhone(
-                              context,
-                              borrowerPhone.value,
-                            );
-                            if (!verified || !context.mounted) return;
-                          }
-                          final earlyCharge = lockInDays.value == 0
-                              ? 0.0
-                              : _parseDouble(
-                                  earlyRedemptionChargeController.text,
-                                );
-                          final weight = _parseDouble(weightController.text);
-                          final confirmed = await _confirmSave(
-                            context,
-                            isEditing: loan != null,
-                            borrowerName: depositorController.text.trim(),
-                            phoneNumber: phoneNumberController.text.trim(),
-                            address: addressController.text.trim(),
-                            referenceName: relativeNameController.text.trim(),
-                            relation: relation.name,
-                            principal: principal,
-                            pledgedMaterial: material.name,
-                            mortgageWeight: weight,
-                            weightUnit: weightUnit.value,
-                            mortgageTermYears: mortgageTermYears.value,
-                            interestType: interestType.value,
-                            interestRate: currentInterestRate,
-                            interestFrequency: interestFrequency.value,
-                            lockInDays: lockInDays.value,
-                            earlyRedemptionCharge: earlyCharge,
-                            currency: currency.value,
-                            notes: additionalDetailsController.text.trim(),
-                            termsAndConditions: termsAndConditionsController
-                                .text
-                                .trim(),
-                          );
-                          if (!confirmed || !context.mounted) return;
-                          isSaving.value = true;
-                          int status;
-                          try {
-                            status = await ref
-                                .read(loanListProvider.notifier)
-                                .add(
-                                  loan,
-                                  depositorController.text.trim(),
-                                  phoneNumberController.text.trim(),
-                                  relativeNameController.text.trim(),
-                                  addressController.text.trim(),
-                                  principal,
-                                  weight,
-                                  weightUnit.value,
-                                  currentInterestRate,
-                                  interestType.value.index,
-                                  interestFrequency.value.index,
-                                  mortgageTermYears.value,
-                                  lockInDays.value,
-                                  earlyCharge,
-                                  additionalDetailsController.text.trim(),
-                                  termsAndConditionsController.text.trim(),
-                                  relation.id!,
-                                  material.id!,
-                                  currency.value,
-                                  borrowing,
-                                );
-                          } catch (error, stackTrace) {
-                            debugPrint('Unable to save loan: $error');
-                            debugPrintStack(stackTrace: stackTrace);
-                            if (context.mounted) {
-                              showErrorSnackBar(
-                                context,
-                                LocaleKeys.unableToSaveLoan.tr(
-                                  namedArgs: {'error': '$error'},
+              if (loan == null)
+                Consumer(
+                  builder: (context, ref, child) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: saveLoan,
+                        icon: isSaving.value
+                            ? const SizedBox.square(
+                                dimension: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
                                 ),
-                              );
-                            }
-                            return;
-                          } finally {
-                            if (context.mounted) isSaving.value = false;
-                          }
-                          if (status > 0) {
-                            if (!borrowing &&
-                                phoneNumberController.text.trim().isNotEmpty) {
-                              try {
-                                await AuthClient().createPendingLoan(
-                                  borrowerPhoneE164: CountryCatalog.e164(
-                                    borrowerPhone.value.isoCode,
-                                    borrowerPhone.value.nsn,
-                                  ),
-                                  borrowerName: depositorController.text.trim(),
-                                  operationId: CanonicalMigration.newId(),
-                                  loanPayload: {
-                                    'principal_minor': (principal * 100).round(),
-                                    'currency': currency.value,
-                                    'currency_scale': 2,
-                                    'loan_date': DateTime.now()
-                                        .toUtc()
-                                        .toIso8601String()
-                                        .substring(0, 10),
-                                    'maturity_date': null,
-                                  },
-                                );
-                              } catch (error) {
-                                if (context.mounted) {
-                                  showErrorSnackBar(
-                                    context,
-                                    'Loan saved locally but could not be shared: $error',
-                                  );
-                                }
-                              }
-                            }
-                            if (loan != null) {
-                              ref
-                                  .read(loanSelectionListProvider.notifier)
-                                  .remove(loan!.id ?? 0);
-                            }
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              if (loan == null) {
-                                showSnackBar(
-                                  context,
-                                  LocaleKeys.loanCreatedSuccessfully.tr(),
-                                );
-                              } else {
-                                showSnackBar(
-                                  context,
-                                  LocaleKeys.loanUpdatedSuccessfully.tr(),
-                                );
-                              }
-                            }
-                          }
-                        }
-                      },
-                      icon: isSaving.value
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.check_rounded),
-                      label: Text(
-                        isSaving.value
-                            ? LocaleKeys.saving.tr()
-                            : loan == null
-                            ? LocaleKeys.createLoan.tr()
-                            : LocaleKeys.saveChanges.tr(),
+                              )
+                            : const Icon(Icons.check_rounded),
+                        label: Text(
+                          isSaving.value
+                              ? LocaleKeys.saving.tr()
+                              : loan == null
+                              ? LocaleKeys.createLoan.tr()
+                              : LocaleKeys.saveChanges.tr(),
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
               const SizedBox(height: 32),
             ],
           ),
@@ -1301,9 +1306,7 @@ class _CurrencyField extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(11),
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primaryContainer,
+                          color: Theme.of(context).colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Icon(
@@ -1325,9 +1328,9 @@ class _CurrencyField extends StatelessWidget {
                               'Choose the currency used for this loan',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                             ),
                           ],
@@ -1385,14 +1388,16 @@ class _CurrencyField extends StatelessWidget {
                                 Icon(
                                   Icons.search_off_rounded,
                                   size: 42,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'No currencies found',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -1411,9 +1416,9 @@ class _CurrencyField extends StatelessWidget {
                                 padding: const EdgeInsets.only(bottom: 6),
                                 child: Material(
                                   color: isSelected
-                                      ? Theme.of(context)
-                                          .colorScheme
-                                          .primaryContainer
+                                      ? Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(18),
                                   child: ListTile(
@@ -1427,12 +1432,12 @@ class _CurrencyField extends StatelessWidget {
                                       alignment: Alignment.center,
                                       decoration: BoxDecoration(
                                         color: isSelected
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .primary
+                                            ? Theme.of(
+                                                context,
+                                              ).colorScheme.primary
                                             : Theme.of(context)
-                                                .colorScheme
-                                                .surfaceContainerHighest,
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
                                         borderRadius: BorderRadius.circular(14),
                                       ),
                                       child: Text(
@@ -1441,12 +1446,12 @@ class _CurrencyField extends StatelessWidget {
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           color: isSelected
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .onPrimary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
+                                              ? Theme.of(
+                                                  context,
+                                                ).colorScheme.onPrimary
+                                              : Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
@@ -1462,9 +1467,9 @@ class _CurrencyField extends StatelessWidget {
                                     trailing: isSelected
                                         ? Icon(
                                             Icons.check_circle_rounded,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                           )
                                         : const Icon(
                                             Icons.chevron_right_rounded,

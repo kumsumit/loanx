@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `simple_network_result`, `write_frame`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
 Future<PendingLoanInvitation> createPendingLoan({
   required String serverAddress,
@@ -31,6 +31,22 @@ Future<PendingLoanInvitation> createPendingLoan({
   borrowerPhoneE164: borrowerPhoneE164,
   borrowerName: borrowerName,
   loanPayloadJson: loanPayloadJson,
+);
+
+Future<List<SharedLoanSummary>> listSharedLoans({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required int limit,
+}) => RustLib.instance.api.crateApiNetworkListSharedLoans(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  limit: limit,
 );
 
 Future<MyLenderProfile> myLenderProfile({
@@ -639,4 +655,55 @@ class ServerHello {
           maximumFrameBytes == other.maximumFrameBytes &&
           capabilities == other.capabilities &&
           errorMessage == other.errorMessage;
+}
+
+class SharedLoanSummary {
+  final String loanId;
+  final String lenderPartyId;
+  final String borrowerPartyId;
+  final PlatformInt64 principalMinor;
+  final String currency;
+  final int currencyScale;
+  final String lifecycle;
+  final String loanDate;
+  final String maturityDate;
+
+  const SharedLoanSummary({
+    required this.loanId,
+    required this.lenderPartyId,
+    required this.borrowerPartyId,
+    required this.principalMinor,
+    required this.currency,
+    required this.currencyScale,
+    required this.lifecycle,
+    required this.loanDate,
+    required this.maturityDate,
+  });
+
+  @override
+  int get hashCode =>
+      loanId.hashCode ^
+      lenderPartyId.hashCode ^
+      borrowerPartyId.hashCode ^
+      principalMinor.hashCode ^
+      currency.hashCode ^
+      currencyScale.hashCode ^
+      lifecycle.hashCode ^
+      loanDate.hashCode ^
+      maturityDate.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SharedLoanSummary &&
+          runtimeType == other.runtimeType &&
+          loanId == other.loanId &&
+          lenderPartyId == other.lenderPartyId &&
+          borrowerPartyId == other.borrowerPartyId &&
+          principalMinor == other.principalMinor &&
+          currency == other.currency &&
+          currencyScale == other.currencyScale &&
+          lifecycle == other.lifecycle &&
+          loanDate == other.loanDate &&
+          maturityDate == other.maturityDate;
 }
