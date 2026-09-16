@@ -25,7 +25,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/service/device_performance.dart';
-import 'package:loanx/src/rust/frb_generated.dart';
+import 'package:loanx/service/rust_bridge.dart';
 import 'package:loanx/theme/app_theme.dart';
 import 'package:loanx/widget/language_picker.dart';
 import 'package:workmanager/workmanager.dart';
@@ -383,7 +383,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     try {
       // Connected services are optional for a device-local workspace. Never
       // gate local authentication or loan access on a network bridge.
-      await (widget.initializeBridge?.call() ?? RustLib.init());
+      await (widget.initializeBridge?.call() ?? RustBridge.ensureInitialized());
 
       if (AppSettings.getPhoneAuthVerified()) {
         // An expired or unavailable cloud session only disables connected

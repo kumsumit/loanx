@@ -24,7 +24,7 @@ import 'package:loanx/widget/styled_textfield.dart';
 import 'package:loanx/features/auth/otp_verification_screen.dart';
 import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/service/canonical_migration.dart';
-import 'package:loanx/src/rust/frb_generated.dart';
+import 'package:loanx/service/rust_bridge.dart';
 
 class LoanInput extends HookConsumerWidget {
   final Loan? loan;
@@ -36,15 +36,26 @@ class LoanInput extends HookConsumerWidget {
   const LoanInput({super.key, this.loan, this.isBorrowerLoan});
 
   double _parseDouble(String input) {
-    try {
-      return double.parse(input);
-    } catch (e) {
-      try {
-        return int.parse(input).toDouble();
-      } catch (ie) {
-        return 0.0;
+    var normalized = input.trim().replaceAll(RegExp(r'[₹$€£]'), '');
+    normalized = normalized.replaceAll(RegExp(r'\s+'), '');
+
+    // Accept both plain decimals and commonly entered grouped amounts such
+    // as 10,000 or 1,00,000. A comma is treated as a decimal separator only
+    // when it is the sole separator and has one or two fractional digits.
+    final commaCount = ','.allMatches(normalized).length;
+    if (commaCount > 0 && !normalized.contains('.')) {
+      final lastComma = normalized.lastIndexOf(',');
+      final fractionalDigits = normalized.length - lastComma - 1;
+      if (commaCount == 1 && fractionalDigits <= 2) {
+        normalized = normalized.replaceRange(lastComma, lastComma + 1, '.');
+      } else {
+        normalized = normalized.replaceAll(',', '');
       }
+    } else {
+      normalized = normalized.replaceAll(',', '');
     }
+
+    return double.tryParse(normalized) ?? 0.0;
   }
 
   String _nationalPhoneNumber(String value) {
@@ -992,7 +1003,7 @@ class LoanInput extends HookConsumerWidget {
     if (phone.nsn.trim().isEmpty || !phone.isValid()) return false;
     final auth = AuthClient();
     try {
-      await RustLib.init();
+      await RustBridge.ensureInitialized();
       await auth.requestOtp(phone);
     } catch (error) {
       if (context.mounted) {
@@ -1001,7 +1012,7 @@ class LoanInput extends HookConsumerWidget {
       return false;
     }
     if (!context.mounted) return false;
-    final result = await Navigator.of(context).push<String?>(
+    final result = await Navigator.of(context).push<bool?>(
       MaterialPageRoute(
         builder: (_) => OtpVerificationScreen(
           phoneNumber: phone,

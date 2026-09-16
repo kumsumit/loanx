@@ -22,7 +22,9 @@ void showErrorSnackBar(BuildContext context, String message) {
   final overlay = Overlay.of(context);
   final displayMessage = kReleaseMode
       ? LocaleKeys.somethingWentWrongPleaseTryAgain.tr()
-      : message.tr();
+      : message.trExists()
+      ? message.tr()
+      : message;
   final overlayEntry = OverlayEntry(
     builder: (context) => Align(
       alignment: Alignment.center,

@@ -1,5 +1,4 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/app_settings.dart';
@@ -7,7 +6,7 @@ import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/features/auth/otp_verification_screen.dart';
 import 'package:loanx/features/auth/phone_login_screen.dart';
 import 'package:loanx/service/auth_client.dart';
-import 'package:loanx/src/rust/frb_generated.dart';
+import 'package:loanx/service/rust_bridge.dart';
 
 /// Connects an existing offline lender workspace to a verified
 /// cloud authentication account.
@@ -49,7 +48,7 @@ class _ConnectAccountScreenState extends State<ConnectAccountScreen> {
   Future<void> _initialize() async {
     try {
       // Initialize the Flutter Rust Bridge before using AuthClient.
-      await RustLib.init();
+      await RustBridge.ensureInitialized();
 
       if (!mounted) return;
 
@@ -79,7 +78,7 @@ class _ConnectAccountScreenState extends State<ConnectAccountScreen> {
     });
 
     try {
-      await RustLib.init();
+      await RustBridge.ensureInitialized();
 
       await _authClient.requestOtp(phone);
 
@@ -125,14 +124,15 @@ class _ConnectAccountScreenState extends State<ConnectAccountScreen> {
     setState(() {
       _verifyingOtp = true;
     });
+    final preferredLanguage = context.locale.languageCode;
 
     try {
-      await RustLib.init();
+      await RustBridge.ensureInitialized();
 
       final verified = await _authClient.verifyOtp(
         phone,
         code.trim(),
-        context.locale.languageCode,
+        preferredLanguage,
       );
 
       if (!verified) {
