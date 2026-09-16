@@ -109,9 +109,48 @@ final class RepaymentRepository {
       'notes': safeNotes,
       'reversesEventId': reversesEventId,
     };
+    final syncPayload = <String, Object?>{
+      'loan_id': loanUid,
+      'type': type.name,
+      'amount_minor': amount.minorUnits.toString(),
+      'currency': amount.currency,
+      'currency_scale': amount.scale,
+      'effective_date': _dateString(effectiveDate),
+      'payment_method': paymentMethod,
+      'reference_number': reference,
+      'reverses_event_id': reversesEventId,
+      'reason': safeNotes,
+    };
     final hash = sha256.convert(utf8.encode(jsonEncode(payload))).toString();
     return database.transaction((tx) async {
       await _requireLoan(tx, loanUid, currency: amount.currency);
+      final loanRows = await tx.query(
+        'loans',
+        columns: ['loanAmountExact', 'loanAmount', 'dateCreated'],
+        where: 'uid = ? AND ownerId = ?',
+        whereArgs: [loanUid, ownerId],
+        limit: 1,
+      );
+      final loanRow = loanRows.single;
+      String? principalMinor;
+      try {
+        final principal =
+            loanRow['loanAmountExact'] as String? ??
+            (loanRow['loanAmount'] as num).toString();
+        principalMinor = Money.parse(
+          principal,
+          currency: amount.currency,
+          scale: amount.scale,
+        ).minorUnits.toString();
+      } catch (_) {
+        // Legacy rows without a parseable principal can still sync when their
+        // stable UUID is available.
+      }
+      final queuePayload = <String, Object?>{
+        ...syncPayload,
+        'principal_minor': principalMinor,
+        'loan_date': (loanRow['dateCreated'] as String?)?.substring(0, 10),
+      };
       final previous = await tx.query(
         'financialEvents',
         where: 'id = ?',
@@ -167,6 +206,17 @@ final class RepaymentRepository {
             : 'REPAYMENT_CREATED',
         'occurredAt': recordedAt.toIso8601String(),
         'correlationId': id,
+      });
+      final now = recordedAt.toIso8601String();
+      await tx.insert('pendingFinancialEvents', {
+        'id': id,
+        'eventId': id,
+        'loanUid': loanUid,
+        'payloadJson': jsonEncode(queuePayload),
+        'status': 'PENDING',
+        'attemptCount': 0,
+        'createdAt': now,
+        'updatedAt': now,
       });
       return _fromRow(row);
     });
@@ -252,4 +302,9 @@ final class RepaymentRepository {
       value.second == 0 &&
       value.millisecond == 0 &&
       value.microsecond == 0;
+
+  static String _dateString(DateTime value) =>
+      '${value.year.toString().padLeft(4, '0')}-'
+      '${value.month.toString().padLeft(2, '0')}-'
+      '${value.day.toString().padLeft(2, '0')}';
 }

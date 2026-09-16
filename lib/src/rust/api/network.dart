@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `simple_network_result`, `write_frame`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
 Future<PendingLoanInvitation> createPendingLoan({
   required String serverAddress,
@@ -33,7 +33,49 @@ Future<PendingLoanInvitation> createPendingLoan({
   loanPayloadJson: loanPayloadJson,
 );
 
-Future<List<SharedLoanSummary>> listSharedLoans({
+Future<NetworkResult> pushFinancialEvent({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String workspaceId,
+  required String operationId,
+  required String loanId,
+  required String eventType,
+  required String amountMinor,
+  required String currency,
+  required int currencyScale,
+  required String effectiveDate,
+  String? paymentMethod,
+  String? referenceNumber,
+  String? reversesEventId,
+  String? reason,
+  String? principalMinor,
+  String? loanDate,
+}) => RustLib.instance.api.crateApiNetworkPushFinancialEvent(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  workspaceId: workspaceId,
+  operationId: operationId,
+  loanId: loanId,
+  eventType: eventType,
+  amountMinor: amountMinor,
+  currency: currency,
+  currencyScale: currencyScale,
+  effectiveDate: effectiveDate,
+  paymentMethod: paymentMethod,
+  referenceNumber: referenceNumber,
+  reversesEventId: reversesEventId,
+  reason: reason,
+  principalMinor: principalMinor,
+  loanDate: loanDate,
+);
+
+Future<SharedLoanListResult> listSharedLoans({
   required String serverAddress,
   required String serverName,
   required String trustedCertificatePem,
@@ -657,6 +699,30 @@ class ServerHello {
           errorMessage == other.errorMessage;
 }
 
+class SharedLoanListResult {
+  final bool success;
+  final List<SharedLoanSummary> loans;
+  final String? errorMessage;
+
+  const SharedLoanListResult({
+    required this.success,
+    required this.loans,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode => success.hashCode ^ loans.hashCode ^ errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SharedLoanListResult &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          loans == other.loans &&
+          errorMessage == other.errorMessage;
+}
+
 class SharedLoanSummary {
   final String loanId;
   final String lenderPartyId;
@@ -667,6 +733,7 @@ class SharedLoanSummary {
   final String lifecycle;
   final String loanDate;
   final String maturityDate;
+  final List<SharedRepayment> repayments;
 
   const SharedLoanSummary({
     required this.loanId,
@@ -678,6 +745,7 @@ class SharedLoanSummary {
     required this.lifecycle,
     required this.loanDate,
     required this.maturityDate,
+    required this.repayments,
   });
 
   @override
@@ -690,7 +758,8 @@ class SharedLoanSummary {
       currencyScale.hashCode ^
       lifecycle.hashCode ^
       loanDate.hashCode ^
-      maturityDate.hashCode;
+      maturityDate.hashCode ^
+      repayments.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -705,5 +774,57 @@ class SharedLoanSummary {
           currencyScale == other.currencyScale &&
           lifecycle == other.lifecycle &&
           loanDate == other.loanDate &&
-          maturityDate == other.maturityDate;
+          maturityDate == other.maturityDate &&
+          repayments == other.repayments;
+}
+
+class SharedRepayment {
+  final String id;
+  final String eventType;
+  final PlatformInt64 amountMinor;
+  final String currency;
+  final int currencyScale;
+  final String paymentDate;
+  final String recordedAt;
+  final String paymentMethod;
+  final String reversesEventId;
+
+  const SharedRepayment({
+    required this.id,
+    required this.eventType,
+    required this.amountMinor,
+    required this.currency,
+    required this.currencyScale,
+    required this.paymentDate,
+    required this.recordedAt,
+    required this.paymentMethod,
+    required this.reversesEventId,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      eventType.hashCode ^
+      amountMinor.hashCode ^
+      currency.hashCode ^
+      currencyScale.hashCode ^
+      paymentDate.hashCode ^
+      recordedAt.hashCode ^
+      paymentMethod.hashCode ^
+      reversesEventId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SharedRepayment &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          eventType == other.eventType &&
+          amountMinor == other.amountMinor &&
+          currency == other.currency &&
+          currencyScale == other.currencyScale &&
+          paymentDate == other.paymentDate &&
+          recordedAt == other.recordedAt &&
+          paymentMethod == other.paymentMethod &&
+          reversesEventId == other.reversesEventId;
 }

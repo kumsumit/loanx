@@ -41,18 +41,19 @@ void main() {
       expect(owner['remotePartyId'], 'remote-party');
       expect(party['userId'], 'remote-user');
 
-      await expectLater(
-        AuthClient().linkLocalOwner(
-          const CloudIdentity(
-            userId: 'another-user',
-            workspaceId: 'another-workspace',
-            selfPartyId: 'another-party',
-            phoneE164: '+918888888888',
-          ),
-          database: db,
+      await AuthClient().linkLocalOwner(
+        const CloudIdentity(
+          userId: 'another-user',
+          workspaceId: 'another-workspace',
+          selfPartyId: 'another-party',
+          phoneE164: '+918888888888',
         ),
-        throwsStateError,
+        database: db,
       );
+      final unchangedOwner = (await db.query('localOwners')).single;
+      final unchangedParty = (await db.query('parties')).single;
+      expect(unchangedOwner['remoteUserId'], 'remote-user');
+      expect(unchangedParty['userId'], 'remote-user');
       await db.close();
     },
   );

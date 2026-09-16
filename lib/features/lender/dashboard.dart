@@ -89,6 +89,25 @@ class DashBoard extends HookWidget {
                 MaterialPageRoute(builder: (_) => const ConnectAccountScreen()),
               ),
             ),
+          if (!usesBorrowerExperience)
+            IconButton(
+              tooltip: 'Sign in as borrower'.tr(),
+              icon: const Icon(Icons.switch_account_outlined),
+              onPressed: () async {
+                final switched = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        const ConnectAccountScreen(switchToBorrower: true),
+                  ),
+                );
+                if (switched == true && context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const DashBoard()),
+                    (route) => false,
+                  );
+                }
+              },
+            ),
           if (!usesBorrowerExperience && !AppSettings.getIsProPlanSelected())
             IconButton(
               tooltip: 'Public lender profile'.tr(),

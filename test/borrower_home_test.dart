@@ -39,6 +39,7 @@ void main() {
   tearDown(() => db.close());
 
   test('shows only connected loans received by this borrower', () async {
+    final now = DateTime.utc(2026, 9, 16).toIso8601String();
     await db.insert(
       'loans',
       _loan(
@@ -69,6 +70,19 @@ void main() {
 
     await _share(db, 'visible-loan', 'borrower');
     await _share(db, 'external-loan', 'borrower');
+    await db.insert('financialEvents', {
+      'id': 'repayment-1',
+      'ownerId': 'owner',
+      'loanUid': 'visible-loan',
+      'type': 'repayment',
+      'amountMinor': '2500',
+      'currency': 'INR',
+      'currencyScale': 2,
+      'effectiveDate': DateTime.utc(2026, 9, 15).toIso8601String(),
+      'recordedAt': now,
+      'createdBy': 'connected-lender',
+      'payloadHash': 'test',
+    });
 
     await _notification(db, 'visible-notice', 'borrower', 'visible-loan');
     await _notification(db, 'unrelated-notice', 'borrower', 'external-loan');
@@ -84,6 +98,7 @@ void main() {
     expect(dashboard.loans.map((item) => item.loanUid), ['visible-loan']);
     expect(dashboard.loans.single.lenderPartyId, 'connected-lender');
     expect(dashboard.loans.single.lenderName, 'Connected Lender');
+    expect(dashboard.loans.single.repayments.single.amountMinor, 2500);
     expect(dashboard.notifications.map((item) => item.id), ['visible-notice']);
   });
 

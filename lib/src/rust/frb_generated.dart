@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 238689610;
+  int get rustContentHash => -685500571;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -121,7 +121,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiSimpleInitApp();
 
-  Future<List<SharedLoanSummary>> crateApiNetworkListSharedLoans({
+  Future<SharedLoanListResult> crateApiNetworkListSharedLoans({
     required String serverAddress,
     required String serverName,
     required String trustedCertificatePem,
@@ -165,6 +165,28 @@ abstract class RustLibApi extends BaseApi {
     required bool available,
     required bool published,
     required String publicDescription,
+  });
+
+  Future<NetworkResult> crateApiNetworkPushFinancialEvent({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String workspaceId,
+    required String operationId,
+    required String loanId,
+    required String eventType,
+    required String amountMinor,
+    required String currency,
+    required int currencyScale,
+    required String effectiveDate,
+    String? paymentMethod,
+    String? referenceNumber,
+    String? reversesEventId,
+    String? reason,
+    String? principalMinor,
+    String? loanDate,
   });
 
   Future<AuthTokens> crateApiNetworkRefreshSession({
@@ -529,7 +551,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
   @override
-  Future<List<SharedLoanSummary>> crateApiNetworkListSharedLoans({
+  Future<SharedLoanListResult> crateApiNetworkListSharedLoans({
     required String serverAddress,
     required String serverName,
     required String trustedCertificatePem,
@@ -555,7 +577,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_list_shared_loan_summary,
+          decodeSuccessData: sse_decode_shared_loan_list_result,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiNetworkListSharedLoansConstMeta,
@@ -797,6 +819,115 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<NetworkResult> crateApiNetworkPushFinancialEvent({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String workspaceId,
+    required String operationId,
+    required String loanId,
+    required String eventType,
+    required String amountMinor,
+    required String currency,
+    required int currencyScale,
+    required String effectiveDate,
+    String? paymentMethod,
+    String? referenceNumber,
+    String? reversesEventId,
+    String? reason,
+    String? principalMinor,
+    String? loanDate,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_String(workspaceId, serializer);
+          sse_encode_String(operationId, serializer);
+          sse_encode_String(loanId, serializer);
+          sse_encode_String(eventType, serializer);
+          sse_encode_String(amountMinor, serializer);
+          sse_encode_String(currency, serializer);
+          sse_encode_u_32(currencyScale, serializer);
+          sse_encode_String(effectiveDate, serializer);
+          sse_encode_opt_String(paymentMethod, serializer);
+          sse_encode_opt_String(referenceNumber, serializer);
+          sse_encode_opt_String(reversesEventId, serializer);
+          sse_encode_opt_String(reason, serializer);
+          sse_encode_opt_String(principalMinor, serializer);
+          sse_encode_opt_String(loanDate, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_network_result,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkPushFinancialEventConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+          workspaceId,
+          operationId,
+          loanId,
+          eventType,
+          amountMinor,
+          currency,
+          currencyScale,
+          effectiveDate,
+          paymentMethod,
+          referenceNumber,
+          reversesEventId,
+          reason,
+          principalMinor,
+          loanDate,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkPushFinancialEventConstMeta =>
+      const TaskConstMeta(
+        debugName: "push_financial_event",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+          "workspaceId",
+          "operationId",
+          "loanId",
+          "eventType",
+          "amountMinor",
+          "currency",
+          "currencyScale",
+          "effectiveDate",
+          "paymentMethod",
+          "referenceNumber",
+          "reversesEventId",
+          "reason",
+          "principalMinor",
+          "loanDate",
+        ],
+      );
+
+  @override
   Future<AuthTokens> crateApiNetworkRefreshSession({
     required String serverAddress,
     required String serverName,
@@ -816,7 +947,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 12,
             port: port_,
           );
         },
@@ -873,7 +1004,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 13,
             port: port_,
           );
         },
@@ -930,7 +1061,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 14,
             port: port_,
           );
         },
@@ -983,7 +1114,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 15,
             port: port_,
           );
         },
@@ -1043,7 +1174,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 16,
             port: port_,
           );
         },
@@ -1106,7 +1237,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 17,
             port: port_,
           );
         },
@@ -1167,7 +1298,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 18,
             port: port_,
           );
         },
@@ -1323,6 +1454,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<SharedRepayment> dco_decode_list_shared_repayment(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_shared_repayment).toList();
+  }
+
+  @protected
   MyLenderProfile dco_decode_my_lender_profile(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -1429,11 +1566,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  SharedLoanListResult dco_decode_shared_loan_list_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return SharedLoanListResult(
+      success: dco_decode_bool(arr[0]),
+      loans: dco_decode_list_shared_loan_summary(arr[1]),
+      errorMessage: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
   SharedLoanSummary dco_decode_shared_loan_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 9)
-      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    if (arr.length != 10)
+      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
     return SharedLoanSummary(
       loanId: dco_decode_String(arr[0]),
       lenderPartyId: dco_decode_String(arr[1]),
@@ -1444,6 +1594,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       lifecycle: dco_decode_String(arr[6]),
       loanDate: dco_decode_String(arr[7]),
       maturityDate: dco_decode_String(arr[8]),
+      repayments: dco_decode_list_shared_repayment(arr[9]),
+    );
+  }
+
+  @protected
+  SharedRepayment dco_decode_shared_repayment(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    return SharedRepayment(
+      id: dco_decode_String(arr[0]),
+      eventType: dco_decode_String(arr[1]),
+      amountMinor: dco_decode_i_64(arr[2]),
+      currency: dco_decode_String(arr[3]),
+      currencyScale: dco_decode_u_32(arr[4]),
+      paymentDate: dco_decode_String(arr[5]),
+      recordedAt: dco_decode_String(arr[6]),
+      paymentMethod: dco_decode_String(arr[7]),
+      reversesEventId: dco_decode_String(arr[8]),
     );
   }
 
@@ -1623,6 +1793,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<SharedRepayment> sse_decode_list_shared_repayment(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <SharedRepayment>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_shared_repayment(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   MyLenderProfile sse_decode_my_lender_profile(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_success = sse_decode_bool(deserializer);
@@ -1756,6 +1940,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  SharedLoanListResult sse_decode_shared_loan_list_result(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_loans = sse_decode_list_shared_loan_summary(deserializer);
+    var var_errorMessage = sse_decode_opt_String(deserializer);
+    return SharedLoanListResult(
+      success: var_success,
+      loans: var_loans,
+      errorMessage: var_errorMessage,
+    );
+  }
+
+  @protected
   SharedLoanSummary sse_decode_shared_loan_summary(
     SseDeserializer deserializer,
   ) {
@@ -1769,6 +1968,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_lifecycle = sse_decode_String(deserializer);
     var var_loanDate = sse_decode_String(deserializer);
     var var_maturityDate = sse_decode_String(deserializer);
+    var var_repayments = sse_decode_list_shared_repayment(deserializer);
     return SharedLoanSummary(
       loanId: var_loanId,
       lenderPartyId: var_lenderPartyId,
@@ -1779,6 +1979,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       lifecycle: var_lifecycle,
       loanDate: var_loanDate,
       maturityDate: var_maturityDate,
+      repayments: var_repayments,
+    );
+  }
+
+  @protected
+  SharedRepayment sse_decode_shared_repayment(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_eventType = sse_decode_String(deserializer);
+    var var_amountMinor = sse_decode_i_64(deserializer);
+    var var_currency = sse_decode_String(deserializer);
+    var var_currencyScale = sse_decode_u_32(deserializer);
+    var var_paymentDate = sse_decode_String(deserializer);
+    var var_recordedAt = sse_decode_String(deserializer);
+    var var_paymentMethod = sse_decode_String(deserializer);
+    var var_reversesEventId = sse_decode_String(deserializer);
+    return SharedRepayment(
+      id: var_id,
+      eventType: var_eventType,
+      amountMinor: var_amountMinor,
+      currency: var_currency,
+      currencyScale: var_currencyScale,
+      paymentDate: var_paymentDate,
+      recordedAt: var_recordedAt,
+      paymentMethod: var_paymentMethod,
+      reversesEventId: var_reversesEventId,
     );
   }
 
@@ -1940,6 +2166,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_shared_repayment(
+    List<SharedRepayment> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_shared_repayment(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_my_lender_profile(
     MyLenderProfile self,
     SseSerializer serializer,
@@ -2033,6 +2271,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_shared_loan_list_result(
+    SharedLoanListResult self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_list_shared_loan_summary(self.loans, serializer);
+    sse_encode_opt_String(self.errorMessage, serializer);
+  }
+
+  @protected
   void sse_encode_shared_loan_summary(
     SharedLoanSummary self,
     SseSerializer serializer,
@@ -2047,6 +2296,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.lifecycle, serializer);
     sse_encode_String(self.loanDate, serializer);
     sse_encode_String(self.maturityDate, serializer);
+    sse_encode_list_shared_repayment(self.repayments, serializer);
+  }
+
+  @protected
+  void sse_encode_shared_repayment(
+    SharedRepayment self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.eventType, serializer);
+    sse_encode_i_64(self.amountMinor, serializer);
+    sse_encode_String(self.currency, serializer);
+    sse_encode_u_32(self.currencyScale, serializer);
+    sse_encode_String(self.paymentDate, serializer);
+    sse_encode_String(self.recordedAt, serializer);
+    sse_encode_String(self.paymentMethod, serializer);
+    sse_encode_String(self.reversesEventId, serializer);
   }
 
   @protected

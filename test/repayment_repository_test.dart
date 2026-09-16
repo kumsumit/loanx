@@ -58,6 +58,10 @@ void main() {
     );
     expect(retry.id, first.id);
     expect(await db.query('financialEvents'), hasLength(1));
+    final pending = await db.query('pendingFinancialEvents');
+    expect(pending, hasLength(1));
+    expect(pending.single['eventId'], first.id);
+    expect(pending.single['status'], 'PENDING');
     final audit = await db.query('auditEvents');
     expect(audit, hasLength(1));
     expect(audit.single['action'], 'REPAYMENT_CREATED');
@@ -128,6 +132,7 @@ void main() {
         throwsStateError,
       );
       expect(await db.query('financialEvents'), hasLength(2));
+      expect(await db.query('pendingFinancialEvents'), hasLength(2));
       expect(await db.query('auditEvents'), hasLength(2));
     },
   );

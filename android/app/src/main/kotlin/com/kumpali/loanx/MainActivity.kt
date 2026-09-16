@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
 import android.provider.ContactsContract
 import android.telephony.TelephonyManager
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -85,7 +86,21 @@ class MainActivity : FlutterFragmentActivity() {
     private val needsImpellerDisabled: Boolean
         get() =
             Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q &&
-                !capabilities.supports64Bit
+                !is64BitProcess()
+
+    /**
+     * Build.SUPPORTED_64_BIT_ABIS describes the device, not this application
+     * process. A 32-bit APK can therefore report a 64-bit-capable device while
+     * still running the 32-bit Flutter engine. Use the process ABI for the
+     * renderer decision.
+     */
+    private fun is64BitProcess(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Process.is64Bit()
+        } else {
+            capabilities.supports64Bit
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         /*
@@ -461,6 +476,21 @@ class MainActivity : FlutterFragmentActivity() {
                 model.contains("j250")
             ) &&
             Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1
+        ) {
+            return true
+        }
+
+        /*
+         * Production crash telemetry identifies this exact device/API pair:
+         * Lava Be_U on Android 10, with a SIGSEGV on Flutter's raster thread.
+         * Keep the fallback narrow. It is intentionally independent of the
+         * device's advertised 64-bit ABIs because the affected app process
+         * is explicitly reported as 32-bit (ABI: "arm").
+         */
+        if (
+            manufacturer == "lava" &&
+            model == "be_u" &&
+            Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
         ) {
             return true
         }

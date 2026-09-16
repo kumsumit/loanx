@@ -15,7 +15,7 @@ import 'canonical_migration.dart';
 final class DatabaseHelper {
   DatabaseHelper._();
   static final instance = DatabaseHelper._();
-  static const schemaVersion = 13;
+  static const schemaVersion = 14;
   static const _encodingKeyName = 'loanx.tostore.encoding_key';
   static const _masterKeyName = 'loanx.tostore.master_key';
   LoanxDatabasePort? _database;
@@ -223,6 +223,16 @@ final class DatabaseHelper {
       _text('createdAt', nullable: false),
       _text('updatedAt', nullable: false),
     ]),
+    _stringTable('pendingLoanShares', [
+      _text('operationId', nullable: false, unique: true),
+      _text('borrowerPhoneE164', nullable: false),
+      _text('borrowerName', nullable: false),
+      _text('loanPayloadJson', nullable: false),
+      _text('status', nullable: false, defaultValue: 'PENDING'),
+      _text('lastError'),
+      _text('createdAt', nullable: false),
+      _text('updatedAt', nullable: false),
+    ]),
     _stringTable('financialEvents', [
       _text('ownerId', nullable: false, indexed: true),
       _text('loanUid', nullable: false, indexed: true),
@@ -238,6 +248,16 @@ final class DatabaseHelper {
       _text('createdBy', nullable: false),
       _text('reversesEventId'),
       _text('payloadHash', nullable: false),
+    ]),
+    _stringTable('pendingFinancialEvents', [
+      _text('eventId', nullable: false, unique: true),
+      _text('loanUid', nullable: false, indexed: true),
+      _text('payloadJson', nullable: false),
+      _text('status', nullable: false, defaultValue: 'PENDING'),
+      _int('attemptCount', nullable: false, defaultValue: 0),
+      _text('lastError'),
+      _text('createdAt', nullable: false),
+      _text('updatedAt', nullable: false),
     ]),
     _stringTable('auditEvents', [
       _text('ownerId', nullable: false, indexed: true),

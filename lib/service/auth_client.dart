@@ -69,12 +69,21 @@ class AuthClient {
       selfPartyId: bootstrap.selfPartyId,
       phoneE164: bootstrap.phoneE164,
     );
-    await linkLocalOwner(identity);
+    final linkedToLocalOwner = await linkLocalOwner(identity);
     await _storeTokens(
       result.accessToken,
       result.refreshToken,
       identity: identity,
     );
+    if (linkedToLocalOwner) {
+      try {
+        await flushPendingLoanShares();
+        await flushPendingFinancialEvents();
+      } catch (_) {
+        // Authentication succeeded; a queued share can retry on the next
+        // session refresh or explicit account connection.
+      }
+    }
     _challenge = null;
     return true;
   }
@@ -138,7 +147,10 @@ class AuthClient {
   }) async {
     final tokens = await _readTokens();
     if (tokens == null) return const [];
-    return network.listSharedLoans(
+    // Claim invitations created while this borrower already had an active
+    // session; no logout/login or app restart should be required.
+    await _refreshAccountBootstrap(tokens.accessToken);
+    final result = await network.listSharedLoans(
       serverAddress: _address,
       serverName: _name,
       trustedCertificatePem: _certificate,
@@ -146,6 +158,170 @@ class AuthClient {
       accessToken: tokens.accessToken,
       limit: limit,
     );
+    if (!result.success) {
+      throw StateError(
+        result.errorMessage ?? 'Shared loans could not be loaded',
+      );
+    }
+    return result.loans;
+  }
+
+  /// Sends locally committed financial events when the lender has a cloud
+  /// session. Pending rows remain durable until the server acknowledges the
+  /// event, so recording a repayment never depends on network availability.
+  Future<void> flushPendingFinancialEvents({
+    LoanxDatabasePort? database,
+  }) async {
+    final tokens = await _readTokens();
+    final session = await _readSessionJson();
+    final workspaceId = session['workspace_id'] as String?;
+    if (tokens == null || workspaceId == null || workspaceId.isEmpty) return;
+    final db = database ?? await DatabaseHelper.instance.database;
+    final rows = await db.query(
+      'pendingFinancialEvents',
+      where: 'status = ?',
+      whereArgs: ['PENDING'],
+      orderBy: 'createdAt ASC',
+    );
+    for (final row in rows) {
+      final eventId = row['eventId'] as String;
+      final now = DateTime.now().toUtc().toIso8601String();
+      try {
+        final payload = Map<String, dynamic>.from(
+          jsonDecode(row['payloadJson'] as String) as Map,
+        );
+        final result = await network.pushFinancialEvent(
+          serverAddress: _address,
+          serverName: _name,
+          trustedCertificatePem: _certificate,
+          deviceId: _deviceId(),
+          accessToken: tokens.accessToken,
+          workspaceId: workspaceId,
+          operationId: eventId,
+          loanId: payload['loan_id'] as String,
+          eventType: payload['type'] as String,
+          amountMinor: payload['amount_minor'] as String,
+          currency: payload['currency'] as String,
+          currencyScale: (payload['currency_scale'] as num).toInt(),
+          effectiveDate: payload['effective_date'] as String,
+          paymentMethod: payload['payment_method'] as String?,
+          referenceNumber: payload['reference_number'] as String?,
+          reversesEventId: payload['reverses_event_id'] as String?,
+          reason: payload['reason'] as String?,
+          principalMinor: payload['principal_minor'] as String?,
+          loanDate: payload['loan_date'] as String?,
+        );
+        if (!result.success) {
+          throw StateError(
+            result.errorMessage ?? 'Financial event sync failed',
+          );
+        }
+        await db.update(
+          'pendingFinancialEvents',
+          {'status': 'SENT', 'lastError': null, 'updatedAt': now},
+          where: 'eventId = ?',
+          whereArgs: [eventId],
+        );
+      } catch (error) {
+        final attempts = ((row['attemptCount'] as num?)?.toInt() ?? 0) + 1;
+        await db.update(
+          'pendingFinancialEvents',
+          {'attemptCount': attempts, 'lastError': '$error', 'updatedAt': now},
+          where: 'eventId = ?',
+          whereArgs: [eventId],
+        );
+      }
+    }
+    await db.flush();
+  }
+
+  /// Queues a lender share when the local lender workspace has not yet been
+  /// connected to a LoanX account. Verifying the borrower's phone proves the
+  /// contact number, but must never authorize a lender write as that borrower.
+  Future<void> queuePendingLoanShare({
+    required String borrowerPhoneE164,
+    required String borrowerName,
+    required String operationId,
+    required Map<String, Object?> loanPayload,
+    LoanxDatabasePort? database,
+  }) async {
+    final db = database ?? await DatabaseHelper.instance.database;
+    final now = DateTime.now().toUtc().toIso8601String();
+    final payloadJson = jsonEncode(loanPayload);
+    await db.transaction((tx) async {
+      final previous = await tx.query(
+        'pendingLoanShares',
+        where: 'operationId = ?',
+        whereArgs: [operationId],
+      );
+      if (previous.isNotEmpty) {
+        final row = previous.single;
+        if (row['borrowerPhoneE164'] != borrowerPhoneE164 ||
+            row['borrowerName'] != borrowerName ||
+            row['loanPayloadJson'] != payloadJson) {
+          throw StateError('Share operation ID was already used differently');
+        }
+        return;
+      }
+      await tx.insert('pendingLoanShares', {
+        'id': operationId,
+        'operationId': operationId,
+        'borrowerPhoneE164': borrowerPhoneE164,
+        'borrowerName': borrowerName,
+        'loanPayloadJson': payloadJson,
+        'status': 'PENDING',
+        'createdAt': now,
+        'updatedAt': now,
+      });
+    });
+  }
+
+  /// Retries queued lender shares after this local workspace gets a cloud
+  /// session. Rows remain pending until the server acknowledges them.
+  Future<void> flushPendingLoanShares({LoanxDatabasePort? database}) async {
+    if (await _readTokens() == null) return;
+    final db = database ?? await DatabaseHelper.instance.database;
+    final rows = await db.query(
+      'pendingLoanShares',
+      where: 'status = ?',
+      whereArgs: ['PENDING'],
+      orderBy: 'createdAt ASC',
+    );
+    for (final row in rows) {
+      final operationId = row['operationId'] as String;
+      try {
+        final sent = await createPendingLoan(
+          borrowerPhoneE164: row['borrowerPhoneE164'] as String,
+          borrowerName: row['borrowerName'] as String,
+          operationId: operationId,
+          loanPayload: Map<String, Object?>.from(
+            jsonDecode(row['loanPayloadJson'] as String) as Map,
+          ),
+        );
+        if (!sent) continue;
+        await db.update(
+          'pendingLoanShares',
+          {
+            'status': 'SENT',
+            'lastError': null,
+            'updatedAt': DateTime.now().toUtc().toIso8601String(),
+          },
+          where: 'operationId = ?',
+          whereArgs: [operationId],
+        );
+      } catch (error) {
+        await db.update(
+          'pendingLoanShares',
+          {
+            'lastError': '$error',
+            'updatedAt': DateTime.now().toUtc().toIso8601String(),
+          },
+          where: 'operationId = ?',
+          whereArgs: [operationId],
+        );
+      }
+    }
+    await db.flush();
   }
 
   /// Returns true only when the authenticated server profile was updated.
@@ -342,12 +518,21 @@ class AuthClient {
         selfPartyId: bootstrap.selfPartyId,
         phoneE164: bootstrap.phoneE164,
       );
-      await linkLocalOwner(identity);
+      final linkedToLocalOwner = await linkLocalOwner(identity);
       await _storeTokens(
         result.accessToken,
         result.refreshToken,
         identity: identity,
       );
+      if (linkedToLocalOwner) {
+        try {
+          await flushPendingLoanShares();
+          await flushPendingFinancialEvents();
+        } catch (_) {
+          // Keep the refreshed session even if the share queue is temporarily
+          // unavailable.
+        }
+      }
       final pendingLanguage = AppSettings.getPendingPreferredLanguage();
       if (pendingLanguage.isNotEmpty) {
         try {
@@ -456,7 +641,7 @@ class AuthClient {
     }
   }
 
-  Future<void> linkLocalOwner(
+  Future<bool> linkLocalOwner(
     CloudIdentity identity, {
     LoanxDatabasePort? database,
   }) async {
@@ -470,9 +655,11 @@ class AuthClient {
     if (currentRemoteUser != null &&
         currentRemoteUser.isNotEmpty &&
         currentRemoteUser != identity.userId) {
-      throw StateError(
-        'This local workspace is linked to a different LoanX account',
-      );
+      // A device may be shared by a lender and a borrower. Do not relink the
+      // previous owner's local workspace to the new account; that would expose
+      // or upload private local records. Remote borrower records are queried
+      // through the authenticated session instead.
+      return false;
     }
     final localOwnerId = owner['id'] as String;
     final localPartyId = owner['selfPartyId'] as String;
@@ -499,6 +686,7 @@ class AuthClient {
       );
     });
     await db.flush();
+    return true;
   }
 
   String _deviceId() {
@@ -511,6 +699,19 @@ class AuthClient {
   }
 
   String _e164(PhoneNumber p) => CountryCatalog.e164(p.isoCode, p.nsn);
+
+  Future<void> _refreshAccountBootstrap(String accessToken) async {
+    final bootstrap = await network.accountBootstrap(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: accessToken,
+    );
+    if (!bootstrap.success) {
+      throw StateError(bootstrap.errorMessage ?? 'Account bootstrap failed');
+    }
+  }
 }
 
 class _StoredTokens {

@@ -59,6 +59,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<SharedLoanSummary> dco_decode_list_shared_loan_summary(dynamic raw);
 
   @protected
+  List<SharedRepayment> dco_decode_list_shared_repayment(dynamic raw);
+
+  @protected
   MyLenderProfile dco_decode_my_lender_profile(dynamic raw);
 
   @protected
@@ -83,7 +86,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ServerHello dco_decode_server_hello(dynamic raw);
 
   @protected
+  SharedLoanListResult dco_decode_shared_loan_list_result(dynamic raw);
+
+  @protected
   SharedLoanSummary dco_decode_shared_loan_summary(dynamic raw);
+
+  @protected
+  SharedRepayment dco_decode_shared_repayment(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -142,6 +151,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<SharedRepayment> sse_decode_list_shared_repayment(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   MyLenderProfile sse_decode_my_lender_profile(SseDeserializer deserializer);
 
   @protected
@@ -170,9 +184,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ServerHello sse_decode_server_hello(SseDeserializer deserializer);
 
   @protected
+  SharedLoanListResult sse_decode_shared_loan_list_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   SharedLoanSummary sse_decode_shared_loan_summary(
     SseDeserializer deserializer,
   );
+
+  @protected
+  SharedRepayment sse_decode_shared_repayment(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -247,6 +269,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_shared_repayment(
+    List<SharedRepayment> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_my_lender_profile(
     MyLenderProfile self,
     SseSerializer serializer,
@@ -280,8 +308,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_server_hello(ServerHello self, SseSerializer serializer);
 
   @protected
+  void sse_encode_shared_loan_list_result(
+    SharedLoanListResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_shared_loan_summary(
     SharedLoanSummary self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_shared_repayment(
+    SharedRepayment self,
     SseSerializer serializer,
   );
 

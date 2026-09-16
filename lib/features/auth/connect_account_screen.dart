@@ -21,7 +21,11 @@ import 'package:loanx/service/rust_bridge.dart';
 /// The AuthClient is intentionally owned by this screen rather than relying
 /// on a global `activeAuthClient`, which keeps this flow self-contained.
 class ConnectAccountScreen extends StatefulWidget {
-  const ConnectAccountScreen({super.key});
+  const ConnectAccountScreen({this.switchToBorrower = false, super.key});
+
+  /// When true, this flow changes the active app experience after OTP
+  /// verification. It never relinks or replaces the existing local owner.
+  final bool switchToBorrower;
 
   @override
   State<ConnectAccountScreen> createState() => _ConnectAccountScreenState();
@@ -144,6 +148,12 @@ class _ConnectAccountScreenState extends State<ConnectAccountScreen> {
       // Persist the verified account information only after successful
       // server-side verification.
       AppSettings.putPhoneAuthVerified(true);
+
+      if (widget.switchToBorrower) {
+        // This is an experience preference, not an authorization role. The
+        // server session established above is the source of authorization.
+        AppSettings.putOnboardingInterest(1);
+      }
 
       AppSettings.putVerifiedPhoneNumber(e164Phone);
 

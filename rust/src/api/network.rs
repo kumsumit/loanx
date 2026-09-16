@@ -55,6 +55,20 @@ pub struct PendingLoanInvitation {
 
 #[derive(Debug)]
 #[flutter_rust_bridge::frb]
+pub struct SharedRepayment {
+    pub id: String,
+    pub event_type: String,
+    pub amount_minor: i64,
+    pub currency: String,
+    pub currency_scale: u32,
+    pub payment_date: String,
+    pub recorded_at: String,
+    pub payment_method: String,
+    pub reverses_event_id: String,
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
 pub struct ChatCredentials {
     pub success: bool,
     pub jid: String,
@@ -172,6 +186,82 @@ pub struct SharedLoanSummary {
     pub lifecycle: String,
     pub loan_date: String,
     pub maturity_date: String,
+    pub repayments: Vec<SharedRepayment>,
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
+pub struct SharedLoanListResult {
+    pub success: bool,
+    pub loans: Vec<SharedLoanSummary>,
+    pub error_message: Option<String>,
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn push_financial_event(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    workspace_id: String,
+    operation_id: String,
+    loan_id: String,
+    event_type: String,
+    amount_minor: String,
+    currency: String,
+    currency_scale: u32,
+    effective_date: String,
+    payment_method: Option<String>,
+    reference_number: Option<String>,
+    reverses_event_id: Option<String>,
+    reason: Option<String>,
+    principal_minor: Option<String>,
+    loan_date: Option<String>,
+) -> NetworkResult {
+    let amount_minor = match amount_minor.parse::<i64>() {
+        Ok(value) if value > 0 => value,
+        _ => {
+            return NetworkResult {
+                success: false,
+                error_message: Some("invalid repayment amount".into()),
+            }
+        }
+    };
+    let payload = serde_json::json!({
+        "loan_id": loan_id,
+        "type": event_type,
+        "amount_minor": amount_minor,
+        "currency": currency,
+        "currency_scale": currency_scale,
+        "effective_date": effective_date,
+        "payment_method": payment_method,
+        "reference_number": reference_number,
+        "reverses_event_id": reverses_event_id,
+        "reason": reason,
+        "principal_minor": principal_minor.and_then(|value| value.parse::<i64>().ok()),
+        "loan_date": loan_date,
+    });
+    simple_network_result(
+        send_request(
+            &server_address,
+            &server_name,
+            &trusted_certificate_pem,
+            &device_id,
+            access_token,
+            v1::request::Payload::PushMutation(v1::PushMutationRequest {
+                workspace_id,
+                operation_id: operation_id.clone(),
+                entity_type: "financial_event".into(),
+                entity_id: operation_id,
+                operation: "create".into(),
+                expected_revision: 0,
+                payload_json: serde_json::to_vec(&payload).unwrap_or_default(),
+            }),
+        )
+        .await,
+        |result| matches!(result, v1::response::Result::PushMutation(_)),
+    )
 }
 
 #[flutter_rust_bridge::frb]
@@ -182,7 +272,7 @@ pub async fn list_shared_loans(
     device_id: String,
     access_token: String,
     limit: u32,
-) -> Vec<SharedLoanSummary> {
+) -> SharedLoanListResult {
     match send_request(
         &server_address,
         &server_name,
@@ -193,22 +283,55 @@ pub async fn list_shared_loans(
     )
     .await
     {
-        Ok(v1::response::Result::SharedLoanList(value)) => value
-            .loans
-            .into_iter()
-            .map(|loan| SharedLoanSummary {
-                loan_id: loan.loan_id,
-                lender_party_id: loan.lender_party_id,
-                borrower_party_id: loan.borrower_party_id,
-                principal_minor: loan.principal_minor,
-                currency: loan.currency,
-                currency_scale: loan.currency_scale,
-                lifecycle: loan.lifecycle,
-                loan_date: loan.loan_date,
-                maturity_date: loan.maturity_date,
-            })
-            .collect(),
-        _ => Vec::new(),
+        Ok(v1::response::Result::SharedLoanList(value)) => SharedLoanListResult {
+            success: true,
+            loans: value
+                .loans
+                .into_iter()
+                .map(|loan| SharedLoanSummary {
+                    loan_id: loan.loan_id,
+                    lender_party_id: loan.lender_party_id,
+                    borrower_party_id: loan.borrower_party_id,
+                    principal_minor: loan.principal_minor,
+                    currency: loan.currency,
+                    currency_scale: loan.currency_scale,
+                    lifecycle: loan.lifecycle,
+                    loan_date: loan.loan_date,
+                    maturity_date: loan.maturity_date,
+                    repayments: loan
+                        .repayments
+                        .into_iter()
+                        .map(|event| SharedRepayment {
+                            id: event.id,
+                            event_type: event.r#type,
+                            amount_minor: event.amount_minor,
+                            currency: event.currency,
+                            currency_scale: event.currency_scale,
+                            payment_date: event.payment_date,
+                            recorded_at: event.recorded_at,
+                            payment_method: event.payment_method,
+                            reverses_event_id: event.reverses_event_id,
+                        })
+                        .collect(),
+                })
+                .collect(),
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(value)) => SharedLoanListResult {
+            success: false,
+            loans: Vec::new(),
+            error_message: Some(value.message),
+        },
+        Ok(_) => SharedLoanListResult {
+            success: false,
+            loans: Vec::new(),
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(error) => SharedLoanListResult {
+            success: false,
+            loans: Vec::new(),
+            error_message: Some(error.to_string()),
+        },
     }
 }
 

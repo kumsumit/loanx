@@ -5,6 +5,7 @@ import 'package:loanx/domain/financial_engine.dart';
 import 'package:loanx/domain/money.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/service/currency_presentation.dart';
+import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/service/repayment_repository.dart';
 
 /// An append-only payment ledger for an existing lender-recorded loan.
@@ -221,6 +222,7 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
         paymentDate: _today(),
         paymentMethod: result.method,
       );
+      await AuthClient().flushPendingFinancialEvents(database: widget.database);
       _reload();
     } on Object {
       if (mounted) {
@@ -267,6 +269,7 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
         effectiveDate: _today(),
         reason: text,
       );
+      await AuthClient().flushPendingFinancialEvents(database: widget.database);
       _reload();
     } on Object {
       if (mounted) {

@@ -1,14 +1,18 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/db/tostore_database.dart';
 import 'package:loanx/domain/connected.dart';
+import 'package:loanx/domain/financial_engine.dart';
+import 'package:loanx/domain/money.dart';
 import 'package:loanx/features/borrower/find_lender_screen.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/widget/empty_state.dart';
+import 'package:loanx/src/rust/api/network.dart' as network;
 
 class BorrowerLoanSummary {
   const BorrowerLoanSummary({
@@ -16,12 +20,14 @@ class BorrowerLoanSummary {
     required this.loanUid,
     required this.lenderPartyId,
     required this.lenderName,
+    this.repayments = const [],
   });
 
   final Loan loan;
   final String loanUid;
   final String lenderPartyId;
   final String lenderName;
+  final List<network.SharedRepayment> repayments;
 }
 
 class BorrowerDashboardData {
@@ -68,13 +74,16 @@ final borrowerDashboardProvider = FutureProvider<BorrowerDashboardData>((
         loanUid: item.loanId,
         lenderPartyId: item.lenderPartyId,
         lenderName: 'LoanX lender',
+        repayments: item.repayments,
       );
     }).toList();
     return BorrowerDashboardData(
       loans: [...dashboard.loans, ...remote],
       notifications: dashboard.notifications,
     );
-  } catch (_) {
+  } catch (error, stackTrace) {
+    debugPrint('Borrower shared-loan refresh failed: $error');
+    if (kDebugMode) debugPrintStack(stackTrace: stackTrace);
     return dashboard;
   }
 });
@@ -156,6 +165,12 @@ Future<BorrowerDashboardData> loadBorrowerDashboard(Database db) async {
     final lenderUserId = lender['userId'];
     if (lenderUserId is! String || lenderUserId.isEmpty) continue;
 
+    final eventRows = await db.query(
+      'financialEvents',
+      where: 'ownerId = ? AND loanUid = ?',
+      whereArgs: [ownerId, loanUid],
+      orderBy: 'effectiveDate, recordedAt, id',
+    );
     loans.add(
       BorrowerLoanSummary(
         loan: Loan.fromJson(row),
@@ -165,6 +180,7 @@ Future<BorrowerDashboardData> loadBorrowerDashboard(Database db) async {
             (lender['displayName'] as String?)?.trim().isNotEmpty == true
             ? (lender['displayName'] as String).trim()
             : 'LoanX lender'.tr(),
+        repayments: eventRows.map(_localRepayment).toList(growable: false),
       ),
     );
     visibleEntityIds.addAll([loanUid, relationshipId, lenderPartyId]);
@@ -201,6 +217,19 @@ Future<BorrowerDashboardData> loadBorrowerDashboard(Database db) async {
   return BorrowerDashboardData(loans: loans, notifications: notifications);
 }
 
+network.SharedRepayment _localRepayment(Map<String, Object?> row) =>
+    network.SharedRepayment(
+      id: row['id'] as String,
+      eventType: row['type'] as String,
+      amountMinor: BigInt.parse(row['amountMinor'] as String).toInt(),
+      currency: row['currency'] as String,
+      currencyScale: (row['currencyScale'] as num).toInt(),
+      paymentDate: (row['effectiveDate'] as String).substring(0, 10),
+      recordedAt: row['recordedAt'] as String,
+      paymentMethod: row['paymentMethod'] as String? ?? '',
+      reversesEventId: row['reversesEventId'] as String? ?? '',
+    );
+
 class BorrowerHome extends ConsumerWidget {
   const BorrowerHome({super.key});
 
@@ -215,16 +244,23 @@ class BorrowerHome extends ConsumerWidget {
           title: 'Loans could not be loaded',
           message: 'Please restart the app and try again.',
         ),
-        data: (data) => _BorrowerDashboard(data: data),
+        data: (data) =>
+            _BorrowerDashboard(data: data, onRefresh: () => _refresh(ref)),
       ),
     );
+  }
+
+  Future<void> _refresh(WidgetRef ref) async {
+    ref.invalidate(borrowerDashboardProvider);
+    await ref.read(borrowerDashboardProvider.future);
   }
 }
 
 class _BorrowerDashboard extends StatelessWidget {
-  const _BorrowerDashboard({required this.data});
+  const _BorrowerDashboard({required this.data, required this.onRefresh});
 
   final BorrowerDashboardData data;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -239,108 +275,112 @@ class _BorrowerDashboard extends StatelessWidget {
       (loan) => loan.calculateCollectable(),
     );
 
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'My loans'.tr(),
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 16),
-                _LoanSummaryCard(
-                  activeCount: active.length,
-                  interest: interestTotals,
-                  amountDue: amountDueTotals,
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    key: const Key('find-lenders'),
-                    icon: const Icon(Icons.travel_explore_rounded),
-                    label: Text('Find lenders near you'.tr()),
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const FindLenderScreen(),
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'My loans'.tr(),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 16),
+                  _LoanSummaryCard(
+                    activeCount: active.length,
+                    interest: interestTotals,
+                    amountDue: amountDueTotals,
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      key: const Key('find-lenders'),
+                      icon: const Icon(Icons.travel_explore_rounded),
+                      label: Text('Find lenders near you'.tr()),
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const FindLenderScreen(),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'My lenders'.tr(),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                if (byLender.isEmpty)
-                  Text('No connected lenders'.tr())
-                else
-                  ...byLender.values.map((loans) {
-                    final openLoans = loans
-                        .where((item) => !item.loan.isFinished())
-                        .toList();
-                    return Card(
-                      child: ExpansionTile(
-                        title: Text(loans.first.lenderName),
-                        subtitle: Text(
-                          '${loans.length} ${'loans'.tr()} · '
-                          '${'Amount due'.tr()}: '
-                          '${_totals(openLoans, (loan) => loan.calculateCollectable())}',
-                        ),
-                        children: [
-                          for (final item in loans) _LoanCard(item: item),
-                        ],
-                      ),
-                    );
-                  }),
-                const SizedBox(height: 24),
-                Text(
-                  'Lender notifications'.tr(),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                if (data.notifications.isEmpty)
-                  Text('No lender notifications'.tr())
-                else
-                  ...data.notifications.map(
-                    (notification) =>
-                        _NotificationTile(notification: notification),
+                  const SizedBox(height: 24),
+                  Text(
+                    'My lenders'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                const SizedBox(height: 24),
-                Text(
-                  'Loans from LoanX lenders'.tr(),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  if (byLender.isEmpty)
+                    Text('No connected lenders'.tr())
+                  else
+                    ...byLender.values.map((loans) {
+                      final openLoans = loans
+                          .where((item) => !item.loan.isFinished())
+                          .toList();
+                      return Card(
+                        child: ExpansionTile(
+                          title: Text(loans.first.lenderName),
+                          subtitle: Text(
+                            '${loans.length} ${'loans'.tr()} · '
+                            '${'Amount due'.tr()}: '
+                            '${_totals(openLoans, (loan) => loan.calculateCollectable())}',
+                          ),
+                          children: [
+                            for (final item in loans) _LoanCard(item: item),
+                          ],
+                        ),
+                      );
+                    }),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Lender notifications'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  if (data.notifications.isEmpty)
+                    Text('No lender notifications'.tr())
+                  else
+                    ...data.notifications.map(
+                      (notification) =>
+                          _NotificationTile(notification: notification),
+                    ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Loans from LoanX lenders'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        if (data.loans.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: EmptyState(
-              icon: Icons.account_balance_wallet_outlined,
-              title: 'No connected loans'.tr(),
-              message:
-                  'Loans issued to you by connected LoanX lenders will appear here.'
-                      .tr(),
+          if (data.loans.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: EmptyState(
+                icon: Icons.account_balance_wallet_outlined,
+                title: 'No connected loans'.tr(),
+                message:
+                    'Loans issued to you by connected LoanX lenders will appear here.'
+                        .tr(),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+              sliver: SliverList.builder(
+                itemCount: data.loans.length,
+                itemBuilder: (context, index) =>
+                    _LoanCard(item: data.loans[index]),
+              ),
             ),
-          )
-        else
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-            sliver: SliverList.builder(
-              itemCount: data.loans.length,
-              itemBuilder: (context, index) =>
-                  _LoanCard(item: data.loans[index]),
-            ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -491,6 +531,7 @@ class _BorrowerLoanDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final loan = item.loan;
     final date = DateFormat.yMMMd(context.locale.toString());
+    final repaid = _netRepayments(item.repayments);
     return Scaffold(
       appBar: AppBar(title: Text('Loan details'.tr())),
       body: ListView(
@@ -516,6 +557,14 @@ class _BorrowerLoanDetails extends StatelessWidget {
             ),
           ),
           _DetailRow(
+            label: 'Recorded repayments'.tr(),
+            value: Money(
+              minorUnits: repaid,
+              currency: loan.currency,
+              scale: CurrencyPresentation.fractionDigits(loan.currency),
+            ).toString(),
+          ),
+          _DetailRow(
             label: 'Interest rate'.tr(),
             value: '${loan.interestRate}%',
           ),
@@ -531,10 +580,63 @@ class _BorrowerLoanDetails extends StatelessWidget {
             label: 'Status'.tr(),
             value: loan.isFinished() ? 'Closed'.tr() : 'Active'.tr(),
           ),
+          const SizedBox(height: 16),
+          Text(
+            'Repayment history'.tr(),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          if (item.repayments.isEmpty)
+            Text('No repayments recorded'.tr())
+          else
+            ...item.repayments.map(
+              (repayment) => Card(
+                child: ListTile(
+                  leading: Icon(
+                    repayment.eventType == FinancialEventType.reversal.name
+                        ? Icons.undo_rounded
+                        : Icons.payments_outlined,
+                  ),
+                  title: Text(
+                    repayment.eventType == FinancialEventType.reversal.name
+                        ? 'Repayment reversed'.tr()
+                        : 'Repayment'.tr(),
+                  ),
+                  subtitle: Text(_formatRepaymentDate(repayment.paymentDate)),
+                  trailing: Text(
+                    Money(
+                      minorUnits: BigInt.from(repayment.amountMinor),
+                      currency: repayment.currency,
+                      scale: repayment.currencyScale,
+                    ).toString(),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
+}
+
+BigInt _netRepayments(List<network.SharedRepayment> repayments) {
+  final reversed = repayments
+      .where((item) => item.eventType == FinancialEventType.reversal.name)
+      .map((item) => item.reversesEventId)
+      .where((id) => id.isNotEmpty)
+      .toSet();
+  return repayments
+      .where((item) => item.eventType == FinancialEventType.repayment.name)
+      .where((item) => !reversed.contains(item.id))
+      .fold(
+        BigInt.zero,
+        (total, item) => total + BigInt.from(item.amountMinor),
+      );
+}
+
+String _formatRepaymentDate(String value) {
+  final parsed = DateTime.tryParse(value);
+  return parsed == null ? value : DateFormat.yMMMd().format(parsed.toLocal());
 }
 
 class _DetailRow extends StatelessWidget {
