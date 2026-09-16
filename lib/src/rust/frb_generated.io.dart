@@ -47,6 +47,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
@@ -66,6 +69,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   OtpChallenge dco_decode_otp_challenge(dynamic raw);
+
+  @protected
+  PendingLoanInvitation dco_decode_pending_loan_invitation(dynamic raw);
 
   @protected
   PublicLender dco_decode_public_lender(dynamic raw);
@@ -114,6 +120,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
@@ -137,6 +146,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   OtpChallenge sse_decode_otp_challenge(SseDeserializer deserializer);
+
+  @protected
+  PendingLoanInvitation sse_decode_pending_loan_invitation(
+    SseDeserializer deserializer,
+  );
 
   @protected
   PublicLender sse_decode_public_lender(SseDeserializer deserializer);
@@ -196,6 +210,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -227,6 +244,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_otp_challenge(OtpChallenge self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_pending_loan_invitation(
+    PendingLoanInvitation self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_public_lender(PublicLender self, SseSerializer serializer);

@@ -7,7 +7,31 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `simple_network_result`, `write_frame`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+
+Future<PendingLoanInvitation> createPendingLoan({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String workspaceId,
+  required String operationId,
+  required String borrowerPhoneE164,
+  required String borrowerName,
+  required List<int> loanPayloadJson,
+}) => RustLib.instance.api.crateApiNetworkCreatePendingLoan(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  workspaceId: workspaceId,
+  operationId: operationId,
+  borrowerPhoneE164: borrowerPhoneE164,
+  borrowerName: borrowerName,
+  loanPayloadJson: loanPayloadJson,
+);
 
 Future<MyLenderProfile> myLenderProfile({
   required String serverAddress,
@@ -473,6 +497,37 @@ class OtpChallenge {
           success == other.success &&
           challengeId == other.challengeId &&
           expiresInSeconds == other.expiresInSeconds &&
+          errorMessage == other.errorMessage;
+}
+
+class PendingLoanInvitation {
+  final bool success;
+  final String invitationId;
+  final bool linkedToExistingAccount;
+  final String? errorMessage;
+
+  const PendingLoanInvitation({
+    required this.success,
+    required this.invitationId,
+    required this.linkedToExistingAccount,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      invitationId.hashCode ^
+      linkedToExistingAccount.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PendingLoanInvitation &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          invitationId == other.invitationId &&
+          linkedToExistingAccount == other.linkedToExistingAccount &&
           errorMessage == other.errorMessage;
 }
 

@@ -23,6 +23,7 @@ import 'package:loanx/widget/styled_text.dart';
 import 'package:loanx/widget/styled_textfield.dart';
 import 'package:loanx/features/auth/otp_verification_screen.dart';
 import 'package:loanx/service/auth_client.dart';
+import 'package:loanx/service/canonical_migration.dart';
 import 'package:loanx/src/rust/frb_generated.dart';
 
 class LoanInput extends HookConsumerWidget {
@@ -901,6 +902,36 @@ class LoanInput extends HookConsumerWidget {
                             if (context.mounted) isSaving.value = false;
                           }
                           if (status > 0) {
+                            if (!borrowing &&
+                                phoneNumberController.text.trim().isNotEmpty) {
+                              try {
+                                await AuthClient().createPendingLoan(
+                                  borrowerPhoneE164: CountryCatalog.e164(
+                                    borrowerPhone.value.isoCode,
+                                    borrowerPhone.value.nsn,
+                                  ),
+                                  borrowerName: depositorController.text.trim(),
+                                  operationId: CanonicalMigration.newId(),
+                                  loanPayload: {
+                                    'principal_minor': (principal * 100).round(),
+                                    'currency': currency.value,
+                                    'currency_scale': 2,
+                                    'loan_date': DateTime.now()
+                                        .toUtc()
+                                        .toIso8601String()
+                                        .substring(0, 10),
+                                    'maturity_date': null,
+                                  },
+                                );
+                              } catch (error) {
+                                if (context.mounted) {
+                                  showErrorSnackBar(
+                                    context,
+                                    'Loan saved locally but could not be shared: $error',
+                                  );
+                                }
+                              }
+                            }
                             if (loan != null) {
                               ref
                                   .read(loanSelectionListProvider.notifier)

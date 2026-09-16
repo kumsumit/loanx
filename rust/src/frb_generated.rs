@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1062102804;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1076919081;
 
 // Section: executor
 
@@ -185,6 +185,65 @@ fn wire__crate__api__network__connect_and_hello_impl(
                                 api_trusted_certificate_pem,
                                 api_device_id,
                                 api_client_build,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__network__create_pending_loan_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "create_pending_loan",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_access_token = <String>::sse_decode(&mut deserializer);
+            let api_workspace_id = <String>::sse_decode(&mut deserializer);
+            let api_operation_id = <String>::sse_decode(&mut deserializer);
+            let api_borrower_phone_e164 = <String>::sse_decode(&mut deserializer);
+            let api_borrower_name = <String>::sse_decode(&mut deserializer);
+            let api_loan_payload_json = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::create_pending_loan(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_access_token,
+                                api_workspace_id,
+                                api_operation_id,
+                                api_borrower_phone_e164,
+                                api_borrower_name,
+                                api_loan_payload_json,
                             )
                             .await,
                         )?;
@@ -1005,6 +1064,22 @@ impl SseDecode for crate::api::network::OtpChallenge {
     }
 }
 
+impl SseDecode for crate::api::network::PendingLoanInvitation {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_success = <bool>::sse_decode(deserializer);
+        let mut var_invitationId = <String>::sse_decode(deserializer);
+        let mut var_linkedToExistingAccount = <bool>::sse_decode(deserializer);
+        let mut var_errorMessage = <Option<String>>::sse_decode(deserializer);
+        return crate::api::network::PendingLoanInvitation {
+            success: var_success,
+            invitation_id: var_invitationId,
+            linked_to_existing_account: var_linkedToExistingAccount,
+            error_message: var_errorMessage,
+        };
+    }
+}
+
 impl SseDecode for crate::api::network::PublicLender {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1099,28 +1174,29 @@ fn pde_ffi_dispatcher_primary_impl(
         1 => wire__crate__api__network__account_bootstrap_impl(port, ptr, rust_vec_len, data_len),
         2 => wire__crate__api__network__block_public_lender_impl(port, ptr, rust_vec_len, data_len),
         3 => wire__crate__api__network__connect_and_hello_impl(port, ptr, rust_vec_len, data_len),
-        5 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__network__logout_session_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__network__my_lender_profile_impl(port, ptr, rust_vec_len, data_len),
-        8 => {
+        4 => wire__crate__api__network__create_pending_loan_impl(port, ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__network__logout_session_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__network__my_lender_profile_impl(port, ptr, rust_vec_len, data_len),
+        9 => {
             wire__crate__api__network__publish_public_lender_impl(port, ptr, rust_vec_len, data_len)
         }
-        9 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
-        10 => {
+        10 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
+        11 => {
             wire__crate__api__network__report_public_lender_impl(port, ptr, rust_vec_len, data_len)
         }
-        11 => wire__crate__api__network__request_chat_credentials_impl(
+        12 => wire__crate__api__network__request_chat_credentials_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        12 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
-        13 => {
+        13 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
+        14 => {
             wire__crate__api__network__search_public_lenders_impl(port, ptr, rust_vec_len, data_len)
         }
-        14 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1133,7 +1209,7 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        4 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1303,6 +1379,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::network::OtpChallenge>
     for crate::api::network::OtpChallenge
 {
     fn into_into_dart(self) -> crate::api::network::OtpChallenge {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::PendingLoanInvitation {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.success.into_into_dart().into_dart(),
+            self.invitation_id.into_into_dart().into_dart(),
+            self.linked_to_existing_account.into_into_dart().into_dart(),
+            self.error_message.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::PendingLoanInvitation
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::PendingLoanInvitation>
+    for crate::api::network::PendingLoanInvitation
+{
+    fn into_into_dart(self) -> crate::api::network::PendingLoanInvitation {
         self
     }
 }
@@ -1507,6 +1606,16 @@ impl SseEncode for crate::api::network::OtpChallenge {
         <bool>::sse_encode(self.success, serializer);
         <String>::sse_encode(self.challenge_id, serializer);
         <u32>::sse_encode(self.expires_in_seconds, serializer);
+        <Option<String>>::sse_encode(self.error_message, serializer);
+    }
+}
+
+impl SseEncode for crate::api::network::PendingLoanInvitation {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.success, serializer);
+        <String>::sse_encode(self.invitation_id, serializer);
+        <bool>::sse_encode(self.linked_to_existing_account, serializer);
         <Option<String>>::sse_encode(self.error_message, serializer);
     }
 }

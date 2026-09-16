@@ -103,6 +103,36 @@ class AuthClient {
     return true;
   }
 
+  Future<bool> createPendingLoan({
+    required String borrowerPhoneE164,
+    required String borrowerName,
+    required String operationId,
+    required Map<String, Object?> loanPayload,
+  }) async {
+    final tokens = await _readTokens();
+    final session = await _readSessionJson();
+    final workspaceId = session['workspace_id'] as String?;
+    if (tokens == null || workspaceId == null || workspaceId.isEmpty) {
+      return false;
+    }
+    final result = await network.createPendingLoan(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: tokens.accessToken,
+      workspaceId: workspaceId,
+      operationId: operationId,
+      borrowerPhoneE164: borrowerPhoneE164,
+      borrowerName: borrowerName,
+      loanPayloadJson: utf8.encode(jsonEncode(loanPayload)),
+    );
+    if (!result.success) {
+      throw StateError(result.errorMessage ?? 'Unable to share loan');
+    }
+    return true;
+  }
+
   /// Returns true only when the authenticated server profile was updated.
   ///
   /// A language selected before sign-in remains queued locally and is sent

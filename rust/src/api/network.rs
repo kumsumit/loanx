@@ -46,6 +46,15 @@ pub struct NetworkResult {
 
 #[derive(Debug)]
 #[flutter_rust_bridge::frb]
+pub struct PendingLoanInvitation {
+    pub success: bool,
+    pub invitation_id: String,
+    pub linked_to_existing_account: bool,
+    pub error_message: Option<String>,
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
 pub struct ChatCredentials {
     pub success: bool,
     pub jid: String,
@@ -92,6 +101,62 @@ impl From<v1::PublicLenderProfile> for PublicLender {
             available: profile.available,
             public_description: profile.public_description,
         }
+    }
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn create_pending_loan(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    workspace_id: String,
+    operation_id: String,
+    borrower_phone_e164: String,
+    borrower_name: String,
+    loan_payload_json: Vec<u8>,
+) -> PendingLoanInvitation {
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::CreatePendingLoan(v1::CreatePendingLoanRequest {
+            workspace_id,
+            operation_id,
+            borrower_phone_e164,
+            borrower_name,
+            loan_payload_json,
+        }),
+    )
+    .await
+    {
+        Ok(v1::response::Result::CreatePendingLoan(value)) => PendingLoanInvitation {
+            success: true,
+            invitation_id: value.invitation_id,
+            linked_to_existing_account: value.linked_to_existing_account,
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(value)) => PendingLoanInvitation {
+            success: false,
+            invitation_id: String::new(),
+            linked_to_existing_account: false,
+            error_message: Some(value.message),
+        },
+        Ok(_) => PendingLoanInvitation {
+            success: false,
+            invitation_id: String::new(),
+            linked_to_existing_account: false,
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(error) => PendingLoanInvitation {
+            success: false,
+            invitation_id: String::new(),
+            linked_to_existing_account: false,
+            error_message: Some(error.to_string()),
+        },
     }
 }
 
