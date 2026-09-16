@@ -1800,6 +1800,84 @@ class MyDrawer extends HookConsumerWidget {
     }
   }
 
+  Future<void> _logOut(
+    BuildContext context,
+    ValueNotifier<bool> isLoading,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Log out?'.tr()),
+        content: Text(
+          'Your local loans and records will stay on this device.'.tr(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(LocaleKeys.cancel.tr()),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Log out'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    isLoading.value = true;
+    try {
+      await AuthClient().logout();
+      await _finishLocalLogout();
+      if (context.mounted) {
+        showSnackBar(context, 'Logged out successfully.'.tr());
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Cloud logout failed: $error\n$stackTrace');
+      if (!context.mounted) return;
+
+      final localOnly = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('Could not contact LoanX'.tr()),
+          content: Text(
+            'You can still log out on this device. Your local loans will not be deleted.'
+                .tr(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(LocaleKeys.cancel.tr()),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text('Log out on this device'.tr()),
+            ),
+          ],
+        ),
+      );
+      if (localOnly == true) {
+        await AuthClient().logout(localOnly: true);
+        await _finishLocalLogout();
+        if (context.mounted) {
+          showSnackBar(context, 'Logged out on this device.'.tr());
+        }
+      }
+    } finally {
+      if (context.mounted) isLoading.value = false;
+    }
+  }
+
+  Future<void> _finishLocalLogout() async {
+    // This marker controls account verification on the next startup. The
+    // local database is intentionally untouched so local-first records remain
+    // available after cloud logout.
+    AppSettings.putPhoneAuthVerified(false);
+    AppSettings.putVerifiedPhoneNumber('');
+    AppSettings.putVerifiedPhoneCountryCode('');
+    await AppSettings.flush();
+  }
+
   void _refreshAfterRestore(WidgetRef ref) {
     ref.invalidate(loanListProvider);
     ref.invalidate(familyRelationListProvider);
