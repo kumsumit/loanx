@@ -97,6 +97,7 @@ class AppSettings {
   static bool getPlanSelectionCompleted() =>
       _get('planSelectionCompleted', false);
   static String getSelectedPlan() => _get('selectedPlan', 'free');
+  static bool getIsProPlanSelected() => getSelectedPlan() == 'pro';
   static bool getPhoneAuthVerified() => _get('phoneAuthVerified', false);
   static bool getLanguageSelectionCompleted() =>
       _get('languageSelectionCompleted', false);

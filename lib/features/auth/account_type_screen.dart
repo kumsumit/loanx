@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:loanx/l10n/locale_keys.g.dart';
@@ -8,7 +10,7 @@ enum AccountType { lender, borrower, both }
 
 class AccountTypeScreen extends StatefulWidget {
   const AccountTypeScreen({required this.onContinue, super.key});
-  final ValueChanged<AccountType> onContinue;
+  final FutureOr<void> Function(AccountType) onContinue;
 
   @override
   State<AccountTypeScreen> createState() => _AccountTypeScreenState();
@@ -16,6 +18,17 @@ class AccountTypeScreen extends StatefulWidget {
 
 class _AccountTypeScreenState extends State<AccountTypeScreen> {
   AccountType _selectedType = AccountType.both;
+  bool _isSubmitting = false;
+
+  Future<void> _continue() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onContinue(_selectedType);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,8 +127,11 @@ class _AccountTypeScreenState extends State<AccountTypeScreen> {
                                 description: choice.description,
                                 compact: compactCards,
                                 selected: _selectedType == choice.type,
-                                onTap: () =>
-                                    setState(() => _selectedType = choice.type),
+                                onTap: _isSubmitting
+                                    ? null
+                                    : () => setState(
+                                        () => _selectedType = choice.type,
+                                      ),
                               ),
                             )
                             .toList();
@@ -155,10 +171,20 @@ class _AccountTypeScreenState extends State<AccountTypeScreen> {
                     SizedBox(height: compactLayout ? 20 : 28),
                     FilledButton.icon(
                       key: const Key('interest-continue'),
-                      onPressed: () => widget.onContinue(_selectedType),
+                      onPressed: _isSubmitting ? null : _continue,
                       iconAlignment: IconAlignment.end,
-                      icon: const Icon(Icons.arrow_forward_rounded),
-                      label: Text(LocaleKeys.continueAction.tr()),
+                      icon: _isSubmitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.arrow_forward_rounded),
+                      label: Text(
+                        _isSubmitting
+                            ? LocaleKeys.loading.tr()
+                            : LocaleKeys.continueAction.tr(),
+                      ),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size.fromHeight(58),
                       ),
@@ -274,7 +300,7 @@ class _AccountTypeCard extends StatelessWidget {
   final String description;
   final bool compact;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

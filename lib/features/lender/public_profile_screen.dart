@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:loanx/db/app_settings.dart';
+import 'package:loanx/l10n/locale_keys.g.dart';
 import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/features/auth/connect_account_screen.dart';
@@ -68,8 +69,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'Public profile could not be loaded. Connect and try again.'
-              .tr();
+          _error = LocaleKeys.publicProfileCouldNotBeLoadedConnectAndTryAgain;
         });
       }
     }
@@ -130,14 +130,14 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         published: _published,
       );
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Public profile saved'.tr())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(LocaleKeys.publicProfileSaved.tr())),
+        );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Public profile could not be saved'.tr())),
+          SnackBar(content: Text(LocaleKeys.publicProfileCouldNotBeSaved.tr())),
         );
       }
     } finally {
@@ -147,7 +147,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text('Public lender profile'.tr())),
+    appBar: AppBar(title: Text(LocaleKeys.publicLenderProfile.tr())),
     body: _loading
         ? const Center(child: CircularProgressIndicator())
         : _error != null
@@ -155,7 +155,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(_error!),
+                Text(_error!.tr()),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () async {
@@ -172,7 +172,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       await _load();
                     }
                   },
-                  child: Text('Connect account'.tr()),
+                  child: Text(LocaleKeys.connectAccount.tr()),
                 ),
               ],
             ),
@@ -183,33 +183,38 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               padding: const EdgeInsets.all(20),
               children: [
                 Text(
-                  'Only the details you enter here are published. Your phone, address and private loans stay private.'
+                  LocaleKeys
+                      .onlyTheDetailsYouEnterHereArePublishedYourPhoneAddressAndPrivateLoansStayPrivate
                       .tr(),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _name,
                   maxLength: 120,
-                  decoration: InputDecoration(labelText: 'Public name'.tr()),
+                  decoration: InputDecoration(
+                    labelText: LocaleKeys.publicName.tr(),
+                  ),
                   validator: _required,
                 ),
                 TextFormField(
                   controller: _locality,
                   maxLength: 120,
-                  decoration: InputDecoration(labelText: 'Locality'.tr()),
+                  decoration: InputDecoration(
+                    labelText: LocaleKeys.locality.tr(),
+                  ),
                   validator: _required,
                 ),
                 TextFormField(
                   controller: _city,
                   maxLength: 120,
-                  decoration: InputDecoration(labelText: 'City'.tr()),
+                  decoration: InputDecoration(labelText: LocaleKeys.city.tr()),
                   validator: _required,
                 ),
                 TextFormField(
                   controller: _postal,
                   maxLength: 12,
                   decoration: InputDecoration(
-                    labelText: 'Pincode or postal code'.tr(),
+                    labelText: LocaleKeys.pincodeOrPostalCode.tr(),
                   ),
                   validator: (value) {
                     final text = value?.trim() ?? '';
@@ -217,19 +222,19 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         text.length > 12 ||
                         !RegExp(r'\d').hasMatch(text) ||
                         !RegExp(r'^[A-Za-z0-9 -]+$').hasMatch(text)) {
-                      return 'Enter a valid pincode or postal code'.tr();
+                      return LocaleKeys.enterAValidPincodeOrPostalCode.tr();
                     }
                     return null;
                   },
                 ),
-                Text('${'Currency'.tr()}: $_currency · $_country'),
+                Text('${LocaleKeys.currency.tr()}: $_currency · $_country'),
                 TextFormField(
                   controller: _min,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Minimum loan amount'.tr(),
+                    labelText: LocaleKeys.minimumLoanAmount.tr(),
                   ),
                   validator: (value) => _amountValidator(value),
                 ),
@@ -239,7 +244,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     decimal: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Maximum loan amount'.tr(),
+                    labelText: LocaleKeys.maximumLoanAmount.tr(),
                   ),
                   validator: (value) => _amountValidator(value),
                 ),
@@ -247,7 +252,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   controller: _categories,
                   maxLength: 400,
                   decoration: InputDecoration(
-                    labelText: 'Loan categories, separated by commas'.tr(),
+                    labelText: LocaleKeys.loanCategoriesSeparatedByCommas.tr(),
                   ),
                 ),
                 TextFormField(
@@ -255,18 +260,18 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   maxLength: 1000,
                   maxLines: 4,
                   decoration: InputDecoration(
-                    labelText: 'Public description'.tr(),
+                    labelText: LocaleKeys.publicDescription.tr(),
                   ),
                 ),
                 SwitchListTile(
-                  title: Text('Accepting enquiries'.tr()),
+                  title: Text(LocaleKeys.acceptingEnquiries.tr()),
                   value: _available,
                   onChanged: (value) => setState(() => _available = value),
                 ),
                 SwitchListTile(
-                  title: Text('Publish in lender search'.tr()),
+                  title: Text(LocaleKeys.publishInLenderSearch.tr()),
                   subtitle: Text(
-                    'You can unpublish this profile at any time.'.tr(),
+                    LocaleKeys.youCanUnpublishThisProfileAtAnyTime.tr(),
                   ),
                   value: _published,
                   onChanged: (value) => setState(() => _published = value),
@@ -274,7 +279,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: _saving ? null : _save,
-                  child: Text(_saving ? 'Saving…'.tr() : 'Save'.tr()),
+                  child: Text(
+                    _saving ? LocaleKeys.saving.tr() : LocaleKeys.save.tr(),
+                  ),
                 ),
               ],
             ),
@@ -284,12 +291,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   String? _amountValidator(String? value) {
     final text = value?.trim() ?? '';
     if (!RegExp(r'^\d+(?:\.\d+)?$').hasMatch(text) || text.length > 20) {
-      return 'Enter a valid amount'.tr();
+      return LocaleKeys.enterAValidAmount.tr();
     }
     final fraction = text.split('.');
     if (fraction.length > 1 &&
         fraction.last.length > CurrencyPresentation.fractionDigits(_currency)) {
-      return 'Enter a valid amount'.tr();
+      return LocaleKeys.enterAValidAmount.tr();
     }
     return null;
   }

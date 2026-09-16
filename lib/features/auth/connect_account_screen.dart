@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/app_settings.dart';
@@ -89,7 +90,9 @@ class _ConnectAccountScreenState extends State<ConnectAccountScreen> {
       });
 
       return null;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      debugPrint('LoanX Connect Account OTP request failed: $error');
+      debugPrint('$stackTrace');
       return 'Could not send verification code'.tr();
     } finally {
       if (mounted) {
@@ -136,22 +139,15 @@ class _ConnectAccountScreenState extends State<ConnectAccountScreen> {
         return 'Invalid verification code'.tr();
       }
 
-      final e164Phone = CountryCatalog.e164(
-        phone.isoCode,
-        phone.nsn,
-      );
+      final e164Phone = CountryCatalog.e164(phone.isoCode, phone.nsn);
 
       // Persist the verified account information only after successful
       // server-side verification.
       AppSettings.putPhoneAuthVerified(true);
 
-      AppSettings.putVerifiedPhoneNumber(
-        e164Phone,
-      );
+      AppSettings.putVerifiedPhoneNumber(e164Phone);
 
-      AppSettings.putVerifiedPhoneCountryCode(
-        phone.isoCode,
-      );
+      AppSettings.putVerifiedPhoneCountryCode(phone.isoCode);
 
       await AppSettings.flush();
 
@@ -183,23 +179,13 @@ class _ConnectAccountScreenState extends State<ConnectAccountScreen> {
   Widget build(BuildContext context) {
     if (_initializing) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Connect account'.tr(),
-          ),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        appBar: AppBar(title: Text('Connect account'.tr())),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Connect account'.tr(),
-        ),
-      ),
+      appBar: AppBar(title: Text('Connect account'.tr())),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 250),
         child: _pendingPhone == null

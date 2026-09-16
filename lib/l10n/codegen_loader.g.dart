@@ -23,6 +23,7 @@ import 'codegen_loader_pa.g.dart' as locale_pa;
 import 'codegen_loader_ta.g.dart' as locale_ta;
 import 'codegen_loader_te.g.dart' as locale_te;
 import 'codegen_loader_ur.g.dart' as locale_ur;
+
 import 'runtime_translation_overrides.dart';
 
 class CodegenLoader extends AssetLoader {
@@ -33,6 +34,7 @@ class CodegenLoader extends AssetLoader {
     final generated = mapLocales[locale.languageCode];
     if (generated == null) return Future.value(null);
     return Future.value({
+      ...mapLocales['en']!,
       ...generated,
       ...?runtimeTranslationOverrides[locale.languageCode],
     });

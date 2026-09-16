@@ -287,17 +287,36 @@ Future<void> initializeOptionalServices({
 /// ---------------------------------------------------------------------------
 
 Future<bool> initializePhoneMetadata({Future<void> Function()? loader}) async {
-  try {
-    await (loader ?? PhoneMetadataBootstrap.ensureInitialized).call().timeout(
-      const Duration(seconds: 15),
-    );
+  final initialize = loader ?? PhoneMetadataBootstrap.ensureInitialized;
 
-    return true;
-  } catch (_) {
-    debugPrint('LoanX phone metadata initialization unavailable.');
-
-    return false;
+  // The package downloads and parses the metadata on first use, then falls
+  // back to its bundled snapshot when the download is unavailable. A short
+  // timeout can interrupt that fallback on a slow device/network and leave
+  // borrower onboarding on the generic workspace error page.
+  Object? lastError;
+  StackTrace? lastStackTrace;
+  for (var attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await initialize().timeout(const Duration(seconds: 30));
+      return true;
+    } catch (error, stackTrace) {
+      lastError = error;
+      lastStackTrace = stackTrace;
+      debugPrint(
+        'LoanX phone metadata initialization attempt $attempt failed: '
+        '$error',
+      );
+      if (kDebugMode) {
+        debugPrintStack(stackTrace: stackTrace);
+      }
+    }
   }
+
+  debugPrint('LoanX phone metadata initialization unavailable: $lastError');
+  if (kDebugMode && lastStackTrace != null) {
+    debugPrintStack(stackTrace: lastStackTrace);
+  }
+  return false;
 }
 
 /// ---------------------------------------------------------------------------
@@ -386,14 +405,12 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         // actions. Existing local data remains accessible on this device.
         await activeAuthClient?.restoreSession();
       }
-
     } catch (error, stackTrace) {
       debugPrint('LoanX bootstrap initialization failed: $error');
 
       if (kDebugMode) {
         debugPrintStack(stackTrace: stackTrace);
       }
-
     }
     // These services also have no bearing on local authentication or routing.
     unawaited(
@@ -693,6 +710,30 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
               return PlanSelectionScreen(
                 onContinue: () {
                   setState(() {});
+                },
+              );
+            }
+
+            // A lender who chooses Pro must verify their mobile number before
+            // entering the connected workspace. This is deliberately after
+            // plan selection so the phone flow is only shown for the chosen
+            // paid path, while free local lenders remain offline-first.
+            if (!usesBorrower &&
+                AppSettings.getIsProPlanSelected() &&
+                _hasVerifiedPhone != true) {
+              if (!widget.phoneMetadataReady) return ErrorPage();
+              if (_pendingPhoneNumber == null) {
+                return PhoneLoginScreen(onContinue: _sendOtp);
+              }
+
+              return OtpVerificationScreen(
+                phoneNumber: _pendingPhoneNumber!,
+                onVerify: _verifyOtp,
+                onResend: _resendOtp,
+                onChangeNumber: () {
+                  setState(() {
+                    _pendingPhoneNumber = null;
+                  });
                 },
               );
             }

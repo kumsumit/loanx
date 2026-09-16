@@ -51,10 +51,8 @@ void main() {
         overrides: [
           authenticateProvider.overrideWith((ref) async => authenticated),
           borrowerDashboardProvider.overrideWith(
-            (ref) async => const BorrowerDashboardData(
-              loans: [],
-              notifications: [],
-            ),
+            (ref) async =>
+                const BorrowerDashboardData(loans: [], notifications: []),
           ),
           networkCheckerProvider.overrideWith((ref) => Stream.value(false)),
         ],
@@ -94,6 +92,18 @@ void main() {
     expect(ready, isFalse);
   });
 
+  test('phone metadata initialization retries once', () async {
+    var attempts = 0;
+    final ready = await initializePhoneMetadata(
+      loader: () async {
+        attempts++;
+        if (attempts == 1) throw StateError('temporary metadata failure');
+      },
+    );
+    expect(ready, isTrue);
+    expect(attempts, 2);
+  });
+
   testWidgets('new local workspace needs no phone or account role', (
     tester,
   ) async {
@@ -123,9 +133,7 @@ void main() {
     tester,
   ) async {
     final unavailable = Completer<void>();
-    await tester.pumpWidget(
-      app(initializeBridge: () => unavailable.future),
-    );
+    await tester.pumpWidget(app(initializeBridge: () => unavailable.future));
     await tester.pumpAndSettle();
     expect(find.byType(AskBackupScreen), findsOneWidget);
     unavailable.complete();
@@ -183,9 +191,7 @@ void main() {
         assetLoader: const CodegenLoader(),
         fallbackLocale: const Locale('en'),
         child: ProviderScope(
-          overrides: [
-            authenticateProvider.overrideWith((ref) async => true),
-          ],
+          overrides: [authenticateProvider.overrideWith((ref) async => true)],
           child: MyApp(
             phoneMetadataReady: false,
             initializeBridge: () async {},

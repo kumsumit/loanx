@@ -89,7 +89,7 @@ class DashBoard extends HookWidget {
                 MaterialPageRoute(builder: (_) => const ConnectAccountScreen()),
               ),
             ),
-          if (!usesBorrowerExperience)
+          if (!usesBorrowerExperience && !AppSettings.getIsProPlanSelected())
             IconButton(
               tooltip: 'Public lender profile'.tr(),
               icon: const Icon(Icons.storefront_outlined),

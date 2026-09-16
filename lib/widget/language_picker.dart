@@ -343,9 +343,10 @@ class _LanguageGrid extends StatelessWidget {
           itemCount: languages.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
-            // Two label lines can occupy 64 px on Android. Keep at least
-            // 66 px after the card's vertical insets in either layout.
-            mainAxisExtent: compact ? 72 : 86,
+            // Two label lines can occupy slightly more than 66 px on
+            // Android once font metrics are applied. Keep a small buffer
+            // after the card's vertical insets in either layout.
+            mainAxisExtent: compact ? 76 : 90,
             crossAxisSpacing: compact ? 8 : 10,
             mainAxisSpacing: compact ? 8 : 10,
           ),

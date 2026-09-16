@@ -47,7 +47,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'पुराने लोन रिकॉर्ड पर पुराना ब्याज तब तक बना रहेगा जब तक उसे संस्करणित शर्तों में माइग्रेट नहीं किया जाता।',
     'No repayments recorded': 'कोई भुगतान दर्ज नहीं है',
-    'Repayment history could not be loaded': 'भुगतान इतिहास लोड नहीं किया जा सका',
+    'Repayment history could not be loaded':
+        'भुगतान इतिहास लोड नहीं किया जा सका',
     'Repayment could not be recorded': 'भुगतान दर्ज नहीं किया जा सका',
     'Repayment could not be reversed': 'भुगतान रद्द नहीं किया जा सका',
     'Reverse repayment': 'भुगतान रद्द करें',
@@ -79,7 +80,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'आवृत्तीबद्ध अटींमध्ये स्थलांतर होईपर्यंत जुन्या कर्जाच्या नोंदीवरील जुने व्याज कायम राहील.',
     'No repayments recorded': 'एकही परतफेड नोंदवलेली नाही',
-    'Repayment history could not be loaded': 'परतफेडीचा इतिहास लोड करता आला नाही',
+    'Repayment history could not be loaded':
+        'परतफेडीचा इतिहास लोड करता आला नाही',
     'Repayment could not be recorded': 'परतफेड नोंदवता आली नाही',
     'Repayment could not be reversed': 'परतफेड रद्द करता आली नाही',
     'Reverse repayment': 'परतफेड रद्द करा',
@@ -95,7 +97,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'તેને આવૃત્તિવાળી શરતોમાં સ્થાનાંતરિત કરવામાં ન આવે ત્યાં સુધી જૂની લોનની નોંધમાં જૂનું વ્યાજ રહેશે.',
     'No repayments recorded': 'કોઈ ચુકવણી નોંધાઈ નથી',
-    'Repayment history could not be loaded': 'ચુકવણીનો ઇતિહાસ લોડ થઈ શક્યો નહીં',
+    'Repayment history could not be loaded':
+        'ચુકવણીનો ઇતિહાસ લોડ થઈ શક્યો નહીં',
     'Repayment could not be recorded': 'ચુકવણી નોંધાઈ શકી નહીં',
     'Repayment could not be reversed': 'ચુકવણી રદ થઈ શકી નહીં',
     'Reverse repayment': 'ચુકવણી રદ કરો',
@@ -111,9 +114,12 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'பதிப்பு செய்யப்பட்ட விதிமுறைகளுக்கு மாற்றப்படும் வரை பழைய கடன் பதிவில் பழைய வட்டி தொடரும்.',
     'No repayments recorded': 'திருப்பிச் செலுத்தல்கள் எதுவும் பதிவாகவில்லை',
-    'Repayment history could not be loaded': 'திருப்பிச் செலுத்திய வரலாற்றை ஏற்ற முடியவில்லை',
-    'Repayment could not be recorded': 'திருப்பிச் செலுத்தலைப் பதிவு செய்ய முடியவில்லை',
-    'Repayment could not be reversed': 'திருப்பிச் செலுத்தலை ரத்து செய்ய முடியவில்லை',
+    'Repayment history could not be loaded':
+        'திருப்பிச் செலுத்திய வரலாற்றை ஏற்ற முடியவில்லை',
+    'Repayment could not be recorded':
+        'திருப்பிச் செலுத்தலைப் பதிவு செய்ய முடியவில்லை',
+    'Repayment could not be reversed':
+        'திருப்பிச் செலுத்தலை ரத்து செய்ய முடியவில்லை',
     'Reverse repayment': 'திருப்பிச் செலுத்தலை ரத்து செய்யவும்',
     'Repayment reversed': 'திருப்பிச் செலுத்தல் ரத்து செய்யப்பட்டது',
     'Repayment': 'திருப்பிச் செலுத்தல்',
@@ -127,7 +133,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'వెర్షన్ చేసిన నిబంధనలకు మార్చే వరకు పాత రుణ రికార్డులో పాత వడ్డీ కొనసాగుతుంది.',
     'No repayments recorded': 'తిరిగి చెల్లింపులు ఏవీ నమోదు కాలేదు',
-    'Repayment history could not be loaded': 'తిరిగి చెల్లింపు చరిత్రను లోడ్ చేయలేకపోయాము',
+    'Repayment history could not be loaded':
+        'తిరిగి చెల్లింపు చరిత్రను లోడ్ చేయలేకపోయాము',
     'Repayment could not be recorded': 'తిరిగి చెల్లింపును నమోదు చేయలేకపోయాము',
     'Repayment could not be reversed': 'తిరిగి చెల్లింపును రద్దు చేయలేకపోయాము',
     'Reverse repayment': 'తిరిగి చెల్లింపును రద్దు చేయండి',
@@ -143,9 +150,11 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'ಆವೃತ್ತಿಯ ನಿಯಮಗಳಿಗೆ ವರ್ಗಾಯಿಸುವವರೆಗೆ ಹಳೆಯ ಸಾಲದ ದಾಖಲೆಯಲ್ಲಿ ಹಳೆಯ ಬಡ್ಡಿ ಉಳಿಯುತ್ತದೆ.',
     'No repayments recorded': 'ಯಾವುದೇ ಮರುಪಾವತಿ ದಾಖಲಾಗಿಲ್ಲ',
-    'Repayment history could not be loaded': 'ಮರುಪಾವತಿ ಇತಿಹಾಸವನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ',
+    'Repayment history could not be loaded':
+        'ಮರುಪಾವತಿ ಇತಿಹಾಸವನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ',
     'Repayment could not be recorded': 'ಮರುಪಾವತಿಯನ್ನು ದಾಖಲಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ',
-    'Repayment could not be reversed': 'ಮರುಪಾವತಿಯನ್ನು ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ',
+    'Repayment could not be reversed':
+        'ಮರುಪಾವತಿಯನ್ನು ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ',
     'Reverse repayment': 'ಮರುಪಾವತಿಯನ್ನು ರದ್ದುಗೊಳಿಸಿ',
     'Repayment reversed': 'ಮರುಪಾವತಿಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ',
     'Repayment': 'ಮರುಪಾವತಿ',
@@ -159,7 +168,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'പതിപ്പുള്ള വ്യവസ്ഥകളിലേക്ക് മാറ്റുന്നതുവരെ പഴയ വായ്പാ രേഖയിലെ പഴയ പലിശ തുടരും.',
     'No repayments recorded': 'തിരിച്ചടവുകളൊന്നും രേഖപ്പെടുത്തിയിട്ടില്ല',
-    'Repayment history could not be loaded': 'തിരിച്ചടവ് ചരിത്രം ലോഡ് ചെയ്യാനായില്ല',
+    'Repayment history could not be loaded':
+        'തിരിച്ചടവ് ചരിത്രം ലോഡ് ചെയ്യാനായില്ല',
     'Repayment could not be recorded': 'തിരിച്ചടവ് രേഖപ്പെടുത്താനായില്ല',
     'Repayment could not be reversed': 'തിരിച്ചടവ് റദ്ദാക്കാനായില്ല',
     'Reverse repayment': 'തിരിച്ചടവ് റദ്ദാക്കുക',
@@ -191,7 +201,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'ਵਰਜ਼ਨ ਵਾਲੀਆਂ ਸ਼ਰਤਾਂ ਵਿੱਚ ਤਬਦੀਲ ਹੋਣ ਤੱਕ ਪੁਰਾਣੇ ਕਰਜ਼ੇ ਦੇ ਰਿਕਾਰਡ ਵਿੱਚ ਪੁਰਾਣਾ ਵਿਆਜ ਰਹੇਗਾ।',
     'No repayments recorded': 'ਕੋਈ ਮੁੜ-ਭੁਗਤਾਨ ਦਰਜ ਨਹੀਂ ਕੀਤਾ ਗਿਆ',
-    'Repayment history could not be loaded': 'ਮੁੜ-ਭੁਗਤਾਨ ਦਾ ਇਤਿਹਾਸ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕਿਆ',
+    'Repayment history could not be loaded':
+        'ਮੁੜ-ਭੁਗਤਾਨ ਦਾ ਇਤਿਹਾਸ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕਿਆ',
     'Repayment could not be recorded': 'ਮੁੜ-ਭੁਗਤਾਨ ਦਰਜ ਨਹੀਂ ਹੋ ਸਕਿਆ',
     'Repayment could not be reversed': 'ਮੁੜ-ਭੁਗਤਾਨ ਰੱਦ ਨਹੀਂ ਹੋ ਸਕਿਆ',
     'Reverse repayment': 'ਮੁੜ-ਭੁਗਤਾਨ ਰੱਦ ਕਰੋ',
@@ -223,7 +234,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'ସଂସ୍କରଣଭିତ୍ତିକ ସର୍ତ୍ତକୁ ସ୍ଥାନାନ୍ତର ହେବା ପର୍ଯ୍ୟନ୍ତ ପୁରୁଣା ଋଣ ରେକର୍ଡରେ ପୁରୁଣା ସୁଧ ରହିବ।',
     'No repayments recorded': 'କୌଣସି ପରିଶୋଧ ରେକର୍ଡ ହୋଇନାହିଁ',
-    'Repayment history could not be loaded': 'ପରିଶୋଧ ଇତିହାସ ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ',
+    'Repayment history could not be loaded':
+        'ପରିଶୋଧ ଇତିହାସ ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ',
     'Repayment could not be recorded': 'ପରିଶୋଧ ରେକର୍ଡ ହୋଇପାରିଲା ନାହିଁ',
     'Repayment could not be reversed': 'ପରିଶୋଧ ବାତିଲ ହୋଇପାରିଲା ନାହିଁ',
     'Reverse repayment': 'ପରିଶୋଧ ବାତିଲ କରନ୍ତୁ',
@@ -255,7 +267,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'जबले पुरान कर्जा के रिकॉर्ड के नया शर्त में ना ले जाइल जाई, तबले पुरान ब्याज एह में रही।',
     'No repayments recorded': 'कवनो किस्त दर्ज नइखे',
-    'Repayment history could not be loaded': 'किस्त जमा करे के इतिहास लोड ना हो सकल',
+    'Repayment history could not be loaded':
+        'किस्त जमा करे के इतिहास लोड ना हो सकल',
     'Repayment could not be recorded': 'किस्त दर्ज ना हो सकल',
     'Repayment could not be reversed': 'किस्त रद्द ना हो सकल',
     'Reverse repayment': 'किस्त रद्द करीं',
@@ -303,7 +316,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'नवां नियमां में बदलण ताईं पुराणे ऋण रिकॉर्ड में पुराणो ब्याज रहसी।',
     'No repayments recorded': 'कुणसी किस्त दर्ज कोनी',
-    'Repayment history could not be loaded': 'किस्त री हिस्ट्री लोड कोनी हो सकी',
+    'Repayment history could not be loaded':
+        'किस्त री हिस्ट्री लोड कोनी हो सकी',
     'Repayment could not be recorded': 'किस्त दर्ज कोनी हो सकी',
     'Repayment could not be reversed': 'किस्त रद्द कोनी हो सकी',
     'Reverse repayment': 'किस्त रद्द करो',
@@ -319,7 +333,8 @@ const runtimeTranslationOverrides = <String, Map<String, String>>{
     'Legacy interest remains on the existing loan record until it is migrated to versioned terms.':
         'ꯋꯔꯖꯟ ꯁ꯭ꯇꯦꯟꯗꯔꯗ ꯁꯔꯠꯁꯤꯡꯗꯥ ꯁꯤꯡꯖꯤꯟꯕꯥ ꯐꯥꯑꯣꯕꯥ ꯃꯃꯥꯡꯒꯤ ꯏꯟꯇꯔꯦꯁꯇ ꯂꯥꯏꯕꯥ ꯂꯩꯒꯅꯤ।',
     'No repayments recorded': 'ꯑꯃꯨꯛ ꯑꯄꯥꯡꯕꯥ ꯑꯃꯠꯇ ꯂꯤꯄꯤꯕꯥ ꯂꯩꯇꯦ',
-    'Repayment history could not be loaded': 'ꯑꯃꯨꯛ ꯑꯄꯥꯡꯕꯥꯒꯤ ꯏꯌꯥꯄꯗꯨ ꯂꯣꯗ ꯇꯧꯕꯥ ꯉꯝꯗꯦ',
+    'Repayment history could not be loaded':
+        'ꯑꯃꯨꯛ ꯑꯄꯥꯡꯕꯥꯒꯤ ꯏꯌꯥꯄꯗꯨ ꯂꯣꯗ ꯇꯧꯕꯥ ꯉꯝꯗꯦ',
     'Repayment could not be recorded': 'ꯑꯃꯨꯛ ꯑꯄꯥꯡꯕꯥ ꯂꯤꯄꯤꯕꯥ ꯉꯝꯗꯦ',
     'Repayment could not be reversed': 'ꯑꯃꯨꯛ ꯑꯄꯥꯡꯕꯥ ꯐꯥꯔꯗꯕꯥ ꯉꯝꯗꯦ',
     'Reverse repayment': 'ꯑꯃꯨꯛ ꯑꯄꯥꯡꯕꯥ ꯐꯥꯔꯗꯣ',

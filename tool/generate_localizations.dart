@@ -78,6 +78,8 @@ void _generateLoader(Map<String, Map<String, dynamic>> catalogs) {
 
   output
     ..writeln()
+    ..writeln("import 'runtime_translation_overrides.dart';")
+    ..writeln()
     ..writeln('class CodegenLoader extends AssetLoader {')
     ..writeln('  const CodegenLoader();')
     ..writeln()
@@ -85,7 +87,13 @@ void _generateLoader(Map<String, Map<String, dynamic>> catalogs) {
     ..writeln(
       '  Future<Map<String, dynamic>?> load(String path, Locale locale) {',
     )
-    ..writeln('    return Future.value(mapLocales[locale.languageCode]);')
+    ..writeln('    final generated = mapLocales[locale.languageCode];')
+    ..writeln('    if (generated == null) return Future.value(null);')
+    ..writeln('    return Future.value({')
+    ..writeln('      ...mapLocales[\'en\']!,')
+    ..writeln('      ...generated,')
+    ..writeln('      ...?runtimeTranslationOverrides[locale.languageCode],')
+    ..writeln('    });')
     ..writeln('  }')
     ..writeln()
     ..writeln(

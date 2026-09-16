@@ -41,4 +41,21 @@ void main() {
       }
     }
   });
+
+  test('public profile copy is available in every locale', () async {
+    for (final code in CodegenLoader.mapLocales.keys) {
+      final translations = await loader.load('', Locale(code));
+      for (final key in [
+        'Public lender profile',
+        'Public profile could not be loaded. Connect and try again.',
+        'Connect account',
+      ]) {
+        expect(
+          translations![key],
+          isA<String>(),
+          reason: 'Missing localization value for $key in $code',
+        );
+      }
+    }
+  });
 }
