@@ -13,6 +13,7 @@ import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/service/device_performance.dart';
 import 'package:loanx/widget/empty_state.dart';
+import 'package:loanx/widget/loan_record_status_indicator.dart';
 import 'package:loanx/widget/snackbar.dart';
 
 enum LoanStatusFilter {
@@ -205,6 +206,8 @@ class MortgageListView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
+                    LoanRecordStatusIndicator(loan: loan),
+                    const SizedBox(height: 4),
                     IconButton(
                       tooltip: LocaleKeys.saveContact.tr(),
                       visualDensity: VisualDensity.compact,

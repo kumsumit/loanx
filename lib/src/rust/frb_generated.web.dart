@@ -40,6 +40,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChatCredentials dco_decode_chat_credentials(dynamic raw);
 
   @protected
+  ContactOtpVerification dco_decode_contact_otp_verification(dynamic raw);
+
+  @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
 
   @protected
@@ -106,6 +109,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  VerifiedLoanResult dco_decode_verified_loan_result(dynamic raw);
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
@@ -124,6 +130,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ChatCredentials sse_decode_chat_credentials(SseDeserializer deserializer);
+
+  @protected
+  ContactOtpVerification sse_decode_contact_otp_verification(
+    SseDeserializer deserializer,
+  );
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
@@ -208,6 +219,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
+  VerifiedLoanResult sse_decode_verified_loan_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
@@ -234,6 +250,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_chat_credentials(
     ChatCredentials self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_contact_otp_verification(
+    ContactOtpVerification self,
     SseSerializer serializer,
   );
 
@@ -335,6 +357,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_verified_loan_result(
+    VerifiedLoanResult self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);

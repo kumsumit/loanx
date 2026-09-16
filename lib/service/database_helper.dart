@@ -15,7 +15,7 @@ import 'canonical_migration.dart';
 final class DatabaseHelper {
   DatabaseHelper._();
   static final instance = DatabaseHelper._();
-  static const schemaVersion = 15;
+  static const schemaVersion = 17;
   static const _encodingKeyName = 'loanx.tostore.encoding_key';
   static const _masterKeyName = 'loanx.tostore.master_key';
   LoanxDatabasePort? _database;
@@ -184,6 +184,8 @@ final class DatabaseHelper {
       _text('relationshipId', indexed: true),
       _text('currency', nullable: false, defaultValue: 'INR'),
       _text('calculationVersion', nullable: false, defaultValue: 'legacy-v1'),
+      _text('syncState', nullable: false, defaultValue: 'LOCAL_ONLY'),
+      _text('clientConfirmedAt'),
     ]),
     _table('loanChanges', [
       _text('loanId', nullable: false, indexed: true),
@@ -229,6 +231,21 @@ final class DatabaseHelper {
       _text('borrowerName', nullable: false),
       _text('loanPayloadJson', nullable: false),
       _text('status', nullable: false, defaultValue: 'PENDING'),
+      _text('lastError'),
+      _text('createdAt', nullable: false),
+      _text('updatedAt', nullable: false),
+    ]),
+    _stringTable('pendingVerifiedLoans', [
+      _text('ownerId', nullable: false, indexed: true),
+      _text('operationId', nullable: false, unique: true),
+      _text('verificationId', nullable: false),
+      _text('borrowerPartyId', nullable: false),
+      _text('borrowerName', nullable: false),
+      _text('borrowerEmail', nullable: false, defaultValue: ''),
+      _text('borrowerCountryCode', nullable: false, defaultValue: ''),
+      _text('loanPayloadJson', nullable: false),
+      _text('status', nullable: false, defaultValue: 'PENDING'),
+      _int('attemptCount', nullable: false, defaultValue: 0),
       _text('lastError'),
       _text('createdAt', nullable: false),
       _text('updatedAt', nullable: false),

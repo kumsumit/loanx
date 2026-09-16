@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -1670688211;
+  int get rustContentHash => 56050580;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -114,6 +114,22 @@ abstract class RustLibApi extends BaseApi {
     required String operationId,
     required String borrowerPhoneE164,
     required String borrowerName,
+    required List<int> loanPayloadJson,
+  });
+
+  Future<VerifiedLoanResult> crateApiNetworkCreateVerifiedLoan({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String workspaceId,
+    required String operationId,
+    required String verificationId,
+    required String borrowerPartyId,
+    required String borrowerName,
+    required String borrowerEmail,
+    required String borrowerCountryCode,
     required List<int> loanPayloadJson,
   });
 
@@ -257,6 +273,17 @@ abstract class RustLibApi extends BaseApi {
     required String deviceId,
     required String accessToken,
     required String preferredLanguage,
+  });
+
+  Future<ContactOtpVerification> crateApiNetworkVerifyContactOtp({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String challengeId,
+    required String phoneE164,
+    required String otp,
   });
 
   Future<AuthTokens> crateApiNetworkVerifyOtp({
@@ -516,13 +543,98 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<VerifiedLoanResult> crateApiNetworkCreateVerifiedLoan({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String workspaceId,
+    required String operationId,
+    required String verificationId,
+    required String borrowerPartyId,
+    required String borrowerName,
+    required String borrowerEmail,
+    required String borrowerCountryCode,
+    required List<int> loanPayloadJson,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_String(workspaceId, serializer);
+          sse_encode_String(operationId, serializer);
+          sse_encode_String(verificationId, serializer);
+          sse_encode_String(borrowerPartyId, serializer);
+          sse_encode_String(borrowerName, serializer);
+          sse_encode_String(borrowerEmail, serializer);
+          sse_encode_String(borrowerCountryCode, serializer);
+          sse_encode_list_prim_u_8_loose(loanPayloadJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_verified_loan_result,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkCreateVerifiedLoanConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+          workspaceId,
+          operationId,
+          verificationId,
+          borrowerPartyId,
+          borrowerName,
+          borrowerEmail,
+          borrowerCountryCode,
+          loanPayloadJson,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkCreateVerifiedLoanConstMeta =>
+      const TaskConstMeta(
+        debugName: "create_verified_loan",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+          "workspaceId",
+          "operationId",
+          "verificationId",
+          "borrowerPartyId",
+          "borrowerName",
+          "borrowerEmail",
+          "borrowerCountryCode",
+          "loanPayloadJson",
+        ],
+      );
+
+  @override
   String crateApiSimpleGreet({required String name}) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(name, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -547,7 +659,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 7,
             port: port_,
           );
         },
@@ -587,7 +699,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 8,
             port: port_,
           );
         },
@@ -642,7 +754,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 9,
             port: port_,
           );
         },
@@ -695,7 +807,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 10,
             port: port_,
           );
         },
@@ -774,7 +886,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 11,
             port: port_,
           );
         },
@@ -881,7 +993,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 12,
             port: port_,
           );
         },
@@ -976,7 +1088,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 13,
             port: port_,
           );
         },
@@ -1043,7 +1155,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 14,
             port: port_,
           );
         },
@@ -1100,7 +1212,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 15,
             port: port_,
           );
         },
@@ -1157,7 +1269,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 16,
             port: port_,
           );
         },
@@ -1210,7 +1322,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 17,
             port: port_,
           );
         },
@@ -1270,7 +1382,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 18,
             port: port_,
           );
         },
@@ -1333,7 +1445,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 19,
             port: port_,
           );
         },
@@ -1369,6 +1481,71 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<ContactOtpVerification> crateApiNetworkVerifyContactOtp({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String challengeId,
+    required String phoneE164,
+    required String otp,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_String(challengeId, serializer);
+          sse_encode_String(phoneE164, serializer);
+          sse_encode_String(otp, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 20,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_contact_otp_verification,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkVerifyContactOtpConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+          challengeId,
+          phoneE164,
+          otp,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkVerifyContactOtpConstMeta =>
+      const TaskConstMeta(
+        debugName: "verify_contact_otp",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+          "challengeId",
+          "phoneE164",
+          "otp",
+        ],
+      );
+
+  @override
   Future<AuthTokens> crateApiNetworkVerifyOtp({
     required String serverAddress,
     required String serverName,
@@ -1394,7 +1571,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 21,
             port: port_,
           );
         },
@@ -1496,6 +1673,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       expiresAtMs: dco_decode_i_64(arr[3]),
       websocketUrl: dco_decode_String(arr[4]),
       errorMessage: dco_decode_opt_String(arr[5]),
+    );
+  }
+
+  @protected
+  ContactOtpVerification dco_decode_contact_otp_verification(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return ContactOtpVerification(
+      success: dco_decode_bool(arr[0]),
+      verificationId: dco_decode_String(arr[1]),
+      expiresInSeconds: dco_decode_u_32(arr[2]),
+      errorMessage: dco_decode_opt_String(arr[3]),
     );
   }
 
@@ -1732,6 +1923,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  VerifiedLoanResult dco_decode_verified_loan_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return VerifiedLoanResult(
+      success: dco_decode_bool(arr[0]),
+      loanId: dco_decode_String(arr[1]),
+      replayed: dco_decode_bool(arr[2]),
+      errorMessage: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_list_prim_u_8_strict(deserializer);
@@ -1807,6 +2012,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       accessToken: var_accessToken,
       expiresAtMs: var_expiresAtMs,
       websocketUrl: var_websocketUrl,
+      errorMessage: var_errorMessage,
+    );
+  }
+
+  @protected
+  ContactOtpVerification sse_decode_contact_otp_verification(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_verificationId = sse_decode_String(deserializer);
+    var var_expiresInSeconds = sse_decode_u_32(deserializer);
+    var var_errorMessage = sse_decode_opt_String(deserializer);
+    return ContactOtpVerification(
+      success: var_success,
+      verificationId: var_verificationId,
+      expiresInSeconds: var_expiresInSeconds,
       errorMessage: var_errorMessage,
     );
   }
@@ -2122,6 +2344,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  VerifiedLoanResult sse_decode_verified_loan_result(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_loanId = sse_decode_String(deserializer);
+    var var_replayed = sse_decode_bool(deserializer);
+    var var_errorMessage = sse_decode_opt_String(deserializer);
+    return VerifiedLoanResult(
+      success: var_success,
+      loanId: var_loanId,
+      replayed: var_replayed,
+      errorMessage: var_errorMessage,
+    );
+  }
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
@@ -2185,6 +2424,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.accessToken, serializer);
     sse_encode_i_64(self.expiresAtMs, serializer);
     sse_encode_String(self.websocketUrl, serializer);
+    sse_encode_opt_String(self.errorMessage, serializer);
+  }
+
+  @protected
+  void sse_encode_contact_otp_verification(
+    ContactOtpVerification self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_String(self.verificationId, serializer);
+    sse_encode_u_32(self.expiresInSeconds, serializer);
     sse_encode_opt_String(self.errorMessage, serializer);
   }
 
@@ -2427,6 +2678,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_unit(void self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_verified_loan_result(
+    VerifiedLoanResult self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_String(self.loanId, serializer);
+    sse_encode_bool(self.replayed, serializer);
+    sse_encode_opt_String(self.errorMessage, serializer);
   }
 
   @protected

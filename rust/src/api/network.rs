@@ -29,6 +29,22 @@ pub struct OtpChallenge {
 }
 #[derive(Debug)]
 #[flutter_rust_bridge::frb]
+pub struct ContactOtpVerification {
+    pub success: bool,
+    pub verification_id: String,
+    pub expires_in_seconds: u32,
+    pub error_message: Option<String>,
+}
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
+pub struct VerifiedLoanResult {
+    pub success: bool,
+    pub loan_id: String,
+    pub replayed: bool,
+    pub error_message: Option<String>,
+}
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
 pub struct AuthTokens {
     pub success: bool,
     pub transport_unavailable: bool,
@@ -169,6 +185,124 @@ pub async fn create_pending_loan(
             success: false,
             invitation_id: String::new(),
             linked_to_existing_account: false,
+            error_message: Some(error.to_string()),
+        },
+    }
+}
+
+/// Verifies a borrower's phone in the lender's authenticated context without
+/// creating an account or issuing credentials for the borrower.
+#[flutter_rust_bridge::frb]
+pub async fn verify_contact_otp(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    challenge_id: String,
+    phone_e164: String,
+    otp: String,
+) -> ContactOtpVerification {
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::VerifyContactOtp(v1::VerifyContactOtpRequest {
+            challenge_id,
+            phone_e164,
+            otp,
+        }),
+    )
+    .await
+    {
+        Ok(v1::response::Result::VerifyContactOtp(value)) => ContactOtpVerification {
+            success: true,
+            verification_id: value.verification_id,
+            expires_in_seconds: value.expires_in_seconds,
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(value)) => ContactOtpVerification {
+            success: false,
+            verification_id: String::new(),
+            expires_in_seconds: 0,
+            error_message: Some(value.message),
+        },
+        Ok(_) => ContactOtpVerification {
+            success: false,
+            verification_id: String::new(),
+            expires_in_seconds: 0,
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(error) => ContactOtpVerification {
+            success: false,
+            verification_id: String::new(),
+            expires_in_seconds: 0,
+            error_message: Some(error.to_string()),
+        },
+    }
+}
+
+/// Creates the loan after contact OTP verification. The operation ID makes a
+/// lost response safe to retry without duplicating the financial record.
+#[flutter_rust_bridge::frb]
+pub async fn create_verified_loan(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    workspace_id: String,
+    operation_id: String,
+    verification_id: String,
+    borrower_party_id: String,
+    borrower_name: String,
+    borrower_email: String,
+    borrower_country_code: String,
+    loan_payload_json: Vec<u8>,
+) -> VerifiedLoanResult {
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::CreateVerifiedLoan(v1::CreateVerifiedLoanRequest {
+            workspace_id,
+            operation_id,
+            verification_id,
+            borrower_party_id,
+            borrower_name,
+            borrower_email,
+            borrower_country_code,
+            loan_payload_json,
+        }),
+    )
+    .await
+    {
+        Ok(v1::response::Result::CreateVerifiedLoan(value)) => VerifiedLoanResult {
+            success: true,
+            loan_id: value.loan_id,
+            replayed: value.replayed,
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(value)) => VerifiedLoanResult {
+            success: false,
+            loan_id: String::new(),
+            replayed: false,
+            error_message: Some(value.message),
+        },
+        Ok(_) => VerifiedLoanResult {
+            success: false,
+            loan_id: String::new(),
+            replayed: false,
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(error) => VerifiedLoanResult {
+            success: false,
+            loan_id: String::new(),
+            replayed: false,
             error_message: Some(error.to_string()),
         },
     }

@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1670688211;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 56050580;
 
 // Section: executor
 
@@ -243,6 +243,71 @@ fn wire__crate__api__network__create_pending_loan_impl(
                                 api_operation_id,
                                 api_borrower_phone_e164,
                                 api_borrower_name,
+                                api_loan_payload_json,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__network__create_verified_loan_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "create_verified_loan",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_access_token = <String>::sse_decode(&mut deserializer);
+            let api_workspace_id = <String>::sse_decode(&mut deserializer);
+            let api_operation_id = <String>::sse_decode(&mut deserializer);
+            let api_verification_id = <String>::sse_decode(&mut deserializer);
+            let api_borrower_party_id = <String>::sse_decode(&mut deserializer);
+            let api_borrower_name = <String>::sse_decode(&mut deserializer);
+            let api_borrower_email = <String>::sse_decode(&mut deserializer);
+            let api_borrower_country_code = <String>::sse_decode(&mut deserializer);
+            let api_loan_payload_json = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::create_verified_loan(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_access_token,
+                                api_workspace_id,
+                                api_operation_id,
+                                api_verification_id,
+                                api_borrower_party_id,
+                                api_borrower_name,
+                                api_borrower_email,
+                                api_borrower_country_code,
                                 api_loan_payload_json,
                             )
                             .await,
@@ -991,6 +1056,61 @@ fn wire__crate__api__network__update_language_impl(
         },
     )
 }
+fn wire__crate__api__network__verify_contact_otp_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "verify_contact_otp",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_access_token = <String>::sse_decode(&mut deserializer);
+            let api_challenge_id = <String>::sse_decode(&mut deserializer);
+            let api_phone_e164 = <String>::sse_decode(&mut deserializer);
+            let api_otp = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::verify_contact_otp(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_access_token,
+                                api_challenge_id,
+                                api_phone_e164,
+                                api_otp,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__network__verify_otp_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1121,6 +1241,22 @@ impl SseDecode for crate::api::network::ChatCredentials {
             access_token: var_accessToken,
             expires_at_ms: var_expiresAtMs,
             websocket_url: var_websocketUrl,
+            error_message: var_errorMessage,
+        };
+    }
+}
+
+impl SseDecode for crate::api::network::ContactOtpVerification {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_success = <bool>::sse_decode(deserializer);
+        let mut var_verificationId = <String>::sse_decode(deserializer);
+        let mut var_expiresInSeconds = <u32>::sse_decode(deserializer);
+        let mut var_errorMessage = <Option<String>>::sse_decode(deserializer);
+        return crate::api::network::ContactOtpVerification {
+            success: var_success,
+            verification_id: var_verificationId,
+            expires_in_seconds: var_expiresInSeconds,
             error_message: var_errorMessage,
         };
     }
@@ -1443,6 +1579,22 @@ impl SseDecode for () {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
 }
 
+impl SseDecode for crate::api::network::VerifiedLoanResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_success = <bool>::sse_decode(deserializer);
+        let mut var_loanId = <String>::sse_decode(deserializer);
+        let mut var_replayed = <bool>::sse_decode(deserializer);
+        let mut var_errorMessage = <Option<String>>::sse_decode(deserializer);
+        return crate::api::network::VerifiedLoanResult {
+            success: var_success,
+            loan_id: var_loanId,
+            replayed: var_replayed,
+            error_message: var_errorMessage,
+        };
+    }
+}
+
 impl SseDecode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1463,33 +1615,37 @@ fn pde_ffi_dispatcher_primary_impl(
         2 => wire__crate__api__network__block_public_lender_impl(port, ptr, rust_vec_len, data_len),
         3 => wire__crate__api__network__connect_and_hello_impl(port, ptr, rust_vec_len, data_len),
         4 => wire__crate__api__network__create_pending_loan_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__network__list_shared_loans_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__network__logout_session_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__network__my_lender_profile_impl(port, ptr, rust_vec_len, data_len),
-        10 => {
+        5 => {
+            wire__crate__api__network__create_verified_loan_impl(port, ptr, rust_vec_len, data_len)
+        }
+        7 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__network__list_shared_loans_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__network__logout_session_impl(port, ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__network__my_lender_profile_impl(port, ptr, rust_vec_len, data_len),
+        11 => {
             wire__crate__api__network__publish_public_lender_impl(port, ptr, rust_vec_len, data_len)
         }
-        11 => {
+        12 => {
             wire__crate__api__network__push_financial_event_impl(port, ptr, rust_vec_len, data_len)
         }
-        12 => wire__crate__api__network__push_mutation_impl(port, ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
-        14 => {
+        13 => wire__crate__api__network__push_mutation_impl(port, ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
+        15 => {
             wire__crate__api__network__report_public_lender_impl(port, ptr, rust_vec_len, data_len)
         }
-        15 => wire__crate__api__network__request_chat_credentials_impl(
+        16 => wire__crate__api__network__request_chat_credentials_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
-        17 => {
+        17 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
+        18 => {
             wire__crate__api__network__search_public_lenders_impl(port, ptr, rust_vec_len, data_len)
         }
-        18 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__network__verify_contact_otp_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1502,7 +1658,7 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        5 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1582,6 +1738,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::network::ChatCredentials>
     for crate::api::network::ChatCredentials
 {
     fn into_into_dart(self) -> crate::api::network::ChatCredentials {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::ContactOtpVerification {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.success.into_into_dart().into_dart(),
+            self.verification_id.into_into_dart().into_dart(),
+            self.expires_in_seconds.into_into_dart().into_dart(),
+            self.error_message.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::ContactOtpVerification
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::ContactOtpVerification>
+    for crate::api::network::ContactOtpVerification
+{
+    fn into_into_dart(self) -> crate::api::network::ContactOtpVerification {
         self
     }
 }
@@ -1835,6 +2014,29 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::network::SharedRepayment>
         self
     }
 }
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::VerifiedLoanResult {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.success.into_into_dart().into_dart(),
+            self.loan_id.into_into_dart().into_dart(),
+            self.replayed.into_into_dart().into_dart(),
+            self.error_message.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::VerifiedLoanResult
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::VerifiedLoanResult>
+    for crate::api::network::VerifiedLoanResult
+{
+    fn into_into_dart(self) -> crate::api::network::VerifiedLoanResult {
+        self
+    }
+}
 
 impl SseEncode for String {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -1883,6 +2085,16 @@ impl SseEncode for crate::api::network::ChatCredentials {
         <String>::sse_encode(self.access_token, serializer);
         <i64>::sse_encode(self.expires_at_ms, serializer);
         <String>::sse_encode(self.websocket_url, serializer);
+        <Option<String>>::sse_encode(self.error_message, serializer);
+    }
+}
+
+impl SseEncode for crate::api::network::ContactOtpVerification {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.success, serializer);
+        <String>::sse_encode(self.verification_id, serializer);
+        <u32>::sse_encode(self.expires_in_seconds, serializer);
         <Option<String>>::sse_encode(self.error_message, serializer);
     }
 }
@@ -2101,6 +2313,16 @@ impl SseEncode for u8 {
 impl SseEncode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {}
+}
+
+impl SseEncode for crate::api::network::VerifiedLoanResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.success, serializer);
+        <String>::sse_encode(self.loan_id, serializer);
+        <bool>::sse_encode(self.replayed, serializer);
+        <Option<String>>::sse_encode(self.error_message, serializer);
+    }
 }
 
 impl SseEncode for i32 {

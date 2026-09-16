@@ -16,6 +16,7 @@ import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/service/upi_validator.dart';
 import 'package:loanx/features/lender/repayment_history_screen.dart';
 import 'package:loanx/widget/snackbar.dart';
+import 'package:loanx/widget/loan_record_status_indicator.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -423,6 +424,8 @@ class _DetailsContent extends ConsumerWidget {
                       ).textTheme.titleLarge?.copyWith(color: colors.onPrimary),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  LoanRecordStatusIndicator(loan: loan, onColoredSurface: true),
                   _StatusPill(completed: loan.isFinished()),
                 ],
               ),

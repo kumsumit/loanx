@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `simple_network_result`, `write_frame`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
 Future<PendingLoanInvitation> createPendingLoan({
   required String serverAddress,
@@ -30,6 +30,60 @@ Future<PendingLoanInvitation> createPendingLoan({
   operationId: operationId,
   borrowerPhoneE164: borrowerPhoneE164,
   borrowerName: borrowerName,
+  loanPayloadJson: loanPayloadJson,
+);
+
+/// Verifies a borrower's phone in the lender's authenticated context without
+/// creating an account or issuing credentials for the borrower.
+Future<ContactOtpVerification> verifyContactOtp({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String challengeId,
+  required String phoneE164,
+  required String otp,
+}) => RustLib.instance.api.crateApiNetworkVerifyContactOtp(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  challengeId: challengeId,
+  phoneE164: phoneE164,
+  otp: otp,
+);
+
+/// Creates the loan after contact OTP verification. The operation ID makes a
+/// lost response safe to retry without duplicating the financial record.
+Future<VerifiedLoanResult> createVerifiedLoan({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String workspaceId,
+  required String operationId,
+  required String verificationId,
+  required String borrowerPartyId,
+  required String borrowerName,
+  required String borrowerEmail,
+  required String borrowerCountryCode,
+  required List<int> loanPayloadJson,
+}) => RustLib.instance.api.crateApiNetworkCreateVerifiedLoan(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  workspaceId: workspaceId,
+  operationId: operationId,
+  verificationId: verificationId,
+  borrowerPartyId: borrowerPartyId,
+  borrowerName: borrowerName,
+  borrowerEmail: borrowerEmail,
+  borrowerCountryCode: borrowerCountryCode,
   loanPayloadJson: loanPayloadJson,
 );
 
@@ -478,6 +532,37 @@ class ChatCredentials {
           errorMessage == other.errorMessage;
 }
 
+class ContactOtpVerification {
+  final bool success;
+  final String verificationId;
+  final int expiresInSeconds;
+  final String? errorMessage;
+
+  const ContactOtpVerification({
+    required this.success,
+    required this.verificationId,
+    required this.expiresInSeconds,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      verificationId.hashCode ^
+      expiresInSeconds.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ContactOtpVerification &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          verificationId == other.verificationId &&
+          expiresInSeconds == other.expiresInSeconds &&
+          errorMessage == other.errorMessage;
+}
+
 class LenderSearchResult {
   final bool success;
   final List<PublicLender> lenders;
@@ -858,4 +943,35 @@ class SharedRepayment {
           recordedAt == other.recordedAt &&
           paymentMethod == other.paymentMethod &&
           reversesEventId == other.reversesEventId;
+}
+
+class VerifiedLoanResult {
+  final bool success;
+  final String loanId;
+  final bool replayed;
+  final String? errorMessage;
+
+  const VerifiedLoanResult({
+    required this.success,
+    required this.loanId,
+    required this.replayed,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      loanId.hashCode ^
+      replayed.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VerifiedLoanResult &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          loanId == other.loanId &&
+          replayed == other.replayed &&
+          errorMessage == other.errorMessage;
 }

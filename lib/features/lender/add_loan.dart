@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/domain/country_catalog.dart';
+import 'package:loanx/domain/money.dart';
 import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/family_relation.dart';
@@ -193,6 +194,7 @@ class LoanInput extends HookConsumerWidget {
 
     Future<void> saveLoan() async {
       if (isSaving.value) return;
+      String? verifiedContactId;
       if (formKey.currentState == null || !formKey.currentState!.validate()) {
         return;
       }
@@ -221,7 +223,8 @@ class LoanInput extends HookConsumerWidget {
           context,
           borrowerPhone.value,
         );
-        if (!verified || !context.mounted) return;
+        if (verified == null || !context.mounted) return;
+        verifiedContactId = verified;
       }
       final earlyCharge = lockInDays.value == 0
           ? 0.0
@@ -291,70 +294,118 @@ class LoanInput extends HookConsumerWidget {
         if (context.mounted) isSaving.value = false;
       }
       if (status > 0) {
-        if (!borrowing &&
-            loan == null &&
-            phoneNumberController.text.trim().isNotEmpty) {
-          final phoneE164 = CountryCatalog.e164(
-            borrowerPhone.value.isoCode,
-            borrowerPhone.value.nsn,
-          );
+        if (verifiedContactId != null && loan == null) {
+          // OTP verification is the borrower's confirmation signal. Keep it
+          // separate from the server acknowledgement so the UI can show the
+          // correct state while an offline server write is still pending.
+          await ref.read(loanListProvider.notifier).markClientConfirmed(status);
           final operationId = CanonicalMigration.newId();
           final database = await ref.read(dBProvider.future);
           final owners = await database.query('localOwners');
-          final ownerId = owners.single['id'];
-          final saved = ownerId is String
+          final owner = owners.single;
+          final ownerId = owner['id'] as String;
+          final saved = await database.query(
+            Loan.tableName,
+            columns: [
+              'uid',
+              'borrowerPartyId',
+              'dateCreated',
+              'loanAmountExact',
+              'currency',
+            ],
+            where: 'id = ? AND ownerId = ?',
+            whereArgs: [status, ownerId],
+            limit: 1,
+          );
+          final borrowerPartyId = saved.isEmpty
+              ? null
+              : saved.single['borrowerPartyId'];
+          final loanUid = saved.isEmpty ? null : saved.single['uid'];
+          final borrower = borrowerPartyId is String
               ? await database.query(
-                  Loan.tableName,
-                  columns: ['uid'],
+                  'parties',
                   where: 'id = ? AND ownerId = ?',
-                  whereArgs: [status, ownerId],
+                  whereArgs: [borrowerPartyId, ownerId],
                   limit: 1,
                 )
               : const <Map<String, Object?>>[];
-          final loanUid = saved.isEmpty ? null : saved.single['uid'];
+          final remoteLenderPartyId = owner['remotePartyId'];
+          final loanDate = saved.isEmpty
+              ? DateTime.now().toUtc().toIso8601String().substring(0, 10)
+              : DateTime.parse(
+                  saved.single['dateCreated'] as String,
+                ).toUtc().toIso8601String().substring(0, 10);
+          final scale = CurrencyPresentation.fractionDigits(currency.value);
+          final exactPrincipal = saved.isEmpty
+              ? CanonicalMigration.exactTotal([principal])
+              : (saved.single['loanAmountExact'] as String? ??
+                    CanonicalMigration.exactTotal([principal]));
+          final principalMinor = Money.parse(
+            exactPrincipal,
+            currency: currency.value,
+            scale: scale,
+          ).minorUnits.toString();
           final payload = <String, Object?>{
-            'principal_minor': (principal * 100).round(),
+            'loan_id': loanUid,
+            'lender_party_id': remoteLenderPartyId,
+            'borrower_party_id': borrowerPartyId,
+            'principal_minor': int.parse(principalMinor),
             'currency': currency.value,
-            'currency_scale': 2,
-            'loan_date': DateTime.now().toUtc().toIso8601String().substring(
-              0,
-              10,
-            ),
+            'currency_scale': scale,
+            'loan_date': loanDate,
             'maturity_date': null,
-            if (loanUid is String && loanUid.isNotEmpty) 'loan_id': loanUid,
+            'lifecycle': 'active',
+            'calculation_contract': 'legacy-v1',
+            'status': 'active',
           };
           try {
-            final shared = await AuthClient().createPendingLoan(
-              borrowerPhoneE164: phoneE164,
-              borrowerName: depositorController.text.trim(),
+            if (loanUid is! String ||
+                loanUid.isEmpty ||
+                borrowerPartyId is! String ||
+                borrowerPartyId.isEmpty ||
+                remoteLenderPartyId is! String ||
+                remoteLenderPartyId.isEmpty) {
+              throw StateError('Cloud lender identity is unavailable');
+            }
+            final sent = await AuthClient().createVerifiedLoan(
+              verificationId: verifiedContactId,
               operationId: operationId,
+              borrowerPartyId: borrowerPartyId,
+              borrowerName: depositorController.text.trim(),
+              borrowerEmail: borrower.isEmpty
+                  ? ''
+                  : borrower.single['email'] as String? ?? '',
+              borrowerCountryCode: borrower.isEmpty
+                  ? ''
+                  : borrower.single['countryCode'] as String? ?? '',
               loanPayload: payload,
             );
-            if (!shared) {
-              await AuthClient().queuePendingLoanShare(
-                borrowerPhoneE164: phoneE164,
-                borrowerName: depositorController.text.trim(),
-                operationId: operationId,
-                loanPayload: payload,
-              );
-              if (context.mounted) {
-                showSnackBar(
-                  context,
-                  'Loan saved locally. Connect your LoanX account to share it with the borrower.',
-                );
-              }
+            if (!sent) {
+              throw StateError('Unable to save loan to server');
+            }
+            if (loanUid.isNotEmpty) {
+              await ref
+                  .read(loanListProvider.notifier)
+                  .markServerSaved(loanUid);
             }
           } catch (error) {
-            await AuthClient().queuePendingLoanShare(
-              borrowerPhoneE164: phoneE164,
+            await AuthClient().queueVerifiedLoan(
+              verificationId: verifiedContactId,
               borrowerName: depositorController.text.trim(),
               operationId: operationId,
+              borrowerPartyId: borrowerPartyId as String,
+              borrowerEmail: borrower.isEmpty
+                  ? ''
+                  : borrower.single['email'] as String? ?? '',
+              borrowerCountryCode: borrower.isEmpty
+                  ? ''
+                  : borrower.single['countryCode'] as String? ?? '',
               loanPayload: payload,
             );
             if (context.mounted) {
-              showErrorSnackBar(
+              showSnackBar(
                 context,
-                'Loan saved locally. It will be shared after you connect your LoanX account: $error',
+                'Loan saved locally. It will be sent to the server automatically. ($error)',
               );
             }
           }
@@ -1033,11 +1084,11 @@ class LoanInput extends HookConsumerWidget {
     );
   }
 
-  Future<bool> _verifyBorrowerPhone(
+  Future<String?> _verifyBorrowerPhone(
     BuildContext context,
     PhoneNumber phone,
   ) async {
-    if (phone.nsn.trim().isEmpty || !phone.isValid()) return false;
+    if (phone.nsn.trim().isEmpty || !phone.isValid()) return null;
     final auth = AuthClient();
     try {
       await RustBridge.ensureInitialized();
@@ -1046,22 +1097,23 @@ class LoanInput extends HookConsumerWidget {
       if (context.mounted) {
         showErrorSnackBar(context, 'Unable to send OTP: $error');
       }
-      return false;
+      return null;
     }
-    if (!context.mounted) return false;
-    final result = await Navigator.of(context).push<bool?>(
+    if (!context.mounted) return null;
+    final result = await Navigator.of(context).push<String?>(
       MaterialPageRoute(
         builder: (_) => OtpVerificationScreen(
           phoneNumber: phone,
           onVerify: (code) async {
             try {
-              final verified = await auth.verifyOtpForContact(
+              final verificationId = await auth.verifyOtpForContact(
                 phone,
                 code,
-                context.locale.languageCode,
               );
-              if (!verified) return 'Invalid or expired OTP';
-              if (context.mounted) Navigator.of(context).pop(true);
+              if (verificationId == null || verificationId.isEmpty) {
+                return 'Invalid or expired OTP';
+              }
+              if (context.mounted) Navigator.of(context).pop(verificationId);
               return null;
             } catch (error) {
               return '$error';
@@ -1079,7 +1131,7 @@ class LoanInput extends HookConsumerWidget {
         ),
       ),
     );
-    return result == true;
+    return result;
   }
 
   Future<bool> _confirmSave(

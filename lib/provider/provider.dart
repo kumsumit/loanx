@@ -974,6 +974,8 @@ class LoanList extends _$LoanList {
           settlementAmount: previous.settlementAmount,
           completionReference: previous.completionReference,
           completionNotes: previous.completionNotes,
+          syncState: previous.syncState,
+          clientConfirmedAt: previous.clientConfirmedAt,
         );
         final changed = await transaction.update(
           Loan.tableName,
@@ -1131,6 +1133,12 @@ class LoanList extends _$LoanList {
         // The UI may have mutated its Loan instance. Read the committed record
         // inside the write transaction so the audit retains the actual before state.
         final previous = await _readLoan(transaction, loan.id);
+        // Sync acknowledgements can arrive while an older Loan object is still
+        // on screen. Never let that stale object downgrade the durable marker.
+        loan = loan.copy(
+          syncState: previous.syncState,
+          clientConfirmedAt: previous.clientConfirmedAt,
+        );
         final changed = await transaction.update(
           Loan.tableName,
           loan.toJson(),
@@ -1153,6 +1161,40 @@ class LoanList extends _$LoanList {
       rethrow;
     }
     ref.invalidate(loanChangesProvider(loan.id!));
+    state = AsyncData(await readAllLoans());
+    await updateDBTime();
+  }
+
+  /// Records that the borrower contact was verified with the OTP sent to the
+  /// phone number. This is the app's client-confirmed state; it is not inferred
+  /// from a successful local write or from server delivery.
+  Future<void> markClientConfirmed(int id) async {
+    _requireLenderWrite();
+    db = await ref.read(dBProvider.future);
+    final ownerId = await _requiredOwnerId(db);
+    final changed = await db.update(
+      Loan.tableName,
+      {LoanFields.clientConfirmedAt: DateTime.now().toUtc().toIso8601String()},
+      where: '${LoanFields.id} = ? AND ownerId = ?',
+      whereArgs: [id, ownerId],
+    );
+    if (changed != 1) return;
+    state = AsyncData(await readAllLoans());
+    ref.invalidate(loanChangesProvider(id));
+    await updateDBTime();
+  }
+
+  /// Records a durable server acknowledgement for a local loan UUID.
+  Future<void> markServerSaved(String loanUid) async {
+    db = await ref.read(dBProvider.future);
+    final ownerId = await _requiredOwnerId(db);
+    final changed = await db.update(
+      Loan.tableName,
+      {LoanFields.syncState: Loan.serverSaved},
+      where: 'uid = ? AND ownerId = ?',
+      whereArgs: [loanUid, ownerId],
+    );
+    if (changed != 1) return;
     state = AsyncData(await readAllLoans());
     await updateDBTime();
   }

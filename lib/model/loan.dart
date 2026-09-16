@@ -33,10 +33,14 @@ class LoanFields {
   static final String currency = 'currency';
   static final String familyRelationId = "familyRelationId";
   static final String mortgageMaterialId = "mortgageMaterialId";
+  static final String syncState = 'syncState';
+  static final String clientConfirmedAt = 'clientConfirmedAt';
 }
 
 class Loan {
   static final String tableName = 'loans';
+  static const String locallySaved = 'LOCAL_ONLY';
+  static const String serverSaved = 'SERVER_SAVED';
   final int? id;
   String depositorName;
   String phoneNumber;
@@ -62,6 +66,14 @@ class Loan {
   String completionNotes;
   int familyRelationId;
   int mortgageMaterialId;
+
+  /// Durable acknowledgement state for this local record.
+  ///
+  /// This is deliberately separate from the server's financial status. A
+  /// loan can be active and either still local or already acknowledged by the
+  /// server.
+  String syncState;
+  DateTime? clientConfirmedAt;
 
   Loan({
     this.id,
@@ -89,6 +101,8 @@ class Loan {
     this.settlementAmount,
     this.completionReference = '',
     this.completionNotes = '',
+    this.syncState = locallySaved,
+    this.clientConfirmedAt,
   }) : dateCreated = dateCreated ?? DateTime.now();
 
   String get dateCreatedFormat =>
@@ -101,6 +115,10 @@ class Loan {
   bool isFinished() {
     return dateFinished != null;
   }
+
+  bool get isServerSaved => syncState == serverSaved;
+
+  bool get isClientConfirmed => clientConfirmedAt != null;
 
   void toggleFinished() {
     if (isFinished()) {
@@ -171,6 +189,8 @@ class Loan {
     int? mortgageId,
     int? familyRelationId,
     int? mortgageMaterialId,
+    String? syncState,
+    DateTime? clientConfirmedAt,
   }) => Loan(
     id: id ?? this.id,
     depositorName: depositorName ?? this.depositorName,
@@ -197,6 +217,8 @@ class Loan {
     completionNotes: completionNotes ?? this.completionNotes,
     familyRelationId: familyRelationId ?? this.familyRelationId,
     mortgageMaterialId: mortgageMaterialId ?? this.mortgageMaterialId,
+    syncState: syncState ?? this.syncState,
+    clientConfirmedAt: clientConfirmedAt ?? this.clientConfirmedAt,
   );
 
   static Loan fromJson(Map<String, Object?> json) => Loan(
@@ -231,6 +253,12 @@ class Loan {
     completionNotes: json[LoanFields.completionNotes] as String? ?? '',
     familyRelationId: json[LoanFields.familyRelationId] as int,
     mortgageMaterialId: json[LoanFields.mortgageMaterialId] as int,
+    syncState: json[LoanFields.syncState] as String? ?? locallySaved,
+    clientConfirmedAt: json[LoanFields.clientConfirmedAt] == null
+        ? null
+        : DateTime.parse(
+            json[LoanFields.clientConfirmedAt] as String,
+          ).toLocal(),
   );
 
   Map<String, Object?> toJson() {
@@ -279,6 +307,10 @@ class Loan {
       LoanFields.completionNotes: completionNotes,
       LoanFields.familyRelationId: familyRelationId,
       LoanFields.mortgageMaterialId: mortgageMaterialId,
+      LoanFields.syncState: syncState,
+      LoanFields.clientConfirmedAt: clientConfirmedAt
+          ?.toUtc()
+          .toIso8601String(),
     };
   }
 

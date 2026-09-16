@@ -34,8 +34,7 @@ void main() {
         interestRate: 0,
         durationInDays: 1,
       );
-      final json = loan.copy(id: 1).toJson()
-        ..[LoanFields.loanAmount] = 0.0;
+      final json = loan.copy(id: 1).toJson()..[LoanFields.loanAmount] = 0.0;
 
       expect(Loan.fromJson(json).loanAmount, 10000);
     });
@@ -184,6 +183,42 @@ void main() {
 
       json.remove(LoanFields.weight);
       expect(Loan.fromJson(json).weight, 0);
+    });
+
+    test('delivery and client confirmation markers survive round trip', () {
+      final confirmedAt = DateTime.utc(2026, 2, 3, 4, 5, 6);
+      final loan =
+          _loan(
+            interestType: InterestType.simple,
+            interestRate: 0,
+            durationInDays: 1,
+          ).copy(
+            id: 1,
+            syncState: Loan.serverSaved,
+            clientConfirmedAt: confirmedAt,
+          );
+
+      final restored = Loan.fromJson(loan.toJson());
+
+      expect(restored.isServerSaved, isTrue);
+      expect(restored.isClientConfirmed, isTrue);
+      expect(restored.clientConfirmedAt!.isAtSameMomentAs(confirmedAt), isTrue);
+    });
+
+    test('legacy records default to locally saved', () {
+      final json =
+          _loan(
+              interestType: InterestType.simple,
+              interestRate: 0,
+              durationInDays: 1,
+            ).copy(id: 1).toJson()
+            ..remove(LoanFields.syncState)
+            ..remove(LoanFields.clientConfirmedAt);
+
+      final restored = Loan.fromJson(json);
+
+      expect(restored.isServerSaved, isFalse);
+      expect(restored.isClientConfirmed, isFalse);
     });
   });
 }

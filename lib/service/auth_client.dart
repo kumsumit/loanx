@@ -97,6 +97,7 @@ class AuthClient {
     if (linkedToLocalOwner) {
       try {
         await flushPendingLoanShares();
+        await flushPendingVerifiedLoans();
         await flushPendingFinancialEvents();
         await flushPendingSyncMutations();
       } catch (_) {
@@ -108,27 +109,60 @@ class AuthClient {
     return true;
   }
 
-  /// Verifies a phone challenge without signing this device into that phone's
-  /// account. This is used when a lender optionally verifies a borrower's
-  /// contact number while creating a local loan record.
-  Future<bool> verifyOtpForContact(
-    PhoneNumber phone,
-    String otp,
-    String language,
-  ) async {
+  /// Verifies a phone challenge in the authenticated lender context. This
+  /// never signs the device into the borrower's account.
+  Future<String?> verifyOtpForContact(PhoneNumber phone, String otp) async {
     if (_challenge == null) throw StateError('OTP challenge is missing');
-    final result = await network.verifyOtp(
+    final tokens = await _readTokens();
+    if (tokens == null) return null;
+    final result = await network.verifyContactOtp(
       serverAddress: _address,
       serverName: _name,
       trustedCertificatePem: _certificate,
       deviceId: _deviceId(),
+      accessToken: tokens.accessToken,
       challengeId: _challenge!,
       phoneE164: _e164(phone),
       otp: otp,
-      preferredLanguage: language,
     );
-    if (!result.success) return false;
+    if (!result.success) return null;
     _challenge = null;
+    return result.verificationId;
+  }
+
+  Future<bool> createVerifiedLoan({
+    required String verificationId,
+    required String operationId,
+    required String borrowerPartyId,
+    required String borrowerName,
+    String borrowerEmail = '',
+    String borrowerCountryCode = '',
+    required Map<String, Object?> loanPayload,
+  }) async {
+    final tokens = await _readTokens();
+    final session = await _readSessionJson();
+    final workspaceId = session['workspace_id'] as String?;
+    if (tokens == null || workspaceId == null || workspaceId.isEmpty) {
+      return false;
+    }
+    final result = await network.createVerifiedLoan(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: tokens.accessToken,
+      workspaceId: workspaceId,
+      operationId: operationId,
+      verificationId: verificationId,
+      borrowerPartyId: borrowerPartyId,
+      borrowerName: borrowerName,
+      borrowerEmail: borrowerEmail,
+      borrowerCountryCode: borrowerCountryCode,
+      loanPayloadJson: utf8.encode(jsonEncode(loanPayload)),
+    );
+    if (!result.success) {
+      throw StateError(result.errorMessage ?? 'Unable to save loan to server');
+    }
     return true;
   }
 
@@ -259,6 +293,114 @@ class AuthClient {
     await db.flush();
   }
 
+  Future<void> queueVerifiedLoan({
+    required String verificationId,
+    required String operationId,
+    required String borrowerPartyId,
+    required String borrowerName,
+    String borrowerEmail = '',
+    String borrowerCountryCode = '',
+    required Map<String, Object?> loanPayload,
+    LoanxDatabasePort? database,
+  }) async {
+    final db = database ?? await DatabaseHelper.instance.database;
+    final owners = await db.query('localOwners');
+    if (owners.length != 1) {
+      throw StateError('A single local owner is required');
+    }
+    final ownerId = owners.single['id'] as String;
+    final now = DateTime.now().toUtc().toIso8601String();
+    await db.transaction((tx) async {
+      await tx.insert('pendingVerifiedLoans', {
+        'ownerId': ownerId,
+        'operationId': operationId,
+        'verificationId': verificationId,
+        'borrowerPartyId': borrowerPartyId,
+        'borrowerName': borrowerName,
+        'borrowerEmail': borrowerEmail,
+        'borrowerCountryCode': borrowerCountryCode,
+        'loanPayloadJson': jsonEncode(loanPayload),
+        'status': 'PENDING',
+        'attemptCount': 0,
+        'createdAt': now,
+        'updatedAt': now,
+      });
+    });
+  }
+
+  Future<void> flushPendingVerifiedLoans({LoanxDatabasePort? database}) async {
+    if (!hasServerConfiguration) return;
+    final tokens = await _readTokens();
+    final session = await _readSessionJson();
+    final workspaceId = session['workspace_id'] as String?;
+    if (tokens == null || workspaceId == null || workspaceId.isEmpty) return;
+    final db = database ?? await DatabaseHelper.instance.database;
+    final owners = await db.query('localOwners');
+    if (owners.length != 1 ||
+        owners.single['remoteWorkspaceId'] != workspaceId) {
+      return;
+    }
+    final ownerId = owners.single['id'] as String;
+    final rows = await db.query(
+      'pendingVerifiedLoans',
+      where: 'ownerId = ? AND status = ?',
+      whereArgs: [ownerId, 'PENDING'],
+      orderBy: 'createdAt ASC',
+    );
+    for (final row in rows) {
+      final operationId = row['operationId'] as String;
+      final now = DateTime.now().toUtc().toIso8601String();
+      try {
+        final result = await network.createVerifiedLoan(
+          serverAddress: _address,
+          serverName: _name,
+          trustedCertificatePem: _certificate,
+          deviceId: _deviceId(),
+          accessToken: tokens.accessToken,
+          workspaceId: workspaceId,
+          operationId: operationId,
+          verificationId: row['verificationId'] as String,
+          borrowerPartyId: row['borrowerPartyId'] as String,
+          borrowerName: row['borrowerName'] as String,
+          borrowerEmail: row['borrowerEmail'] as String? ?? '',
+          borrowerCountryCode: row['borrowerCountryCode'] as String? ?? '',
+          loanPayloadJson: utf8.encode(row['loanPayloadJson'] as String),
+        );
+        if (!result.success) {
+          throw StateError(result.errorMessage ?? 'Verified loan sync failed');
+        }
+        final payload = jsonDecode(row['loanPayloadJson'] as String);
+        final loanUid = payload is Map ? payload['loan_id'] : null;
+        await db.transaction((tx) async {
+          await tx.update(
+            'pendingVerifiedLoans',
+            {'status': 'SENT', 'lastError': null, 'updatedAt': now},
+            where: 'operationId = ? AND ownerId = ?',
+            whereArgs: [operationId, ownerId],
+          );
+          if (loanUid is String && loanUid.isNotEmpty) {
+            await tx.update(
+              'loans',
+              {'syncState': 'SERVER_SAVED'},
+              where: 'uid = ? AND ownerId = ?',
+              whereArgs: [loanUid, ownerId],
+            );
+          }
+        });
+      } catch (error) {
+        final attempts = ((row['attemptCount'] as num?)?.toInt() ?? 0) + 1;
+        await db.update(
+          'pendingVerifiedLoans',
+          {'attemptCount': attempts, 'lastError': '$error', 'updatedAt': now},
+          where: 'operationId = ? AND ownerId = ?',
+          whereArgs: [operationId, ownerId],
+        );
+        break;
+      }
+    }
+    await db.flush();
+  }
+
   /// Sends locally committed entity mutations to PostgreSQL. Mutations are
   /// marked SENT only after the server commits its durable mutation, change,
   /// audit, and idempotency records. Rows stay pending across offline runs.
@@ -303,12 +445,22 @@ class AuthClient {
         if (!result.success) {
           throw StateError(result.errorMessage ?? 'Sync mutation failed');
         }
-        await db.update(
-          'pendingSyncMutations',
-          {'status': 'SENT', 'lastError': null, 'updatedAt': now},
-          where: 'operationId = ? AND ownerId = ?',
-          whereArgs: [operationId, ownerId],
-        );
+        await db.transaction((tx) async {
+          await tx.update(
+            'pendingSyncMutations',
+            {'status': 'SENT', 'lastError': null, 'updatedAt': now},
+            where: 'operationId = ? AND ownerId = ?',
+            whereArgs: [operationId, ownerId],
+          );
+          if (row['entityType'] == 'loan' && row['entityId'] is String) {
+            await tx.update(
+              'loans',
+              {'syncState': 'SERVER_SAVED'},
+              where: 'uid = ? AND ownerId = ?',
+              whereArgs: [row['entityId'], ownerId],
+            );
+          }
+        });
       } catch (error) {
         final attempts = ((row['attemptCount'] as num?)?.toInt() ?? 0) + 1;
         await db.update(
@@ -617,6 +769,7 @@ class AuthClient {
       if (linkedToLocalOwner) {
         try {
           await flushPendingLoanShares();
+          await flushPendingVerifiedLoans();
           await flushPendingFinancialEvents();
           await flushPendingSyncMutations();
         } catch (_) {
