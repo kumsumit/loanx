@@ -265,12 +265,29 @@ final class ConnectedRepository {
     if (loans.isEmpty) throw StateError('Loan is unavailable');
     final type = _text(resourceType, 50, true)!.toUpperCase();
     if (!const {
+      'LOAN',
       'STATEMENT',
       'RECEIPT',
       'DOCUMENT',
       'COLLATERAL',
     }.contains(type)) {
       throw ArgumentError('Unsupported shared resource type');
+    }
+    if (type == 'LOAN') {
+      if (resourceId != loanUid ||
+          loans.single['borrowerPartyId'] != recipientPartyId ||
+          loans.single['lenderPartyId'] != selfPartyId ||
+          loans.single['relationshipId'] == null) {
+        throw StateError('Loan cannot be shared with this party');
+      }
+      final relationship = await database.query(
+        'relationships',
+        where: 'id = ? AND ownerId = ? AND status = ?',
+        whereArgs: [loans.single['relationshipId'], ownerId, 'ACTIVE'],
+      );
+      if (relationship.length != 1) {
+        throw StateError('Loan relationship is not active');
+      }
     }
     final previous = await database.query(
       'sharedResources',

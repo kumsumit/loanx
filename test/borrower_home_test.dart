@@ -67,6 +67,9 @@ void main() {
       ),
     );
 
+    await _share(db, 'visible-loan', 'borrower');
+    await _share(db, 'external-loan', 'borrower');
+
     await _notification(db, 'visible-notice', 'borrower', 'visible-loan');
     await _notification(db, 'unrelated-notice', 'borrower', 'external-loan');
     await _notification(
@@ -79,10 +82,60 @@ void main() {
     final dashboard = await loadBorrowerDashboard(db);
 
     expect(dashboard.loans.map((item) => item.loanUid), ['visible-loan']);
+    expect(dashboard.loans.single.lenderPartyId, 'connected-lender');
     expect(dashboard.loans.single.lenderName, 'Connected Lender');
     expect(dashboard.notifications.map((item) => item.id), ['visible-notice']);
   });
+
+  test('an active relationship alone never reveals an unshared loan', () async {
+    await db.insert(
+      'loans',
+      _loan(
+        uid: 'unshared',
+        lenderId: 'connected-lender',
+        borrowerId: 'borrower',
+        relationshipId: 'connected-relationship',
+      ),
+    );
+    expect((await loadBorrowerDashboard(db)).loans, isEmpty);
+    await _share(db, 'unshared', 'borrower');
+    expect((await loadBorrowerDashboard(db)).loans, hasLength(1));
+    await db.update(
+      'sharedResources',
+      {'revokedAt': DateTime.utc(2026, 9, 16).toIso8601String()},
+      where: 'id = ?',
+      whereArgs: ['share-unshared'],
+    );
+    expect((await loadBorrowerDashboard(db)).loans, isEmpty);
+  });
+
+  test('sharing cannot attach an unrelated relationship to a loan', () async {
+    await db.insert(
+      'loans',
+      _loan(
+        uid: 'wrong-relationship',
+        lenderId: 'connected-lender',
+        borrowerId: 'borrower',
+        relationshipId: 'external-relationship',
+      ),
+    );
+    await _share(db, 'wrong-relationship', 'borrower');
+    expect((await loadBorrowerDashboard(db)).loans, isEmpty);
+  });
 }
+
+Future<void> _share(Database db, String uid, String recipient) => db
+    .insert('sharedResources', {
+      'id': 'share-$uid',
+      'ownerId': 'owner',
+      'loanUid': uid,
+      'recipientPartyId': recipient,
+      'resourceType': 'LOAN',
+      'resourceId': uid,
+      'visibility': 'SHARED',
+      'sharedAt': DateTime.utc(2026, 9, 16).toIso8601String(),
+    })
+    .then((_) {});
 
 Future<void> _relationship(Database db, String id, String lenderId) async {
   final now = DateTime.utc(2026, 9, 16).toIso8601String();

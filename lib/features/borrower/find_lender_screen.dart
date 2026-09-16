@@ -6,10 +6,21 @@ import 'package:loanx/src/rust/api/network.dart' as network;
 enum LenderSearchArea { locality, city, pincode }
 
 class LenderSearchRequest {
-  const LenderSearchRequest({required this.area, required this.query});
+  const LenderSearchRequest({
+    required this.area,
+    required this.query,
+    this.afterId = '',
+  });
 
   final LenderSearchArea area;
   final String query;
+  final String afterId;
+}
+
+class NearbyLenderPage {
+  const NearbyLenderPage(this.lenders, this.nextAfterId);
+  final List<NearbyLender> lenders;
+  final String nextAfterId;
 }
 
 /// Public marketplace information returned by the lender directory.
@@ -38,12 +49,20 @@ class NearbyLender {
 
 typedef NearbyLenderSearch =
     Future<List<NearbyLender>> Function(LenderSearchRequest request);
+typedef NearbyLenderPageSearch =
+    Future<NearbyLenderPage> Function(LenderSearchRequest request);
 
 class FindLenderScreen extends StatefulWidget {
-  const FindLenderScreen({this.search, this.onLenderSelected, super.key});
+  const FindLenderScreen({
+    this.search,
+    this.pageSearch,
+    this.onLenderSelected,
+    super.key,
+  });
 
   /// Tests and alternate deployments may override the production directory.
   final NearbyLenderSearch? search;
+  final NearbyLenderPageSearch? pageSearch;
   final ValueChanged<NearbyLender>? onLenderSelected;
 
   @override
@@ -59,6 +78,9 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
   String? _error;
   bool _isSearching = false;
   int _searchGeneration = 0;
+  String _nextAfterId = '';
+  String _submittedQuery = '';
+  LenderSearchArea _submittedArea = LenderSearchArea.locality;
 
   @override
   void dispose() {
@@ -72,7 +94,9 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
       _area = area;
       _results = null;
       _error = null;
+      _nextAfterId = '';
     });
+    _searchGeneration++;
     _formKey.currentState?.reset();
   }
 
@@ -116,12 +140,20 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
     setState(() {
       _isSearching = true;
       _error = null;
+      _nextAfterId = '';
     });
 
     try {
-      final results = await (widget.search ?? _searchPublicDirectory)(request);
+      final page = widget.search != null
+          ? NearbyLenderPage(await widget.search!(request), '')
+          : await (widget.pageSearch ?? _searchPublicDirectory)(request);
       if (!mounted || generation != _searchGeneration) return;
-      setState(() => _results = results);
+      setState(() {
+        _results = page.lenders;
+        _nextAfterId = page.nextAfterId;
+        _submittedQuery = request.query;
+        _submittedArea = request.area;
+      });
     } catch (_) {
       if (!mounted || generation != _searchGeneration) return;
       setState(() {
@@ -135,7 +167,7 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
     }
   }
 
-  Future<List<NearbyLender>> _searchPublicDirectory(
+  Future<NearbyLenderPage> _searchPublicDirectory(
     LenderSearchRequest request,
   ) async {
     final client = activeAuthClient;
@@ -149,8 +181,54 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
         LenderSearchArea.pincode => 3,
       },
       query: request.query,
+      afterId: request.afterId,
     );
-    return result.lenders.map(_nearbyLender).toList(growable: false);
+    return NearbyLenderPage(
+      result.lenders.map(_nearbyLender).toList(growable: false),
+      result.nextAfterId,
+    );
+  }
+
+  Future<void> _loadMore() async {
+    if (_isSearching || _nextAfterId.isEmpty) return;
+    final generation = _searchGeneration;
+    final cursor = _nextAfterId;
+    setState(() => _isSearching = true);
+    try {
+      final page = await (widget.pageSearch ?? _searchPublicDirectory)(
+        LenderSearchRequest(
+          area: _submittedArea,
+          query: _submittedQuery,
+          afterId: cursor,
+        ),
+      );
+      if (!mounted || generation != _searchGeneration) return;
+      setState(() {
+        final seen = (_results ?? const <NearbyLender>[])
+            .map((item) => item.id)
+            .toSet();
+        _results = [
+          ...?_results,
+          ...page.lenders.where((item) => seen.add(item.id)),
+        ];
+        _nextAfterId = page.nextAfterId == cursor ? '' : page.nextAfterId;
+        _error = null;
+      });
+    } catch (_) {
+      if (mounted && generation == _searchGeneration) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'More lenders could not be loaded. Please try again.'.tr(),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted && generation == _searchGeneration) {
+        setState(() => _isSearching = false);
+      }
+    }
   }
 
   @override
@@ -223,9 +301,11 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
                               tooltip: 'Clear'.tr(),
                               onPressed: () {
                                 _queryController.clear();
+                                _searchGeneration++;
                                 setState(() {
                                   _results = null;
                                   _error = null;
+                                  _nextAfterId = '';
                                 });
                               },
                               icon: const Icon(Icons.clear_rounded),
@@ -273,6 +353,16 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
                         }
                       },
                 ),
+                if (_nextAfterId.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    key: const Key('load-more-lenders'),
+                    onPressed: _isSearching ? null : _loadMore,
+                    child: Text(
+                      _isSearching ? 'Loading…'.tr() : 'Load more lenders'.tr(),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

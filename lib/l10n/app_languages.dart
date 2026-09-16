@@ -31,6 +31,8 @@ final appSupportedLocales = <Locale>[
 const appDefaultLocale = Locale('en');
 
 String appLanguageName(Locale locale) => appLanguages
-    .firstWhere((language) => language.locale.languageCode == locale.languageCode,
-        orElse: () => appLanguages.first)
+    .firstWhere(
+      (language) => language.locale.languageCode == locale.languageCode,
+      orElse: () => appLanguages.first,
+    )
     .nativeName;

@@ -87,4 +87,57 @@ void main() {
     expect(find.text('No lenders found'), findsOneWidget);
     expect(find.text('Anita Finance'), findsNothing);
   });
+
+  testWidgets('paginates published lenders without duplicating results', (
+    tester,
+  ) async {
+    final requestedCursors = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: FindLenderScreen(
+          pageSearch: (request) async {
+            requestedCursors.add(request.afterId);
+            if (request.afterId.isEmpty) {
+              return const NearbyLenderPage([
+                NearbyLender(
+                  id: 'one',
+                  displayName: 'First Lender',
+                  locationLabel: 'Bengaluru',
+                ),
+              ], 'next');
+            }
+            return const NearbyLenderPage([
+              NearbyLender(
+                id: 'one',
+                displayName: 'First Lender',
+                locationLabel: 'Bengaluru',
+              ),
+              NearbyLender(
+                id: 'two',
+                displayName: 'Second Lender',
+                locationLabel: 'Bengaluru',
+              ),
+            ], '');
+          },
+        ),
+      ),
+    );
+    await tester.enterText(
+      find.byKey(const Key('lender-area-query')),
+      'Bengaluru',
+    );
+    await tester.tap(find.byKey(const Key('search-lenders')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('load-more-lenders')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.byKey(const Key('load-more-lenders')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('load-more-lenders')));
+    await tester.pumpAndSettle();
+    expect(requestedCursors, ['', 'next']);
+    expect(find.text('Second Lender'), findsOneWidget);
+    expect(find.byKey(const Key('load-more-lenders')), findsNothing);
+  });
 }

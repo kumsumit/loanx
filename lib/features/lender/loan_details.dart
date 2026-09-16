@@ -14,6 +14,7 @@ import 'package:loanx/features/lender/add_loan.dart';
 import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/service/upi_validator.dart';
+import 'package:loanx/features/lender/repayment_history_screen.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
@@ -40,6 +41,22 @@ class LoanDetails extends ConsumerWidget {
       appBar: AppBar(
         title: Text(LocaleKeys.loanDetails.tr()),
         actions: [
+          IconButton(
+            tooltip: 'Repayment history'.tr(),
+            icon: const Icon(Icons.receipt_long_outlined),
+            onPressed: () async {
+              final database = await ref.read(dBProvider.future);
+              if (!context.mounted) return;
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => RepaymentHistoryScreen(
+                    database: database,
+                    loan: currentLoan,
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             tooltip: LocaleKeys.saveBorrowerAsContact.tr(),
             icon: const Icon(Icons.person_add_alt_1_outlined),

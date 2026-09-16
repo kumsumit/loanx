@@ -31,6 +31,7 @@ pub struct OtpChallenge {
 #[flutter_rust_bridge::frb]
 pub struct AuthTokens {
     pub success: bool,
+    pub transport_unavailable: bool,
     pub access_token: String,
     pub refresh_token: String,
     pub user_id: String,
@@ -69,7 +70,83 @@ pub struct PublicLender {
     pub currency_scale: u32,
     pub categories: Vec<String>,
     pub verification_level: String,
+    pub available: bool,
     pub public_description: String,
+}
+
+impl From<v1::PublicLenderProfile> for PublicLender {
+    fn from(profile: v1::PublicLenderProfile) -> Self {
+        Self {
+            id: profile.id,
+            display_name: profile.display_name,
+            locality: profile.locality,
+            city: profile.city,
+            postal_code: profile.postal_code,
+            country_code: profile.country_code,
+            minimum_loan_minor: profile.minimum_loan_minor,
+            maximum_loan_minor: profile.maximum_loan_minor,
+            currency: profile.currency,
+            currency_scale: profile.currency_scale,
+            categories: profile.categories,
+            verification_level: profile.verification_level,
+            available: profile.available,
+            public_description: profile.public_description,
+        }
+    }
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
+pub struct MyLenderProfile {
+    pub success: bool,
+    pub profile: Option<PublicLender>,
+    pub published: bool,
+    pub error_message: Option<String>,
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn my_lender_profile(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+) -> MyLenderProfile {
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::MyLenderProfile(v1::MyLenderProfileRequest {}),
+    )
+    .await
+    {
+        Ok(v1::response::Result::MyLenderProfile(value)) => MyLenderProfile {
+            success: true,
+            profile: value.profile.map(PublicLender::from),
+            published: value.published,
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(value)) => MyLenderProfile {
+            success: false,
+            profile: None,
+            published: false,
+            error_message: Some(value.message),
+        },
+        Ok(_) => MyLenderProfile {
+            success: false,
+            profile: None,
+            published: false,
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(cause) => MyLenderProfile {
+            success: false,
+            profile: None,
+            published: false,
+            error_message: Some(cause.to_string()),
+        },
+    }
 }
 
 #[derive(Debug)]
@@ -79,6 +156,142 @@ pub struct LenderSearchResult {
     pub lenders: Vec<PublicLender>,
     pub next_after_id: String,
     pub error_message: Option<String>,
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
+pub struct AccountBootstrap {
+    pub success: bool,
+    pub user_id: String,
+    pub workspace_id: String,
+    pub self_party_id: String,
+    pub phone_e164: String,
+    pub preferred_language: String,
+    pub error_message: Option<String>,
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn account_bootstrap(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+) -> AccountBootstrap {
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::AccountBootstrap(v1::AccountBootstrapRequest {}),
+    )
+    .await
+    {
+        Ok(v1::response::Result::AccountBootstrap(value)) => AccountBootstrap {
+            success: true,
+            user_id: value.user_id,
+            workspace_id: value.workspace_id,
+            self_party_id: value.self_party_id,
+            phone_e164: value.phone_e164,
+            preferred_language: value.preferred_language,
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(value)) => AccountBootstrap {
+            success: false,
+            user_id: String::new(),
+            workspace_id: String::new(),
+            self_party_id: String::new(),
+            phone_e164: String::new(),
+            preferred_language: String::new(),
+            error_message: Some(value.message),
+        },
+        Ok(_) => AccountBootstrap {
+            success: false,
+            user_id: String::new(),
+            workspace_id: String::new(),
+            self_party_id: String::new(),
+            phone_e164: String::new(),
+            preferred_language: String::new(),
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(cause) => AccountBootstrap {
+            success: false,
+            user_id: String::new(),
+            workspace_id: String::new(),
+            self_party_id: String::new(),
+            phone_e164: String::new(),
+            preferred_language: String::new(),
+            error_message: Some(cause.to_string()),
+        },
+    }
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn publish_public_lender(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    display_name: String,
+    locality: String,
+    city: String,
+    postal_code: String,
+    country_code: String,
+    minimum_loan_minor: String,
+    maximum_loan_minor: String,
+    currency: String,
+    currency_scale: u32,
+    categories: Vec<String>,
+    available: bool,
+    published: bool,
+    public_description: String,
+) -> NetworkResult {
+    let minimum = match minimum_loan_minor.parse::<i64>() {
+        Ok(value) => value,
+        Err(_) => {
+            return NetworkResult {
+                success: false,
+                error_message: Some("invalid minimum loan amount".into()),
+            }
+        }
+    };
+    let maximum = match maximum_loan_minor.parse::<i64>() {
+        Ok(value) => value,
+        Err(_) => {
+            return NetworkResult {
+                success: false,
+                error_message: Some("invalid maximum loan amount".into()),
+            }
+        }
+    };
+    simple_network_result(
+        send_request(
+            &server_address,
+            &server_name,
+            &trusted_certificate_pem,
+            &device_id,
+            access_token,
+            v1::request::Payload::PublishLenderProfile(v1::PublishLenderProfileRequest {
+                display_name,
+                locality,
+                city,
+                postal_code,
+                country_code,
+                minimum_loan_minor: minimum,
+                maximum_loan_minor: maximum,
+                currency,
+                currency_scale,
+                categories,
+                available,
+                published,
+                public_description,
+            }),
+        )
+        .await,
+        |result| matches!(result, v1::response::Result::PublishLenderProfile(_)),
+    )
 }
 
 #[flutter_rust_bridge::frb]
@@ -123,25 +336,7 @@ pub async fn search_public_lenders(
     {
         Ok(v1::response::Result::SearchLenders(value)) => LenderSearchResult {
             success: true,
-            lenders: value
-                .lenders
-                .into_iter()
-                .map(|profile| PublicLender {
-                    id: profile.id,
-                    display_name: profile.display_name,
-                    locality: profile.locality,
-                    city: profile.city,
-                    postal_code: profile.postal_code,
-                    country_code: profile.country_code,
-                    minimum_loan_minor: profile.minimum_loan_minor,
-                    maximum_loan_minor: profile.maximum_loan_minor,
-                    currency: profile.currency,
-                    currency_scale: profile.currency_scale,
-                    categories: profile.categories,
-                    verification_level: profile.verification_level,
-                    public_description: profile.public_description,
-                })
-                .collect(),
+            lenders: value.lenders.into_iter().map(PublicLender::from).collect(),
             next_after_id: value.next_after_id,
             error_message: None,
         },
@@ -366,6 +561,7 @@ pub async fn verify_otp(
     {
         Ok(v1::response::Result::VerifyOtp(v)) => AuthTokens {
             success: true,
+            transport_unavailable: false,
             access_token: v.access_token,
             refresh_token: v.refresh_token,
             user_id: v.user_id,
@@ -373,6 +569,7 @@ pub async fn verify_otp(
         },
         Ok(v1::response::Result::Error(v)) => AuthTokens {
             success: false,
+            transport_unavailable: false,
             access_token: String::new(),
             refresh_token: String::new(),
             user_id: String::new(),
@@ -380,6 +577,7 @@ pub async fn verify_otp(
         },
         Ok(_) => AuthTokens {
             success: false,
+            transport_unavailable: false,
             access_token: String::new(),
             refresh_token: String::new(),
             user_id: String::new(),
@@ -387,6 +585,7 @@ pub async fn verify_otp(
         },
         Err(e) => AuthTokens {
             success: false,
+            transport_unavailable: true,
             access_token: String::new(),
             refresh_token: String::new(),
             user_id: String::new(),
@@ -453,6 +652,7 @@ pub async fn refresh_session(
     {
         Ok(v1::response::Result::RefreshToken(v)) => AuthTokens {
             success: true,
+            transport_unavailable: false,
             access_token: v.access_token,
             refresh_token: v.refresh_token,
             user_id: String::new(),
@@ -460,6 +660,7 @@ pub async fn refresh_session(
         },
         Ok(v1::response::Result::Error(v)) => AuthTokens {
             success: false,
+            transport_unavailable: false,
             access_token: String::new(),
             refresh_token: String::new(),
             user_id: String::new(),
@@ -467,6 +668,7 @@ pub async fn refresh_session(
         },
         Ok(_) => AuthTokens {
             success: false,
+            transport_unavailable: false,
             access_token: String::new(),
             refresh_token: String::new(),
             user_id: String::new(),
@@ -474,6 +676,7 @@ pub async fn refresh_session(
         },
         Err(e) => AuthTokens {
             success: false,
+            transport_unavailable: true,
             access_token: String::new(),
             refresh_token: String::new(),
             user_id: String::new(),

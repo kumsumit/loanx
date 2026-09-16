@@ -94,12 +94,13 @@ class BackupService {
         "backup-${DateTime.now().toIso8601String()}$_backupExtension";
     driveFile.parents = ["appDataFolder"];
     final database = await DatabaseHelper.instance.database;
+    // Flush both stores before asking ToStore for its archive. Otherwise a
+    // manifest may describe settings newer than the database snapshot.
+    await AppSettings.flush();
+    await database.flush();
     final backupPath = await database.backup(compress: true);
     final file = File(backupPath);
-    debugPrint(file.path);
     if (file.existsSync()) {
-      await AppSettings.flush();
-      await database.flush();
       final backupBytes = BackupArchive.encode(
         database: await file.readAsBytes(),
         settings: AppSettings.exportBackupSettings(),
@@ -111,9 +112,6 @@ class BackupService {
         driveFile,
         uploadMedia: drive.Media(Stream.value(backupBytes), backupBytes.length),
       );
-      debugPrint(result.id);
-      debugPrint(result.name);
-      debugPrint(result.mimeType);
       if (result.id != null) {
         // Retain previous generations until an explicit retention policy exists.
         AppSettings.putDriveFileId(result.id!);
@@ -154,7 +152,9 @@ class BackupService {
     try {
       bool isDownloaded = false;
       final driveApi = await getDriveApi(account: account);
-      final saveFile = File(join((await getTemporaryDirectory()).path, 'loanx-restore.tostore.zip'));
+      final saveFile = File(
+        join((await getTemporaryDirectory()).path, 'loanx-restore.tostore.zip'),
+      );
       if (driveApi != null) {
         final fileList = (await driveApi.files.list(
           spaces: 'appDataFolder',
@@ -255,7 +255,9 @@ class BackupService {
       await tempFile.writeAsBytes(databaseBytes, flush: true);
       final database = await DatabaseHelper.instance.database;
       final restored = await database.restore(tempFile.path);
-      if (!restored) throw const FormatException('ToStore rejected the backup.');
+      if (!restored) {
+        throw const FormatException('ToStore rejected the backup.');
+      }
     } finally {
       if (await tempFile.exists()) await tempFile.delete();
     }
@@ -342,7 +344,9 @@ class BackupService {
       promptIfNecessary: false,
     );
     if (headers?["X-Goog-AuthUser"] != null) {
-      AppSettings.putDriveUser(int.tryParse(headers!["X-Goog-AuthUser"] ?? "") ?? 0);
+      AppSettings.putDriveUser(
+        int.tryParse(headers!["X-Goog-AuthUser"] ?? "") ?? 0,
+      );
     }
     await AppSettings.flush();
     return authorization;

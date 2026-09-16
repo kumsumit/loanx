@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -10,6 +11,8 @@ import 'package:loanx/main.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/features/lender/ask_backup_screen.dart';
 import 'package:loanx/features/lender/dashboard.dart';
+import 'package:loanx/features/borrower/home.dart';
+import 'package:loanx/features/lender/home.dart';
 import 'package:loanx/features/lender/error.dart';
 import 'package:loanx/features/auth/unauthorized.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,7 +37,11 @@ void main() {
     await directory.delete(recursive: true);
   });
 
-  Widget app({bool storageReady = true, bool authenticated = true}) {
+  Widget app({
+    bool storageReady = true,
+    bool authenticated = true,
+    Future<void> Function()? initializeBridge,
+  }) {
     return EasyLocalization(
       supportedLocales: const [Locale('en')],
       path: 'lib/l10n',
@@ -43,8 +50,19 @@ void main() {
       child: ProviderScope(
         overrides: [
           authenticateProvider.overrideWith((ref) async => authenticated),
+          borrowerDashboardProvider.overrideWith(
+            (ref) async => const BorrowerDashboardData(
+              loans: [],
+              notifications: [],
+            ),
+          ),
+          networkCheckerProvider.overrideWith((ref) => Stream.value(false)),
         ],
-        child: MyApp(storageReady: storageReady),
+        child: MyApp(
+          storageReady: storageReady,
+          initializeBridge: initializeBridge ?? () async {},
+          startOptionalServices: () async {},
+        ),
       ),
     );
   }
@@ -90,13 +108,27 @@ void main() {
   ) async {
     AppSettings.putOnboardingInterest(1); // AccountType.borrower.index
     AppSettings.putPlanSelectionCompleted(false);
-    await AppSettings.flush();
 
+    // Pumping the app must never wait for the optional cloud bootstrap.
     await tester.pumpWidget(app());
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(find.byType(DashBoard), findsOneWidget);
+    expect(find.byType(BorrowerHome), findsOneWidget);
+    expect(find.byType(Home), findsNothing);
     expect(find.byType(AskBackupScreen), findsNothing);
+  });
+
+  testWidgets('an unavailable cloud bridge cannot lock local loan access', (
+    tester,
+  ) async {
+    final unavailable = Completer<void>();
+    await tester.pumpWidget(
+      app(initializeBridge: () => unavailable.future),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AskBackupScreen), findsOneWidget);
+    unavailable.complete();
   });
 
   testWidgets('local authentication gates workspace onboarding', (
@@ -118,6 +150,7 @@ void main() {
   testWidgets('phone metadata failure never builds the login screen', (
     tester,
   ) async {
+    AppSettings.putOnboardingInterest(1); // Borrower access needs account link.
     AppSettings.putPhoneAuthVerified(false);
     await tester.pumpWidget(
       EasyLocalization(
@@ -125,10 +158,43 @@ void main() {
         path: 'lib/l10n',
         assetLoader: const CodegenLoader(),
         fallbackLocale: const Locale('en'),
-        child: const ProviderScope(child: MyApp(phoneMetadataReady: false)),
+        child: ProviderScope(
+          child: MyApp(
+            phoneMetadataReady: false,
+            initializeBridge: () async {},
+            startOptionalServices: () async {},
+          ),
+        ),
       ),
     );
     await tester.pumpAndSettle();
     expect(find.byType(ErrorPage), findsOneWidget);
+  });
+
+  testWidgets('a local lender workspace does not require phone metadata', (
+    tester,
+  ) async {
+    AppSettings.putOnboardingInterest(0);
+    AppSettings.putPhoneAuthVerified(false);
+    await tester.pumpWidget(
+      EasyLocalization(
+        supportedLocales: const [Locale('en')],
+        path: 'lib/l10n',
+        assetLoader: const CodegenLoader(),
+        fallbackLocale: const Locale('en'),
+        child: ProviderScope(
+          overrides: [
+            authenticateProvider.overrideWith((ref) async => true),
+          ],
+          child: MyApp(
+            phoneMetadataReady: false,
+            initializeBridge: () async {},
+            startOptionalServices: () async {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AskBackupScreen), findsOneWidget);
   });
 }

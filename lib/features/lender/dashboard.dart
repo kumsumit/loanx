@@ -13,6 +13,8 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/features/lender/home.dart';
 import 'package:loanx/features/lender/manage.dart';
 import 'package:loanx/features/lender/add_loan.dart';
+import 'package:loanx/features/lender/public_profile_screen.dart';
+import 'package:loanx/features/auth/connect_account_screen.dart';
 import 'package:loanx/features/borrower/home.dart';
 import 'package:loanx/service/printing_service.dart';
 import 'package:loanx/service/update_service.dart';
@@ -30,17 +32,21 @@ class DashBoard extends HookWidget {
   Widget build(BuildContext context) {
     final usesBorrowerExperience = AppSettings.getUsesBorrowerExperience();
     final usesBothExperience = AppSettings.getUsesBothExperience();
-    final pages = <Widget>[
-      const Home(),
-      const Manage(),
-      if (usesBothExperience) const BorrowerHome(),
-    ];
+    final pages = usesBorrowerExperience
+        ? <Widget>[const BorrowerHome()]
+        : <Widget>[
+            const Home(),
+            const Manage(),
+            if (usesBothExperience) const BorrowerHome(),
+          ];
     final currentIndex = useState<int>(0);
-    final title = useState<String>(LocaleKeys.loanx.tr());
+    final title = useState<String>(
+      usesBorrowerExperience ? 'My loans'.tr() : LocaleKeys.loanx.tr(),
+    );
     final theme = Theme.of(context);
     useEffect(() {
       title.value = switch (currentIndex.value) {
-        0 => LocaleKeys.loanx.tr(),
+        0 => usesBorrowerExperience ? 'My loans'.tr() : LocaleKeys.loanx.tr(),
         1 => LocaleKeys.manage.tr(),
         _ => 'Borrowing'.tr(),
       };
@@ -74,6 +80,24 @@ class DashBoard extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          if (!usesBorrowerExperience && !AppSettings.getPhoneAuthVerified())
+            IconButton(
+              tooltip: 'Connect account'.tr(),
+              icon: const Icon(Icons.person_add_alt_1_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ConnectAccountScreen()),
+              ),
+            ),
+          if (!usesBorrowerExperience)
+            IconButton(
+              tooltip: 'Public lender profile'.tr(),
+              icon: const Icon(Icons.storefront_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PublicProfileScreen()),
+              ),
+            ),
+        ],
         title: Row(
           children: [
             // The contextual actions can grow to six buttons when a loan is
@@ -236,9 +260,13 @@ Weight: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit
                           if (loanSelectionList.length == 1)
                             IconButton(
                               onPressed: () {
+                                final selectedId = loanSelectionList.single;
                                 final loan = ref
                                     .read(loanListProvider)
-                                    .value![0];
+                                    .value
+                                    ?.where((item) => item.id == selectedId)
+                                    .firstOrNull;
+                                if (loan == null) return;
                                 final familyRelationList = ref.read(
                                   familyRelationListProvider,
                                 );
@@ -344,10 +372,11 @@ Shared from LoanX
                                 final selectedLoan = ref
                                     .read(loanListProvider)
                                     .value
-                                    ?.firstWhere(
+                                    ?.where(
                                       (loan) =>
                                           loan.id == loanSelectionList.single,
-                                    );
+                                    )
+                                    .firstOrNull;
                                 if (selectedLoan == null) return;
 
                                 if (!context.mounted) return;

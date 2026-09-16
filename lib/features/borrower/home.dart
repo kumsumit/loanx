@@ -13,11 +13,13 @@ class BorrowerLoanSummary {
   const BorrowerLoanSummary({
     required this.loan,
     required this.loanUid,
+    required this.lenderPartyId,
     required this.lenderName,
   });
 
   final Loan loan;
   final String loanUid;
+  final String lenderPartyId;
   final String lenderName;
 }
 
@@ -84,6 +86,21 @@ Future<BorrowerDashboardData> loadBorrowerDashboard(Database db) async {
       whereArgs: [relationshipId, ownerId, 'ACTIVE'],
     );
     if (relationships.length != 1) continue;
+    final relationship = relationships.single;
+    if (!((relationship['partyAId'] == selfPartyId &&
+            relationship['partyBId'] == lenderPartyId) ||
+        (relationship['partyBId'] == selfPartyId &&
+            relationship['partyAId'] == lenderPartyId))) {
+      continue;
+    }
+
+    final shares = await db.query(
+      'sharedResources',
+      where:
+          'ownerId = ? AND loanUid = ? AND recipientPartyId = ? AND resourceType = ? AND resourceId = ?',
+      whereArgs: [ownerId, loanUid, selfPartyId, 'LOAN', loanUid],
+    );
+    if (!shares.any((share) => share['revokedAt'] == null)) continue;
 
     final lenders = await db.query(
       'parties',
@@ -99,6 +116,7 @@ Future<BorrowerDashboardData> loadBorrowerDashboard(Database db) async {
       BorrowerLoanSummary(
         loan: Loan.fromJson(row),
         loanUid: loanUid,
+        lenderPartyId: lenderPartyId,
         lenderName:
             (lender['displayName'] as String?)?.trim().isNotEmpty == true
             ? (lender['displayName'] as String).trim()
@@ -167,6 +185,10 @@ class _BorrowerDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = data.loans.where((item) => !item.loan.isFinished()).toList();
+    final byLender = <String, List<BorrowerLoanSummary>>{};
+    for (final item in data.loans) {
+      byLender.putIfAbsent(item.lenderPartyId, () => []).add(item);
+    }
     final interestTotals = _totals(active, (loan) => loan.calculateInterest());
     final amountDueTotals = _totals(
       active,
@@ -205,6 +227,33 @@ class _BorrowerDashboard extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+                Text(
+                  'My lenders'.tr(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                if (byLender.isEmpty)
+                  Text('No connected lenders'.tr())
+                else
+                  ...byLender.values.map((loans) {
+                    final openLoans = loans
+                        .where((item) => !item.loan.isFinished())
+                        .toList();
+                    return Card(
+                      child: ExpansionTile(
+                        title: Text(loans.first.lenderName),
+                        subtitle: Text(
+                          '${loans.length} ${'loans'.tr()} · '
+                          '${'Amount due'.tr()}: '
+                          '${_totals(openLoans, (loan) => loan.calculateCollectable())}',
+                        ),
+                        children: [
+                          for (final item in loans) _LoanCard(item: item),
+                        ],
+                      ),
+                    );
+                  }),
                 const SizedBox(height: 24),
                 Text(
                   'Lender notifications'.tr(),

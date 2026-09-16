@@ -7,7 +7,75 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `simple_network_result`, `write_frame`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+
+Future<MyLenderProfile> myLenderProfile({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+}) => RustLib.instance.api.crateApiNetworkMyLenderProfile(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+);
+
+Future<AccountBootstrap> accountBootstrap({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+}) => RustLib.instance.api.crateApiNetworkAccountBootstrap(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+);
+
+Future<NetworkResult> publishPublicLender({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String displayName,
+  required String locality,
+  required String city,
+  required String postalCode,
+  required String countryCode,
+  required String minimumLoanMinor,
+  required String maximumLoanMinor,
+  required String currency,
+  required int currencyScale,
+  required List<String> categories,
+  required bool available,
+  required bool published,
+  required String publicDescription,
+}) => RustLib.instance.api.crateApiNetworkPublishPublicLender(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  displayName: displayName,
+  locality: locality,
+  city: city,
+  postalCode: postalCode,
+  countryCode: countryCode,
+  minimumLoanMinor: minimumLoanMinor,
+  maximumLoanMinor: maximumLoanMinor,
+  currency: currency,
+  currencyScale: currencyScale,
+  categories: categories,
+  available: available,
+  published: published,
+  publicDescription: publicDescription,
+);
 
 Future<LenderSearchResult> searchPublicLenders({
   required String serverAddress,
@@ -176,8 +244,52 @@ Future<ServerHello> connectAndHello({
   clientBuild: clientBuild,
 );
 
+class AccountBootstrap {
+  final bool success;
+  final String userId;
+  final String workspaceId;
+  final String selfPartyId;
+  final String phoneE164;
+  final String preferredLanguage;
+  final String? errorMessage;
+
+  const AccountBootstrap({
+    required this.success,
+    required this.userId,
+    required this.workspaceId,
+    required this.selfPartyId,
+    required this.phoneE164,
+    required this.preferredLanguage,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      userId.hashCode ^
+      workspaceId.hashCode ^
+      selfPartyId.hashCode ^
+      phoneE164.hashCode ^
+      preferredLanguage.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AccountBootstrap &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          userId == other.userId &&
+          workspaceId == other.workspaceId &&
+          selfPartyId == other.selfPartyId &&
+          phoneE164 == other.phoneE164 &&
+          preferredLanguage == other.preferredLanguage &&
+          errorMessage == other.errorMessage;
+}
+
 class AuthTokens {
   final bool success;
+  final bool transportUnavailable;
   final String accessToken;
   final String refreshToken;
   final String userId;
@@ -185,6 +297,7 @@ class AuthTokens {
 
   const AuthTokens({
     required this.success,
+    required this.transportUnavailable,
     required this.accessToken,
     required this.refreshToken,
     required this.userId,
@@ -194,6 +307,7 @@ class AuthTokens {
   @override
   int get hashCode =>
       success.hashCode ^
+      transportUnavailable.hashCode ^
       accessToken.hashCode ^
       refreshToken.hashCode ^
       userId.hashCode ^
@@ -205,6 +319,7 @@ class AuthTokens {
       other is AuthTokens &&
           runtimeType == other.runtimeType &&
           success == other.success &&
+          transportUnavailable == other.transportUnavailable &&
           accessToken == other.accessToken &&
           refreshToken == other.refreshToken &&
           userId == other.userId &&
@@ -281,6 +396,37 @@ class LenderSearchResult {
           errorMessage == other.errorMessage;
 }
 
+class MyLenderProfile {
+  final bool success;
+  final PublicLender? profile;
+  final bool published;
+  final String? errorMessage;
+
+  const MyLenderProfile({
+    required this.success,
+    this.profile,
+    required this.published,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      profile.hashCode ^
+      published.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MyLenderProfile &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          profile == other.profile &&
+          published == other.published &&
+          errorMessage == other.errorMessage;
+}
+
 class NetworkResult {
   final bool success;
   final String? errorMessage;
@@ -343,6 +489,7 @@ class PublicLender {
   final int currencyScale;
   final List<String> categories;
   final String verificationLevel;
+  final bool available;
   final String publicDescription;
 
   const PublicLender({
@@ -358,6 +505,7 @@ class PublicLender {
     required this.currencyScale,
     required this.categories,
     required this.verificationLevel,
+    required this.available,
     required this.publicDescription,
   });
 
@@ -375,6 +523,7 @@ class PublicLender {
       currencyScale.hashCode ^
       categories.hashCode ^
       verificationLevel.hashCode ^
+      available.hashCode ^
       publicDescription.hashCode;
 
   @override
@@ -394,6 +543,7 @@ class PublicLender {
           currencyScale == other.currencyScale &&
           categories == other.categories &&
           verificationLevel == other.verificationLevel &&
+          available == other.available &&
           publicDescription == other.publicDescription;
 }
 

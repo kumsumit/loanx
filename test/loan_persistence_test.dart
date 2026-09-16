@@ -80,4 +80,50 @@ void main() {
     expect(stored['lenderPartyId'], isNot(stored['borrowerPartyId']));
     expect(await database.query('parties'), hasLength(2));
   });
+
+  test('owner-scoped reads and writes reject unrelated loan IDs', () async {
+    await createLoan();
+    final local = (await database.query(Loan.tableName)).single;
+    final foreign = Map<String, Object?>.from(local)
+      ..remove('id')
+      ..['uid'] = 'foreign-uid'
+      ..['ownerId'] = 'another-local-owner'
+      ..['lenderPartyId'] = 'another-self-party';
+    final foreignId = await database.insert(Loan.tableName, foreign);
+    final loans = await container
+        .read(loanListProvider.notifier)
+        .readAllLoans();
+    expect(loans, hasLength(1));
+    await expectLater(
+      container.read(loanListProvider.notifier).delete(foreignId),
+      throwsStateError,
+    );
+    await expectLater(
+      container.read(loanListProvider.notifier).bulkDelete([
+        loans.single.id!,
+        foreignId,
+      ]),
+      throwsStateError,
+    );
+    expect(await database.query(Loan.tableName), hasLength(2));
+  });
+
+  test(
+    'borrower preference cannot create or mutate financial records',
+    () async {
+      final id = await createLoan();
+      final loan = container.read(loanListProvider).requireValue.single;
+      AppSettings.putOnboardingInterest(1);
+      await expectLater(createLoan(), throwsStateError);
+      await expectLater(
+        container.read(loanListProvider.notifier).updateLoan(loan),
+        throwsStateError,
+      );
+      await expectLater(
+        container.read(loanListProvider.notifier).delete(id),
+        throwsStateError,
+      );
+      expect(await database.query(Loan.tableName), hasLength(1));
+    },
+  );
 }

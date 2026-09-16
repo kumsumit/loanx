@@ -25,10 +25,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  AccountBootstrap dco_decode_account_bootstrap(dynamic raw);
+
+  @protected
   AuthTokens dco_decode_auth_tokens(dynamic raw);
 
   @protected
   bool dco_decode_bool(dynamic raw);
+
+  @protected
+  PublicLender dco_decode_box_autoadd_public_lender(dynamic raw);
 
   @protected
   ChatCredentials dco_decode_chat_credentials(dynamic raw);
@@ -49,10 +55,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<PublicLender> dco_decode_list_public_lender(dynamic raw);
 
   @protected
+  MyLenderProfile dco_decode_my_lender_profile(dynamic raw);
+
+  @protected
   NetworkResult dco_decode_network_result(dynamic raw);
 
   @protected
   String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  PublicLender? dco_decode_opt_box_autoadd_public_lender(dynamic raw);
 
   @protected
   OtpChallenge dco_decode_otp_challenge(dynamic raw);
@@ -76,10 +88,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  AccountBootstrap sse_decode_account_bootstrap(SseDeserializer deserializer);
+
+  @protected
   AuthTokens sse_decode_auth_tokens(SseDeserializer deserializer);
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  PublicLender sse_decode_box_autoadd_public_lender(
+    SseDeserializer deserializer,
+  );
 
   @protected
   ChatCredentials sse_decode_chat_credentials(SseDeserializer deserializer);
@@ -104,10 +124,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  MyLenderProfile sse_decode_my_lender_profile(SseDeserializer deserializer);
+
+  @protected
   NetworkResult sse_decode_network_result(SseDeserializer deserializer);
 
   @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  PublicLender? sse_decode_opt_box_autoadd_public_lender(
+    SseDeserializer deserializer,
+  );
 
   @protected
   OtpChallenge sse_decode_otp_challenge(SseDeserializer deserializer);
@@ -134,10 +162,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
+  void sse_encode_account_bootstrap(
+    AccountBootstrap self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_auth_tokens(AuthTokens self, SseSerializer serializer);
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_public_lender(
+    PublicLender self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_chat_credentials(
@@ -170,10 +210,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_my_lender_profile(
+    MyLenderProfile self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_network_result(NetworkResult self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_public_lender(
+    PublicLender? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_otp_challenge(OtpChallenge self, SseSerializer serializer);

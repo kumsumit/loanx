@@ -56,8 +56,8 @@ class _FallbackMaterialLocalizationsDelegate
   Future<MaterialLocalizations> load(Locale locale) {
     final materialLocale =
         GlobalMaterialLocalizations.delegate.isSupported(locale)
-            ? locale
-            : appDefaultLocale;
+        ? locale
+        : appDefaultLocale;
 
     return GlobalMaterialLocalizations.delegate.load(materialLocale);
   }
@@ -77,8 +77,8 @@ class _FallbackCupertinoLocalizationsDelegate
   Future<CupertinoLocalizations> load(Locale locale) {
     final cupertinoLocale =
         GlobalCupertinoLocalizations.delegate.isSupported(locale)
-            ? locale
-            : appDefaultLocale;
+        ? locale
+        : appDefaultLocale;
 
     return GlobalCupertinoLocalizations.delegate.load(cupertinoLocale);
   }
@@ -97,13 +97,6 @@ AuthClient? activeAuthClient;
 /// Bootstrap state
 /// ---------------------------------------------------------------------------
 
-enum _BootstrapState {
-  waiting,
-  initializing,
-  ready,
-  failed,
-}
-
 /// ---------------------------------------------------------------------------
 /// Main
 /// ---------------------------------------------------------------------------
@@ -112,9 +105,7 @@ Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
   // Keep the native splash visible until Flutter has rendered its first frame.
-  FlutterNativeSplash.preserve(
-    widgetsBinding: widgetsBinding,
-  );
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // -------------------------------------------------------------------------
   // Global error handling
@@ -124,17 +115,13 @@ Future<void> main() async {
     FlutterError.presentError(details);
 
     if (kDebugMode) {
-      debugPrint(
-        'FlutterError: ${details.exception}\n${details.stack}',
-      );
+      debugPrint('FlutterError: ${details.exception}\n${details.stack}');
     }
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
     if (kDebugMode) {
-      debugPrint(
-        'PlatformDispatcher error: $error\n$stack',
-      );
+      debugPrint('PlatformDispatcher error: $error\n$stack');
     }
 
     return true;
@@ -144,9 +131,7 @@ Future<void> main() async {
     if (kReleaseMode) {
       return Material(
         child: Center(
-          child: Text(
-            LocaleKeys.somethingWentWrongPleaseTryAgain.tr(),
-          ),
+          child: Text(LocaleKeys.somethingWentWrongPleaseTryAgain.tr()),
         ),
       );
     }
@@ -211,9 +196,7 @@ Future<void> main() async {
   WidgetsBinding.instance.addPostFrameCallback((_) {
     FlutterNativeSplash.remove();
 
-    unawaited(
-      _initializeBackgroundServices(),
-    );
+    unawaited(_initializeBackgroundServices());
   });
 }
 
@@ -235,14 +218,10 @@ Future<bool> _initializeLocalStorage() async {
 
     return true;
   } catch (error, stackTrace) {
-    debugPrint(
-      'LoanX local storage initialization failed: $error',
-    );
+    debugPrint('LoanX local storage initialization failed: $error');
 
     if (kDebugMode) {
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+      debugPrintStack(stackTrace: stackTrace);
     }
 
     return false;
@@ -263,23 +242,14 @@ Future<void> _initializeBackgroundServices() async {
     // Only attempt session restoration when the local state indicates that
     // authentication was previously completed.
     if (AppSettings.getPhoneAuthVerified()) {
-      final restored =
-          await activeAuthClient?.restoreSession() ?? false;
-
-      if (!restored) {
-        AppSettings.putPhoneAuthVerified(false);
-        await AppSettings.flush();
-      }
+      // Cloud session state must never revoke device-local workspace access.
+      await activeAuthClient?.restoreSession();
     }
   } catch (error, stackTrace) {
-    debugPrint(
-      'LoanX background bootstrap failed: $error',
-    );
+    debugPrint('LoanX background bootstrap failed: $error');
 
     if (kDebugMode) {
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
@@ -295,32 +265,19 @@ Future<void> initializeOptionalServices({
   Future<void> Function()? googleSignIn,
   Future<void> Function()? backgroundJobs,
 }) async {
-  Future<void> initialize(
-    String name,
-    Future<void> Function() action,
-  ) async {
+  Future<void> initialize(String name, Future<void> Function() action) async {
     try {
-      await action().timeout(
-        const Duration(seconds: 15),
-      );
+      await action().timeout(const Duration(seconds: 15));
     } catch (_) {
-      debugPrint(
-        'LoanX $name initialization unavailable.',
-      );
+      debugPrint('LoanX $name initialization unavailable.');
     }
   }
 
   await Future.wait([
-    initialize(
-      'Google Drive',
-      googleSignIn ?? initializeGoogleSignIn,
-    ),
+    initialize('Google Drive', googleSignIn ?? initializeGoogleSignIn),
     initialize(
       'background jobs',
-      backgroundJobs ??
-          () => Workmanager().initialize(
-                callbackDispatcher,
-              ),
+      backgroundJobs ?? () => Workmanager().initialize(callbackDispatcher),
     ),
   ]);
 }
@@ -329,21 +286,15 @@ Future<void> initializeOptionalServices({
 /// Phone metadata
 /// ---------------------------------------------------------------------------
 
-Future<bool> initializePhoneMetadata({
-  Future<void> Function()? loader,
-}) async {
+Future<bool> initializePhoneMetadata({Future<void> Function()? loader}) async {
   try {
-    await (loader ?? PhoneMetadataBootstrap.ensureInitialized)
-        .call()
-        .timeout(
-          const Duration(seconds: 15),
-        );
+    await (loader ?? PhoneMetadataBootstrap.ensureInitialized).call().timeout(
+      const Duration(seconds: 15),
+    );
 
     return true;
   } catch (_) {
-    debugPrint(
-      'LoanX phone metadata initialization unavailable.',
-    );
+    debugPrint('LoanX phone metadata initialization unavailable.');
 
     return false;
   }
@@ -360,6 +311,8 @@ class MyApp extends ConsumerStatefulWidget {
     this.phoneMetadataReady = true,
     this.sendOtp,
     this.verifyOtp,
+    this.initializeBridge,
+    this.startOptionalServices,
   });
 
   final bool storageReady;
@@ -367,6 +320,8 @@ class MyApp extends ConsumerStatefulWidget {
 
   final OtpSender? sendOtp;
   final OtpVerifier? verifyOtp;
+  final Future<void> Function()? initializeBridge;
+  final Future<void> Function()? startOptionalServices;
 
   @override
   ConsumerState<MyApp> createState() => _MyAppState();
@@ -376,15 +331,12 @@ class MyApp extends ConsumerStatefulWidget {
 /// Application state
 /// ---------------------------------------------------------------------------
 
-class _MyAppState extends ConsumerState<MyApp>
-    with WidgetsBindingObserver {
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   bool? _hasSelectedLanguage;
   bool? _hasSelectedInterest;
   bool? _hasVerifiedPhone;
 
   PhoneNumber? _pendingPhoneNumber;
-
-  _BootstrapState _bootstrapState = _BootstrapState.waiting;
 
   bool _backgroundBootstrapStarted = false;
 
@@ -406,19 +358,15 @@ class _MyAppState extends ConsumerState<MyApp>
         AppSettings.getLanguageSelectionCompleted() ||
         context.savedLocale != null;
 
-    _hasSelectedInterest ??=
-        AppSettings.getOnboardingInterest() >= 0;
+    _hasSelectedInterest ??= AppSettings.getOnboardingInterest() >= 0;
 
-    _hasVerifiedPhone ??=
-        AppSettings.getPhoneAuthVerified();
+    _hasVerifiedPhone ??= AppSettings.getPhoneAuthVerified();
 
     if (!_backgroundBootstrapStarted) {
       _backgroundBootstrapStarted = true;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        unawaited(
-          _watchBackgroundBootstrap(),
-        );
+        unawaited(_watchBackgroundBootstrap());
       });
     }
   }
@@ -428,101 +376,50 @@ class _MyAppState extends ConsumerState<MyApp>
   /// -------------------------------------------------------------------------
 
   Future<void> _watchBackgroundBootstrap() async {
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _bootstrapState = _BootstrapState.initializing;
-    });
-
     try {
-      // Rust must be ready before authentication providers are allowed
-      // to resolve their state.
-      await RustLib.init();
+      // Connected services are optional for a device-local workspace. Never
+      // gate local authentication or loan access on a network bridge.
+      await (widget.initializeBridge?.call() ?? RustLib.init());
 
       if (AppSettings.getPhoneAuthVerified()) {
-        final restored =
-            await activeAuthClient?.restoreSession() ?? false;
-
-        if (!restored) {
-          AppSettings.putPhoneAuthVerified(false);
-
-          await AppSettings.flush();
-
-          if (!mounted) {
-            return;
-          }
-
-          setState(() {
-            _hasVerifiedPhone = false;
-          });
-        }
+        // An expired or unavailable cloud session only disables connected
+        // actions. Existing local data remains accessible on this device.
+        await activeAuthClient?.restoreSession();
       }
 
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _bootstrapState = _BootstrapState.ready;
-      });
-
-      // Optional providers/services can now initialize without blocking UI.
-      unawaited(
-        initializeOptionalServices(),
-      );
     } catch (error, stackTrace) {
-      debugPrint(
-        'LoanX bootstrap initialization failed: $error',
-      );
+      debugPrint('LoanX bootstrap initialization failed: $error');
 
       if (kDebugMode) {
-        debugPrintStack(
-          stackTrace: stackTrace,
-        );
+        debugPrintStack(stackTrace: stackTrace);
       }
 
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _bootstrapState = _BootstrapState.failed;
-      });
     }
+    // These services also have no bearing on local authentication or routing.
+    unawaited(
+      widget.startOptionalServices?.call() ?? initializeOptionalServices(),
+    );
   }
 
   /// -------------------------------------------------------------------------
   /// Language
   /// -------------------------------------------------------------------------
 
-  Future<void> _languageSelected(
-    Locale locale,
-  ) async {
+  Future<void> _languageSelected(Locale locale) async {
     if (_hasSelectedLanguage == true) {
       return;
     }
 
-    AppSettings.putLanguageSelectionCompleted(
-      true,
-    );
+    AppSettings.putLanguageSelectionCompleted(true);
 
     // Store this locally before attempting server synchronization.
-    AppSettings.putPendingPreferredLanguage(
-      locale.languageCode,
-    );
+    AppSettings.putPendingPreferredLanguage(locale.languageCode);
 
     await AppSettings.flush();
 
     try {
-      if (await activeAuthClient?.updateLanguage(
-            locale.languageCode,
-          ) ==
-          true) {
-        AppSettings.putPendingPreferredLanguage(
-          '',
-        );
+      if (await activeAuthClient?.updateLanguage(locale.languageCode) == true) {
+        AppSettings.putPendingPreferredLanguage('');
 
         await AppSettings.flush();
       }
@@ -543,12 +440,8 @@ class _MyAppState extends ConsumerState<MyApp>
   /// Account type
   /// -------------------------------------------------------------------------
 
-  Future<void> _interestSelected(
-    AccountType type,
-  ) async {
-    AppSettings.putOnboardingInterest(
-      type.index,
-    );
+  Future<void> _interestSelected(AccountType type) async {
+    AppSettings.putOnboardingInterest(type.index);
 
     await AppSettings.flush();
 
@@ -565,17 +458,13 @@ class _MyAppState extends ConsumerState<MyApp>
   /// OTP
   /// -------------------------------------------------------------------------
 
-  Future<String?> _sendOtp(
-    PhoneNumber phoneNumber,
-  ) async {
+  Future<String?> _sendOtp(PhoneNumber phoneNumber) async {
     if (widget.sendOtp == null) {
       return LocaleKeys.phoneVerificationUnavailable.tr();
     }
 
     try {
-      await widget.sendOtp!(
-        phoneNumber,
-      );
+      await widget.sendOtp!(phoneNumber);
 
       if (!mounted) {
         return null;
@@ -595,13 +484,10 @@ class _MyAppState extends ConsumerState<MyApp>
   /// OTP verification
   /// -------------------------------------------------------------------------
 
-  Future<String?> _verifyOtp(
-    String code,
-  ) async {
+  Future<String?> _verifyOtp(String code) async {
     final phoneNumber = _pendingPhoneNumber;
 
-    if (phoneNumber == null ||
-        widget.verifyOtp == null) {
+    if (phoneNumber == null || widget.verifyOtp == null) {
       return LocaleKeys.phoneVerificationUnavailable.tr();
     }
 
@@ -616,21 +502,13 @@ class _MyAppState extends ConsumerState<MyApp>
         return LocaleKeys.invalidVerificationCode.tr();
       }
 
-      AppSettings.putPhoneAuthVerified(
-        true,
-      );
+      AppSettings.putPhoneAuthVerified(true);
 
-      AppSettings.putVerifiedPhoneNumber(
-        _e164Phone(phoneNumber),
-      );
+      AppSettings.putVerifiedPhoneNumber(_e164Phone(phoneNumber));
 
-      AppSettings.putVerifiedPhoneCountryCode(
-        phoneNumber.isoCode,
-      );
+      AppSettings.putVerifiedPhoneCountryCode(phoneNumber.isoCode);
 
-      AppSettings.putPendingPreferredLanguage(
-        '',
-      );
+      AppSettings.putPendingPreferredLanguage('');
 
       await AppSettings.flush();
 
@@ -653,13 +531,8 @@ class _MyAppState extends ConsumerState<MyApp>
   /// E.164
   /// -------------------------------------------------------------------------
 
-  String _e164Phone(
-    PhoneNumber phoneNumber,
-  ) {
-    return CountryCatalog.e164(
-      phoneNumber.isoCode,
-      phoneNumber.nsn,
-    );
+  String _e164Phone(PhoneNumber phoneNumber) {
+    return CountryCatalog.e164(phoneNumber.isoCode, phoneNumber.nsn);
   }
 
   /// -------------------------------------------------------------------------
@@ -673,9 +546,7 @@ class _MyAppState extends ConsumerState<MyApp>
       return LocaleKeys.couldNotSendCode.tr();
     }
 
-    return _sendOtp(
-      phoneNumber,
-    );
+    return _sendOtp(phoneNumber);
   }
 
   /// -------------------------------------------------------------------------
@@ -683,9 +554,7 @@ class _MyAppState extends ConsumerState<MyApp>
   /// -------------------------------------------------------------------------
 
   @override
-  void didChangeAppLifecycleState(
-    AppLifecycleState state,
-  ) {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!widget.storageReady) {
       return;
     }
@@ -693,26 +562,19 @@ class _MyAppState extends ConsumerState<MyApp>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       unawaited(
-        AppSettings.flush().catchError(
-          (
-            Object _,
-            StackTrace _,
-          ) {
-            debugPrint(
-              'LoanX settings could not be saved; '
-              'previous file retained.',
-            );
-          },
-        ),
+        AppSettings.flush().catchError((Object _, StackTrace _) {
+          debugPrint(
+            'LoanX settings could not be saved; '
+            'previous file retained.',
+          );
+        }),
       );
     }
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(
-      this,
-    );
+    WidgetsBinding.instance.removeObserver(this);
 
     super.dispose();
   }
@@ -722,33 +584,17 @@ class _MyAppState extends ConsumerState<MyApp>
   /// -------------------------------------------------------------------------
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     final themeMode = widget.storageReady
-        ? ref.watch(
-            themeModeManagerProvider,
-          )
+        ? ref.watch(themeModeManagerProvider)
         : ThemeMode.system;
 
-    final appColor = widget.storageReady
-        ? ref.watch(
-            appColorProvider,
-          )
-        : '';
+    final appColor = widget.storageReady ? ref.watch(appColorProvider) : '';
 
     return MaterialApp(
       themeMode: themeMode,
-      theme: AppTheme.light(
-        AppTheme.parseSeed(
-          appColor,
-        ),
-      ),
-      darkTheme: AppTheme.dark(
-        AppTheme.parseSeed(
-          appColor,
-        ),
-      ),
+      theme: AppTheme.light(AppTheme.parseSeed(appColor)),
+      darkTheme: AppTheme.dark(AppTheme.parseSeed(appColor)),
       debugShowCheckedModeBanner: false,
 
       home: _buildHome(context),
@@ -775,15 +621,12 @@ class _MyAppState extends ConsumerState<MyApp>
   /// Home / startup routing
   /// -------------------------------------------------------------------------
 
-  Widget _buildHome(
-    BuildContext context,
-  ) {
+  Widget _buildHome(BuildContext context) {
     // -----------------------------------------------------------------------
     // Critical local initialization failure
     // -----------------------------------------------------------------------
 
-    if (!widget.storageReady ||
-        !widget.phoneMetadataReady) {
+    if (!widget.storageReady) {
       return ErrorPage();
     }
 
@@ -792,20 +635,24 @@ class _MyAppState extends ConsumerState<MyApp>
     // -----------------------------------------------------------------------
 
     if (_hasSelectedLanguage != true) {
-      return StartupLanguageScreen(
-        onLanguageSelected: _languageSelected,
-      );
+      return StartupLanguageScreen(onLanguageSelected: _languageSelected);
     }
 
     // -----------------------------------------------------------------------
-    // Phone authentication
+    // Choose the experience before cloud sign-in. A free local lender must be
+    // able to open an offline workspace without an OTP or phone metadata.
     // -----------------------------------------------------------------------
 
-    if (_hasVerifiedPhone != true) {
+    if (_hasSelectedInterest != true) {
+      return AccountTypeScreen(onContinue: _interestSelected);
+    }
+
+    // Connected borrower records require an authenticated account. Lenders
+    // can link an account later from the dashboard when using cloud features.
+    if (AppSettings.getUsesBorrowerExperience() && _hasVerifiedPhone != true) {
+      if (!widget.phoneMetadataReady) return ErrorPage();
       if (_pendingPhoneNumber == null) {
-        return PhoneLoginScreen(
-          onContinue: _sendOtp,
-        );
+        return PhoneLoginScreen(onContinue: _sendOtp);
       }
 
       return OtpVerificationScreen(
@@ -821,89 +668,56 @@ class _MyAppState extends ConsumerState<MyApp>
     }
 
     // -----------------------------------------------------------------------
-    // Account type
-    // -----------------------------------------------------------------------
-
-    if (_hasSelectedInterest != true) {
-      return AccountTypeScreen(
-        onContinue: _interestSelected,
-      );
-    }
-
-    // -----------------------------------------------------------------------
-    // Rust / session bootstrap
-    //
-    // Don't allow authenticateProvider to execute until Rust/session
-    // initialization has completed.
-    // -----------------------------------------------------------------------
-
-    if (_bootstrapState == _BootstrapState.waiting ||
-        _bootstrapState == _BootstrapState.initializing) {
-      return const AuthScreen();
-    }
-
-    // -----------------------------------------------------------------------
-    // Bootstrap failed
-    // -----------------------------------------------------------------------
-
-    if (_bootstrapState == _BootstrapState.failed) {
-      return ErrorPage();
-    }
-
-    // -----------------------------------------------------------------------
     // Authentication
     // -----------------------------------------------------------------------
 
-    return ref.watch(
-      authenticateProvider,
-    ).when(
-      data: (authenticated) {
-        if (!authenticated) {
-          return const AuthFailurePage();
-        }
+    return ref
+        .watch(authenticateProvider)
+        .when(
+          data: (authenticated) {
+            if (!authenticated) {
+              return const AuthFailurePage();
+            }
 
-        // -------------------------------------------------------------------
-        // Borrower path
-        //
-        // Borrowers do not require lender subscription or Google Drive
-        // backup setup.
-        // -------------------------------------------------------------------
+            // -------------------------------------------------------------------
+            // Borrower path
+            //
+            // Borrowers do not require lender subscription or Google Drive
+            // backup setup.
+            // -------------------------------------------------------------------
 
-        final usesBorrower =
-            AppSettings.getUsesBorrowerExperience();
+            final usesBorrower = AppSettings.getUsesBorrowerExperience();
 
-        if (!usesBorrower &&
-            !AppSettings.getPlanSelectionCompleted()) {
-          return PlanSelectionScreen(
-            onContinue: () {
-              setState(() {});
-            },
-          );
-        }
+            if (!usesBorrower && !AppSettings.getPlanSelectionCompleted()) {
+              return PlanSelectionScreen(
+                onContinue: () {
+                  setState(() {});
+                },
+              );
+            }
 
-        // -------------------------------------------------------------------
-        // Lender local storage / backup setup
-        // -------------------------------------------------------------------
+            // -------------------------------------------------------------------
+            // Lender local storage / backup setup
+            // -------------------------------------------------------------------
 
-        if (!usesBorrower &&
-            !AppSettings.getIsTableCreated()) {
-          return const AskBackupScreen();
-        }
+            if (!usesBorrower && !AppSettings.getIsTableCreated()) {
+              return const AskBackupScreen();
+            }
 
-        // -------------------------------------------------------------------
-        // Main dashboard
-        // -------------------------------------------------------------------
+            // -------------------------------------------------------------------
+            // Main dashboard
+            // -------------------------------------------------------------------
 
-        return const DashBoard();
-      },
+            return const DashBoard();
+          },
 
-      error: (_, _) {
-        return ErrorPage();
-      },
+          error: (_, _) {
+            return ErrorPage();
+          },
 
-      loading: () {
-        return const AuthScreen();
-      },
-    );
+          loading: () {
+            return const AuthScreen();
+          },
+        );
   }
 }

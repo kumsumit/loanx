@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'family_relation.dart';
 import 'mortgage_material.dart';
 import 'weight_units.dart';
+import 'my_borrowers.dart';
 
 class Manage extends StatelessWidget {
   const Manage({super.key});
@@ -11,7 +12,7 @@ class Manage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Column(
         children: [
           Padding(
@@ -23,7 +24,10 @@ class Manage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
               ),
               child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
                 tabs: [
+                  Tab(text: 'My borrowers'.tr()),
                   Tab(text: LocaleKeys.materials.tr()),
                   Tab(text: LocaleKeys.relations.tr()),
                   Tab(text: LocaleKeys.units.tr()),
@@ -34,6 +38,7 @@ class Manage extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
+                const MyBorrowers(),
                 MortgageMaterialView(),
                 FamilyRelationView(),
                 WeightUnitView(),

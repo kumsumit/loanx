@@ -31,6 +31,15 @@ final loanChangesProvider = FutureProvider.family<List<LoanChange>, int>((
   loanId,
 ) async {
   final db = await DatabaseHelper.instance.database;
+  final owners = await db.query('localOwners');
+  if (owners.length != 1) return const [];
+  final owned = await db.query(
+    Loan.tableName,
+    where: 'id = ? AND ownerId = ?',
+    whereArgs: [loanId, owners.single['id']],
+    limit: 1,
+  );
+  if (owned.isEmpty) return const [];
   final rows = await db.query(
     LoanChange.tableName,
     where: '${LoanChangeFields.loanId} = ?',
@@ -708,6 +717,25 @@ class WeightUnitList extends _$WeightUnitList {
 class LoanList extends _$LoanList {
   late Database db;
 
+  Future<String?> _ownerId(DatabaseExecutor executor) async {
+    final owners = await executor.query('localOwners');
+    if (owners.isEmpty) return null;
+    if (owners.length != 1 || owners.single['id'] is! String) {
+      throw StateError('A single local owner is required.');
+    }
+    return owners.single['id'] as String;
+  }
+
+  Future<String> _requiredOwnerId(DatabaseExecutor executor) async =>
+      await _ownerId(executor) ??
+      (throw StateError('Local workspace is unavailable.'));
+
+  void _requireLenderWrite() {
+    if (AppSettings.getUsesBorrowerExperience()) {
+      throw StateError('Borrower financial records are read-only.');
+    }
+  }
+
   @override
   Future<List<Loan>> build() async {
     return await readAllLoans();
@@ -715,8 +743,15 @@ class LoanList extends _$LoanList {
 
   Future<List<Loan>> readAllLoans() async {
     db = ref.watch(dBProvider).value!;
+    final owner = await _ownerId(db);
+    if (owner == null) return [];
     final orderBy = '${LoanFields.dateCreated} DESC';
-    final result = await db.query(Loan.tableName, orderBy: orderBy);
+    final result = await db.query(
+      Loan.tableName,
+      where: 'ownerId = ?',
+      whereArgs: [owner],
+      orderBy: orderBy,
+    );
     return result.map((json) => Loan.fromJson(json)).toList();
   }
 
@@ -756,10 +791,12 @@ class LoanList extends _$LoanList {
     int mortgageMaterialId,
   ) async {
     final orderBy = '${LoanFields.id} ASC';
+    final owner = await _ownerId(db);
+    if (owner == null) return [];
     final result = await db.query(
       Loan.tableName,
-      where: '${LoanFields.mortgageMaterialId} = ?',
-      whereArgs: [mortgageMaterialId],
+      where: '${LoanFields.mortgageMaterialId} = ? AND ownerId = ?',
+      whereArgs: [mortgageMaterialId, owner],
       orderBy: orderBy,
     );
     return result.map((json) => Loan.fromJson(json)).toList();
@@ -845,22 +882,26 @@ class LoanList extends _$LoanList {
   }
 
   Future<List<Loan>> searchLoansByDepositorNameDB(String searchTerm) async {
+    final owner = await _ownerId(db);
+    if (owner == null) return [];
     final orderBy = '${LoanFields.id} ASC';
     final result = await db.query(
       Loan.tableName,
-      where: '${LoanFields.depositorName} LIKE ?',
-      whereArgs: ['%$searchTerm%'],
+      where: '${LoanFields.depositorName} LIKE ? AND ownerId = ?',
+      whereArgs: ['%$searchTerm%', owner],
       orderBy: orderBy,
     );
     return result.map((json) => Loan.fromJson(json)).toList();
   }
 
   Future<List<Loan>> searchMortgagesByRelativeNameDB(String searchTerm) async {
+    final owner = await _ownerId(db);
+    if (owner == null) return [];
     final orderBy = '${LoanFields.id} ASC';
     final result = await db.query(
       Loan.tableName,
-      where: '${LoanFields.relativeName} LIKE ?',
-      whereArgs: ['%$searchTerm%'],
+      where: '${LoanFields.relativeName} LIKE ? AND ownerId = ?',
+      whereArgs: ['%$searchTerm%', owner],
       orderBy: orderBy,
     );
     return result.map((json) => Loan.fromJson(json)).toList();
@@ -888,6 +929,10 @@ class LoanList extends _$LoanList {
     String? currency,
     bool borrowing = false,
   ]) async {
+    _requireLenderWrite();
+    if (borrowing) {
+      throw StateError('Borrowers cannot manually record loan details.');
+    }
     // `add` can be called while this notifier is rebuilding (for example just
     // after a restore). Do not rely on the `late` field having been populated
     // by `readAllLoans` first.
@@ -930,8 +975,8 @@ class LoanList extends _$LoanList {
         final changed = await transaction.update(
           Loan.tableName,
           loan.toJson(),
-          where: '${LoanFields.id} = ?',
-          whereArgs: [loan.id],
+          where: '${LoanFields.id} = ? AND ownerId = ?',
+          whereArgs: [loan.id, await _requiredOwnerId(transaction)],
         );
         if (changed != 1) {
           throw StateError('Loan update did not affect one row.');
@@ -984,6 +1029,7 @@ class LoanList extends _$LoanList {
   }
 
   Future<void> updateLoan(Loan loan) async {
+    _requireLenderWrite();
     db = await ref.read(dBProvider.future);
     try {
       await db.transaction((transaction) async {
@@ -993,8 +1039,8 @@ class LoanList extends _$LoanList {
         final changed = await transaction.update(
           Loan.tableName,
           loan.toJson(),
-          where: '${LoanFields.id} = ?',
-          whereArgs: [loan.id],
+          where: '${LoanFields.id} = ? AND ownerId = ?',
+          whereArgs: [loan.id, await _requiredOwnerId(transaction)],
         );
         if (changed != 1) {
           throw StateError('Loan update did not affect one row.');
@@ -1018,28 +1064,38 @@ class LoanList extends _$LoanList {
 
   Future<Loan> _readLoan(DatabaseExecutor executor, int? id) async {
     if (id == null) throw ArgumentError.notNull('loan.id');
+    final owners = await executor.query('localOwners');
+    if (owners.length != 1) throw StateError('Local workspace is unavailable.');
+    final owner = owners.single;
     final rows = await executor.query(
       Loan.tableName,
-      where: '${LoanFields.id} = ?',
-      whereArgs: [id],
+      where: '${LoanFields.id} = ? AND ownerId = ?',
+      whereArgs: [id, owner['id']],
       limit: 1,
     );
     if (rows.isEmpty) throw StateError('Loan no longer exists.');
+    if (rows.single['lenderPartyId'] != owner['selfPartyId']) {
+      throw StateError('Borrower financial records are read-only.');
+    }
     return Loan.fromJson(rows.single);
   }
 
   Future<void> delete(int id) async {
-    if (state.value == null) return;
-    await db.delete(
-      LoanChange.tableName,
-      where: '${LoanChangeFields.loanId} = ?',
-      whereArgs: [id],
-    );
-    final rid = await db.delete(
-      Loan.tableName,
-      where: '${LoanFields.id} = ?',
-      whereArgs: [id],
-    );
+    _requireLenderWrite();
+    db = await ref.read(dBProvider.future);
+    final rid = await db.transaction((tx) async {
+      await _readLoan(tx, id);
+      await tx.delete(
+        LoanChange.tableName,
+        where: '${LoanChangeFields.loanId} = ?',
+        whereArgs: [id],
+      );
+      return tx.delete(
+        Loan.tableName,
+        where: '${LoanFields.id} = ? AND ownerId = ?',
+        whereArgs: [id, await _requiredOwnerId(tx)],
+      );
+    });
     if (rid > 0) {
       await updateDBTime();
       state = AsyncData(state.value!.where((loan) => loan.id != id).toList());
@@ -1047,21 +1103,29 @@ class LoanList extends _$LoanList {
   }
 
   Future<void> bulkDelete(List<int> ids) async {
-    if (state.value == null) return;
-    final batch = db.batch();
-    for (int id in ids) {
-      batch.delete(
-        LoanChange.tableName,
-        where: '${LoanChangeFields.loanId} = ?',
-        whereArgs: [id],
-      );
-      batch.delete(
-        Loan.tableName,
-        where: '${LoanFields.id} = ?',
-        whereArgs: [id],
-      );
+    _requireLenderWrite();
+    if (ids.isEmpty) return;
+    if (ids.toSet().length != ids.length) {
+      throw ArgumentError('Duplicate loan IDs');
     }
-    await batch.commit(continueOnError: true);
+    db = await ref.read(dBProvider.future);
+    await db.transaction((tx) async {
+      final owner = await _requiredOwnerId(tx);
+      for (final id in ids) {
+        await _readLoan(tx, id);
+        await tx.delete(
+          LoanChange.tableName,
+          where: '${LoanChangeFields.loanId} = ?',
+          whereArgs: [id],
+        );
+        final deleted = await tx.delete(
+          Loan.tableName,
+          where: '${LoanFields.id} = ? AND ownerId = ?',
+          whereArgs: [id, owner],
+        );
+        if (deleted != 1) throw StateError('Loan deletion failed.');
+      }
+    });
     await updateDBTime();
     state = AsyncData(
       state.value!.where((loan) => !ids.contains(loan.id)).toList(),
