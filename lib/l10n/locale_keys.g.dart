@@ -5,6 +5,7 @@
 abstract final class LocaleKeys {
   static const loanDetailsFor = "loanDetailsFor";
   static const daysCount = "daysCount";
+  static const days = "days";
   static const until = "until";
   static const ifRedeemedBeforeThisDate = "ifRedeemedBeforeThisDate";
   static const notRecorded = "notRecorded";
@@ -73,6 +74,9 @@ abstract final class LocaleKeys {
   static const key7Days = "7 days";
   static const aFixedChargeAppliesIfTheItemIsRedeemedEarly =
       "A fixed charge applies if the item is redeemed early.";
+  static const lockInDescription = "lockInDescription";
+  static const noLockInHelper = "noLockInHelper";
+  static const enterValidNumberOfDays = "enterValidNumberOfDays";
   static const about = "About";
   static const aboutLoanx = "About LoanX";
   static const active = "Active";

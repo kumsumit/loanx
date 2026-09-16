@@ -92,4 +92,22 @@ void main() {
       }
     }
   });
+
+  test('lock-in form copy is available in every locale', () async {
+    for (final code in CodegenLoader.mapLocales.keys) {
+      final translations = await loader.load('', Locale(code));
+      for (final key in [
+        'days',
+        'lockInDescription',
+        'noLockInHelper',
+        'enterValidNumberOfDays',
+      ]) {
+        expect(
+          translations![key],
+          isA<String>(),
+          reason: 'Missing localization value for $key in $code',
+        );
+      }
+    }
+  });
 }

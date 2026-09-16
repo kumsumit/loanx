@@ -640,16 +640,14 @@ class LoanInput extends HookConsumerWidget {
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
                         labelText: LocaleKeys.lockInPeriod.tr(),
-                        suffixText: 'days'.tr(),
-                        helperText:
-                            'Enter 0 for no lock-in. A fixed charge applies if the item is redeemed early.'
-                                .tr(),
+                        suffixText: LocaleKeys.days.tr(),
+                        helperText: LocaleKeys.lockInDescription.tr(),
                         helperMaxLines: 2,
                       ),
                       validator: (value) {
                         final days = int.tryParse(value?.trim() ?? '');
                         if (days == null || days < 0) {
-                          return 'Enter a valid number of days'.tr();
+                          return LocaleKeys.enterValidNumberOfDays.tr();
                         }
                         return null;
                       },

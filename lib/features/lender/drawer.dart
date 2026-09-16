@@ -14,6 +14,7 @@ import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/service/currency_presentation.dart';
+import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/update_service.dart';
@@ -1774,6 +1775,13 @@ class MyDrawer extends HookConsumerWidget {
                     ),
                   ],
                 ),
+                if (AppSettings.getPhoneAuthVerified())
+                  ListTile(
+                    key: const Key('logoutButton'),
+                    leading: StyledIcon(Icons.logout_rounded),
+                    title: StyledText('Log out'.tr()),
+                    onTap: () => _logOut(context, isLoading),
+                  ),
                 SizedBox(height: MediaQuery.paddingOf(context).bottom + 32),
               ],
             ),
@@ -2177,13 +2185,13 @@ class _DefaultLockInSettingState extends State<_DefaultLockInSetting> {
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(
                     labelText: LocaleKeys.lockInPeriod.tr(),
-                    suffixText: 'days'.tr(),
-                    helperText: 'Enter 0 for no lock-in'.tr(),
+                    suffixText: LocaleKeys.days.tr(),
+                    helperText: LocaleKeys.noLockInHelper.tr(),
                   ),
                   validator: (value) {
                     final days = int.tryParse(value?.trim() ?? '');
                     if (days == null || days < 0) {
-                      return 'Enter a valid number of days'.tr();
+                      return LocaleKeys.enterValidNumberOfDays.tr();
                     }
                     return null;
                   },

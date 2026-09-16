@@ -643,19 +643,31 @@ class AuthClient {
     }
   }
 
-  Future<void> logout() async {
+  /// Revokes the cloud session and removes this device's cloud credentials.
+  ///
+  /// A user may explicitly choose [localOnly] when the server cannot be
+  /// reached. That is a device logout: it removes local credentials while
+  /// leaving the server session to expire or be revoked on another device.
+  Future<void> logout({bool localOnly = false}) async {
+    if (localOnly) {
+      await clearLocalSession();
+      return;
+    }
+
     final token = (await _readTokens())?.accessToken;
     if (token == null || token.isEmpty) {
       await clearLocalSession();
       return;
     }
-    final result = await network.logoutSession(
-      serverAddress: _address,
-      serverName: _name,
-      trustedCertificatePem: _certificate,
-      deviceId: _deviceId(),
-      accessToken: token,
-    );
+    final result = await network
+        .logoutSession(
+          serverAddress: _address,
+          serverName: _name,
+          trustedCertificatePem: _certificate,
+          deviceId: _deviceId(),
+          accessToken: token,
+        )
+        .timeout(const Duration(seconds: 10));
     if (!result.success) {
       throw StateError(result.errorMessage ?? 'Unable to revoke session');
     }
