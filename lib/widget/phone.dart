@@ -34,6 +34,7 @@ class PhoneWidget extends StatefulWidget {
 
 class _PhoneWidgetState extends State<PhoneWidget> {
   final TextEditingController _fallbackController = TextEditingController();
+  bool _isPhoneInputReady = false;
 
   TextEditingController get _effectiveController =>
       widget.textEditingController ?? _fallbackController;
@@ -52,6 +53,14 @@ class _PhoneWidgetState extends State<PhoneWidget> {
   void initState() {
     super.initState();
     _syncController(widget.initialValue.nsn);
+
+    // intl_phone_number_input updates its own state from the controller while
+    // it is mounting. Mounting it one frame later prevents that notification
+    // from calling setState while Flutter is still in the build phase.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _isPhoneInputReady = true);
+    });
   }
 
   @override
@@ -73,6 +82,10 @@ class _PhoneWidgetState extends State<PhoneWidget> {
   final List<Country> countries = CountryCatalog.phoneCountries;
   @override
   Widget build(BuildContext context) {
+    if (!_isPhoneInputReady) {
+      return const SizedBox.shrink();
+    }
+
     return MaterialInternationalPhoneNumber(
       defaultCountry: CountryCatalog.byCode(
         widget.initialValue.isoCode,

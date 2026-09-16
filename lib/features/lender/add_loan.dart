@@ -21,6 +21,9 @@ import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_dropdown.dart';
 import 'package:loanx/widget/styled_text.dart';
 import 'package:loanx/widget/styled_textfield.dart';
+import 'package:loanx/features/auth/otp_verification_screen.dart';
+import 'package:loanx/service/auth_client.dart';
+import 'package:loanx/src/rust/frb_generated.dart';
 
 class LoanInput extends HookConsumerWidget {
   final Loan? loan;
@@ -120,6 +123,10 @@ class LoanInput extends HookConsumerWidget {
     final phoneNumberController = useTextEditingController(
       text: loan?.phoneNumber ?? '',
     );
+    final borrowerPhone = useState<PhoneNumber>(PhoneNumber(
+      isoCode: 'IN',
+      nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
+    ));
     final addressController = useTextEditingController(
       text: loan?.address ?? '',
     );
@@ -512,6 +519,7 @@ class LoanInput extends HookConsumerWidget {
                   isoCode: "IN",
                   nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
                 ),
+                onChanged: (value) => borrowerPhone.value = value,
               ),
               StyledTextField(
                 failedValidationMessage:
@@ -811,6 +819,14 @@ class LoanInput extends HookConsumerWidget {
                             );
                             return;
                           }
+                          if (!borrowing &&
+                              phoneNumberController.text.trim().isNotEmpty) {
+                            final verified = await _verifyBorrowerPhone(
+                              context,
+                              borrowerPhone.value,
+                            );
+                            if (!verified || !context.mounted) return;
+                          }
                           final earlyCharge = lockInDays.value == 0
                               ? 0.0
                               : _parseDouble(
@@ -931,6 +947,55 @@ class LoanInput extends HookConsumerWidget {
       ),
       // resizeToAvoidBottomInset: true,
     );
+  }
+
+  Future<bool> _verifyBorrowerPhone(
+    BuildContext context,
+    PhoneNumber phone,
+  ) async {
+    if (phone.nsn.trim().isEmpty || !phone.isValid()) return false;
+    final auth = AuthClient();
+    try {
+      await RustLib.init();
+      await auth.requestOtp(phone);
+    } catch (error) {
+      if (context.mounted) {
+        showErrorSnackBar(context, 'Unable to send OTP: $error');
+      }
+      return false;
+    }
+    if (!context.mounted) return false;
+    final result = await Navigator.of(context).push<String?>(
+      MaterialPageRoute(
+        builder: (_) => OtpVerificationScreen(
+          phoneNumber: phone,
+          onVerify: (code) async {
+            try {
+              final verified = await auth.verifyOtpForContact(
+                phone,
+                code,
+                context.locale.languageCode,
+              );
+              if (!verified) return 'Invalid or expired OTP';
+              if (context.mounted) Navigator.of(context).pop(true);
+              return null;
+            } catch (error) {
+              return '$error';
+            }
+          },
+          onResend: () async {
+            try {
+              await auth.requestOtp(phone);
+              return null;
+            } catch (error) {
+              return '$error';
+            }
+          },
+          onChangeNumber: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+    return result == true;
   }
 
   Future<bool> _confirmSave(

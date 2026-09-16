@@ -79,6 +79,30 @@ class AuthClient {
     return true;
   }
 
+  /// Verifies a phone challenge without signing this device into that phone's
+  /// account. This is used when a lender optionally verifies a borrower's
+  /// contact number while creating a local loan record.
+  Future<bool> verifyOtpForContact(
+    PhoneNumber phone,
+    String otp,
+    String language,
+  ) async {
+    if (_challenge == null) throw StateError('OTP challenge is missing');
+    final result = await network.verifyOtp(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      challengeId: _challenge!,
+      phoneE164: _e164(phone),
+      otp: otp,
+      preferredLanguage: language,
+    );
+    if (!result.success) return false;
+    _challenge = null;
+    return true;
+  }
+
   /// Returns true only when the authenticated server profile was updated.
   ///
   /// A language selected before sign-in remains queued locally and is sent

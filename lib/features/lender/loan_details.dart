@@ -20,6 +20,22 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+class _MenuActionLabel extends StatelessWidget {
+  const _MenuActionLabel({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Icon(icon, size: 20),
+      const SizedBox(width: 12),
+      Flexible(child: Text(label)),
+    ],
+  );
+}
+
 class LoanDetails extends ConsumerWidget {
   const LoanDetails({super.key, required this.loan});
 
@@ -58,77 +74,56 @@ class LoanDetails extends ConsumerWidget {
             },
           ),
           IconButton(
-            tooltip: LocaleKeys.saveBorrowerAsContact.tr(),
-            icon: const Icon(Icons.person_add_alt_1_outlined),
-            onPressed: currentLoan.phoneNumber.trim().isEmpty
-                ? null
-                : () async {
-                    final opened = await ContactService.createContact(
-                      name: currentLoan.depositorName,
-                      phoneNumber: currentLoan.phoneNumber,
-                    );
-                    if (context.mounted && !opened) {
-                      showSnackBar(
-                        context,
-                        LocaleKeys.couldNotOpenTheContactEditor.tr(),
-                      );
-                    }
-                  },
-          ),
-          IconButton(
             tooltip: LocaleKeys.shareLoanDetails.tr(),
             icon: const Icon(Icons.share_outlined),
-            onPressed: () async {
-              final relations = ref.read(familyRelationListProvider).value;
-              final materials = ref.read(mortgageMaterialListProvider).value;
-              final relation = _findById(
-                relations,
-                currentLoan.familyRelationId,
-                (item) => item.id,
-              );
-              final material = _findById(
-                materials,
-                currentLoan.mortgageMaterialId,
-                (item) => item.id,
-              );
-              final box = context.findRenderObject() as RenderBox?;
-              SharePlus.instance.share(
-                ShareParams(
-                  subject: _shareCopy(
-                    context.locale,
-                  ).detailsFor(currentLoan.depositorName),
-                  text: _shareText(
-                    currentLoan,
-                    locale: context.locale,
-                    relativeRelation: relation?.name,
-                    mortgageName: material?.name,
-                  ),
-                  sharePositionOrigin: box == null
-                      ? null
-                      : box.localToGlobal(Offset.zero) & box.size,
-                ),
-              );
-            },
+            onPressed: () => _shareLoan(context, ref, currentLoan),
           ),
-          IconButton(
-            tooltip: LocaleKeys.editLoan2.tr(),
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => LoanInput(loan: currentLoan),
+          PopupMenuButton<VoidCallback>(
+            icon: const Icon(Icons.more_vert),
+            tooltip: 'More actions'.tr(),
+            onSelected: (action) => action(),
+            itemBuilder: (context) => [
+              PopupMenuItem<VoidCallback>(
+                enabled: currentLoan.phoneNumber.trim().isNotEmpty,
+                value: () async {
+                  final opened = await ContactService.createContact(
+                    name: currentLoan.depositorName,
+                    phoneNumber: currentLoan.phoneNumber,
+                  );
+                  if (context.mounted && !opened) {
+                    showSnackBar(
+                      context,
+                      LocaleKeys.couldNotOpenTheContactEditor.tr(),
+                    );
+                  }
+                },
+                child: _MenuActionLabel(
+                  icon: Icons.person_add_alt_1_outlined,
+                  label: LocaleKeys.saveBorrowerAsContact.tr(),
                 ),
-              );
-            },
-          ),
-          IconButton(
-            tooltip: currentLoan.isFinished()
-                ? LocaleKeys.loanAlreadyCompleted.tr()
-                : LocaleKeys.markAsComplete.tr(),
-            icon: const Icon(Icons.task_alt_outlined),
-            onPressed: currentLoan.isFinished()
-                ? null
-                : () => _markComplete(context, ref, currentLoan),
+              ),
+              PopupMenuItem<VoidCallback>(
+                value: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => LoanInput(loan: currentLoan),
+                    ),
+                  );
+                },
+                child: _MenuActionLabel(
+                  icon: Icons.edit_outlined,
+                  label: LocaleKeys.editLoan2.tr(),
+                ),
+              ),
+              PopupMenuItem<VoidCallback>(
+                enabled: !currentLoan.isFinished(),
+                value: () => _markComplete(context, ref, currentLoan),
+                child: _MenuActionLabel(
+                  icon: Icons.task_alt_outlined,
+                  label: LocaleKeys.markAsComplete.tr(),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -166,6 +161,38 @@ class LoanDetails extends ConsumerWidget {
             error: (_, _) => const _LoadError(),
             loading: () => const Center(child: CircularProgressIndicator()),
           ),
+    );
+  }
+
+  void _shareLoan(BuildContext context, WidgetRef ref, Loan currentLoan) {
+    final relations = ref.read(familyRelationListProvider).value;
+    final materials = ref.read(mortgageMaterialListProvider).value;
+    final relation = _findById(
+      relations,
+      currentLoan.familyRelationId,
+      (item) => item.id,
+    );
+    final material = _findById(
+      materials,
+      currentLoan.mortgageMaterialId,
+      (item) => item.id,
+    );
+    final box = context.findRenderObject() as RenderBox?;
+    SharePlus.instance.share(
+      ShareParams(
+        subject: _shareCopy(
+          context.locale,
+        ).detailsFor(currentLoan.depositorName),
+        text: _shareText(
+          currentLoan,
+          locale: context.locale,
+          relativeRelation: relation?.name,
+          mortgageName: material?.name,
+        ),
+        sharePositionOrigin: box == null
+            ? null
+            : box.localToGlobal(Offset.zero) & box.size,
+      ),
     );
   }
 

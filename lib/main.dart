@@ -235,24 +235,9 @@ Future<bool> _initializeLocalStorage() async {
 /// ---------------------------------------------------------------------------
 
 Future<void> _initializeBackgroundServices() async {
-  try {
-    // Rust is intentionally started after the first frame.
-    await RustLib.init();
-
-    // Only attempt session restoration when the local state indicates that
-    // authentication was previously completed.
-    if (AppSettings.getPhoneAuthVerified()) {
-      // Cloud session state must never revoke device-local workspace access.
-      await activeAuthClient?.restoreSession();
-    }
-  } catch (error, stackTrace) {
-    debugPrint('LoanX background bootstrap failed: $error');
-
-    if (kDebugMode) {
-      debugPrintStack(stackTrace: stackTrace);
-    }
-  }
-
+  // Rust and session restoration are owned by MyApp._watchBackgroundBootstrap.
+  // Keeping them there gives the app one initialization path and prevents
+  // flutter_rust_bridge from trying to install its global Rust logger twice.
   // These services do not participate in the first screen.
   await initializeOptionalServices();
 }
