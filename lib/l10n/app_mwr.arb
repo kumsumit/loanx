@@ -424,5 +424,7 @@
   "borrowerAccountDescription": "आपरे उधार अर भुगतान रो हिसाब राखो",
   "bothLendingAndBorrowing": "दोनों",
   "bothAccountDescription": "अलग-अलग रिश्तां में उधार देवो अर लेवो",
-  "preferenceCanChangeLater": "ई सिरफ थारो अनुभव निजी बणावै है। पाछै बदल सको हो।"
+  "preferenceCanChangeLater": "ई सिरफ थारो अनुभव निजी बणावै है। पाछै बदल सको हो।",
+  "Amount due": "देय रकम",
+  "Calculated interest": "गणना कियो ब्याज"
 }

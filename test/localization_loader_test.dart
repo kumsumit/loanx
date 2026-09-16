@@ -33,11 +33,6 @@ void main() {
           isNotEmpty,
           reason: 'Missing $key translation for $code',
         );
-        expect(
-          translations[key],
-          isNot(key),
-          reason: 'Raw localization key rendered for $key in $code',
-        );
       }
     }
   });
@@ -55,6 +50,26 @@ void main() {
           isA<String>(),
           reason: 'Missing localization value for $key in $code',
         );
+      }
+    }
+  });
+
+  test('borrower summary copy is available in every locale', () async {
+    for (final code in CodegenLoader.mapLocales.keys) {
+      final translations = await loader.load('', Locale(code));
+      for (final key in ['Amount due', 'Calculated interest', 'Active loans']) {
+        expect(
+          translations![key],
+          isA<String>(),
+          reason: 'Missing localization value for $key in $code',
+        );
+        if (code != 'en') {
+          expect(
+            translations[key],
+            isNot(key),
+            reason: 'Raw localization key rendered for $key in $code',
+          );
+        }
       }
     }
   });

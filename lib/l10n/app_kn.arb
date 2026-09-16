@@ -424,5 +424,7 @@
   "borrowerAccountDescription": "ನಿಮ್ಮ ಸಾಲಗಳು ಮತ್ತು ಮರುಪಾವತಿಗಳನ್ನು ಗಮನಿಸಿ",
   "bothLendingAndBorrowing": "ಎರಡೂ",
   "bothAccountDescription": "ವಿಭಿನ್ನ ಸಂಬಂಧಗಳಲ್ಲಿ ಸಾಲ ನೀಡಿ ಮತ್ತು ಪಡೆಯಿರಿ",
-  "preferenceCanChangeLater": "ಇದು ನಿಮ್ಮ ಅನುಭವವನ್ನು ಮಾತ್ರ ವೈಯಕ್ತೀಕರಿಸುತ್ತದೆ. ನಂತರ ಬದಲಾಯಿಸಬಹುದು."
+  "preferenceCanChangeLater": "ಇದು ನಿಮ್ಮ ಅನುಭವವನ್ನು ಮಾತ್ರ ವೈಯಕ್ತೀಕರಿಸುತ್ತದೆ. ನಂತರ ಬದಲಾಯಿಸಬಹುದು.",
+  "Amount due": "ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ",
+  "Calculated interest": "ಲೆಕ್ಕಹಾಕಿದ ಬಡ್ಡಿ"
 }

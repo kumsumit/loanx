@@ -75,6 +75,18 @@ class MainActivity : FlutterFragmentActivity() {
             return capabilities.isExtremelyConstrained
         }
 
+    /**
+     * Impeller has a wider compatibility risk on legacy 32-bit Android
+     * graphics stacks. Vendor capability flags are not reliable enough here:
+     * affected drivers may initialize Vulkan successfully and still crash on
+     * the raster thread. Keep hardware rendering enabled and fall back to
+     * Skia before using the much slower software renderer.
+     */
+    private val needsImpellerDisabled: Boolean
+        get() =
+            Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q &&
+                !capabilities.supports64Bit
+
     override fun onCreate(savedInstanceState: Bundle?) {
         /*
          * The manifest keeps hardware acceleration enabled for normal Flutter
@@ -83,6 +95,19 @@ class MainActivity : FlutterFragmentActivity() {
          * engine is created. Do not toggle the Android window flag at runtime:
          * it produces an inconsistent renderer configuration.
          */
+        if (needsSoftwareRendering || needsImpellerDisabled) {
+
+            /*
+             * Disable Impeller for the legacy 32-bit Vulkan class as well as
+             * software-rendering fallbacks. This leaves affected devices on
+             * Flutter's hardware Skia renderer whenever possible.
+             */
+            intent.putExtra(
+                FlutterShellArgs.ARG_KEY_TOGGLE_IMPELLER,
+                false
+            )
+        }
+
         if (needsSoftwareRendering) {
 
             /*
@@ -94,16 +119,6 @@ class MainActivity : FlutterFragmentActivity() {
                 true
             )
 
-            /*
-             * Do not request Impeller on this fallback configuration.
-             *
-             * Flutter itself normally handles renderer selection on modern
-             * Android devices.
-             */
-            intent.putExtra(
-                FlutterShellArgs.ARG_KEY_TOGGLE_IMPELLER,
-                false
-            )
         }
 
         super.onCreate(savedInstanceState)
@@ -446,22 +461,6 @@ class MainActivity : FlutterFragmentActivity() {
                 model.contains("j250")
             ) &&
             Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1
-        ) {
-            return true
-        }
-
-        /*
-         * Production crash telemetry: Lava Be_U (Android 10, armeabi-v7a)
-         * has reported a SIGSEGV in Flutter's raster thread while using the
-         * hardware renderer. Keep this exception limited to the observed
-         * model/API combination; other Lava devices should retain GPU
-         * rendering until their own telemetry justifies a fallback.
-         */
-        if (
-            manufacturer == "lava" &&
-            model == "be_u" &&
-            Build.VERSION.SDK_INT == Build.VERSION_CODES.Q &&
-            !capabilities.supports64Bit
         ) {
             return true
         }

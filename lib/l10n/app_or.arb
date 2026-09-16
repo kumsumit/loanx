@@ -424,5 +424,7 @@
   "borrowerAccountDescription": "ଆପଣଙ୍କ ଋଣ ଏବଂ ପରିଶୋଧ ଉପରେ ନଜର ରଖନ୍ତୁ",
   "bothLendingAndBorrowing": "ଉଭୟ",
   "bothAccountDescription": "ବିଭିନ୍ନ ସମ୍ପର୍କରେ ଋଣ ଦିଅନ୍ତୁ ଏବଂ ନିଅନ୍ତୁ",
-  "preferenceCanChangeLater": "ଏହା କେବଳ ଆପଣଙ୍କ ଅନୁଭୂତିକୁ ବ୍ୟକ୍ତିଗତ କରେ। ପରେ ବଦଳାଇ ପାରିବେ।"
+  "preferenceCanChangeLater": "ଏହା କେବଳ ଆପଣଙ୍କ ଅନୁଭୂତିକୁ ବ୍ୟକ୍ତିଗତ କରେ। ପରେ ବଦଳାଇ ପାରିବେ।",
+  "Amount due": "ଦେୟ ରାଶି",
+  "Calculated interest": "ଗଣନା କରାଯାଇଥିବା ସୁଧ"
 }

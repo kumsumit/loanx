@@ -405,7 +405,7 @@ class _LoanSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '$activeCount ${'active loans'.tr()}',
+            '$activeCount ${'Active loans'.tr()}',
             style: TextStyle(color: colors.onPrimary.withValues(alpha: .8)),
           ),
         ],
