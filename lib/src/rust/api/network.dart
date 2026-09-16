@@ -6,8 +6,64 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `write_frame`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `simple_network_result`, `write_frame`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+
+Future<LenderSearchResult> searchPublicLenders({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required int area,
+  required String query,
+  required int limit,
+  required String afterId,
+}) => RustLib.instance.api.crateApiNetworkSearchPublicLenders(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  area: area,
+  query: query,
+  limit: limit,
+  afterId: afterId,
+);
+
+Future<NetworkResult> reportPublicLender({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String profileId,
+  required String reason,
+}) => RustLib.instance.api.crateApiNetworkReportPublicLender(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  profileId: profileId,
+  reason: reason,
+);
+
+Future<NetworkResult> blockPublicLender({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String profileId,
+}) => RustLib.instance.api.crateApiNetworkBlockPublicLender(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  profileId: profileId,
+);
 
 Future<ChatCredentials> requestChatCredentials({
   required String serverAddress,
@@ -194,6 +250,37 @@ class ChatCredentials {
           errorMessage == other.errorMessage;
 }
 
+class LenderSearchResult {
+  final bool success;
+  final List<PublicLender> lenders;
+  final String nextAfterId;
+  final String? errorMessage;
+
+  const LenderSearchResult({
+    required this.success,
+    required this.lenders,
+    required this.nextAfterId,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      lenders.hashCode ^
+      nextAfterId.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LenderSearchResult &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          lenders == other.lenders &&
+          nextAfterId == other.nextAfterId &&
+          errorMessage == other.errorMessage;
+}
+
 class NetworkResult {
   final bool success;
   final String? errorMessage;
@@ -241,6 +328,73 @@ class OtpChallenge {
           challengeId == other.challengeId &&
           expiresInSeconds == other.expiresInSeconds &&
           errorMessage == other.errorMessage;
+}
+
+class PublicLender {
+  final String id;
+  final String displayName;
+  final String locality;
+  final String city;
+  final String postalCode;
+  final String countryCode;
+  final PlatformInt64 minimumLoanMinor;
+  final PlatformInt64 maximumLoanMinor;
+  final String currency;
+  final int currencyScale;
+  final List<String> categories;
+  final String verificationLevel;
+  final String publicDescription;
+
+  const PublicLender({
+    required this.id,
+    required this.displayName,
+    required this.locality,
+    required this.city,
+    required this.postalCode,
+    required this.countryCode,
+    required this.minimumLoanMinor,
+    required this.maximumLoanMinor,
+    required this.currency,
+    required this.currencyScale,
+    required this.categories,
+    required this.verificationLevel,
+    required this.publicDescription,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      displayName.hashCode ^
+      locality.hashCode ^
+      city.hashCode ^
+      postalCode.hashCode ^
+      countryCode.hashCode ^
+      minimumLoanMinor.hashCode ^
+      maximumLoanMinor.hashCode ^
+      currency.hashCode ^
+      currencyScale.hashCode ^
+      categories.hashCode ^
+      verificationLevel.hashCode ^
+      publicDescription.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PublicLender &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          displayName == other.displayName &&
+          locality == other.locality &&
+          city == other.city &&
+          postalCode == other.postalCode &&
+          countryCode == other.countryCode &&
+          minimumLoanMinor == other.minimumLoanMinor &&
+          maximumLoanMinor == other.maximumLoanMinor &&
+          currency == other.currency &&
+          currencyScale == other.currencyScale &&
+          categories == other.categories &&
+          verificationLevel == other.verificationLevel &&
+          publicDescription == other.publicDescription;
 }
 
 class ServerHello {

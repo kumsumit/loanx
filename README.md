@@ -2,12 +2,14 @@
 
 Flutter application for local loan and collateral records, interest estimates,
 receipts and Google Drive backup. The separate `../loanx_server/` repository is
-reserved for the backend; it currently contains only a Hello World program.
+an implemented Rust/PostgreSQL/QUIC backend foundation. Its connected and sync
+operations are not yet wired into the Flutter client end to end.
 
-The current application uses legacy SQLCipher loan storage and encrypted
-FlatBuffers settings. It does not yet implement the canonical relationship model,
-repayment ledger or cloud sync. See [implementation status](IMPLEMENTATION_STATUS.md)
-for verified changes and remaining requirements.
+The current application uses encrypted ToStore local storage. Canonical identity,
+exact-money, repayment and connected repositories exist, but the visible lender
+flow still uses the legacy floating-point Loan model and the client has no cloud
+sync queue. See [implementation status](IMPLEMENTATION_STATUS.md) and the
+[repository feature-gap audit](../docs/feature-gap-audit-2026-09-16.md).
 
 ## Local development
 
@@ -23,10 +25,13 @@ flutter test --no-pub
 flutter run
 ```
 
-Local onboarding does not require a phone account or exclusive lender/borrower
-role. Google authorization is required only for Drive features. Device
-authentication protects access when enabled. Storage initialization errors must
-be resolved without deleting existing encrypted data.
+Current onboarding requires phone OTP before workspace access. A failed session
+refresh can also return an offline user to OTP; this is a known local-first
+release blocker rather than intended behavior. The lender/borrower/both choice is
+a presentation preference, not a permanent authorization role. Google
+authorization is required only for Drive features. Device authentication protects
+access when enabled. Storage initialization errors must be resolved without
+deleting existing encrypted data.
 
 ## Android verification
 
@@ -48,15 +53,23 @@ or pub command and cause a missing `IntegrationTestPlugin` compilation error.
 ## Backup compatibility
 
 New `.loanxbackup` archives contain a versioned manifest and per-file SHA-256
-checksums. Restore validates archive contents, settings and SQL records before
-merging; conflicting legacy loan matches abort the SQL transaction. Legacy ZIP
-and raw `.db` backups remain supported within validated schema versions 1–7.
-Drive generations are retained.
+checksums. Restore validates archive structure, checksums and settings before
+asking ToStore to restore the database. Drive generations are retained.
 
 Checksums detect corruption, not authenticity. Archives are not independently
-encrypted. SQL and settings restore are not yet one crash-atomic operation, and
-snapshot consistency and key migration remain open release requirements. Do not
-delete original backups after a restore solely because the operation returned success.
+encrypted or authenticated. Database and settings restore are not one
+crash-atomic operation; attachments are unsupported; financial reconciliation,
+snapshot consistency and cross-device encryption-key recovery remain open release
+requirements. Do not delete original backups solely because restore returned
+success.
+
+## Current verification caveat
+
+On 2026-09-16 static analysis passed, but the Flutter suite stalled reproducibly
+in the borrower onboarding startup test after 85 passing tests. Treat the suite as
+failing until that test completes normally. Newer screens also emit missing
+localization-key warnings, and most non-English ARB files are missing 44 keys
+present in English.
 
 # Localization generation
 

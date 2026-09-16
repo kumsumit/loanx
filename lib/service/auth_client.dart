@@ -76,6 +76,72 @@ class AuthClient {
     return true;
   }
 
+  Future<network.LenderSearchResult> searchPublicLenders({
+    required int area,
+    required String query,
+    int limit = 25,
+    String afterId = '',
+  }) async {
+    final token = (await _readTokens())?.accessToken;
+    if (token == null || token.isEmpty) {
+      throw StateError('Sign in is required to search public lenders');
+    }
+    final result = await network.searchPublicLenders(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: token,
+      area: area,
+      query: query,
+      limit: limit,
+      afterId: afterId,
+    );
+    if (!result.success) {
+      throw StateError(result.errorMessage ?? 'Lender search failed');
+    }
+    return result;
+  }
+
+  Future<void> reportPublicLender(String profileId, String reason) async {
+    final token = await _requiredAccessToken();
+    final result = await network.reportPublicLender(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: token,
+      profileId: profileId,
+      reason: reason,
+    );
+    if (!result.success) {
+      throw StateError(result.errorMessage ?? 'Unable to report lender');
+    }
+  }
+
+  Future<void> blockPublicLender(String profileId) async {
+    final token = await _requiredAccessToken();
+    final result = await network.blockPublicLender(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: token,
+      profileId: profileId,
+    );
+    if (!result.success) {
+      throw StateError(result.errorMessage ?? 'Unable to block lender');
+    }
+  }
+
+  Future<String> _requiredAccessToken() async {
+    final token = (await _readTokens())?.accessToken;
+    if (token == null || token.isEmpty) {
+      throw StateError('Sign in is required');
+    }
+    return token;
+  }
+
   Future<bool> restoreSession() async {
     final refreshToken = (await _readTokens())?.refreshToken;
     if (refreshToken == null || refreshToken.isEmpty) return false;
@@ -185,7 +251,6 @@ class AuthClient {
   }
 
   String _e164(PhoneNumber p) => CountryCatalog.e164(p.isoCode, p.nsn);
-
 }
 
 class _StoredTokens {

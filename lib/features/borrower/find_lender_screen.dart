@@ -1,5 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:loanx/service/auth_client.dart';
+import 'package:loanx/src/rust/api/network.dart' as network;
 
 enum LenderSearchArea { locality, city, pincode }
 
@@ -22,6 +24,7 @@ class NearbyLender {
     this.loanRangeLabel,
     this.verificationLabel,
     this.categories = const [],
+    this.publicDescription = '',
   });
 
   final String id;
@@ -30,6 +33,7 @@ class NearbyLender {
   final String? loanRangeLabel;
   final String? verificationLabel;
   final List<String> categories;
+  final String publicDescription;
 }
 
 typedef NearbyLenderSearch =
@@ -38,8 +42,7 @@ typedef NearbyLenderSearch =
 class FindLenderScreen extends StatefulWidget {
   const FindLenderScreen({this.search, this.onLenderSelected, super.key});
 
-  /// The connected marketplace supplies this callback. Until it is connected,
-  /// searches safely return no public profiles instead of showing demo data.
+  /// Tests and alternate deployments may override the production directory.
   final NearbyLenderSearch? search;
   final ValueChanged<NearbyLender>? onLenderSelected;
 
@@ -116,9 +119,7 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
     });
 
     try {
-      final results =
-          await (widget.search?.call(request) ??
-              Future<List<NearbyLender>>.value(const []));
+      final results = await (widget.search ?? _searchPublicDirectory)(request);
       if (!mounted || generation != _searchGeneration) return;
       setState(() => _results = results);
     } catch (_) {
@@ -132,6 +133,24 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
         setState(() => _isSearching = false);
       }
     }
+  }
+
+  Future<List<NearbyLender>> _searchPublicDirectory(
+    LenderSearchRequest request,
+  ) async {
+    final client = activeAuthClient;
+    if (client == null) {
+      throw StateError('Authentication is unavailable');
+    }
+    final result = await client.searchPublicLenders(
+      area: switch (request.area) {
+        LenderSearchArea.locality => 1,
+        LenderSearchArea.city => 2,
+        LenderSearchArea.pincode => 3,
+      },
+      query: request.query,
+    );
+    return result.lenders.map(_nearbyLender).toList(growable: false);
   }
 
   @override
@@ -235,7 +254,24 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
                 _SearchResults(
                   results: _results,
                   error: _error,
-                  onLenderSelected: widget.onLenderSelected,
+                  onLenderSelected:
+                      widget.onLenderSelected ??
+                      (lender) async {
+                        final blockedId = await Navigator.of(context)
+                            .push<String>(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    PublicLenderProfileScreen(lender: lender),
+                              ),
+                            );
+                        if (blockedId != null && mounted) {
+                          setState(
+                            () => _results = _results
+                                ?.where((item) => item.id != blockedId)
+                                .toList(growable: false),
+                          );
+                        }
+                      },
                 ),
               ],
             ),
@@ -243,6 +279,224 @@ class _FindLenderScreenState extends State<FindLenderScreen> {
         ),
       ),
     );
+  }
+}
+
+NearbyLender _nearbyLender(network.PublicLender lender) => NearbyLender(
+  id: lender.id,
+  displayName: lender.displayName,
+  locationLabel: [
+    lender.locality,
+    lender.city,
+  ].where((value) => value.isNotEmpty).join(', '),
+  loanRangeLabel:
+      '${_minorAmount(lender.minimumLoanMinor, lender.currency, lender.currencyScale)}–'
+      '${_minorAmount(lender.maximumLoanMinor, lender.currency, lender.currencyScale)}',
+  verificationLabel: switch (lender.verificationLevel) {
+    'phone_verified' => 'Phone verified'.tr(),
+    'identity_verified' => 'Identity verified'.tr(),
+    'business_verified' => 'Business verified'.tr(),
+    _ => null,
+  },
+  categories: lender.categories,
+  publicDescription: lender.publicDescription,
+);
+
+String _minorAmount(Object value, String currency, int scale) {
+  final minor = BigInt.parse(value.toString());
+  final divisor = BigInt.from(10).pow(scale);
+  final whole = minor ~/ divisor;
+  final fraction = (minor % divisor).abs();
+  final decimal = scale == 0
+      ? whole.toString()
+      : '${whole.toString()}.${fraction.toString().padLeft(scale, '0')}';
+  return '$currency $decimal';
+}
+
+class PublicLenderProfileScreen extends StatefulWidget {
+  const PublicLenderProfileScreen({required this.lender, super.key});
+
+  final NearbyLender lender;
+
+  @override
+  State<PublicLenderProfileScreen> createState() =>
+      _PublicLenderProfileScreenState();
+}
+
+class _PublicLenderProfileScreenState extends State<PublicLenderProfileScreen> {
+  bool _submitting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final lender = widget.lender;
+    return Scaffold(
+      appBar: AppBar(title: Text('Lender profile'.tr())),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          CircleAvatar(
+            radius: 36,
+            child: Text(
+              lender.displayName.isEmpty
+                  ? '?'
+                  : lender.displayName.characters.first.toUpperCase(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            lender.displayName,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 6),
+          Text(lender.locationLabel, textAlign: TextAlign.center),
+          if (lender.verificationLabel case final verification?) ...[
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.verified_outlined),
+              title: Text(verification),
+              subtitle: Text(
+                'Verification applies only to the stated attribute and is not a safety guarantee.'
+                    .tr(),
+              ),
+            ),
+          ],
+          if (lender.loanRangeLabel case final range?)
+            ListTile(
+              leading: const Icon(Icons.payments_outlined),
+              title: Text('Loan range'.tr()),
+              subtitle: Text(range),
+            ),
+          if (lender.publicDescription.trim().isNotEmpty)
+            ListTile(
+              leading: const Icon(Icons.info_outline_rounded),
+              title: Text('About'.tr()),
+              subtitle: Text(lender.publicDescription),
+            ),
+          if (lender.categories.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final category in lender.categories)
+                  Chip(label: Text(category)),
+              ],
+            ),
+          ],
+          const SizedBox(height: 24),
+          Text(
+            'LoanX helps you discover lenders. It does not guarantee a lender or approve, disburse, or collect a loan.'
+                .tr(),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _submitting ? null : _report,
+            icon: const Icon(Icons.flag_outlined),
+            label: Text('Report profile'.tr()),
+          ),
+          TextButton.icon(
+            onPressed: _submitting ? null : _block,
+            icon: const Icon(Icons.block_outlined),
+            label: Text('Block lender'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _report() async {
+    final controller = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Report profile'.tr()),
+        content: TextField(
+          controller: controller,
+          maxLength: 1000,
+          minLines: 3,
+          maxLines: 6,
+          decoration: InputDecoration(
+            labelText: 'Reason'.tr(),
+            helperText: 'Enter at least 10 characters'.tr(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.length >= 10) Navigator.pop(dialogContext, value);
+            },
+            child: Text('Submit report'.tr()),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (reason == null || !mounted) return;
+    await _perform(
+      () => activeAuthClient!.reportPublicLender(widget.lender.id, reason),
+      success: 'Report submitted'.tr(),
+    );
+  }
+
+  Future<void> _block() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Block lender?'.tr()),
+        content: Text(
+          'This profile will no longer appear in your searches.'.tr(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text('Cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text('Block'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final succeeded = await _perform(
+      () => activeAuthClient!.blockPublicLender(widget.lender.id),
+      success: 'Lender blocked'.tr(),
+    );
+    if (succeeded && mounted) Navigator.pop(context, widget.lender.id);
+  }
+
+  Future<bool> _perform(
+    Future<void> Function() action, {
+    required String success,
+  }) async {
+    if (activeAuthClient == null) return false;
+    setState(() => _submitting = true);
+    try {
+      await action();
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(success)));
+      }
+      return true;
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Action could not be completed'.tr())),
+        );
+      }
+      return false;
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 }
 

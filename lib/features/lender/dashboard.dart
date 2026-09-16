@@ -13,6 +13,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/features/lender/home.dart';
 import 'package:loanx/features/lender/manage.dart';
 import 'package:loanx/features/lender/add_loan.dart';
+import 'package:loanx/features/borrower/home.dart';
 import 'package:loanx/service/printing_service.dart';
 import 'package:loanx/service/update_service.dart';
 import 'package:loanx/widget/k_icon.dart';
@@ -25,18 +26,24 @@ import 'drawer.dart';
 class DashBoard extends HookWidget {
   const DashBoard({super.key});
 
-  final List<Widget> _pages = const [Home(), Manage()];
-
   @override
   Widget build(BuildContext context) {
     final usesBorrowerExperience = AppSettings.getUsesBorrowerExperience();
+    final usesBothExperience = AppSettings.getUsesBothExperience();
+    final pages = <Widget>[
+      const Home(),
+      const Manage(),
+      if (usesBothExperience) const BorrowerHome(),
+    ];
     final currentIndex = useState<int>(0);
     final title = useState<String>(LocaleKeys.loanx.tr());
     final theme = Theme.of(context);
     useEffect(() {
-      title.value = currentIndex.value == 0
-          ? LocaleKeys.loanx.tr()
-          : LocaleKeys.manage.tr();
+      title.value = switch (currentIndex.value) {
+        0 => LocaleKeys.loanx.tr(),
+        1 => LocaleKeys.manage.tr(),
+        _ => 'Borrowing'.tr(),
+      };
       return null;
     }, [context.locale]);
     if (Platform.isAndroid || Platform.isIOS) {
@@ -73,7 +80,7 @@ class DashBoard extends HookWidget {
             // selected.  Let the title yield space to them on compact screens
             // instead of forcing the app bar Row past its right edge.
             Expanded(child: StyledHeading(title.value)),
-            currentIndex.value == 0
+            currentIndex.value == 0 && !usesBorrowerExperience
                 ? Consumer(
                     builder: (context, ref, child) {
                       final loanSelectionList = ref.watch(
@@ -418,16 +425,18 @@ Shared from LoanX
         ),
       ),
       drawer: MyDrawer(),
-      body: _pages[currentIndex.value],
+      body: pages[currentIndex.value.clamp(0, pages.length - 1)],
       bottomNavigationBar: usesBorrowerExperience
           ? null
           : NavigationBar(
               selectedIndex: currentIndex.value,
               onDestinationSelected: (index) {
                 currentIndex.value = index;
-                title.value = index == 0
-                    ? LocaleKeys.loanx.tr()
-                    : LocaleKeys.manage.tr();
+                title.value = switch (index) {
+                  0 => LocaleKeys.loanx.tr(),
+                  1 => LocaleKeys.manage.tr(),
+                  _ => 'Borrowing'.tr(),
+                };
               },
               destinations: [
                 NavigationDestination(
@@ -440,6 +449,12 @@ Shared from LoanX
                   selectedIcon: Icon(Icons.tune_rounded),
                   label: LocaleKeys.manage2.tr(),
                 ),
+                if (usesBothExperience)
+                  NavigationDestination(
+                    icon: const Icon(Icons.account_balance_wallet_outlined),
+                    selectedIcon: const Icon(Icons.account_balance_wallet),
+                    label: 'Borrowing'.tr(),
+                  ),
               ],
             ),
     );

@@ -54,6 +54,192 @@ pub struct ChatCredentials {
     pub error_message: Option<String>,
 }
 
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
+pub struct PublicLender {
+    pub id: String,
+    pub display_name: String,
+    pub locality: String,
+    pub city: String,
+    pub postal_code: String,
+    pub country_code: String,
+    pub minimum_loan_minor: i64,
+    pub maximum_loan_minor: i64,
+    pub currency: String,
+    pub currency_scale: u32,
+    pub categories: Vec<String>,
+    pub verification_level: String,
+    pub public_description: String,
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
+pub struct LenderSearchResult {
+    pub success: bool,
+    pub lenders: Vec<PublicLender>,
+    pub next_after_id: String,
+    pub error_message: Option<String>,
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn search_public_lenders(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    area: u32,
+    query: String,
+    limit: u32,
+    after_id: String,
+) -> LenderSearchResult {
+    let area = match area {
+        1 => v1::LenderSearchArea::Locality,
+        2 => v1::LenderSearchArea::City,
+        3 => v1::LenderSearchArea::PostalCode,
+        _ => {
+            return LenderSearchResult {
+                success: false,
+                lenders: Vec::new(),
+                next_after_id: String::new(),
+                error_message: Some("invalid lender search area".into()),
+            };
+        }
+    };
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::SearchLenders(v1::SearchLendersRequest {
+            area: area as i32,
+            query,
+            limit,
+            after_id,
+        }),
+    )
+    .await
+    {
+        Ok(v1::response::Result::SearchLenders(value)) => LenderSearchResult {
+            success: true,
+            lenders: value
+                .lenders
+                .into_iter()
+                .map(|profile| PublicLender {
+                    id: profile.id,
+                    display_name: profile.display_name,
+                    locality: profile.locality,
+                    city: profile.city,
+                    postal_code: profile.postal_code,
+                    country_code: profile.country_code,
+                    minimum_loan_minor: profile.minimum_loan_minor,
+                    maximum_loan_minor: profile.maximum_loan_minor,
+                    currency: profile.currency,
+                    currency_scale: profile.currency_scale,
+                    categories: profile.categories,
+                    verification_level: profile.verification_level,
+                    public_description: profile.public_description,
+                })
+                .collect(),
+            next_after_id: value.next_after_id,
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(value)) => LenderSearchResult {
+            success: false,
+            lenders: Vec::new(),
+            next_after_id: String::new(),
+            error_message: Some(value.message),
+        },
+        Ok(_) => LenderSearchResult {
+            success: false,
+            lenders: Vec::new(),
+            next_after_id: String::new(),
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(cause) => LenderSearchResult {
+            success: false,
+            lenders: Vec::new(),
+            next_after_id: String::new(),
+            error_message: Some(cause.to_string()),
+        },
+    }
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn report_public_lender(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    profile_id: String,
+    reason: String,
+) -> NetworkResult {
+    simple_network_result(
+        send_request(
+            &server_address,
+            &server_name,
+            &trusted_certificate_pem,
+            &device_id,
+            access_token,
+            v1::request::Payload::ReportLenderProfile(v1::ReportLenderProfileRequest {
+                profile_id,
+                reason,
+            }),
+        )
+        .await,
+        |result| matches!(result, v1::response::Result::ReportLenderProfile(_)),
+    )
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn block_public_lender(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    profile_id: String,
+) -> NetworkResult {
+    simple_network_result(
+        send_request(
+            &server_address,
+            &server_name,
+            &trusted_certificate_pem,
+            &device_id,
+            access_token,
+            v1::request::Payload::BlockLenderProfile(v1::BlockLenderProfileRequest { profile_id }),
+        )
+        .await,
+        |result| matches!(result, v1::response::Result::BlockLenderProfile(_)),
+    )
+}
+
+fn simple_network_result(
+    result: anyhow::Result<v1::response::Result>,
+    expected: impl FnOnce(&v1::response::Result) -> bool,
+) -> NetworkResult {
+    match result {
+        Ok(value) if expected(&value) => NetworkResult {
+            success: true,
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(value)) => NetworkResult {
+            success: false,
+            error_message: Some(value.message),
+        },
+        Ok(_) => NetworkResult {
+            success: false,
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(cause) => NetworkResult {
+            success: false,
+            error_message: Some(cause.to_string()),
+        },
+    }
+}
+
 #[flutter_rust_bridge::frb]
 pub async fn request_chat_credentials(
     server_address: String,

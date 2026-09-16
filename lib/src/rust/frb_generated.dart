@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -533396635;
+  int get rustContentHash => 1459718515;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -79,6 +79,15 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
+  Future<NetworkResult> crateApiNetworkBlockPublicLender({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String profileId,
+  });
+
   Future<ServerHello> crateApiNetworkConnectAndHello({
     required String serverAddress,
     required String serverName,
@@ -107,6 +116,16 @@ abstract class RustLibApi extends BaseApi {
     required String refreshToken,
   });
 
+  Future<NetworkResult> crateApiNetworkReportPublicLender({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String profileId,
+    required String reason,
+  });
+
   Future<ChatCredentials> crateApiNetworkRequestChatCredentials({
     required String serverAddress,
     required String serverName,
@@ -121,6 +140,18 @@ abstract class RustLibApi extends BaseApi {
     required String trustedCertificatePem,
     required String deviceId,
     required String phoneE164,
+  });
+
+  Future<LenderSearchResult> crateApiNetworkSearchPublicLenders({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required int area,
+    required String query,
+    required int limit,
+    required String afterId,
   });
 
   Future<NetworkResult> crateApiNetworkUpdateLanguage({
@@ -153,6 +184,63 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
+  Future<NetworkResult> crateApiNetworkBlockPublicLender({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String profileId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_String(profileId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 1,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_network_result,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkBlockPublicLenderConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+          profileId,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkBlockPublicLenderConstMeta =>
+      const TaskConstMeta(
+        debugName: "block_public_lender",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+          "profileId",
+        ],
+      );
+
+  @override
   Future<ServerHello> crateApiNetworkConnectAndHello({
     required String serverAddress,
     required String serverName,
@@ -172,7 +260,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 1,
+            funcId: 2,
             port: port_,
           );
         },
@@ -212,7 +300,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(name, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -237,7 +325,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 4,
             port: port_,
           );
         },
@@ -275,7 +363,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 5,
             port: port_,
           );
         },
@@ -328,7 +416,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 6,
             port: port_,
           );
         },
@@ -362,6 +450,67 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<NetworkResult> crateApiNetworkReportPublicLender({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String profileId,
+    required String reason,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_String(profileId, serializer);
+          sse_encode_String(reason, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_network_result,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkReportPublicLenderConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+          profileId,
+          reason,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkReportPublicLenderConstMeta =>
+      const TaskConstMeta(
+        debugName: "report_public_lender",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+          "profileId",
+          "reason",
+        ],
+      );
+
+  @override
   Future<ChatCredentials> crateApiNetworkRequestChatCredentials({
     required String serverAddress,
     required String serverName,
@@ -381,7 +530,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 8,
             port: port_,
           );
         },
@@ -434,7 +583,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 9,
             port: port_,
           );
         },
@@ -467,6 +616,75 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<LenderSearchResult> crateApiNetworkSearchPublicLenders({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required int area,
+    required String query,
+    required int limit,
+    required String afterId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_u_32(area, serializer);
+          sse_encode_String(query, serializer);
+          sse_encode_u_32(limit, serializer);
+          sse_encode_String(afterId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 10,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_lender_search_result,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkSearchPublicLendersConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+          area,
+          query,
+          limit,
+          afterId,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkSearchPublicLendersConstMeta =>
+      const TaskConstMeta(
+        debugName: "search_public_lenders",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+          "area",
+          "query",
+          "limit",
+          "afterId",
+        ],
+      );
+
+  @override
   Future<NetworkResult> crateApiNetworkUpdateLanguage({
     required String serverAddress,
     required String serverName,
@@ -488,7 +706,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 11,
             port: port_,
           );
         },
@@ -549,7 +767,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 12,
             port: port_,
           );
         },
@@ -637,6 +855,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LenderSearchResult dco_decode_lender_search_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return LenderSearchResult(
+      success: dco_decode_bool(arr[0]),
+      lenders: dco_decode_list_public_lender(arr[1]),
+      nextAfterId: dco_decode_String(arr[2]),
+      errorMessage: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_String).toList();
@@ -646,6 +878,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
+  }
+
+  @protected
+  List<PublicLender> dco_decode_list_public_lender(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_public_lender).toList();
   }
 
   @protected
@@ -677,6 +915,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       challengeId: dco_decode_String(arr[1]),
       expiresInSeconds: dco_decode_u_32(arr[2]),
       errorMessage: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
+  PublicLender dco_decode_public_lender(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 13)
+      throw Exception('unexpected arr length: expect 13 but see ${arr.length}');
+    return PublicLender(
+      id: dco_decode_String(arr[0]),
+      displayName: dco_decode_String(arr[1]),
+      locality: dco_decode_String(arr[2]),
+      city: dco_decode_String(arr[3]),
+      postalCode: dco_decode_String(arr[4]),
+      countryCode: dco_decode_String(arr[5]),
+      minimumLoanMinor: dco_decode_i_64(arr[6]),
+      maximumLoanMinor: dco_decode_i_64(arr[7]),
+      currency: dco_decode_String(arr[8]),
+      currencyScale: dco_decode_u_32(arr[9]),
+      categories: dco_decode_list_String(arr[10]),
+      verificationLevel: dco_decode_String(arr[11]),
+      publicDescription: dco_decode_String(arr[12]),
     );
   }
 
@@ -770,6 +1031,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LenderSearchResult sse_decode_lender_search_result(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_lenders = sse_decode_list_public_lender(deserializer);
+    var var_nextAfterId = sse_decode_String(deserializer);
+    var var_errorMessage = sse_decode_opt_String(deserializer);
+    return LenderSearchResult(
+      success: var_success,
+      lenders: var_lenders,
+      nextAfterId: var_nextAfterId,
+      errorMessage: var_errorMessage,
+    );
+  }
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -786,6 +1064,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getUint8List(len_);
+  }
+
+  @protected
+  List<PublicLender> sse_decode_list_public_lender(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <PublicLender>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_public_lender(deserializer));
+    }
+    return ans_;
   }
 
   @protected
@@ -819,6 +1111,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       challengeId: var_challengeId,
       expiresInSeconds: var_expiresInSeconds,
       errorMessage: var_errorMessage,
+    );
+  }
+
+  @protected
+  PublicLender sse_decode_public_lender(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_displayName = sse_decode_String(deserializer);
+    var var_locality = sse_decode_String(deserializer);
+    var var_city = sse_decode_String(deserializer);
+    var var_postalCode = sse_decode_String(deserializer);
+    var var_countryCode = sse_decode_String(deserializer);
+    var var_minimumLoanMinor = sse_decode_i_64(deserializer);
+    var var_maximumLoanMinor = sse_decode_i_64(deserializer);
+    var var_currency = sse_decode_String(deserializer);
+    var var_currencyScale = sse_decode_u_32(deserializer);
+    var var_categories = sse_decode_list_String(deserializer);
+    var var_verificationLevel = sse_decode_String(deserializer);
+    var var_publicDescription = sse_decode_String(deserializer);
+    return PublicLender(
+      id: var_id,
+      displayName: var_displayName,
+      locality: var_locality,
+      city: var_city,
+      postalCode: var_postalCode,
+      countryCode: var_countryCode,
+      minimumLoanMinor: var_minimumLoanMinor,
+      maximumLoanMinor: var_maximumLoanMinor,
+      currency: var_currency,
+      currencyScale: var_currencyScale,
+      categories: var_categories,
+      verificationLevel: var_verificationLevel,
+      publicDescription: var_publicDescription,
     );
   }
 
@@ -907,6 +1232,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_lender_search_result(
+    LenderSearchResult self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_list_public_lender(self.lenders, serializer);
+    sse_encode_String(self.nextAfterId, serializer);
+    sse_encode_opt_String(self.errorMessage, serializer);
+  }
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
@@ -923,6 +1260,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint8List(self);
+  }
+
+  @protected
+  void sse_encode_list_public_lender(
+    List<PublicLender> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_public_lender(item, serializer);
+    }
   }
 
   @protected
@@ -949,6 +1298,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.challengeId, serializer);
     sse_encode_u_32(self.expiresInSeconds, serializer);
     sse_encode_opt_String(self.errorMessage, serializer);
+  }
+
+  @protected
+  void sse_encode_public_lender(PublicLender self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.displayName, serializer);
+    sse_encode_String(self.locality, serializer);
+    sse_encode_String(self.city, serializer);
+    sse_encode_String(self.postalCode, serializer);
+    sse_encode_String(self.countryCode, serializer);
+    sse_encode_i_64(self.minimumLoanMinor, serializer);
+    sse_encode_i_64(self.maximumLoanMinor, serializer);
+    sse_encode_String(self.currency, serializer);
+    sse_encode_u_32(self.currencyScale, serializer);
+    sse_encode_list_String(self.categories, serializer);
+    sse_encode_String(self.verificationLevel, serializer);
+    sse_encode_String(self.publicDescription, serializer);
   }
 
   @protected

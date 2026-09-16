@@ -472,4 +472,16 @@ abstract final class LocaleKeys {
   static const loanRange = "Loan range";
   static const viewProfile = "View profile";
   static const verificationAppliesOnlyToTheStatedAttributeAndIsNotASafetyGuarantee = "Verification applies only to the stated attribute and is not a safety guarantee.";
+  static const lenderProfile = "Lender profile";
+  static const phoneVerified = "Phone verified";
+  static const identityVerified = "Identity verified";
+  static const businessVerified = "Business verified";
+  static const loanxHelpsYouDiscoverLendersItDoesNotGuaranteeALenderOrApproveDisburseOrCollectALoan = "LoanX helps you discover lenders. It does not guarantee a lender or approve, disburse, or collect a loan.";
+  static const myLoans = "My loans";
+  static const loanxLender = "LoanX lender";
+  static const lenderNotifications = "Lender notifications";
+  static const noLenderNotifications = "No lender notifications";
+  static const loansFromLoanxLenders = "Loans from LoanX lenders";
+  static const noConnectedLoans = "No connected loans";
+  static const loansIssuedToYouByConnectedLoanxLendersWillAppearHere = "Loans issued to you by connected LoanX lenders will appear here.";
 }

@@ -37,10 +37,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64 dco_decode_i_64(dynamic raw);
 
   @protected
+  LenderSearchResult dco_decode_lender_search_result(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<PublicLender> dco_decode_list_public_lender(dynamic raw);
 
   @protected
   NetworkResult dco_decode_network_result(dynamic raw);
@@ -50,6 +56,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   OtpChallenge dco_decode_otp_challenge(dynamic raw);
+
+  @protected
+  PublicLender dco_decode_public_lender(dynamic raw);
 
   @protected
   ServerHello dco_decode_server_hello(dynamic raw);
@@ -79,10 +88,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
 
   @protected
+  LenderSearchResult sse_decode_lender_search_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<PublicLender> sse_decode_list_public_lender(
+    SseDeserializer deserializer,
+  );
 
   @protected
   NetworkResult sse_decode_network_result(SseDeserializer deserializer);
@@ -92,6 +111,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   OtpChallenge sse_decode_otp_challenge(SseDeserializer deserializer);
+
+  @protected
+  PublicLender sse_decode_public_lender(SseDeserializer deserializer);
 
   @protected
   ServerHello sse_decode_server_hello(SseDeserializer deserializer);
@@ -127,11 +149,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
 
   @protected
+  void sse_encode_lender_search_result(
+    LenderSearchResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_public_lender(
+    List<PublicLender> self,
     SseSerializer serializer,
   );
 
@@ -143,6 +177,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_otp_challenge(OtpChallenge self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_public_lender(PublicLender self, SseSerializer serializer);
 
   @protected
   void sse_encode_server_hello(ServerHello self, SseSerializer serializer);
