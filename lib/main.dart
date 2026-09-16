@@ -8,22 +8,22 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
-import 'package:loanx/features/lender/ask_backup_screen.dart';
+import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/features/auth/account_type_screen.dart';
-import 'package:loanx/features/lender/error.dart';
-import 'package:loanx/features/auth/unauthorized.dart';
-import 'package:loanx/l10n/codegen_loader.g.dart';
-import 'package:loanx/l10n/app_languages.dart';
-import 'package:loanx/l10n/locale_keys.g.dart';
-import 'package:loanx/provider/provider.dart';
+import 'package:loanx/features/auth/otp_verification_screen.dart';
+import 'package:loanx/features/auth/phone_login_screen.dart';
+import 'package:loanx/features/auth/plan_selection_screen.dart';
+import 'package:loanx/features/lender/ask_backup_screen.dart';
 import 'package:loanx/features/lender/auth_screen.dart';
 import 'package:loanx/features/lender/dashboard.dart';
-import 'package:loanx/domain/country_catalog.dart';
-import 'package:loanx/features/auth/plan_selection_screen.dart';
-import 'package:loanx/features/auth/phone_login_screen.dart';
-import 'package:loanx/features/auth/otp_verification_screen.dart';
-import 'package:loanx/service/backup_service.dart';
+import 'package:loanx/features/lender/error.dart';
+import 'package:loanx/features/auth/unauthorized.dart';
+import 'package:loanx/l10n/app_languages.dart';
+import 'package:loanx/l10n/codegen_loader.g.dart';
+import 'package:loanx/l10n/locale_keys.g.dart';
+import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/auth_client.dart';
+import 'package:loanx/service/backup_service.dart';
 import 'package:loanx/service/device_performance.dart';
 import 'package:loanx/src/rust/frb_generated.dart';
 import 'package:loanx/theme/app_theme.dart';
@@ -33,12 +33,17 @@ import 'package:workmanager/workmanager.dart';
 import 'db/app_settings.dart';
 
 typedef OtpSender = Future<void> Function(PhoneNumber phoneNumber);
+
 typedef OtpVerifier =
     Future<bool> Function(
       PhoneNumber phoneNumber,
       String code,
       String preferredLanguage,
     );
+
+/// ---------------------------------------------------------------------------
+/// Localization fallbacks
+/// ---------------------------------------------------------------------------
 
 class _FallbackMaterialLocalizationsDelegate
     extends LocalizationsDelegate<MaterialLocalizations> {
@@ -51,8 +56,9 @@ class _FallbackMaterialLocalizationsDelegate
   Future<MaterialLocalizations> load(Locale locale) {
     final materialLocale =
         GlobalMaterialLocalizations.delegate.isSupported(locale)
-        ? locale
-        : appDefaultLocale;
+            ? locale
+            : appDefaultLocale;
+
     return GlobalMaterialLocalizations.delegate.load(materialLocale);
   }
 
@@ -71,8 +77,9 @@ class _FallbackCupertinoLocalizationsDelegate
   Future<CupertinoLocalizations> load(Locale locale) {
     final cupertinoLocale =
         GlobalCupertinoLocalizations.delegate.isSupported(locale)
-        ? locale
-        : appDefaultLocale;
+            ? locale
+            : appDefaultLocale;
+
     return GlobalCupertinoLocalizations.delegate.load(cupertinoLocale);
   }
 
@@ -80,26 +87,56 @@ class _FallbackCupertinoLocalizationsDelegate
   bool shouldReload(_FallbackCupertinoLocalizationsDelegate old) => false;
 }
 
+/// ---------------------------------------------------------------------------
+/// Global authentication client
+/// ---------------------------------------------------------------------------
+
+AuthClient? activeAuthClient;
+
+/// ---------------------------------------------------------------------------
+/// Bootstrap state
+/// ---------------------------------------------------------------------------
+
+enum _BootstrapState {
+  waiting,
+  initializing,
+  ready,
+  failed,
+}
+
+/// ---------------------------------------------------------------------------
+/// Main
+/// ---------------------------------------------------------------------------
+
 Future<void> main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  // Preserve the native launch screen before any startup work. Calling this
-  // after initialization leaves Android trying to draw an unready first frame.
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  await EasyLocalization.ensureInitialized();
-  final phoneMetadataReady = await initializePhoneMetadata();
-  await DevicePerformance.initialize();
-  await RustLib.init();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  // Keep the native splash visible until Flutter has rendered its first frame.
+  FlutterNativeSplash.preserve(
+    widgetsBinding: widgetsBinding,
+  );
+
+  // -------------------------------------------------------------------------
+  // Global error handling
+  // -------------------------------------------------------------------------
+
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
+
     if (kDebugMode) {
-      debugPrint('FlutterError: ${details.exception}\n${details.stack}');
+      debugPrint(
+        'FlutterError: ${details.exception}\n${details.stack}',
+      );
     }
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
     if (kDebugMode) {
-      debugPrint('PlatformDispatcher error: $error\n$stack');
+      debugPrint(
+        'PlatformDispatcher error: $error\n$stack',
+      );
     }
+
     return true;
   };
 
@@ -107,34 +144,44 @@ Future<void> main() async {
     if (kReleaseMode) {
       return Material(
         child: Center(
-          child: Text(LocaleKeys.somethingWentWrongPleaseTryAgain.tr()),
+          child: Text(
+            LocaleKeys.somethingWentWrongPleaseTryAgain.tr(),
+          ),
         ),
       );
     }
+
     return ErrorWidget(details.exception);
   };
 
-  var storageReady = false;
-  try {
-    await AppSettings.init();
-    if (!AppSettings.getIsTableCreated()) {
-      AppSettings.putHoldingPeriod(5);
-      AppSettings.putInterestRate(3.0);
-      AppSettings.putScheduledBackUpTimeHour(2);
-      await AppSettings.flush();
-    }
-    storageReady = true;
-  } catch (error, stackTrace) {
-    debugPrint('LoanX local storage initialization failed: $error');
-    if (kDebugMode) debugPrintStack(stackTrace: stackTrace);
-  }
+  // -------------------------------------------------------------------------
+  // Critical startup
+  //
+  // These operations are independent, so don't execute them serially.
+  // -------------------------------------------------------------------------
+
+  final startupResults = await Future.wait<dynamic>([
+    EasyLocalization.ensureInitialized(),
+    initializePhoneMetadata(),
+    DevicePerformance.initialize(),
+    _initializeLocalStorage(),
+  ]);
+
+  final phoneMetadataReady = startupResults[1] as bool;
+  final storageReady = startupResults[3] as bool;
+
+  // -------------------------------------------------------------------------
+  // Authentication client itself is cheap to construct.
+  //
+  // Session restoration is intentionally NOT performed here.
+  // -------------------------------------------------------------------------
+
   activeAuthClient = AuthClient();
-  if (AppSettings.getPhoneAuthVerified() &&
-      !await activeAuthClient!.restoreSession()) {
-    AppSettings.putPhoneAuthVerified(false);
-    await AppSettings.flush();
-  }
-  FlutterNativeSplash.remove();
+
+  // -------------------------------------------------------------------------
+  // Start Flutter immediately after critical local initialization.
+  // -------------------------------------------------------------------------
+
   runApp(
     EasyLocalization(
       supportedLocales: appSupportedLocales,
@@ -153,50 +200,158 @@ Future<void> main() async {
       ),
     ),
   );
-  // Google Drive and Workmanager are not needed to paint the app. Start them
-  // only after Flutter has produced its first frame so their platform-channel
-  // setup cannot contend with cold-start rendering on Android's main thread.
+
+  // -------------------------------------------------------------------------
+  // Wait until Flutter has produced the first frame.
+  //
+  // Native splash remains visible until that point, preventing any blank
+  // transition while the first Flutter frame is being composed.
+  // -------------------------------------------------------------------------
+
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    unawaited(initializeOptionalServices());
+    FlutterNativeSplash.remove();
+
+    unawaited(
+      _initializeBackgroundServices(),
+    );
   });
 }
 
-/// Optional providers initialize independently after the local UI starts.
-/// Their errors are reported without exposing provider credentials.
+/// ---------------------------------------------------------------------------
+/// Local storage initialization
+/// ---------------------------------------------------------------------------
+
+Future<bool> _initializeLocalStorage() async {
+  try {
+    await AppSettings.init();
+
+    if (!AppSettings.getIsTableCreated()) {
+      AppSettings.putHoldingPeriod(5);
+      AppSettings.putInterestRate(3.0);
+      AppSettings.putScheduledBackUpTimeHour(2);
+
+      await AppSettings.flush();
+    }
+
+    return true;
+  } catch (error, stackTrace) {
+    debugPrint(
+      'LoanX local storage initialization failed: $error',
+    );
+
+    if (kDebugMode) {
+      debugPrintStack(
+        stackTrace: stackTrace,
+      );
+    }
+
+    return false;
+  }
+}
+
+/// ---------------------------------------------------------------------------
+/// Background bootstrap
+///
+/// Anything that isn't required for the first rendered frame belongs here.
+/// ---------------------------------------------------------------------------
+
+Future<void> _initializeBackgroundServices() async {
+  try {
+    // Rust is intentionally started after the first frame.
+    await RustLib.init();
+
+    // Only attempt session restoration when the local state indicates that
+    // authentication was previously completed.
+    if (AppSettings.getPhoneAuthVerified()) {
+      final restored =
+          await activeAuthClient?.restoreSession() ?? false;
+
+      if (!restored) {
+        AppSettings.putPhoneAuthVerified(false);
+        await AppSettings.flush();
+      }
+    }
+  } catch (error, stackTrace) {
+    debugPrint(
+      'LoanX background bootstrap failed: $error',
+    );
+
+    if (kDebugMode) {
+      debugPrintStack(
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  // These services do not participate in the first screen.
+  await initializeOptionalServices();
+}
+
+/// ---------------------------------------------------------------------------
+/// Optional services
+/// ---------------------------------------------------------------------------
+
 Future<void> initializeOptionalServices({
   Future<void> Function()? googleSignIn,
   Future<void> Function()? backgroundJobs,
 }) async {
-  Future<void> initialize(String name, Future<void> Function() action) async {
+  Future<void> initialize(
+    String name,
+    Future<void> Function() action,
+  ) async {
     try {
-      await action().timeout(const Duration(seconds: 15));
+      await action().timeout(
+        const Duration(seconds: 15),
+      );
     } catch (_) {
-      debugPrint('LoanX $name initialization unavailable.');
+      debugPrint(
+        'LoanX $name initialization unavailable.',
+      );
     }
   }
 
   await Future.wait([
-    initialize('Google Drive', googleSignIn ?? initializeGoogleSignIn),
+    initialize(
+      'Google Drive',
+      googleSignIn ?? initializeGoogleSignIn,
+    ),
     initialize(
       'background jobs',
-      backgroundJobs ?? () => Workmanager().initialize(callbackDispatcher),
+      backgroundJobs ??
+          () => Workmanager().initialize(
+                callbackDispatcher,
+              ),
     ),
   ]);
 }
 
-/// Phone parsing metadata is required before any phone input widget is built.
-/// Loading it after [runApp] races the login screen and causes a StateError.
-Future<bool> initializePhoneMetadata({Future<void> Function()? loader}) async {
+/// ---------------------------------------------------------------------------
+/// Phone metadata
+/// ---------------------------------------------------------------------------
+
+Future<bool> initializePhoneMetadata({
+  Future<void> Function()? loader,
+}) async {
   try {
-    await (loader ?? PhoneMetadataBootstrap.ensureInitialized).call().timeout(
-      const Duration(seconds: 15),
-    );
+    await (loader ?? PhoneMetadataBootstrap.ensureInitialized)
+        .call()
+        .timeout(
+          const Duration(seconds: 15),
+        );
+
     return true;
   } catch (_) {
-    debugPrint('LoanX phone metadata initialization unavailable.');
+    debugPrint(
+      'LoanX phone metadata initialization unavailable.',
+    );
+
     return false;
   }
 }
+
+/// ---------------------------------------------------------------------------
+/// Application
+/// ---------------------------------------------------------------------------
 
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({
@@ -209,6 +364,7 @@ class MyApp extends ConsumerStatefulWidget {
 
   final bool storageReady;
   final bool phoneMetadataReady;
+
   final OtpSender? sendOtp;
   final OtpVerifier? verifyOtp;
 
@@ -216,190 +372,538 @@ class MyApp extends ConsumerStatefulWidget {
   ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+/// ---------------------------------------------------------------------------
+/// Application state
+/// ---------------------------------------------------------------------------
+
+class _MyAppState extends ConsumerState<MyApp>
+    with WidgetsBindingObserver {
   bool? _hasSelectedLanguage;
   bool? _hasSelectedInterest;
   bool? _hasVerifiedPhone;
+
   PhoneNumber? _pendingPhoneNumber;
+
+  _BootstrapState _bootstrapState = _BootstrapState.waiting;
+
+  bool _backgroundBootstrapStarted = false;
 
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Keep an app-owned onboarding marker. The locale package may not expose a
-    // saved locale on every platform/startup path, even after `setLocale`.
+
+    // These values are only calculated once.
+    //
+    // They are intentionally not queried repeatedly during build().
     _hasSelectedLanguage ??=
         AppSettings.getLanguageSelectionCompleted() ||
         context.savedLocale != null;
-    _hasSelectedInterest ??= AppSettings.getOnboardingInterest() >= 0;
-    _hasVerifiedPhone ??= AppSettings.getPhoneAuthVerified();
+
+    _hasSelectedInterest ??=
+        AppSettings.getOnboardingInterest() >= 0;
+
+    _hasVerifiedPhone ??=
+        AppSettings.getPhoneAuthVerified();
+
+    if (!_backgroundBootstrapStarted) {
+      _backgroundBootstrapStarted = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(
+          _watchBackgroundBootstrap(),
+        );
+      });
+    }
   }
 
-  Future<void> _languageSelected(Locale locale) async {
-    if (_hasSelectedLanguage == true) return;
-    AppSettings.putLanguageSelectionCompleted(true);
-    // Queue this before sign-in. OTP verification persists it on the server;
-    // an existing authenticated session can persist it immediately below.
-    AppSettings.putPendingPreferredLanguage(locale.languageCode);
-    await AppSettings.flush();
+  /// -------------------------------------------------------------------------
+  /// Bootstrap watcher
+  /// -------------------------------------------------------------------------
+
+  Future<void> _watchBackgroundBootstrap() async {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _bootstrapState = _BootstrapState.initializing;
+    });
+
     try {
-      if (await activeAuthClient?.updateLanguage(locale.languageCode) == true) {
-        AppSettings.putPendingPreferredLanguage('');
+      // Rust must be ready before authentication providers are allowed
+      // to resolve their state.
+      await RustLib.init();
+
+      if (AppSettings.getPhoneAuthVerified()) {
+        final restored =
+            await activeAuthClient?.restoreSession() ?? false;
+
+        if (!restored) {
+          AppSettings.putPhoneAuthVerified(false);
+
+          await AppSettings.flush();
+
+          if (!mounted) {
+            return;
+          }
+
+          setState(() {
+            _hasVerifiedPhone = false;
+          });
+        }
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _bootstrapState = _BootstrapState.ready;
+      });
+
+      // Optional providers/services can now initialize without blocking UI.
+      unawaited(
+        initializeOptionalServices(),
+      );
+    } catch (error, stackTrace) {
+      debugPrint(
+        'LoanX bootstrap initialization failed: $error',
+      );
+
+      if (kDebugMode) {
+        debugPrintStack(
+          stackTrace: stackTrace,
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _bootstrapState = _BootstrapState.failed;
+      });
+    }
+  }
+
+  /// -------------------------------------------------------------------------
+  /// Language
+  /// -------------------------------------------------------------------------
+
+  Future<void> _languageSelected(
+    Locale locale,
+  ) async {
+    if (_hasSelectedLanguage == true) {
+      return;
+    }
+
+    AppSettings.putLanguageSelectionCompleted(
+      true,
+    );
+
+    // Store this locally before attempting server synchronization.
+    AppSettings.putPendingPreferredLanguage(
+      locale.languageCode,
+    );
+
+    await AppSettings.flush();
+
+    try {
+      if (await activeAuthClient?.updateLanguage(
+            locale.languageCode,
+          ) ==
+          true) {
+        AppSettings.putPendingPreferredLanguage(
+          '',
+        );
+
         await AppSettings.flush();
       }
     } catch (_) {
-      // The queued local preference is retried after the next session restore.
+      // The locally queued language preference will be retried later.
     }
-    if (!mounted) return;
-    setState(() => _hasSelectedLanguage = true);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _hasSelectedLanguage = true;
+    });
   }
 
-  Future<void> _interestSelected(AccountType type) async {
-    AppSettings.putOnboardingInterest(type.index);
+  /// -------------------------------------------------------------------------
+  /// Account type
+  /// -------------------------------------------------------------------------
+
+  Future<void> _interestSelected(
+    AccountType type,
+  ) async {
+    AppSettings.putOnboardingInterest(
+      type.index,
+    );
+
     await AppSettings.flush();
-    if (!mounted) return;
-    setState(() => _hasSelectedInterest = true);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _hasSelectedInterest = true;
+    });
   }
 
-  Future<String?> _sendOtp(PhoneNumber phoneNumber) async {
+  /// -------------------------------------------------------------------------
+  /// OTP
+  /// -------------------------------------------------------------------------
+
+  Future<String?> _sendOtp(
+    PhoneNumber phoneNumber,
+  ) async {
     if (widget.sendOtp == null) {
       return LocaleKeys.phoneVerificationUnavailable.tr();
     }
+
     try {
-      await widget.sendOtp!(phoneNumber);
-      if (!mounted) return null;
-      setState(() => _pendingPhoneNumber = phoneNumber);
+      await widget.sendOtp!(
+        phoneNumber,
+      );
+
+      if (!mounted) {
+        return null;
+      }
+
+      setState(() {
+        _pendingPhoneNumber = phoneNumber;
+      });
+
       return null;
     } catch (_) {
       return LocaleKeys.couldNotSendCode.tr();
     }
   }
 
-  Future<String?> _verifyOtp(String code) async {
+  /// -------------------------------------------------------------------------
+  /// OTP verification
+  /// -------------------------------------------------------------------------
+
+  Future<String?> _verifyOtp(
+    String code,
+  ) async {
     final phoneNumber = _pendingPhoneNumber;
-    if (phoneNumber == null || widget.verifyOtp == null) {
+
+    if (phoneNumber == null ||
+        widget.verifyOtp == null) {
       return LocaleKeys.phoneVerificationUnavailable.tr();
     }
+
     try {
       final verified = await widget.verifyOtp!(
         phoneNumber,
         code,
         context.locale.languageCode,
       );
-      if (!verified) return LocaleKeys.invalidVerificationCode.tr();
-      AppSettings.putPhoneAuthVerified(true);
-      AppSettings.putVerifiedPhoneNumber(_e164Phone(phoneNumber));
-      AppSettings.putVerifiedPhoneCountryCode(phoneNumber.isoCode);
-      AppSettings.putPendingPreferredLanguage('');
+
+      if (!verified) {
+        return LocaleKeys.invalidVerificationCode.tr();
+      }
+
+      AppSettings.putPhoneAuthVerified(
+        true,
+      );
+
+      AppSettings.putVerifiedPhoneNumber(
+        _e164Phone(phoneNumber),
+      );
+
+      AppSettings.putVerifiedPhoneCountryCode(
+        phoneNumber.isoCode,
+      );
+
+      AppSettings.putPendingPreferredLanguage(
+        '',
+      );
+
       await AppSettings.flush();
-      if (!mounted) return null;
+
+      if (!mounted) {
+        return null;
+      }
+
       setState(() {
         _hasVerifiedPhone = true;
         _pendingPhoneNumber = null;
       });
+
       return null;
     } catch (_) {
       return LocaleKeys.couldNotVerifyCode.tr();
     }
   }
 
-  String _e164Phone(PhoneNumber phoneNumber) =>
-      CountryCatalog.e164(phoneNumber.isoCode, phoneNumber.nsn);
+  /// -------------------------------------------------------------------------
+  /// E.164
+  /// -------------------------------------------------------------------------
+
+  String _e164Phone(
+    PhoneNumber phoneNumber,
+  ) {
+    return CountryCatalog.e164(
+      phoneNumber.isoCode,
+      phoneNumber.nsn,
+    );
+  }
+
+  /// -------------------------------------------------------------------------
+  /// Resend OTP
+  /// -------------------------------------------------------------------------
 
   Future<String?> _resendOtp() async {
     final phoneNumber = _pendingPhoneNumber;
-    if (phoneNumber == null) return LocaleKeys.couldNotSendCode.tr();
-    return _sendOtp(phoneNumber);
+
+    if (phoneNumber == null) {
+      return LocaleKeys.couldNotSendCode.tr();
+    }
+
+    return _sendOtp(
+      phoneNumber,
+    );
   }
 
+  /// -------------------------------------------------------------------------
+  /// Lifecycle
+  /// -------------------------------------------------------------------------
+
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (widget.storageReady &&
-        (state == AppLifecycleState.paused ||
-            state == AppLifecycleState.detached)) {
+  void didChangeAppLifecycleState(
+    AppLifecycleState state,
+  ) {
+    if (!widget.storageReady) {
+      return;
+    }
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
       unawaited(
-        AppSettings.flush().catchError((Object _, StackTrace _) {
-          debugPrint(
-            'LoanX settings could not be saved; previous file retained.',
-          );
-        }),
+        AppSettings.flush().catchError(
+          (
+            Object _,
+            StackTrace _,
+          ) {
+            debugPrint(
+              'LoanX settings could not be saved; '
+              'previous file retained.',
+            );
+          },
+        ),
       );
     }
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(
+      this,
+    );
+
     super.dispose();
   }
 
+  /// -------------------------------------------------------------------------
+  /// Build
+  /// -------------------------------------------------------------------------
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     final themeMode = widget.storageReady
-        ? ref.watch(themeModeManagerProvider)
+        ? ref.watch(
+            themeModeManagerProvider,
+          )
         : ThemeMode.system;
-    final appColor = widget.storageReady ? ref.watch(appColorProvider) : '';
+
+    final appColor = widget.storageReady
+        ? ref.watch(
+            appColorProvider,
+          )
+        : '';
 
     return MaterialApp(
       themeMode: themeMode,
-      theme: AppTheme.light(AppTheme.parseSeed(appColor)),
-      darkTheme: AppTheme.dark(AppTheme.parseSeed(appColor)),
-      debugShowCheckedModeBanner: false,
-      home: !widget.storageReady || !widget.phoneMetadataReady
-          ? ErrorPage()
-          : _hasSelectedLanguage != true
-          ? StartupLanguageScreen(onLanguageSelected: _languageSelected)
-          : _hasVerifiedPhone != true
-          ? _pendingPhoneNumber == null
-                ? PhoneLoginScreen(onContinue: _sendOtp)
-                : OtpVerificationScreen(
-                    phoneNumber: _pendingPhoneNumber!,
-                    onVerify: _verifyOtp,
-                    onResend: _resendOtp,
-                    onChangeNumber: () =>
-                        setState(() => _pendingPhoneNumber = null),
-                  )
-          : _hasSelectedInterest != true
-          ? AccountTypeScreen(onContinue: _interestSelected)
-          : ref
-                .watch(authenticateProvider)
-                .when(
-                  data: (authenticated) => !authenticated
-                      ? const AuthFailurePage()
-                      // Borrowers use LoanX free of charge. Subscription
-                      // choices apply only when the user opted into lending
-                      // (or both), where connected lender features exist.
-                      : !AppSettings.getUsesBorrowerExperience() &&
-                            !AppSettings.getPlanSelectionCompleted()
-                      ? PlanSelectionScreen(onContinue: () => setState(() {}))
-                      // A borrower account is provisioned by the connected
-                      // service and should never be asked to configure a
-                      // personal Google Drive backup before entering LoanX.
-                      // The local database remains available as a cache and
-                      // is initialized lazily by its repositories.
-                      : !AppSettings.getUsesBorrowerExperience() &&
-                            !AppSettings.getIsTableCreated()
-                      ? const AskBackupScreen()
-                      : const DashBoard(),
-                  error: (_, _) => ErrorPage(),
-                  loading: () => AuthScreen(),
-                ),
-      locale: context.locale,
-      localizationsDelegates: [
-        const _FallbackMaterialLocalizationsDelegate(),
-        const _FallbackCupertinoLocalizationsDelegate(),
-        ...context.localizationDelegates,
-      ],
-      supportedLocales: context.supportedLocales,
-      builder: (context, child) => DevicePerformanceScope(
-        tier: DevicePerformance.tier,
-        child: child ?? const SizedBox.shrink(),
+      theme: AppTheme.light(
+        AppTheme.parseSeed(
+          appColor,
+        ),
       ),
+      darkTheme: AppTheme.dark(
+        AppTheme.parseSeed(
+          appColor,
+        ),
+      ),
+      debugShowCheckedModeBanner: false,
+
+      home: _buildHome(context),
+
+      locale: context.locale,
+
+      localizationsDelegates: const [
+        _FallbackMaterialLocalizationsDelegate(),
+        _FallbackCupertinoLocalizationsDelegate(),
+      ],
+
+      supportedLocales: context.supportedLocales,
+
+      builder: (context, child) {
+        return DevicePerformanceScope(
+          tier: DevicePerformance.tier,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
+    );
+  }
+
+  /// -------------------------------------------------------------------------
+  /// Home / startup routing
+  /// -------------------------------------------------------------------------
+
+  Widget _buildHome(
+    BuildContext context,
+  ) {
+    // -----------------------------------------------------------------------
+    // Critical local initialization failure
+    // -----------------------------------------------------------------------
+
+    if (!widget.storageReady ||
+        !widget.phoneMetadataReady) {
+      return ErrorPage();
+    }
+
+    // -----------------------------------------------------------------------
+    // Language onboarding
+    // -----------------------------------------------------------------------
+
+    if (_hasSelectedLanguage != true) {
+      return StartupLanguageScreen(
+        onLanguageSelected: _languageSelected,
+      );
+    }
+
+    // -----------------------------------------------------------------------
+    // Phone authentication
+    // -----------------------------------------------------------------------
+
+    if (_hasVerifiedPhone != true) {
+      if (_pendingPhoneNumber == null) {
+        return PhoneLoginScreen(
+          onContinue: _sendOtp,
+        );
+      }
+
+      return OtpVerificationScreen(
+        phoneNumber: _pendingPhoneNumber!,
+        onVerify: _verifyOtp,
+        onResend: _resendOtp,
+        onChangeNumber: () {
+          setState(() {
+            _pendingPhoneNumber = null;
+          });
+        },
+      );
+    }
+
+    // -----------------------------------------------------------------------
+    // Account type
+    // -----------------------------------------------------------------------
+
+    if (_hasSelectedInterest != true) {
+      return AccountTypeScreen(
+        onContinue: _interestSelected,
+      );
+    }
+
+    // -----------------------------------------------------------------------
+    // Rust / session bootstrap
+    //
+    // Don't allow authenticateProvider to execute until Rust/session
+    // initialization has completed.
+    // -----------------------------------------------------------------------
+
+    if (_bootstrapState == _BootstrapState.waiting ||
+        _bootstrapState == _BootstrapState.initializing) {
+      return const AuthScreen();
+    }
+
+    // -----------------------------------------------------------------------
+    // Bootstrap failed
+    // -----------------------------------------------------------------------
+
+    if (_bootstrapState == _BootstrapState.failed) {
+      return ErrorPage();
+    }
+
+    // -----------------------------------------------------------------------
+    // Authentication
+    // -----------------------------------------------------------------------
+
+    return ref.watch(
+      authenticateProvider,
+    ).when(
+      data: (authenticated) {
+        if (!authenticated) {
+          return const AuthFailurePage();
+        }
+
+        // -------------------------------------------------------------------
+        // Borrower path
+        //
+        // Borrowers do not require lender subscription or Google Drive
+        // backup setup.
+        // -------------------------------------------------------------------
+
+        final usesBorrower =
+            AppSettings.getUsesBorrowerExperience();
+
+        if (!usesBorrower &&
+            !AppSettings.getPlanSelectionCompleted()) {
+          return PlanSelectionScreen(
+            onContinue: () {
+              setState(() {});
+            },
+          );
+        }
+
+        // -------------------------------------------------------------------
+        // Lender local storage / backup setup
+        // -------------------------------------------------------------------
+
+        if (!usesBorrower &&
+            !AppSettings.getIsTableCreated()) {
+          return const AskBackupScreen();
+        }
+
+        // -------------------------------------------------------------------
+        // Main dashboard
+        // -------------------------------------------------------------------
+
+        return const DashBoard();
+      },
+
+      error: (_, _) {
+        return ErrorPage();
+      },
+
+      loading: () {
+        return const AuthScreen();
+      },
     );
   }
 }
