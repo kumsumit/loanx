@@ -601,9 +601,10 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
       locale: context.locale,
 
-      localizationsDelegates: const [
-        _FallbackMaterialLocalizationsDelegate(),
-        _FallbackCupertinoLocalizationsDelegate(),
+      localizationsDelegates: [
+        ...context.localizationDelegates,
+        const _FallbackMaterialLocalizationsDelegate(),
+        const _FallbackCupertinoLocalizationsDelegate(),
       ],
 
       supportedLocales: context.supportedLocales,

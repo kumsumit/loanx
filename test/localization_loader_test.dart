@@ -33,6 +33,11 @@ void main() {
           isNotEmpty,
           reason: 'Missing $key translation for $code',
         );
+        expect(
+          translations[key],
+          isNot(key),
+          reason: 'Raw localization key rendered for $key in $code',
+        );
       }
     }
   });

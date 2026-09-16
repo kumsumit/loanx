@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:loanx/db/tostore_database.dart';
 import 'package:loanx/domain/financial_engine.dart';
 import 'package:loanx/domain/money.dart';
@@ -29,6 +28,7 @@ class RepaymentHistoryScreen extends StatefulWidget {
 
 class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
   late Future<_LedgerContext> _context;
+  bool _isMutating = false;
 
   @override
   void initState() {
@@ -66,7 +66,10 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
     );
   }
 
-  void _reload() => setState(() => _context = _load());
+  void _reload() {
+    if (!mounted) return;
+    setState(() => _context = _load());
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -75,7 +78,10 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
       future: _context,
       builder: (context, snapshot) => snapshot.hasData
           ? FloatingActionButton.extended(
-              onPressed: () => _record(snapshot.requireData),
+              heroTag: 'repayment-history-record',
+              onPressed: _isMutating
+                  ? null
+                  : () => _record(snapshot.requireData),
               icon: const Icon(Icons.add_card_outlined),
               label: Text('Record repayment'.tr()),
             )
@@ -88,7 +94,9 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Repayment history could not be loaded'.tr()));
+          return Center(
+            child: Text('Repayment history could not be loaded'.tr()),
+          );
         }
         final ledger = snapshot.requireData;
         final repaid = _netRepayments(ledger.events);
@@ -118,13 +126,15 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
                 child: Center(child: Text('No repayments recorded'.tr())),
               )
             else
-              ...ledger.events.map((event) => _EventTile(
-                    event: event,
-                    currency: ledger.currency,
-                    onReverse: event.type == FinancialEventType.repayment
-                        ? () => _reverse(ledger, event)
-                        : null,
-                  )),
+              ...ledger.events.map(
+                (event) => _EventTile(
+                  event: event,
+                  currency: ledger.currency,
+                  onReverse: event.type == FinancialEventType.repayment
+                      ? () => _reverse(ledger, event)
+                      : null,
+                ),
+              ),
           ],
         );
       },
@@ -144,6 +154,7 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
   }
 
   Future<void> _record(_LedgerContext ledger) async {
+    if (_isMutating || !mounted) return;
     final amount = TextEditingController();
     var method = PaymentMethod.cash;
     final result = await showDialog<_PaymentDraft>(
@@ -157,18 +168,24 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
               TextField(
                 controller: amount,
                 autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: InputDecoration(labelText: 'Amount'.tr()),
               ),
               DropdownButtonFormField<PaymentMethod>(
-                value: method,
+                initialValue: method,
                 items: PaymentMethod.values
-                    .map((value) => DropdownMenuItem(
-                          value: value,
-                          child: Text(value.name.tr()),
-                        ))
+                    .map(
+                      (value) => DropdownMenuItem(
+                        value: value,
+                        child: Text(value.name.tr()),
+                      ),
+                    )
                     .toList(),
-                onChanged: (value) => setDialogState(() => method = value!),
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => method = value);
+                },
               ),
             ],
           ),
@@ -190,6 +207,8 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
     );
     amount.dispose();
     if (result == null) return;
+    if (!mounted) return;
+    setState(() => _isMutating = true);
     try {
       final money = Money.parse(
         result.amount,
@@ -209,10 +228,13 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
           SnackBar(content: Text('Repayment could not be recorded'.tr())),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isMutating = false);
     }
   }
 
   Future<void> _reverse(_LedgerContext ledger, FinancialEvent event) async {
+    if (_isMutating || !mounted) return;
     final reason = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
@@ -237,6 +259,8 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
     final text = reason.text;
     reason.dispose();
     if (confirmed != true) return;
+    if (!mounted) return;
+    setState(() => _isMutating = true);
     try {
       await ledger.repository.reverseRepayment(
         eventId: event.id,
@@ -250,6 +274,8 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
           SnackBar(content: Text('Repayment could not be reversed'.tr())),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isMutating = false);
     }
   }
 
@@ -279,7 +305,11 @@ class _PaymentDraft {
 }
 
 class _EventTile extends StatelessWidget {
-  const _EventTile({required this.event, required this.currency, this.onReverse});
+  const _EventTile({
+    required this.event,
+    required this.currency,
+    this.onReverse,
+  });
   final FinancialEvent event;
   final String currency;
   final VoidCallback? onReverse;
@@ -287,12 +317,16 @@ class _EventTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: ListTile(
-      leading: Icon(event.type == FinancialEventType.reversal
-          ? Icons.undo_rounded
-          : Icons.payments_outlined),
-      title: Text(event.type == FinancialEventType.reversal
-          ? 'Repayment reversed'.tr()
-          : 'Repayment'.tr()),
+      leading: Icon(
+        event.type == FinancialEventType.reversal
+            ? Icons.undo_rounded
+            : Icons.payments_outlined,
+      ),
+      title: Text(
+        event.type == FinancialEventType.reversal
+            ? 'Repayment reversed'.tr()
+            : 'Repayment'.tr(),
+      ),
       subtitle: Text(DateFormat.yMMMd().format(event.effectiveDate.toLocal())),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
