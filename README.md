@@ -2,13 +2,15 @@
 
 Flutter application for local loan and collateral records, interest estimates,
 receipts and Google Drive backup. The separate `../loanx_server/` repository is
-an implemented Rust/PostgreSQL/QUIC backend foundation. Its connected and sync
-operations are not yet wired into the Flutter client end to end.
+an implemented Rust/PostgreSQL/QUIC backend foundation. New standalone lender
+loans now use a durable client queue and the server's idempotent `loan/create`
+mutation; pull synchronization and full loan-update reconciliation are not
+yet wired end to end.
 
 The current application uses encrypted ToStore local storage. Canonical identity,
 exact-money, repayment and connected repositories exist, but the visible lender
-flow still uses the legacy floating-point Loan model and the client has no cloud
-sync queue. See [implementation status](IMPLEMENTATION_STATUS.md) and the
+flow still uses the legacy floating-point Loan model. See [implementation
+status](IMPLEMENTATION_STATUS.md) and the
 [repository feature-gap audit](../docs/feature-gap-audit-2026-09-16.md).
 
 ## Local development

@@ -429,6 +429,7 @@
   "bothLendingAndBorrowing": "दोनों",
   "bothAccountDescription": "अलग-अलग संबंधों में उधार दें और लें",
   "preferenceCanChangeLater": "यह केवल आपके अनुभव को व्यक्तिगत बनाता है। आप इसे बाद में बदल सकते हैं।",
+  "Sign in as borrower": "उधारकर्ता के रूप में साइन इन करें",
   "Amount due": "देय राशि",
   "Calculated interest": "गणना किया गया ब्याज"
 }

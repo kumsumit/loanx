@@ -91,7 +91,7 @@ class DashBoard extends HookWidget {
             ),
           if (!usesBorrowerExperience)
             IconButton(
-              tooltip: 'Sign in as borrower'.tr(),
+              tooltip: LocaleKeys.signInAsBorrower.tr(),
               icon: const Icon(Icons.switch_account_outlined),
               onPressed: () async {
                 final switched = await Navigator.of(context).push<bool>(

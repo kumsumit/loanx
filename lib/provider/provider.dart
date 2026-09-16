@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -19,6 +20,8 @@ import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/model/weight_unit.dart';
 import 'package:loanx/service/database_helper.dart';
 import 'package:loanx/service/canonical_migration.dart';
+import 'package:loanx/service/auth_client.dart';
+import 'package:loanx/domain/money.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 part 'provider.g.dart';
@@ -1018,6 +1021,92 @@ class LoanList extends _$LoanList {
         ...loan.toJson(),
         ...identity,
       });
+      final owner = owners.single;
+      final ownerId = owner['id'] as String;
+      final remoteLenderPartyId = owner['remotePartyId'] as String?;
+      final borrowerPartyId = identity['borrowerPartyId'] as String;
+      final loanUid = identity['uid'] as String;
+      final borrowerRows = await transaction.query(
+        'parties',
+        where: 'id = ? AND ownerId = ?',
+        whereArgs: [borrowerPartyId, ownerId],
+        limit: 1,
+      );
+      if (borrowerRows.length != 1) {
+        throw StateError('Borrower party was not created.');
+      }
+      // Phone-based loans use the existing invitation/claim flow below the
+      // form. Sending both a direct loan mutation and an invitation would let
+      // the borrower claim the same UUID through two different paths. Loans
+      // without a phone are standalone lender records and sync directly.
+      if (remoteLenderPartyId != null &&
+          remoteLenderPartyId.isNotEmpty &&
+          loan.phoneNumber.trim().isEmpty) {
+        final borrower = borrowerRows.single;
+        final now = DateTime.now().toUtc().toIso8601String();
+        final partyPayload = <String, Object?>{
+          'display_name': borrower['displayName'],
+          // The legacy loan form does not retain an E.164 country alongside
+          // its free-form phone field. Do not send an unvalidated phone to the
+          // server; the private local contact remains intact.
+          'phone_e164': null,
+          'email': borrower['email'],
+          'country_code': borrower['countryCode'],
+          'status': 'active',
+        };
+        final scale = CurrencyPresentation.fractionDigits(loan.currency);
+        final principal = Money.parse(
+          CanonicalMigration.exactTotal([loan.loanAmount]),
+          currency: loan.currency,
+          scale: scale,
+        );
+        final loanPayload = <String, Object?>{
+          'relationship_id': null,
+          'lender_party_id': remoteLenderPartyId,
+          'borrower_party_id': borrowerPartyId,
+          'principal_minor': int.parse(principal.minorUnits.toString()),
+          'currency': loan.currency,
+          'currency_scale': scale,
+          'loan_date': loan.dateCreated.toUtc().toIso8601String().substring(
+            0,
+            10,
+          ),
+          'maturity_date': null,
+          'lifecycle': 'active',
+          'calculation_contract': 'legacy-v1',
+          'status': 'active',
+        };
+        await transaction.insert('pendingSyncMutations', {
+          'id': borrowerPartyId,
+          'ownerId': ownerId,
+          'operationId': borrowerPartyId,
+          'entityType': 'party',
+          'entityId': borrowerPartyId,
+          'operation': 'create',
+          'expectedRevision': 0,
+          'payloadJson': jsonEncode(partyPayload),
+          'status': 'PENDING',
+          'attemptCount': 0,
+          'createdAt': now,
+          'updatedAt': now,
+        });
+        await transaction.insert('pendingSyncMutations', {
+          'id': loanUid,
+          'ownerId': ownerId,
+          'operationId': loanUid,
+          'entityType': 'loan',
+          'entityId': loanUid,
+          'operation': 'create',
+          'expectedRevision': 0,
+          'payloadJson': jsonEncode(loanPayload),
+          'status': 'PENDING',
+          'attemptCount': 0,
+          'createdAt': DateTime.parse(
+            now,
+          ).add(const Duration(microseconds: 1)).toIso8601String(),
+          'updatedAt': now,
+        });
+      }
       await _recordChange(transaction, createdId, 'Loan record created');
       loan = loan.copy(id: createdId);
       return createdId;
@@ -1025,6 +1114,12 @@ class LoanList extends _$LoanList {
     ref.invalidate(loanChangesProvider(loan.id!));
     state = AsyncData(await readAllLoans());
     await updateDBTime();
+    try {
+      await AuthClient().flushPendingSyncMutations(database: db);
+    } catch (_) {
+      // The local transaction is authoritative while offline. The durable
+      // mutation queue retries when the session/network becomes available.
+    }
     return id;
   }
 

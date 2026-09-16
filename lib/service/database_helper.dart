@@ -15,7 +15,7 @@ import 'canonical_migration.dart';
 final class DatabaseHelper {
   DatabaseHelper._();
   static final instance = DatabaseHelper._();
-  static const schemaVersion = 14;
+  static const schemaVersion = 15;
   static const _encodingKeyName = 'loanx.tostore.encoding_key';
   static const _masterKeyName = 'loanx.tostore.master_key';
   LoanxDatabasePort? _database;
@@ -252,6 +252,20 @@ final class DatabaseHelper {
     _stringTable('pendingFinancialEvents', [
       _text('eventId', nullable: false, unique: true),
       _text('loanUid', nullable: false, indexed: true),
+      _text('payloadJson', nullable: false),
+      _text('status', nullable: false, defaultValue: 'PENDING'),
+      _int('attemptCount', nullable: false, defaultValue: 0),
+      _text('lastError'),
+      _text('createdAt', nullable: false),
+      _text('updatedAt', nullable: false),
+    ]),
+    _stringTable('pendingSyncMutations', [
+      _text('ownerId', nullable: false, indexed: true),
+      _text('operationId', nullable: false, unique: true),
+      _text('entityType', nullable: false),
+      _text('entityId', nullable: false, indexed: true),
+      _text('operation', nullable: false),
+      _int('expectedRevision', nullable: false, defaultValue: 0),
       _text('payloadJson', nullable: false),
       _text('status', nullable: false, defaultValue: 'PENDING'),
       _int('attemptCount', nullable: false, defaultValue: 0),

@@ -98,6 +98,7 @@ class AuthClient {
       try {
         await flushPendingLoanShares();
         await flushPendingFinancialEvents();
+        await flushPendingSyncMutations();
       } catch (_) {
         // Authentication succeeded; a queued share can retry on the next
         // session refresh or explicit account connection.
@@ -253,6 +254,72 @@ class AuthClient {
           where: 'eventId = ?',
           whereArgs: [eventId],
         );
+      }
+    }
+    await db.flush();
+  }
+
+  /// Sends locally committed entity mutations to PostgreSQL. Mutations are
+  /// marked SENT only after the server commits its durable mutation, change,
+  /// audit, and idempotency records. Rows stay pending across offline runs.
+  Future<void> flushPendingSyncMutations({LoanxDatabasePort? database}) async {
+    if (!hasServerConfiguration) return;
+    final tokens = await _readTokens();
+    final session = await _readSessionJson();
+    final workspaceId = session['workspace_id'] as String?;
+    if (tokens == null || workspaceId == null || workspaceId.isEmpty) return;
+
+    final db = database ?? await DatabaseHelper.instance.database;
+    final owners = await db.query('localOwners');
+    if (owners.length != 1 ||
+        owners.single['remoteWorkspaceId'] != workspaceId) {
+      return;
+    }
+    final ownerId = owners.single['id'] as String;
+    final rows = await db.query(
+      'pendingSyncMutations',
+      where: 'ownerId = ? AND status = ?',
+      whereArgs: [ownerId, 'PENDING'],
+      orderBy: 'createdAt ASC',
+    );
+    for (final row in rows) {
+      final operationId = row['operationId'] as String;
+      final now = DateTime.now().toUtc().toIso8601String();
+      try {
+        final result = await network.pushMutation(
+          serverAddress: _address,
+          serverName: _name,
+          trustedCertificatePem: _certificate,
+          deviceId: _deviceId(),
+          accessToken: tokens.accessToken,
+          workspaceId: workspaceId,
+          operationId: operationId,
+          entityType: row['entityType'] as String,
+          entityId: row['entityId'] as String,
+          operation: row['operation'] as String,
+          expectedRevision: (row['expectedRevision'] as num?)?.toInt() ?? 0,
+          payloadJson: utf8.encode(row['payloadJson'] as String),
+        );
+        if (!result.success) {
+          throw StateError(result.errorMessage ?? 'Sync mutation failed');
+        }
+        await db.update(
+          'pendingSyncMutations',
+          {'status': 'SENT', 'lastError': null, 'updatedAt': now},
+          where: 'operationId = ? AND ownerId = ?',
+          whereArgs: [operationId, ownerId],
+        );
+      } catch (error) {
+        final attempts = ((row['attemptCount'] as num?)?.toInt() ?? 0) + 1;
+        await db.update(
+          'pendingSyncMutations',
+          {'attemptCount': attempts, 'lastError': '$error', 'updatedAt': now},
+          where: 'operationId = ? AND ownerId = ?',
+          whereArgs: [operationId, ownerId],
+        );
+        // Preserve party-before-loan ordering. A loan mutation must not race
+        // ahead of the party it references after a transient failure.
+        break;
       }
     }
     await db.flush();
@@ -551,6 +618,7 @@ class AuthClient {
         try {
           await flushPendingLoanShares();
           await flushPendingFinancialEvents();
+          await flushPendingSyncMutations();
         } catch (_) {
           // Keep the refreshed session even if the share queue is temporarily
           // unavailable.

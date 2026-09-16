@@ -425,6 +425,7 @@
   "bothLendingAndBorrowing": "രണ്ടും",
   "bothAccountDescription": "വ്യത്യസ്ത ബന്ധങ്ങളിൽ വായ്പ നൽകുകയും എടുക്കുകയും ചെയ്യുക",
   "preferenceCanChangeLater": "ഇത് നിങ്ങളുടെ അനുഭവം വ്യക്തിഗതമാക്കാൻ മാത്രമാണ്. പിന്നീട് മാറ്റാം.",
+  "Sign in as borrower": "വായ്പക്കാരനായി സൈൻ ഇൻ ചെയ്യുക",
   "Amount due": "അടയ്ക്കാനുള്ള തുക",
   "Calculated interest": "കണക്കാക്കിയ പലിശ"
 }

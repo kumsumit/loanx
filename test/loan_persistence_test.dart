@@ -41,7 +41,7 @@ void main() {
       .add(
         null,
         'Borrower',
-        '1234567890',
+        '',
         '',
         '',
         1000,
@@ -82,6 +82,38 @@ void main() {
     expect(stored['lenderPartyId'], isNot(stored['borrowerPartyId']));
     expect(await database.query('parties'), hasLength(2));
   });
+
+  test(
+    'server-linked lender loans queue party before loan mutations',
+    () async {
+      final ownerId = 'owner-server';
+      await database.insert('localOwners', {
+        'id': ownerId,
+        'selfPartyId': 'self-server',
+        'remoteWorkspaceId': 'workspace-1',
+        'remotePartyId': 'remote-self',
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+      });
+      await database.insert('parties', {
+        'id': 'self-server',
+        'ownerId': ownerId,
+        'displayName': 'Owner',
+        'status': 'ACTIVE',
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+        'updatedAt': DateTime.now().toUtc().toIso8601String(),
+      });
+      await createLoan();
+      final queued = await database.query(
+        'pendingSyncMutations',
+        orderBy: 'createdAt ASC',
+      );
+      expect(queued, hasLength(2));
+      expect(queued[0]['entityType'], 'party');
+      expect(queued[0]['operation'], 'create');
+      expect(queued[1]['entityType'], 'loan');
+      expect(queued[1]['operation'], 'create');
+    },
+  );
 
   test('owner-scoped reads and writes reject unrelated loan IDs', () async {
     await createLoan();

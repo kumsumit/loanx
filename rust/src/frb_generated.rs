@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -685500571;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1670688211;
 
 // Section: executor
 
@@ -609,6 +609,69 @@ fn wire__crate__api__network__push_financial_event_impl(
                                 api_reason,
                                 api_principal_minor,
                                 api_loan_date,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__network__push_mutation_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "push_mutation",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_access_token = <String>::sse_decode(&mut deserializer);
+            let api_workspace_id = <String>::sse_decode(&mut deserializer);
+            let api_operation_id = <String>::sse_decode(&mut deserializer);
+            let api_entity_type = <String>::sse_decode(&mut deserializer);
+            let api_entity_id = <String>::sse_decode(&mut deserializer);
+            let api_operation = <String>::sse_decode(&mut deserializer);
+            let api_expected_revision = <i64>::sse_decode(&mut deserializer);
+            let api_payload_json = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::push_mutation(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_access_token,
+                                api_workspace_id,
+                                api_operation_id,
+                                api_entity_type,
+                                api_entity_id,
+                                api_operation,
+                                api_expected_revision,
+                                api_payload_json,
                             )
                             .await,
                         )?;
@@ -1410,22 +1473,23 @@ fn pde_ffi_dispatcher_primary_impl(
         11 => {
             wire__crate__api__network__push_financial_event_impl(port, ptr, rust_vec_len, data_len)
         }
-        12 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
-        13 => {
+        12 => wire__crate__api__network__push_mutation_impl(port, ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
+        14 => {
             wire__crate__api__network__report_public_lender_impl(port, ptr, rust_vec_len, data_len)
         }
-        14 => wire__crate__api__network__request_chat_credentials_impl(
+        15 => wire__crate__api__network__request_chat_credentials_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        15 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
-        16 => {
+        16 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
+        17 => {
             wire__crate__api__network__search_public_lenders_impl(port, ptr, rust_vec_len, data_len)
         }
-        17 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }

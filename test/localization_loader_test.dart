@@ -44,11 +44,30 @@ void main() {
         'Public lender profile',
         'Public profile could not be loaded. Connect and try again.',
         'Connect account',
+        'Sign in as borrower',
       ]) {
         expect(
           translations![key],
           isA<String>(),
           reason: 'Missing localization value for $key in $code',
+        );
+      }
+    }
+  });
+
+  test('borrower sign-in copy is translated in every locale', () async {
+    for (final code in CodegenLoader.mapLocales.keys) {
+      final translations = await loader.load('', Locale(code));
+      expect(
+        translations!['Sign in as borrower'],
+        isA<String>(),
+        reason: 'Missing localization value for Sign in as borrower in $code',
+      );
+      if (code != 'en') {
+        expect(
+          translations['Sign in as borrower'],
+          isNot('Sign in as borrower'),
+          reason: 'Raw localization key rendered for $code',
         );
       }
     }

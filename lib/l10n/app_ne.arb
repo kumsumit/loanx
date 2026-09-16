@@ -425,6 +425,7 @@
   "bothLendingAndBorrowing": "दुवै",
   "bothAccountDescription": "फरक सम्बन्धहरूमा ऋण दिनुहोस् र लिनुहोस्",
   "preferenceCanChangeLater": "यसले केवल तपाईंको अनुभवलाई व्यक्तिगत बनाउँछ। पछि परिवर्तन गर्न सक्नुहुन्छ।",
+  "Sign in as borrower": "ऋणीको रूपमा साइन इन गर्नुहोस्",
   "Amount due": "तिर्नुपर्ने रकम",
   "Calculated interest": "गणना गरिएको ब्याज"
 }

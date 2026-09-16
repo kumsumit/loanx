@@ -264,6 +264,46 @@ pub async fn push_financial_event(
     )
 }
 
+/// Pushes one idempotent entity mutation through the server change stream.
+/// The client keeps the mutation durable locally and retries it until this
+/// operation returns success.
+#[flutter_rust_bridge::frb]
+pub async fn push_mutation(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    workspace_id: String,
+    operation_id: String,
+    entity_type: String,
+    entity_id: String,
+    operation: String,
+    expected_revision: i64,
+    payload_json: Vec<u8>,
+) -> NetworkResult {
+    simple_network_result(
+        send_request(
+            &server_address,
+            &server_name,
+            &trusted_certificate_pem,
+            &device_id,
+            access_token,
+            v1::request::Payload::PushMutation(v1::PushMutationRequest {
+                workspace_id,
+                operation_id,
+                entity_type,
+                entity_id,
+                operation,
+                expected_revision,
+                payload_json,
+            }),
+        )
+        .await,
+        |result| matches!(result, v1::response::Result::PushMutation(_)),
+    )
+}
+
 #[flutter_rust_bridge::frb]
 pub async fn list_shared_loans(
     server_address: String,

@@ -425,6 +425,7 @@
   "bothLendingAndBorrowing": "দুয়োটাই",
   "bothAccountDescription": "বিভিন্ন সম্পৰ্কত ঋণ দিয়ক আৰু লওক",
   "preferenceCanChangeLater": "ই কেৱল আপোনাৰ অভিজ্ঞতা ব্যক্তিগত কৰে। পিছত সলনি কৰিব পাৰিব।",
+  "Sign in as borrower": "ঋণগ্ৰহীতা হিচাপে ছাইন ইন কৰক",
   "Amount due": "দিবলগীয়া ধন",
   "Calculated interest": "গণনা কৰা সুত"
 }

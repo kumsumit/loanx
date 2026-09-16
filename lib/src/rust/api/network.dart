@@ -75,6 +75,37 @@ Future<NetworkResult> pushFinancialEvent({
   loanDate: loanDate,
 );
 
+/// Pushes one idempotent entity mutation through the server change stream.
+/// The client keeps the mutation durable locally and retries it until this
+/// operation returns success.
+Future<NetworkResult> pushMutation({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String workspaceId,
+  required String operationId,
+  required String entityType,
+  required String entityId,
+  required String operation,
+  required PlatformInt64 expectedRevision,
+  required List<int> payloadJson,
+}) => RustLib.instance.api.crateApiNetworkPushMutation(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  workspaceId: workspaceId,
+  operationId: operationId,
+  entityType: entityType,
+  entityId: entityId,
+  operation: operation,
+  expectedRevision: expectedRevision,
+  payloadJson: payloadJson,
+);
+
 Future<SharedLoanListResult> listSharedLoans({
   required String serverAddress,
   required String serverName,

@@ -561,6 +561,7 @@ abstract final class LocaleKeys {
   static const myLenders = "My lenders";
   static const myBorrowers = "My borrowers";
   static const connectAccount = "Connect account";
+  static const signInAsBorrower = "Sign in as borrower";
   static const couldNotSendVerificationCode =
       "Could not send verification code";
   static const verificationUnavailable = "Verification unavailable";
