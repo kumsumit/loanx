@@ -499,20 +499,6 @@ class LoanInput extends HookConsumerWidget {
                 ),
                 const SizedBox(height: 10),
               ],
-              StyledTextField(
-                failedValidationMessage:
-                    (borrowing
-                            ? 'Lender name cannot be empty'
-                            : LocaleKeys.borrowerNameCanTBeEmpty)
-                        .tr(),
-                textEditingController: depositorController,
-                hintText: borrowing
-                    ? 'Lender name'.tr()
-                    : LocaleKeys.borrowerName.tr(),
-                labelText: borrowing
-                    ? 'Lender name'.tr()
-                    : LocaleKeys.borrowerName.tr(),
-              ),
               PhoneWidget(
                 key: ValueKey(loan?.id),
                 labelText: borrowing
@@ -526,6 +512,20 @@ class LoanInput extends HookConsumerWidget {
                   isoCode: "IN",
                   nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
                 ),
+              ),
+              StyledTextField(
+                failedValidationMessage:
+                    (borrowing
+                            ? 'Lender name cannot be empty'
+                            : LocaleKeys.borrowerNameCanTBeEmpty)
+                        .tr(),
+                textEditingController: depositorController,
+                hintText: borrowing
+                    ? 'Lender name'.tr()
+                    : LocaleKeys.borrowerName.tr(),
+                labelText: borrowing
+                    ? 'Lender name'.tr()
+                    : LocaleKeys.borrowerName.tr(),
               ),
               StyledTextField(
                 failedValidationMessage: LocaleKeys.addressCanTBeEmpty.tr(),
@@ -605,30 +605,10 @@ class LoanInput extends HookConsumerWidget {
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: currency.value,
-                decoration: const InputDecoration(
-                  labelText: 'Currency',
-                  prefixIcon: Icon(Icons.currency_exchange_outlined),
-                ),
-                items:
-                    {
-                      for (final country in CountryCatalog.all)
-                        country.currency: country,
-                    }.entries.map((entry) {
-                      final country = entry.value;
-                      return DropdownMenuItem(
-                        value: entry.key,
-                        child: Text(
-                          '${country.name} — ${country.symbol} ${entry.key}',
-                        ),
-                      );
-                    }).toList(),
-                onChanged: loan == null
-                    ? (value) {
-                        if (value != null) currency.value = value;
-                      }
-                    : null,
+              _CurrencyField(
+                currency: currency.value,
+                enabled: loan == null,
+                onChanged: (value) => currency.value = value,
               ),
               if (loan != null)
                 const Padding(
@@ -1149,6 +1129,277 @@ class LoanInput extends HookConsumerWidget {
     // Clear text after dialog is dismissed.
     controller.clear();
   }
+}
+
+class _CurrencyField extends StatelessWidget {
+  const _CurrencyField({
+    required this.currency,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final String currency;
+  final bool enabled;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = _currenciesByCode[currency];
+    return InkWell(
+      onTap: enabled
+          ? () async {
+              final selectedCurrency = await _showCurrencyPicker(context);
+              if (selectedCurrency != null) onChanged(selectedCurrency);
+            }
+          : null,
+      borderRadius: BorderRadius.circular(4),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: 'Currency',
+          prefixIcon: const Icon(Icons.currency_exchange_outlined),
+          suffixIcon: Icon(
+            Icons.arrow_drop_down,
+            color: enabled ? null : Theme.of(context).disabledColor,
+          ),
+        ),
+        isEmpty: selected == null,
+        child: Text(
+          selected == null ? currency : _currencyLabel(selected),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+
+  Future<String?> _showCurrencyPicker(BuildContext context) async {
+    final searchController = TextEditingController();
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setState) {
+          final query = searchController.text.trim().toLowerCase();
+          final currencies = _currenciesByCode.values.where((item) {
+            if (query.isEmpty) return true;
+            return item.name.toLowerCase().contains(query) ||
+                item.symbol.toLowerCase().contains(query) ||
+                item.currency.toLowerCase().contains(query);
+          }).toList();
+
+          final height = MediaQuery.sizeOf(context).height * .72;
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
+            ),
+            child: SizedBox(
+              height: height.clamp(360, 620),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(11),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primaryContainer,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          Icons.currency_exchange_rounded,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Select currency',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            Text(
+                              'Choose the currency used for this loan',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: 'Search currency',
+                      hintText: 'Search by name, symbol, or code',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear search',
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () {
+                                searchController.clear();
+                                setState(() {});
+                              },
+                            ),
+                      filled: true,
+                      fillColor: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: .55),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: currencies.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off_rounded,
+                                  size: 42,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'No currencies found',
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Try a different name or code.',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: currencies.length,
+                            itemBuilder: (context, index) {
+                              final item = currencies[index];
+                              final isSelected = item.currency == currency;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Material(
+                                  color: isSelected
+                                      ? Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(18),
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 3,
+                                    ),
+                                    leading: Container(
+                                      width: 46,
+                                      height: 46,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: Text(
+                                        item.symbol,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      _currencyLabel(item),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    trailing: isSelected
+                                        ? Icon(
+                                            Icons.check_circle_rounded,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          )
+                                        : const Icon(
+                                            Icons.chevron_right_rounded,
+                                          ),
+                                    onTap: () => Navigator.of(
+                                      sheetContext,
+                                    ).pop(item.currency),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    searchController.dispose();
+    return result;
+  }
+}
+
+final _currenciesByCode = <String, CountryConfig>{
+  for (final country in CountryCatalog.all) country.currency: country,
+};
+
+String _currencyLabel(CountryConfig currency) {
+  return '${currency.name}. ${currency.symbol} (${currency.currency})';
 }
 
 class _ConfirmationDetail extends StatelessWidget {

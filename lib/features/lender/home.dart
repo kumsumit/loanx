@@ -54,18 +54,24 @@ class Home extends HookWidget {
         ],
         body: MortgageListView(filter: filter.value),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const Key('add'),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(LocaleKeys.newLoan.tr()),
-        onPressed: () {
-          if (context.mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LoanInput()),
-            );
-          }
-        },
+      floatingActionButton: Consumer(
+        builder: (context, ref, child) => ref.watch(loanListProvider).when(
+          data: (loans) => loans.isEmpty
+              ? const SizedBox.shrink()
+              : FloatingActionButton.extended(
+                  key: const Key('add'),
+                  icon: const Icon(Icons.add_rounded),
+                  label: Text(LocaleKeys.newLoan.tr()),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoanInput()),
+                    );
+                  },
+                ),
+          error: (_, _) => const SizedBox.shrink(),
+          loading: () => const SizedBox.shrink(),
+        ),
       ),
     );
   }
@@ -81,6 +87,8 @@ class _PortfolioSummary extends ConsumerWidget {
         .watch(loanListProvider)
         .when(
           data: (loans) {
+            if (loans.isEmpty) return const SizedBox.shrink();
+
             final active = loans.where((loan) => !loan.isFinished()).toList();
             final grouped = <String, List<Loan>>{};
             for (final loan in active) {
