@@ -18,6 +18,7 @@ void main() {
             );
         final json = loan.toJson();
         expect(json[LoanFields.dateCreated], '2026-01-01T00:00:00.123Z');
+        expect(json[LoanFields.loanAmountExact], '10000.0');
         final restored = Loan.fromJson(json);
         expect(restored.dateCreated.isAtSameMomentAs(loan.dateCreated), isTrue);
         expect(
@@ -26,6 +27,18 @@ void main() {
         );
       },
     );
+
+    test('exact principal survives a legacy numeric field loss', () {
+      final loan = _loan(
+        interestType: InterestType.simple,
+        interestRate: 0,
+        durationInDays: 1,
+      );
+      final json = loan.copy(id: 1).toJson()
+        ..[LoanFields.loanAmount] = 0.0;
+
+      expect(Loan.fromJson(json).loanAmount, 10000);
+    });
 
     test('legacy date strings retain their existing interpretation', () {
       final json = _loan(

@@ -11,6 +11,9 @@ class LoanFields {
   static final String relativeName = 'relativeName';
   static final String address = 'address';
   static final String loanAmount = 'loanAmount';
+  // Keep an exact decimal representation alongside the legacy numeric field.
+  // This avoids losing monetary values in ToStore's file-backed double path.
+  static final String loanAmountExact = 'loanAmountExact';
   static final String weight = 'weight';
   static final String weightUnit = 'weightUnit';
   static final String interestRate = 'interestRate';
@@ -202,7 +205,7 @@ class Loan {
     phoneNumber: json[LoanFields.phoneNumber] as String,
     relativeName: json[LoanFields.relativeName] as String,
     address: json[LoanFields.address] as String,
-    loanAmount: (json[LoanFields.loanAmount] as num).toDouble(),
+    loanAmount: _readLoanAmount(json),
     currency: json[LoanFields.currency] as String? ?? 'INR',
     weight: (json[LoanFields.weight] as num?)?.toDouble() ?? 0,
     weightUnit: json[LoanFields.weightUnit] as String? ?? 'g',
@@ -256,6 +259,7 @@ class Loan {
       LoanFields.relativeName: relativeName,
       LoanFields.address: address,
       LoanFields.loanAmount: loanAmount,
+      LoanFields.loanAmountExact: loanAmount.toString(),
       LoanFields.currency: currency,
       LoanFields.weight: weight,
       LoanFields.weightUnit: weightUnit,
@@ -276,6 +280,17 @@ class Loan {
       LoanFields.familyRelationId: familyRelationId,
       LoanFields.mortgageMaterialId: mortgageMaterialId,
     };
+  }
+
+  static double _readLoanAmount(Map<String, Object?> json) {
+    final exact = json[LoanFields.loanAmountExact];
+    if (exact is String && exact.trim().isNotEmpty) {
+      final parsed = double.tryParse(exact.trim());
+      if (parsed != null && parsed.isFinite) return parsed;
+    }
+    final legacy = json[LoanFields.loanAmount];
+    if (legacy is num) return legacy.toDouble();
+    throw const FormatException('Loan principal amount is missing or invalid.');
   }
 
   double calculateInterest() {

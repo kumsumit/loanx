@@ -7,6 +7,7 @@ import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/database_helper.dart';
+import 'package:tostore/tostore.dart';
 
 class _TestDB extends DB {
   _TestDB(this.database);
@@ -73,6 +74,7 @@ void main() {
     expect(changes.last['description'], contains('Recipient'));
     expect(await database.query(Loan.tableName), hasLength(1));
     final stored = (await database.query(Loan.tableName)).single;
+    expect(stored['loanAmountExact'], '1000.0');
     expect(stored['uid'], isNotEmpty);
     expect(stored['ownerId'], isNotEmpty);
     expect(stored['lenderPartyId'], isNotEmpty);
@@ -106,6 +108,55 @@ void main() {
       throwsStateError,
     );
     expect(await database.query(Loan.tableName), hasLength(2));
+  });
+
+  test('principal survives a file-backed database reopen', () async {
+    final directory = await Directory.systemTemp.createTemp('loan-durable-');
+    final dbName = 'loan-durable-${DateTime.now().microsecondsSinceEpoch}';
+    final config = DataStoreConfig(
+      dbName: dbName,
+      defaultQueryLimit: 1000,
+      persistRecoveryOnCommit: true,
+    );
+    final firstStore = await ToStore.open(
+      dbPath: directory.path,
+      dbName: dbName,
+      schemas: DatabaseHelper.schemas,
+      config: config,
+    );
+    final first = LoanxDatabase(firstStore);
+    await first.transaction((tx) async {
+      await tx.insert('localOwners', {
+        'id': 'owner',
+        'selfPartyId': 'self',
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+      });
+      await tx.insert('loans', {
+        'loanAmount': 12500.75,
+        'loanAmountExact': '12500.75',
+        'currency': 'INR',
+      });
+    });
+    expect((await first.query('loans')).single['loanAmountExact'], '12500.75');
+    await first.close();
+
+    final reopenedStore = await ToStore.open(
+      dbPath: directory.path,
+      dbName: dbName,
+      schemas: DatabaseHelper.schemas,
+      config: config,
+      reinitialize: true,
+      noPersistOnClose: false,
+    );
+    final reopened = LoanxDatabase(reopenedStore);
+    addTearDown(() async {
+      await reopened.close();
+      await directory.delete(recursive: true);
+    });
+
+    final rows = await reopened.query('loans');
+    expect(rows, hasLength(1));
+    expect(rows.single['loanAmountExact'], '12500.75');
   });
 
   test(

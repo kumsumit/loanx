@@ -100,7 +100,7 @@ final class LocalSearchService {
             entityType: SearchEntityType.loan,
             entityId: (loan['uid'] ?? loan['id']).toString(),
             title: name,
-            subtitle: '${loan['currency'] ?? 'INR'} ${loan['loanAmount']}',
+            subtitle: '${loan['currency'] ?? 'INR'} ${_loanAmount(loan)}',
             matchReason: structured
                 ? 'Matched exact loan filters'
                 : 'Matched loan text',
@@ -270,8 +270,17 @@ final class LocalSearchService {
     );
   }
 
+  static double _loanAmount(Map<String, Object?> l) {
+    final exact = l['loanAmountExact'];
+    if (exact is String) {
+      final parsed = double.tryParse(exact.trim());
+      if (parsed != null && parsed.isFinite) return parsed;
+    }
+    return (l['loanAmount'] as num?)?.toDouble() ?? 0;
+  }
+
   static BigInt _loanMinor(Map<String, Object?> l) =>
-      BigInt.from((((l['loanAmount'] as num?)?.toDouble() ?? 0) * 100).round());
+      BigInt.from((_loanAmount(l) * 100).round());
   static bool _isStructured(String q) =>
       q.contains('overdue') ||
       q.contains('due this month') ||

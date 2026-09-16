@@ -15,7 +15,7 @@ import 'canonical_migration.dart';
 final class DatabaseHelper {
   DatabaseHelper._();
   static final instance = DatabaseHelper._();
-  static const schemaVersion = 12;
+  static const schemaVersion = 13;
   static const _encodingKeyName = 'loanx.tostore.encoding_key';
   static const _masterKeyName = 'loanx.tostore.master_key';
   LoanxDatabasePort? _database;
@@ -158,6 +158,7 @@ final class DatabaseHelper {
       _text('relativeName'),
       _text('address'),
       _double('loanAmount'),
+      _text('loanAmountExact'),
       _double('interestRate'),
       _double('weight'),
       _text('weightUnit', nullable: false, defaultValue: 'g'),

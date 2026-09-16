@@ -270,6 +270,11 @@ final class LoanxDatabase implements LoanxDatabasePort {
     if (result.hasErrors) {
       throw DatabaseException(result.statuses.map((s) => s.message).join('; '));
     }
+    // `persistRecoveryOnCommit` protects the recovery journal, but it does
+    // not necessarily flush the table data buffers to durable storage. A
+    // process kill immediately after a successful loan or repayment write
+    // could otherwise make the record disappear on the next launch.
+    await flush();
     return value as T;
   }
 
