@@ -94,6 +94,7 @@ abstract final class LocaleKeys {
   static const anErrorOccurred = "An error occurred";
   static const appColor = "App color";
   static const appPreferences = "App preferences";
+  static const moreActions = "More actions";
   static const areYouSureWantYouHaveReturnedThisMortgageToTheBorrowerAndClearTheLoan =
       "Are you sure want you have returned this mortgage to the borrower and clear the loan?";
   static const authenticationFailed = "Authentication failed";

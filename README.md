@@ -25,6 +25,21 @@ flutter test --no-pub
 flutter run
 ```
 
+`flutter run` without Dart defines is intentionally a local-only build. To
+enable connected borrower/lender features, provide the server address, TLS
+server name, and base64-encoded trusted certificate described in
+`../loanx_server/README.md`, for example:
+
+```sh
+flutter run \
+  --dart-define=LOANX_SERVER_ADDRESS=127.0.0.1:4433 \
+  --dart-define=LOANX_SERVER_NAME=localhost \
+  --dart-define=LOANX_SERVER_CERTIFICATE_BASE64="$(base64 < ../certs/cert.pem | tr -d '\n')"
+```
+
+Without these values, cloud refreshes are skipped and local loan management
+continues to work.
+
 Current onboarding requires phone OTP before workspace access. A failed session
 refresh can also return an offline user to OTP; this is a known local-first
 release blocker rather than intended behavior. The lender/borrower/both choice is

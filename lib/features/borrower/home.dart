@@ -50,6 +50,10 @@ final borrowerDashboardProvider = FutureProvider<BorrowerDashboardData>((
   final dashboard = await loadBorrowerDashboard(
     await ref.read(dBProvider.future),
   );
+  // Connected loans are an optional cloud enhancement. A local-only build
+  // may not have the Dart defines required by AuthClient, but that must not
+  // make the local borrower dashboard look broken or emit a retry loop.
+  if (!AuthClient.hasServerConfiguration) return dashboard;
   try {
     final shared = await AuthClient().listSharedLoans();
     final remote = shared.map((item) {

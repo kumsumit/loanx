@@ -19,11 +19,30 @@ class AuthClient {
   final FlutterSecureStorage _storage;
   static const _sessionKey = 'loanx.auth-session.v1';
   String? _challenge;
+
+  /// Whether this build has enough information to attempt a cloud request.
+  ///
+  /// The cloud service is optional for local-first workspaces. In particular,
+  /// a normal `flutter run` without Dart defines must not turn a local borrower
+  /// dashboard refresh into a configuration exception.
+  static bool get hasServerConfiguration =>
+      _address.trim().isNotEmpty &&
+      _name.trim().isNotEmpty &&
+      _certificate64.trim().isNotEmpty;
+
   String get _certificate {
-    if (_address.isEmpty || _name.isEmpty || _certificate64.isEmpty) {
-      throw StateError('LoanX server configuration is missing');
+    if (!hasServerConfiguration) {
+      throw StateError(
+        'LoanX server configuration is missing. Launch with '
+        'LOANX_SERVER_ADDRESS, LOANX_SERVER_NAME, and '
+        'LOANX_SERVER_CERTIFICATE_BASE64.',
+      );
     }
-    return utf8.decode(base64Decode(_certificate64));
+    try {
+      return utf8.decode(base64Decode(_certificate64));
+    } on FormatException {
+      throw StateError('LoanX server certificate is not valid base64');
+    }
   }
 
   Future<void> requestOtp(PhoneNumber phone) async {
@@ -145,6 +164,10 @@ class AuthClient {
   Future<List<network.SharedLoanSummary>> listSharedLoans({
     int limit = 100,
   }) async {
+    // A local-only build may still contain an old cloud session. Do not let
+    // that stale session make the optional refresh fail on every dashboard
+    // rebuild; local data remains the source of truth while unconfigured.
+    if (!hasServerConfiguration) return const [];
     final tokens = await _readTokens();
     if (tokens == null) return const [];
     // Claim invitations created while this borrower already had an active

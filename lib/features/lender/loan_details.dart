@@ -80,7 +80,7 @@ class LoanDetails extends ConsumerWidget {
           ),
           PopupMenuButton<VoidCallback>(
             icon: const Icon(Icons.more_vert),
-            tooltip: 'More actions'.tr(),
+            tooltip: LocaleKeys.moreActions.tr(),
             onSelected: (action) => action(),
             itemBuilder: (context) => [
               PopupMenuItem<VoidCallback>(
