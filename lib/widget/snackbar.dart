@@ -18,9 +18,16 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 //   );
 // }
 
-void showErrorSnackBar(BuildContext context, String message) {
+/// Shows an error without exposing server or exception details in release
+/// builds. Set [userFacing] only for a vetted message authored by the app;
+/// never pass a transport or server error with this enabled.
+void showErrorSnackBar(
+  BuildContext context,
+  String message, {
+  bool userFacing = false,
+}) {
   final overlay = Overlay.of(context);
-  final displayMessage = kReleaseMode
+  final displayMessage = kReleaseMode && !userFacing
       ? LocaleKeys.somethingWentWrongPleaseTryAgain.tr()
       : message.trExists()
       ? message.tr()

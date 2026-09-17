@@ -20,6 +20,7 @@ import 'package:loanx/provider/provider.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/widget/phone.dart';
 import 'package:loanx/widget/snackbar.dart';
+import 'package:loanx/widget/loading_overlay.dart';
 import 'package:loanx/widget/styled_dropdown.dart';
 import 'package:loanx/widget/styled_text.dart';
 import 'package:loanx/widget/styled_textfield.dart';
@@ -31,13 +32,11 @@ import 'package:loanx/service/rust_bridge.dart';
 class LoanInput extends HookConsumerWidget {
   final Loan? loan;
 
-  /// The reusable local-loan form. Borrower entry points should use
-  /// `BorrowerLoanInput`, which passes this explicitly instead of depending on
-  /// an onboarding preference.
-  final bool? isBorrowerLoan;
-  const LoanInput({super.key, this.loan, this.isBorrowerLoan});
+  /// This is a lender-only financial-write form. Borrower screens display
+  /// lender-shared records and never create or edit financial records.
+  const LoanInput({super.key, this.loan});
 
-  double _parseDouble(String input) {
+  String _normalizeDecimalInput(String input) {
     var normalized = input.trim().replaceAll(RegExp(r'[₹$€£]'), '');
     normalized = normalized.replaceAll(RegExp(r'\s+'), '');
 
@@ -57,7 +56,22 @@ class LoanInput extends HookConsumerWidget {
       normalized = normalized.replaceAll(',', '');
     }
 
-    return double.tryParse(normalized) ?? 0.0;
+    return normalized;
+  }
+
+  Money _parseMoney(String input, String currency) => Money.parse(
+    _normalizeDecimalInput(input),
+    currency: currency,
+    scale: CurrencyPresentation.fractionDigits(currency),
+  );
+
+  double _parseDouble(String input) =>
+      double.tryParse(_normalizeDecimalInput(input)) ?? 0.0;
+
+  String _currencyPrecisionError(String currency) {
+    final digits = CurrencyPresentation.fractionDigits(currency);
+    return 'Enter a valid $currency amount with no more than $digits decimal places.'
+        .tr();
   }
 
   String _nationalPhoneNumber(String value) {
@@ -72,12 +86,12 @@ class LoanInput extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (AppSettings.getUsesBorrowerExperience()) {
+      return const _BorrowerLoanReadOnlyPage();
+    }
     final formKey = useMemoized(() => GlobalKey<FormState>());
-    final borrowing = isBorrowerLoan ?? AppSettings.getUsesBorrowerExperience();
     final appBarTitle = loan == null
-        ? borrowing
-              ? 'Add loan from lender'.tr()
-              : LocaleKeys.addLoanRecord.tr()
+        ? LocaleKeys.addLoanRecord.tr()
         : LocaleKeys.editLoanRecord.tr();
     final isDialogOpen = useState<bool>(false);
     final isSaving = useState<bool>(false);
@@ -202,29 +216,60 @@ class LoanInput extends HookConsumerWidget {
       final relation = currentFamilyRelation.value;
       final material = currentMortgageMaterial.value;
       if (relation == null || relation.id == null) {
-        showSnackBar(
-          context,
-          LocaleKeys.familyRelationCannotBeEmpty.tr(),
-        );
+        showSnackBar(context, LocaleKeys.familyRelationCannotBeEmpty.tr());
         return;
       }
       if (material == null || material.id == null) {
-        showSnackBar(
-          context,
-          LocaleKeys.mortgageMaterialCannotBeEmpty.tr(),
-        );
+        showSnackBar(context, LocaleKeys.mortgageMaterialCannotBeEmpty.tr());
         return;
       }
-      final principal = _parseDouble(loanAmountController.text);
-      if (principal <= 0) {
+      final scale = CurrencyPresentation.fractionDigits(currency.value);
+      final Money principalMoney;
+      try {
+        principalMoney = _parseMoney(loanAmountController.text, currency.value);
+      } on FormatException {
+        showErrorSnackBar(context, _currencyPrecisionError(currency.value));
+        return;
+      }
+      if (principalMoney.minorUnits <= BigInt.zero) {
         showErrorSnackBar(
           context,
           LocaleKeys.enterAPrincipalAmountGreaterThanZero.tr(),
         );
         return;
       }
+      final principal = double.tryParse(principalMoney.toString());
+      if (principal == null || !principal.isFinite) {
+        showErrorSnackBar(context, _currencyPrecisionError(currency.value));
+        return;
+      }
+      final Money earlyChargeMoney;
+      if (lockInDays.value == 0) {
+        earlyChargeMoney = Money.zero(currency.value, scale: scale);
+      } else {
+        try {
+          earlyChargeMoney = _parseMoney(
+            earlyRedemptionChargeController.text,
+            currency.value,
+          );
+        } on FormatException {
+          showErrorSnackBar(context, _currencyPrecisionError(currency.value));
+          return;
+        }
+        if (earlyChargeMoney.minorUnits <= BigInt.zero) {
+          showErrorSnackBar(
+            context,
+            LocaleKeys.enterAChargeGreaterThanZero.tr(),
+          );
+          return;
+        }
+      }
+      final earlyCharge = double.tryParse(earlyChargeMoney.toString());
+      if (earlyCharge == null || !earlyCharge.isFinite) {
+        showErrorSnackBar(context, _currencyPrecisionError(currency.value));
+        return;
+      }
       final shouldVerifyBorrower =
-          !borrowing &&
           loan == null &&
           AuthClient.hasServerConfiguration &&
           phoneNumberController.text.trim().isNotEmpty;
@@ -243,9 +288,6 @@ class LoanInput extends HookConsumerWidget {
         if (verified == null || !context.mounted) return;
         verifiedContactId = verified;
       }
-      final earlyCharge = lockInDays.value == 0
-          ? 0.0
-          : _parseDouble(earlyRedemptionChargeController.text);
       final weight = _parseDouble(weightController.text);
       final confirmed = await _confirmSave(
         context,
@@ -271,9 +313,9 @@ class LoanInput extends HookConsumerWidget {
       );
       if (!confirmed || !context.mounted) return;
       isSaving.value = true;
-      int status;
+      var serverAcknowledged = false;
       try {
-        status = await ref
+        final status = await ref
             .read(loanListProvider.notifier)
             .add(
               loan,
@@ -295,23 +337,11 @@ class LoanInput extends HookConsumerWidget {
               relation.id!,
               material.id!,
               currency.value,
-              borrowing,
             );
         debugPrint('Loan saved locally with status: $status');
-      } catch (error, stackTrace) {
-        debugPrint('Unable to save loan: $error');
-        debugPrintStack(stackTrace: stackTrace);
-        if (context.mounted) {
-          showErrorSnackBar(
-            context,
-            LocaleKeys.unableToSaveLoan.tr(namedArgs: {'error': '$error'}),
-          );
+        if (status <= 0) {
+          throw StateError('Loan record was not saved locally');
         }
-        return;
-      } finally {
-        if (context.mounted) isSaving.value = false;
-      }
-      if (status > 0) {
         if (verifiedContactId != null && loan == null) {
           await ref.read(loanListProvider.notifier).markClientConfirmed(status);
           final operationId = CanonicalMigration.newId();
@@ -321,12 +351,7 @@ class LoanInput extends HookConsumerWidget {
           final ownerId = owner['id'] as String;
           final saved = await database.query(
             Loan.tableName,
-            columns: [
-              'uid',
-              'borrowerPartyId',
-              'dateCreated',
-              'loanAmountExact',
-            ],
+            columns: ['uid', 'borrowerPartyId', 'dateCreated'],
             where: 'id = ? AND ownerId = ?',
             whereArgs: [status, ownerId],
             limit: 1,
@@ -349,16 +374,6 @@ class LoanInput extends HookConsumerWidget {
               : DateTime.parse(
                   saved.single['dateCreated'] as String,
                 ).toUtc().toIso8601String().substring(0, 10);
-          final scale = CurrencyPresentation.fractionDigits(currency.value);
-          final exactPrincipal = saved.isEmpty
-              ? CanonicalMigration.exactTotal([principal])
-              : (saved.single['loanAmountExact'] as String? ??
-                    CanonicalMigration.exactTotal([principal]));
-          final principalMinor = Money.parse(
-            exactPrincipal,
-            currency: currency.value,
-            scale: scale,
-          ).minorUnits.toString();
           final payload = <String, Object?>{
             'loan_id': loanUid,
             'lender_party_id': remoteLenderPartyId,
@@ -367,7 +382,7 @@ class LoanInput extends HookConsumerWidget {
             'borrower_phone': phoneNumberController.text.trim(),
             'relative_name': relativeNameController.text.trim(),
             'address': addressController.text.trim(),
-            'principal_minor': int.parse(principalMinor),
+            'principal_minor': principalMoney.minorUnits.toInt(),
             'currency': currency.value,
             'currency_scale': scale,
             'loan_date': loanDate,
@@ -414,8 +429,9 @@ class LoanInput extends HookConsumerWidget {
               await ref
                   .read(loanListProvider.notifier)
                   .markServerSaved(loanUid);
+              serverAcknowledged = true;
             }
-          } catch (error) {
+          } catch (_) {
             await AuthClient().queueVerifiedLoan(
               verificationId: verifiedContactId,
               borrowerName: depositorController.text.trim(),
@@ -429,12 +445,22 @@ class LoanInput extends HookConsumerWidget {
                   : borrower.single['countryCode'] as String? ?? '',
               loanPayload: payload,
             );
-            if (context.mounted) {
-              showSnackBar(
-                context,
-                'Loan saved locally. It will be sent to the server automatically. ($error)',
-              );
-            }
+          }
+        }
+        if (loan == null && !serverAcknowledged) {
+          final database = await ref.read(dBProvider.future);
+          final owners = await database.query('localOwners');
+          if (owners.length == 1) {
+            final saved = await database.query(
+              Loan.tableName,
+              columns: [LoanFields.syncState],
+              where: 'id = ? AND ownerId = ?',
+              whereArgs: [status, owners.single['id']],
+              limit: 1,
+            );
+            serverAcknowledged =
+                saved.isNotEmpty &&
+                saved.single[LoanFields.syncState] == Loan.serverSaved;
           }
         }
         if (loan != null) {
@@ -444,671 +470,670 @@ class LoanInput extends HookConsumerWidget {
           Navigator.pop(context);
           showSnackBar(
             context,
-            (loan == null
-                    ? LocaleKeys.loanCreatedSuccessfully
-                    : LocaleKeys.loanUpdatedSuccessfully)
-                .tr(),
+            loan != null
+                ? LocaleKeys.loanUpdatedSuccessfully.tr()
+                : serverAcknowledged
+                ? LocaleKeys.loanCreatedSuccessfully.tr()
+                : AuthClient.hasServerConfiguration
+                ? AppSettings.getIsProPlanSelected()
+                      ? 'Loan saved on this device and queued for sync. Keep this device online until its status shows saved to server.'
+                            .tr()
+                      : 'Loan saved on this device. Cloud sync and recovery on another device require an active LoanX Pro subscription.'
+                            .tr()
+                : 'Loan saved on this device.'.tr(),
           );
         }
+      } catch (error, stackTrace) {
+        debugPrint('Unable to save loan: $error');
+        debugPrintStack(stackTrace: stackTrace);
+        if (context.mounted) {
+          showErrorSnackBar(
+            context,
+            LocaleKeys.unableToSaveLoan.tr(namedArgs: {'error': '$error'}),
+          );
+        }
+      } finally {
+        if (context.mounted) isSaving.value = false;
       }
     }
 
-    return Scaffold(
-      appBar: AppBar(title: Text(appBarTitle)),
-      floatingActionButton: loan != null
-          ? FloatingActionButton.extended(
-              onPressed: saveLoan,
-              icon: isSaving.value
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.save_rounded),
-              label: Text(
-                isSaving.value
-                    ? LocaleKeys.saving.tr()
-                    : LocaleKeys.saveChanges.tr(),
-              ),
-            )
-          : null,
-      body: Padding(
-        padding: EdgeInsets.only(left: 20, right: 20),
-        child: Form(
-          key: formKey,
-          child: ListView(
-            controller: scrollController,
-            children: <Widget>[
-              const SizedBox(height: 8),
-              // Container(
-              //   padding: const EdgeInsets.all(18),
-              //   decoration: BoxDecoration(
-              //     color: Theme.of(context).colorScheme.primaryContainer,
-              //     borderRadius: BorderRadius.circular(20),
-              //   ),
-              //   child: Row(
-              //     children: [
-              //       Icon(
-              //         loan == null
-              //             ? Icons.add_card_rounded
-              //             : Icons.edit_note_rounded,
-              //         color: Theme.of(context).colorScheme.primary,
-              //         size: 32,
-              //       ),
-              //       const SizedBox(width: 14),
-              //       Expanded(
-              //         child: Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             Text(
-              //               loan == null
-              //                   ? 'Create a loan record'
-              //                   : 'Update loan details',
-              //               style: Theme.of(context).textTheme.titleMedium,
-              //             ),
-              //             const SizedBox(height: 2),
-              //             Text(
-              //               'Add the terms and borrower information below.',
-              //               style: Theme.of(context).textTheme.bodyMedium,
-              //             ),
-              //           ],
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
-              // const SizedBox(height: 24),
-              Card(
-                clipBehavior: Clip.antiAlias,
-                child: ExpansionTile(
-                  initiallyExpanded: loan != null,
-                  maintainState: true,
-                  leading: const Icon(Icons.tune_rounded),
-                  title: Text(LocaleKeys.loanTerms.tr()),
-                  subtitle: Text(
-                    '${interestType.value.localizedLabel} · '
-                    '${currentInterestRate.toStringAsFixed(2)}% ${interestFrequency.value.localizedLabel} · '
-                    '${mortgageTermYears.value} years · $lockInSummary',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        LocaleKeys.interestType.tr(),
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
+    return LoadingOverlay(
+      isLoading: isSaving.value,
+      progressIndicator: const _LoanSaveProgressIndicator(),
+      child: Scaffold(
+        appBar: AppBar(title: Text(appBarTitle)),
+        floatingActionButton: loan != null
+            ? FloatingActionButton.extended(
+                onPressed: saveLoan,
+                icon: isSaving.value
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save_rounded),
+                label: Text(
+                  isSaving.value
+                      ? LocaleKeys.saving.tr()
+                      : LocaleKeys.saveChanges.tr(),
+                ),
+              )
+            : null,
+        body: Padding(
+          padding: EdgeInsets.only(left: 20, right: 20),
+          child: Form(
+            key: formKey,
+            child: ListView(
+              controller: scrollController,
+              children: <Widget>[
+                const SizedBox(height: 8),
+                // Container(
+                //   padding: const EdgeInsets.all(18),
+                //   decoration: BoxDecoration(
+                //     color: Theme.of(context).colorScheme.primaryContainer,
+                //     borderRadius: BorderRadius.circular(20),
+                //   ),
+                //   child: Row(
+                //     children: [
+                //       Icon(
+                //         loan == null
+                //             ? Icons.add_card_rounded
+                //             : Icons.edit_note_rounded,
+                //         color: Theme.of(context).colorScheme.primary,
+                //         size: 32,
+                //       ),
+                //       const SizedBox(width: 14),
+                //       Expanded(
+                //         child: Column(
+                //           crossAxisAlignment: CrossAxisAlignment.start,
+                //           children: [
+                //             Text(
+                //               loan == null
+                //                   ? 'Create a loan record'
+                //                   : 'Update loan details',
+                //               style: Theme.of(context).textTheme.titleMedium,
+                //             ),
+                //             const SizedBox(height: 2),
+                //             Text(
+                //               'Add the terms and borrower information below.',
+                //               style: Theme.of(context).textTheme.bodyMedium,
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
+                // const SizedBox(height: 24),
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: ExpansionTile(
+                    initiallyExpanded: loan != null,
+                    maintainState: true,
+                    leading: const Icon(Icons.tune_rounded),
+                    title: Text(LocaleKeys.loanTerms.tr()),
+                    subtitle: Text(
+                      '${interestType.value.localizedLabel} · '
+                      '${currentInterestRate.toStringAsFixed(2)}% ${interestFrequency.value.localizedLabel} · '
+                      '${mortgageTermYears.value} years · $lockInSummary',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    RadioGroup<InterestType>(
-                      groupValue: interestType.value,
-                      onChanged: (value) {
-                        if (value != null) interestType.value = value;
-                      },
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 12,
-                        runSpacing: 4,
-                        children: [
-                          _InterestRadioOption<InterestType>(
-                            value: InterestType.simple,
-                            label: LocaleKeys.simple.tr(),
-                          ),
-                          _InterestRadioOption<InterestType>(
-                            value: InterestType.compound,
-                            label: LocaleKeys.compound.tr(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        LocaleKeys.interestRate.tr(),
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10.0),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                            ),
-                            child: CupertinoPicker(
-                              itemExtent: 32,
-                              scrollController: interestRateWholeController,
-                              selectionOverlay:
-                                  const CupertinoPickerDefaultSelectionOverlay(
-                                    background: Colors.transparent,
-                                    capEndEdge: false,
-                                  ),
-                              onSelectedItemChanged: (val) {
-                                interestRateWhole.value = val;
-                              },
-                              children: List.generate(
-                                51,
-                                (index) => StyledSubtitle(index.toString()),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 5),
-                        Center(child: StyledSubtitle(".", fontSize: 20)),
-                        SizedBox(width: 5),
-                        Expanded(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10.0),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                            ),
-                            child: CupertinoPicker(
-                              itemExtent: 32,
-                              scrollController: interestRateFractionController,
-                              selectionOverlay:
-                                  const CupertinoPickerDefaultSelectionOverlay(
-                                    background: Colors.transparent,
-                                    capStartEdge: false,
-                                  ),
-                              onSelectedItemChanged: (val) {
-                                interestRateFraction.value = val;
-                              },
-                              children: List.generate(
-                                100,
-                                (index) => StyledSubtitle(index.toString()),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 5),
-                        Center(child: StyledSubtitle("%", fontSize: 20)),
-                        SizedBox(width: 5),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            LocaleKeys.mortgageTerm.tr(),
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        Text(
-                          LocaleKeys.yearsCount.tr(
-                            namedArgs: {
-                              'count': mortgageTermYears.value.toString(),
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    Slider(
-                      value: mortgageTermYears.value.toDouble(),
-                      min: 1,
-                      max: 30,
-                      divisions: 29,
-                      label: LocaleKeys.yearsCount.tr(
-                        namedArgs: {
-                          'count': mortgageTermYears.value.toString(),
-                        },
-                      ),
-                      onChanged: (value) {
-                        mortgageTermYears.value = value.round();
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        LocaleKeys.interestFrequency2.tr(),
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.secondary,
-                          width: 1,
+                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          LocaleKeys.interestType.tr(),
+                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
-                      child: RadioGroup<InterestFrequency>(
-                        groupValue: interestFrequency.value,
+                      RadioGroup<InterestType>(
+                        groupValue: interestType.value,
                         onChanged: (value) {
-                          if (value != null) interestFrequency.value = value;
+                          if (value != null) interestType.value = value;
                         },
                         child: Wrap(
                           alignment: WrapAlignment.center,
                           spacing: 12,
                           runSpacing: 4,
                           children: [
-                            _InterestRadioOption<InterestFrequency>(
-                              value: InterestFrequency.monthly,
-                              label: LocaleKeys.monthly.tr(),
+                            _InterestRadioOption<InterestType>(
+                              value: InterestType.simple,
+                              label: LocaleKeys.simple.tr(),
                             ),
-                            _InterestRadioOption<InterestFrequency>(
-                              value: InterestFrequency.quarterly,
-                              label: LocaleKeys.quarterly.tr(),
-                            ),
-                            _InterestRadioOption<InterestFrequency>(
-                              value: InterestFrequency.yearly,
-                              label: LocaleKeys.yearly.tr(),
-                            ),
-                            _InterestRadioOption<InterestFrequency>(
-                              value: InterestFrequency.halfYearly,
-                              label: LocaleKeys.halfYearly.tr(),
+                            _InterestRadioOption<InterestType>(
+                              value: InterestType.compound,
+                              label: LocaleKeys.compound.tr(),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: lockInDaysController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(
-                        labelText: LocaleKeys.lockInPeriod.tr(),
-                        suffixText: LocaleKeys.days.tr(),
-                        helperText: LocaleKeys.lockInDescription.tr(),
-                        helperMaxLines: 2,
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          LocaleKeys.interestRate.tr(),
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                       ),
-                      validator: (value) {
-                        final days = int.tryParse(value?.trim() ?? '');
-                        if (days == null || days < 0) {
-                          return LocaleKeys.enterValidNumberOfDays.tr();
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        lockInDays.value = int.tryParse(value.trim()) ?? 0;
-                        if (lockInDays.value == 0) {
-                          earlyRedemptionChargeController.clear();
-                          earlyRedemptionCharge.value = 0;
-                        }
-                      },
-                    ),
-                    if (lockInDays.value > 0) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.secondary,
+                                ),
+                              ),
+                              child: CupertinoPicker(
+                                itemExtent: 32,
+                                scrollController: interestRateWholeController,
+                                selectionOverlay:
+                                    const CupertinoPickerDefaultSelectionOverlay(
+                                      background: Colors.transparent,
+                                      capEndEdge: false,
+                                    ),
+                                onSelectedItemChanged: (val) {
+                                  interestRateWhole.value = val;
+                                },
+                                children: List.generate(
+                                  51,
+                                  (index) => StyledSubtitle(index.toString()),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          Center(child: StyledSubtitle(".", fontSize: 20)),
+                          SizedBox(width: 5),
+                          Expanded(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.secondary,
+                                ),
+                              ),
+                              child: CupertinoPicker(
+                                itemExtent: 32,
+                                scrollController:
+                                    interestRateFractionController,
+                                selectionOverlay:
+                                    const CupertinoPickerDefaultSelectionOverlay(
+                                      background: Colors.transparent,
+                                      capStartEdge: false,
+                                    ),
+                                onSelectedItemChanged: (val) {
+                                  interestRateFraction.value = val;
+                                },
+                                children: List.generate(
+                                  100,
+                                  (index) => StyledSubtitle(index.toString()),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          Center(child: StyledSubtitle("%", fontSize: 20)),
+                          SizedBox(width: 5),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              LocaleKeys.mortgageTerm.tr(),
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          Text(
+                            LocaleKeys.yearsCount.tr(
+                              namedArgs: {
+                                'count': mortgageTermYears.value.toString(),
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      Slider(
+                        value: mortgageTermYears.value.toDouble(),
+                        min: 1,
+                        max: 30,
+                        divisions: 29,
+                        label: LocaleKeys.yearsCount.tr(
+                          namedArgs: {
+                            'count': mortgageTermYears.value.toString(),
+                          },
+                        ),
+                        onChanged: (value) {
+                          mortgageTermYears.value = value.round();
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          LocaleKeys.interestFrequency2.tr(),
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.secondary,
+                            width: 1,
+                          ),
+                        ),
+                        child: RadioGroup<InterestFrequency>(
+                          groupValue: interestFrequency.value,
+                          onChanged: (value) {
+                            if (value != null) interestFrequency.value = value;
+                          },
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 12,
+                            runSpacing: 4,
+                            children: [
+                              _InterestRadioOption<InterestFrequency>(
+                                value: InterestFrequency.monthly,
+                                label: LocaleKeys.monthly.tr(),
+                              ),
+                              _InterestRadioOption<InterestFrequency>(
+                                value: InterestFrequency.quarterly,
+                                label: LocaleKeys.quarterly.tr(),
+                              ),
+                              _InterestRadioOption<InterestFrequency>(
+                                value: InterestFrequency.yearly,
+                                label: LocaleKeys.yearly.tr(),
+                              ),
+                              _InterestRadioOption<InterestFrequency>(
+                                value: InterestFrequency.halfYearly,
+                                label: LocaleKeys.halfYearly.tr(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 14),
                       TextFormField(
-                        controller: earlyRedemptionChargeController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
+                        controller: lockInDaysController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         decoration: InputDecoration(
-                          labelText: LocaleKeys.earlyRedemptionCharge.tr(),
-                          hintText: LocaleKeys.fixedAmount.tr(),
-                          prefixText:
-                              '${CurrencyPresentation.countryForCurrency(currency.value).symbol} ',
+                          labelText: LocaleKeys.lockInPeriod.tr(),
+                          suffixText: LocaleKeys.days.tr(),
+                          helperText: LocaleKeys.lockInDescription.tr(),
+                          helperMaxLines: 2,
                         ),
                         validator: (value) {
-                          if (lockInDays.value == 0) return null;
-                          final charge = double.tryParse(value?.trim() ?? '');
-                          if (charge == null || charge <= 0) {
-                            return LocaleKeys.enterAChargeGreaterThanZero.tr();
+                          final days = int.tryParse(value?.trim() ?? '');
+                          if (days == null || days < 0) {
+                            return LocaleKeys.enterValidNumberOfDays.tr();
                           }
                           return null;
                         },
                         onChanged: (value) {
-                          earlyRedemptionCharge.value =
+                          lockInDays.value = int.tryParse(value.trim()) ?? 0;
+                          if (lockInDays.value == 0) {
+                            earlyRedemptionChargeController.clear();
+                            earlyRedemptionCharge.value = 0;
+                          }
+                        },
+                      ),
+                      if (lockInDays.value > 0) ...[
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: earlyRedemptionChargeController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: LocaleKeys.earlyRedemptionCharge.tr(),
+                            hintText: LocaleKeys.fixedAmount.tr(),
+                            prefixText:
+                                '${CurrencyPresentation.countryForCurrency(currency.value).symbol} ',
+                          ),
+                          validator: (value) {
+                            if (lockInDays.value == 0) return null;
+                            try {
+                              final charge = _parseMoney(
+                                value?.trim() ?? '',
+                                currency.value,
+                              );
+                              if (charge.minorUnits <= BigInt.zero) {
+                                return LocaleKeys.enterAChargeGreaterThanZero
+                                    .tr();
+                              }
+                            } on FormatException {
+                              return _currencyPrecisionError(currency.value);
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            earlyRedemptionCharge.value =
+                                double.tryParse(value.trim()) ?? 0;
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  LocaleKeys.borrowerInformation.tr(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 10),
+                PhoneWidget(
+                  key: ValueKey(loan?.id),
+                  labelText: LocaleKeys.borrowerMobileNumber.tr(),
+                  textEditingController: phoneNumberController,
+                  hint: LocaleKeys.borrowerMobileNumber.tr(),
+                  initialValue: PhoneNumber(
+                    isoCode: "IN",
+                    nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
+                  ),
+                  onChanged: (value) => borrowerPhone.value = value,
+                ),
+                StyledTextField(
+                  failedValidationMessage: LocaleKeys.borrowerNameCanTBeEmpty
+                      .tr(),
+                  textEditingController: depositorController,
+                  hintText: LocaleKeys.borrowerName.tr(),
+                  labelText: LocaleKeys.borrowerName.tr(),
+                ),
+                StyledTextField(
+                  failedValidationMessage: LocaleKeys.addressCanTBeEmpty.tr(),
+                  textEditingController: addressController,
+                  hintText: LocaleKeys.borrowerAddress.tr(),
+                  labelText: LocaleKeys.borrowerAddress.tr(),
+                  maxLines: 3,
+                ),
+                StyledTextField(
+                  failedValidationMessage: LocaleKeys.referenceNameCanTBeEmpty
+                      .tr(),
+                  textEditingController: relativeNameController,
+                  hintText: LocaleKeys.referenceName.tr(),
+                  labelText: LocaleKeys.referenceName.tr(),
+                ),
+                familyRelations.when(
+                  data: (data) {
+                    if (data.isEmpty) {
+                      return const SizedBox();
+                    }
+
+                    // Keep the user's choice when this widget rebuilds. Previously
+                    // this was reset to the first item on every build, which made
+                    // every selection appear as the first relation (for example,
+                    // "Chacha").
+                    final selectedRelation = data.where(
+                      (item) => item.id == currentFamilyRelation.value?.id,
+                    );
+                    if (selectedRelation.isEmpty) {
+                      currentFamilyRelation.value = loan == null
+                          ? data.first
+                          : data.firstWhere(
+                              (item) => item.id == loan!.familyRelationId,
+                              orElse: () => data.first,
+                            );
+                    } else {
+                      // Use the instance from the current items list, as required
+                      // by DropdownButtonFormField when provider data refreshes.
+                      currentFamilyRelation.value = selectedRelation.first;
+                    }
+                    return StyledDropdown<FamilyRelation>(
+                      selectedValue: currentFamilyRelation.value,
+                      items: buildMenuRelationTypes(data, context),
+                      onChanged: (value) {
+                        if (value != null) {
+                          currentFamilyRelation.value = value;
+                        }
+                      },
+                      hintText: LocaleKeys.familyRelation.tr(),
+                      labelText: LocaleKeys.familyRelation.tr(),
+                      onAddPressed: () {
+                        isDialogOpen.value = true;
+                        showAddDialog(
+                          context,
+                          ref,
+                          LocaleKeys.addFamilyRelation2.tr(),
+                          LocaleKeys.enterTheFamilyRelation2.tr(),
+                          ref.read(familyRelationListProvider.notifier).add,
+                        );
+                      },
+                    );
+                  },
+                  error: (_, _) {
+                    return const SizedBox();
+                  },
+                  loading: () => const SizedBox(),
+                ),
+                StyledTextField(
+                  failedValidationMessage: LocaleKeys.principalAmountCanTBeEmpty
+                      .tr(),
+                  textEditingController: loanAmountController,
+                  hintText: LocaleKeys.principalAmount.tr(),
+                  labelText: LocaleKeys.principalAmount.tr(),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                _CurrencyField(
+                  currency: currency.value,
+                  enabled: loan == null,
+                  onChanged: (value) => currency.value = value,
+                ),
+                if (loan != null)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6),
+                    child: Text('Currency is fixed once a loan is created.'),
+                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: weightController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: LocaleKeys.mortgageWeight.tr(),
+                          hintText: LocaleKeys.weight.tr(),
+                          prefixIcon: Icon(Icons.scale_outlined),
+                        ),
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) return null;
+                          final parsedWeight = double.tryParse(text);
+                          if (parsedWeight == null || parsedWeight <= 0) {
+                            return LocaleKeys.enterAValidWeight.tr();
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          mortgageWeight.value =
                               double.tryParse(value.trim()) ?? 0;
                         },
                       ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                borrowing
-                    ? 'Lender information'.tr()
-                    : LocaleKeys.borrowerInformation.tr(),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 10),
-              if (borrowing) ...[
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.person_outline_rounded),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'You can record a loan from a lender who is not registered with LoanX. Their information stays in your local loan record.'
-                                .tr(),
-                          ),
-                        ),
-                      ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-              ],
-              PhoneWidget(
-                key: ValueKey(loan?.id),
-                labelText: borrowing
-                    ? 'Lender mobile number'.tr()
-                    : LocaleKeys.borrowerMobileNumber.tr(),
-                textEditingController: phoneNumberController,
-                hint: borrowing
-                    ? 'Lender mobile number'.tr()
-                    : LocaleKeys.borrowerMobileNumber.tr(),
-                initialValue: PhoneNumber(
-                  isoCode: "IN",
-                  nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
-                ),
-                onChanged: (value) => borrowerPhone.value = value,
-              ),
-              StyledTextField(
-                failedValidationMessage:
-                    (borrowing
-                            ? 'Lender name cannot be empty'
-                            : LocaleKeys.borrowerNameCanTBeEmpty)
-                        .tr(),
-                textEditingController: depositorController,
-                hintText: borrowing
-                    ? 'Lender name'.tr()
-                    : LocaleKeys.borrowerName.tr(),
-                labelText: borrowing
-                    ? 'Lender name'.tr()
-                    : LocaleKeys.borrowerName.tr(),
-              ),
-              StyledTextField(
-                failedValidationMessage: LocaleKeys.addressCanTBeEmpty.tr(),
-                textEditingController: addressController,
-                hintText: borrowing
-                    ? 'Lender address'.tr()
-                    : LocaleKeys.borrowerAddress.tr(),
-                labelText: borrowing
-                    ? 'Lender address'.tr()
-                    : LocaleKeys.borrowerAddress.tr(),
-                maxLines: 3,
-              ),
-              StyledTextField(
-                failedValidationMessage: LocaleKeys.referenceNameCanTBeEmpty
-                    .tr(),
-                textEditingController: relativeNameController,
-                hintText: LocaleKeys.referenceName.tr(),
-                labelText: LocaleKeys.referenceName.tr(),
-              ),
-              familyRelations.when(
-                data: (data) {
-                  if (data.isEmpty) {
-                    return const SizedBox();
-                  }
-
-                  // Keep the user's choice when this widget rebuilds. Previously
-                  // this was reset to the first item on every build, which made
-                  // every selection appear as the first relation (for example,
-                  // "Chacha").
-                  final selectedRelation = data.where(
-                    (item) => item.id == currentFamilyRelation.value?.id,
-                  );
-                  if (selectedRelation.isEmpty) {
-                    currentFamilyRelation.value = loan == null
-                        ? data.first
-                        : data.firstWhere(
-                            (item) => item.id == loan!.familyRelationId,
-                            orElse: () => data.first,
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 116,
+                      child: weightUnits.when(
+                        data: (units) {
+                          final symbols = units
+                              .map((unit) => unit.symbol)
+                              .toSet();
+                          final selected = symbols.contains(weightUnit.value)
+                              ? weightUnit.value
+                              : (units.isEmpty
+                                    ? weightUnit.value
+                                    : units.first.symbol);
+                          return DropdownButtonFormField<String>(
+                            initialValue: selected,
+                            decoration: InputDecoration(
+                              labelText: LocaleKeys.unit.tr(),
+                            ),
+                            items: [
+                              for (final unit in units)
+                                DropdownMenuItem(
+                                  value: unit.symbol,
+                                  child: Text(unit.symbol),
+                                ),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) weightUnit.value = value;
+                            },
                           );
-                  } else {
-                    // Use the instance from the current items list, as required
-                    // by DropdownButtonFormField when provider data refreshes.
-                    currentFamilyRelation.value = selectedRelation.first;
-                  }
-                  return StyledDropdown<FamilyRelation>(
-                    selectedValue: currentFamilyRelation.value,
-                    items: buildMenuRelationTypes(data, context),
-                    onChanged: (value) {
-                      if (value != null) {
-                        currentFamilyRelation.value = value;
-                      }
-                    },
-                    hintText: LocaleKeys.familyRelation.tr(),
-                    labelText: LocaleKeys.familyRelation.tr(),
-                    onAddPressed: () {
-                      isDialogOpen.value = true;
-                      showAddDialog(
-                        context,
-                        ref,
-                        LocaleKeys.addFamilyRelation2.tr(),
-                        LocaleKeys.enterTheFamilyRelation2.tr(),
-                        ref.read(familyRelationListProvider.notifier).add,
-                      );
-                    },
-                  );
-                },
-                error: (_, _) {
-                  return const SizedBox();
-                },
-                loading: () => const SizedBox(),
-              ),
-              StyledTextField(
-                failedValidationMessage: LocaleKeys.principalAmountCanTBeEmpty
-                    .tr(),
-                textEditingController: loanAmountController,
-                hintText: LocaleKeys.principalAmount.tr(),
-                labelText: LocaleKeys.principalAmount.tr(),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              _CurrencyField(
-                currency: currency.value,
-                enabled: loan == null,
-                onChanged: (value) => currency.value = value,
-              ),
-              if (loan != null)
-                const Padding(
-                  padding: EdgeInsets.only(top: 6),
-                  child: Text('Currency is fixed once a loan is created.'),
-                ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: weightController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: LocaleKeys.mortgageWeight.tr(),
-                        hintText: LocaleKeys.weight.tr(),
-                        prefixIcon: Icon(Icons.scale_outlined),
-                      ),
-                      validator: (value) {
-                        final text = value?.trim() ?? '';
-                        if (text.isEmpty) return null;
-                        final parsedWeight = double.tryParse(text);
-                        if (parsedWeight == null || parsedWeight <= 0) {
-                          return LocaleKeys.enterAValidWeight.tr();
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        mortgageWeight.value =
-                            double.tryParse(value.trim()) ?? 0;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 116,
-                    child: weightUnits.when(
-                      data: (units) {
-                        final symbols = units
-                            .map((unit) => unit.symbol)
-                            .toSet();
-                        final selected = symbols.contains(weightUnit.value)
-                            ? weightUnit.value
-                            : (units.isEmpty
-                                  ? weightUnit.value
-                                  : units.first.symbol);
-                        return DropdownButtonFormField<String>(
-                          initialValue: selected,
+                        },
+                        loading: () => InputDecorator(
                           decoration: InputDecoration(
                             labelText: LocaleKeys.unit.tr(),
                           ),
-                          items: [
-                            for (final unit in units)
-                              DropdownMenuItem(
-                                value: unit.symbol,
-                                child: Text(unit.symbol),
-                              ),
-                          ],
-                          onChanged: (value) {
-                            if (value != null) weightUnit.value = value;
-                          },
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        error: (_, _) => InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: LocaleKeys.unit.tr(),
+                          ),
+                          child: Text(weightUnit.value),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                if (mortgageWeight.value > 0) ...[
+                  Card(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    child: ListTile(
+                      leading: const Icon(Icons.analytics_outlined),
+                      title: Text(
+                        LocaleKeys.loanValuePerUnit.tr(
+                          namedArgs: {'unit': weightUnitName},
+                        ),
+                      ),
+                      trailing: Text(
+                        CurrencyPresentation.format(
+                          (_parseDouble(loanAmountController.text) /
+                              mortgageWeight.value),
+                          currency.value,
+                        ),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                mortgageMaterials.when(
+                  data: (data) {
+                    if (data.isEmpty) {
+                      return const SizedBox();
+                    }
+
+                    // As above, only choose a default when the existing choice is
+                    // unavailable. Do not overwrite a selection on rebuild.
+                    final selectedMaterial = data.where(
+                      (item) => item.id == currentMortgageMaterial.value?.id,
+                    );
+                    if (selectedMaterial.isEmpty) {
+                      currentMortgageMaterial.value = loan == null
+                          ? data.first
+                          : data.firstWhere(
+                              (item) => item.id == loan!.mortgageMaterialId,
+                              orElse: () => data.first,
+                            );
+                    } else {
+                      currentMortgageMaterial.value = selectedMaterial.first;
+                    }
+                    return StyledDropdown<MortgageMaterial>(
+                      selectedValue: currentMortgageMaterial.value,
+                      items: buildMenuMortgageMaterials(data, context),
+                      onChanged: (value) {
+                        if (value != null) {
+                          currentMortgageMaterial.value = value;
+                        }
+                      },
+                      hintText: LocaleKeys.pledgedMaterial.tr(),
+                      labelText: LocaleKeys.pledgedMaterial.tr(),
+                      onAddPressed: () {
+                        isDialogOpen.value = true;
+                        showAddDialog(
+                          context,
+                          ref,
+                          LocaleKeys.addPledgedMaterial.tr(),
+                          LocaleKeys.enterTheMaterialName.tr(),
+                          ref.read(mortgageMaterialListProvider.notifier).add,
                         );
                       },
-                      loading: () => InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: LocaleKeys.unit.tr(),
-                        ),
-                        child: SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      error: (_, _) => InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: LocaleKeys.unit.tr(),
-                        ),
-                        child: Text(weightUnit.value),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              if (mortgageWeight.value > 0) ...[
-                Card(
-                  color: Theme.of(context).colorScheme.secondaryContainer,
-                  child: ListTile(
-                    leading: const Icon(Icons.analytics_outlined),
-                    title: Text(
-                      LocaleKeys.loanValuePerUnit.tr(
-                        namedArgs: {'unit': weightUnitName},
-                      ),
-                    ),
-                    trailing: Text(
-                      CurrencyPresentation.format(
-                        (_parseDouble(loanAmountController.text) /
-                            mortgageWeight.value),
-                        currency.value,
-                      ),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-              mortgageMaterials.when(
-                data: (data) {
-                  if (data.isEmpty) {
-                    return const SizedBox();
-                  }
-
-                  // As above, only choose a default when the existing choice is
-                  // unavailable. Do not overwrite a selection on rebuild.
-                  final selectedMaterial = data.where(
-                    (item) => item.id == currentMortgageMaterial.value?.id,
-                  );
-                  if (selectedMaterial.isEmpty) {
-                    currentMortgageMaterial.value = loan == null
-                        ? data.first
-                        : data.firstWhere(
-                            (item) => item.id == loan!.mortgageMaterialId,
-                            orElse: () => data.first,
-                          );
-                  } else {
-                    currentMortgageMaterial.value = selectedMaterial.first;
-                  }
-                  return StyledDropdown<MortgageMaterial>(
-                    selectedValue: currentMortgageMaterial.value,
-                    items: buildMenuMortgageMaterials(data, context),
-                    onChanged: (value) {
-                      if (value != null) {
-                        currentMortgageMaterial.value = value;
-                      }
-                    },
-                    hintText: LocaleKeys.pledgedMaterial.tr(),
-                    labelText: LocaleKeys.pledgedMaterial.tr(),
-                    onAddPressed: () {
-                      isDialogOpen.value = true;
-                      showAddDialog(
-                        context,
-                        ref,
-                        LocaleKeys.addPledgedMaterial.tr(),
-                        LocaleKeys.enterTheMaterialName.tr(),
-                        ref.read(mortgageMaterialListProvider.notifier).add,
-                      );
-                    },
-                  );
-                },
-                error: (_, _) {
-                  return const SizedBox();
-                },
-                loading: () => const SizedBox(),
-              ),
-              StyledTextField(
-                textEditingController: termsAndConditionsController,
-                hintText: LocaleKeys.enterRepaymentCustodyOrOtherConditions
-                    .tr(),
-                labelText: LocaleKeys.termsAndConditionsOptional.tr(),
-                maxLines: 4,
-              ),
-              StyledTextField(
-                textEditingController: additionalDetailsController,
-                hintText: LocaleKeys.notesOptional.tr(),
-                labelText: LocaleKeys.notesOptional.tr(),
-                maxLines: 3,
-              ),
-              if (loan == null)
-                Consumer(
-                  builder: (context, ref, child) {
-                    return SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: saveLoan,
-                        icon: isSaving.value
-                            ? const SizedBox.square(
-                                dimension: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.check_rounded),
-                        label: Text(
-                          isSaving.value
-                              ? LocaleKeys.saving.tr()
-                              : loan == null
-                              ? LocaleKeys.createLoan.tr()
-                              : LocaleKeys.saveChanges.tr(),
-                        ),
-                      ),
                     );
                   },
+                  error: (_, _) {
+                    return const SizedBox();
+                  },
+                  loading: () => const SizedBox(),
                 ),
-              const SizedBox(height: 32),
-            ],
+                StyledTextField(
+                  textEditingController: termsAndConditionsController,
+                  hintText: LocaleKeys.enterRepaymentCustodyOrOtherConditions
+                      .tr(),
+                  labelText: LocaleKeys.termsAndConditionsOptional.tr(),
+                  maxLines: 4,
+                ),
+                StyledTextField(
+                  textEditingController: additionalDetailsController,
+                  hintText: LocaleKeys.notesOptional.tr(),
+                  labelText: LocaleKeys.notesOptional.tr(),
+                  maxLines: 3,
+                ),
+                if (loan == null)
+                  Consumer(
+                    builder: (context, ref, child) {
+                      return SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: saveLoan,
+                          icon: isSaving.value
+                              ? const SizedBox.square(
+                                  dimension: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.check_rounded),
+                          label: Text(
+                            isSaving.value
+                                ? LocaleKeys.saving.tr()
+                                : loan == null
+                                ? LocaleKeys.createLoan.tr()
+                                : LocaleKeys.saveChanges.tr(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
+        // resizeToAvoidBottomInset: true,
       ),
-      // resizeToAvoidBottomInset: true,
     );
   }
 
@@ -1357,6 +1382,99 @@ class LoanInput extends HookConsumerWidget {
     // Clear text after dialog is dismissed.
     controller.clear();
   }
+}
+
+class _LoanSaveProgressIndicator extends StatelessWidget {
+  const _LoanSaveProgressIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      liveRegion: true,
+      label: LocaleKeys.saving.tr(),
+      child: Container(
+        width: 184,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 24,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 52,
+              height: 52,
+              child: CircularProgressIndicator(
+                strokeWidth: 5,
+                color: colors.primary,
+                backgroundColor: colors.primaryContainer,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              LocaleKeys.saving.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Recording your loan securely'.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BorrowerLoanReadOnlyPage extends StatelessWidget {
+  const _BorrowerLoanReadOnlyPage();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text('My loans'.tr())),
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.lock_outline_rounded,
+              size: 44,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Loan records are created by lenders'.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Ask your lender to share a loan record with you.'.tr(),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _CurrencyField extends StatelessWidget {

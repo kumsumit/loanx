@@ -967,6 +967,16 @@ class LoanList extends _$LoanList {
     final id = await db.transaction((transaction) async {
       if (oldLoan != null) {
         final previous = await _readLoan(transaction, oldLoan.id);
+        final previousRows = await transaction.query(
+          Loan.tableName,
+          where: '${LoanFields.id} = ? AND ownerId = ?',
+          whereArgs: [oldLoan.id, await _requiredOwnerId(transaction)],
+          limit: 1,
+        );
+        if (previousRows.length != 1) {
+          throw StateError('Loan no longer exists.');
+        }
+        final previousRow = previousRows.single;
         loan = loan.copy(
           id: previous.id,
           dateCreated: previous.dateCreated,
@@ -992,6 +1002,10 @@ class LoanList extends _$LoanList {
           loan.id!,
           _describeChanges(previous, loan),
         );
+        // LoanInput uses this method for both creates and edits. Keep the
+        // local edit, audit event, and durable cloud update mutation in the
+        // same transaction so a server-saved loan cannot silently diverge.
+        await _queueLoanUpdateIfConnected(transaction, previousRow, loan);
         return changed;
       }
       var owners = await transaction.query('localOwners');

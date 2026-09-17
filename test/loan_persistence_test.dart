@@ -174,6 +174,80 @@ void main() {
     },
   );
 
+  test(
+    'form-style edits of a server-saved loan queue a cloud update',
+    () async {
+      final ownerId = 'owner-form-edit';
+      final now = DateTime.now().toUtc().toIso8601String();
+      await database.insert('localOwners', {
+        'id': ownerId,
+        'selfPartyId': 'self-form-edit',
+        'remoteWorkspaceId': 'workspace-form-edit',
+        'remotePartyId': 'remote-self-form-edit',
+        'createdAt': now,
+      });
+      await database.insert('parties', {
+        'id': 'self-form-edit',
+        'ownerId': ownerId,
+        'displayName': 'Owner',
+        'status': 'ACTIVE',
+        'createdAt': now,
+        'updatedAt': now,
+      });
+      final id = await createLoan();
+      final saved = (await database.query(
+        Loan.tableName,
+        where: 'id = ?',
+        whereArgs: [id],
+      )).single;
+      await database.update(
+        Loan.tableName,
+        {'syncState': Loan.serverSaved, 'serverRevision': 2},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      await database.update(
+        'pendingSyncMutations',
+        {'status': 'SENT'},
+        where: 'entityId = ?',
+        whereArgs: [saved['uid']],
+      );
+
+      final original = container.read(loanListProvider).requireValue.single;
+      await container
+          .read(loanListProvider.notifier)
+          .add(
+            original,
+            'Updated borrower',
+            '',
+            '',
+            '',
+            1000,
+            10,
+            'g',
+            0,
+            InterestType.simple.index,
+            InterestFrequency.monthly.index,
+            5,
+            0,
+            0,
+            'Updated through the loan form',
+            '',
+            1,
+            1,
+          );
+
+      final updates = await database.query(
+        'pendingSyncMutations',
+        where: 'entityId = ? AND operation = ?',
+        whereArgs: [saved['uid'], 'update'],
+      );
+      expect(updates, hasLength(1));
+      expect(updates.single['expectedRevision'], 2);
+      expect(updates.single['status'], 'PENDING');
+    },
+  );
+
   test('owner-scoped reads and writes reject unrelated loan IDs', () async {
     await createLoan();
     final local = (await database.query(Loan.tableName)).single;

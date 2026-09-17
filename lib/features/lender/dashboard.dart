@@ -120,11 +120,20 @@ class DashBoard extends HookWidget {
                           final error = client.lastSyncError;
                           if (error == null) {
                             showSnackBar(context, LocaleKeys.recordsSynced);
+                          } else if (_isCloudSyncEntitlementError(error)) {
+                            showErrorSnackBar(
+                              context,
+                              'Cloud sync requires an active LoanX Pro subscription. This loan remains on this device until Pro is active.',
+                              userFacing: true,
+                            );
                           } else {
                             showErrorSnackBar(
                               context,
-                              LocaleKeys
-                                  .someRecordsCouldNotSyncAndWillBeRetried,
+                              kDebugMode
+                                  ? 'Sync failed: $error'
+                                  : LocaleKeys
+                                        .someRecordsCouldNotSyncAndWillBeRetried,
+                              userFacing: kDebugMode,
                             );
                           }
                         } finally {
@@ -597,5 +606,8 @@ Shared from LoanX
     );
   }
 }
+
+bool _isCloudSyncEntitlementError(String error) =>
+    error.toLowerCase().contains('cloud sync entitlement required');
 
 enum _ReceiptAction { print, sharePdf }
