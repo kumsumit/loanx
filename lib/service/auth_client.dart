@@ -604,6 +604,10 @@ class AuthClient {
           limit: 1,
         );
         final row = {
+          // `syncCursors` uses application-supplied string primary keys.
+          // One cursor belongs to one local owner, so its owner ID is a
+          // stable, deterministic key that also keeps retries idempotent.
+          'id': ownerId,
           'ownerId': ownerId,
           'workspaceId': workspaceId,
           'lastSequence': nextCursor,
