@@ -227,7 +227,7 @@ class LoanDetails extends ConsumerWidget {
       '${copy.address}: ${loan.address}',
       '${copy.relativeName}: ${loan.relativeName}${relation == null ? '' : ' ($relation)'}',
       '${copy.mortgageName}: $material',
-      '${copy.weight}: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${copy.systemValue(loan.weightUnit)}' : copy.notRecorded}',
+      '${copy.weight}: ${loan.formattedMortgageWeight.isNotEmpty ? '${loan.formattedMortgageWeight} ${copy.systemValue(loan.weightUnit)}' : copy.notRecorded}',
       '${copy.loanAmount}: ${currency.format(loan.loanAmount)}',
       '${copy.interest}: ${loan.interestRate}% ($interestType)',
       '${copy.mortgageTerm}: ${copy.yearCount(loan.mortgageTermYears)}',
@@ -545,11 +545,11 @@ class _DetailsContent extends ConsumerWidget {
                 label: 'Mortgage material',
                 value: material,
               ),
-              if (loan.weight > 0) ...[
+              if (loan.formattedMortgageWeight.isNotEmpty) ...[
                 _DetailRow(
                   icon: Icons.scale_outlined,
                   label: 'Mortgage weight',
-                  value: '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}',
+                  value: loan.formattedMortgageWeightWithUnit,
                 ),
                 _DetailRow(
                   icon: Icons.analytics_outlined,

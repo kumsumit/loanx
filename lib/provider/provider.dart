@@ -1495,8 +1495,8 @@ class LoanList extends _$LoanList {
     );
     record(
       'Mortgage weight',
-      '${before.weight.toStringAsFixed(2)} ${before.weightUnit}',
-      '${after.weight.toStringAsFixed(2)} ${after.weightUnit}',
+      before.formattedMortgageWeightWithUnit,
+      after.formattedMortgageWeightWithUnit,
     );
     record(
       'Interest rate',

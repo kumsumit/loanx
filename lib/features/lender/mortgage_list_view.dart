@@ -9,7 +9,6 @@ import 'package:loanx/model/mortgage_material.dart';
 import 'package:loanx/provider/provider.dart';
 import 'package:loanx/features/lender/loan_details.dart';
 import 'package:loanx/features/lender/add_loan.dart';
-import 'package:loanx/service/contact_service.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/service/device_performance.dart';
 import 'package:loanx/widget/empty_state.dart';
@@ -118,115 +117,151 @@ class MortgageListView extends StatelessWidget {
                 width: selected ? 1.5 : 1,
               ),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: loan.isFinished()
-                      ? colors.surfaceContainerHighest
-                      : colors.secondaryContainer,
-                  foregroundColor: loan.isFinished()
-                      ? colors.onSurfaceVariant
-                      : colors.onSecondaryContainer,
-                  child: selected
-                      ? const Icon(Icons.check_rounded)
-                      : Text(
-                          loan.depositorName.trim().isEmpty
-                              ? '?'
-                              : loan.depositorName.trim()[0].toUpperCase(),
-                          style: const TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        loan.depositorName,
-                        key: Key('list_item_${loan.id}'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              decoration: loan.isFinished()
-                                  ? TextDecoration.lineThrough
-                                  : null,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: loan.isFinished()
+                          ? colors.surfaceContainerHighest
+                          : colors.secondaryContainer,
+                      foregroundColor: loan.isFinished()
+                          ? colors.onSurfaceVariant
+                          : colors.onSecondaryContainer,
+                      child: selected
+                          ? const Icon(Icons.check_rounded)
+                          : Text(
+                              loan.depositorName.trim().isEmpty
+                                  ? '?'
+                                  : loan.depositorName.trim()[0].toUpperCase(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        loan.weight > 0
-                            ? '${mortgageMaterial?.localizedName ?? LocaleKeys.notRecorded.tr()} · ${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}'
-                            : mortgageMaterial?.localizedName ??
-                                  LocaleKeys.notRecorded.tr(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: colors.onSurfaceVariant),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            loan.isFinished()
-                                ? Icons.check_circle_rounded
-                                : Icons.schedule_rounded,
-                            size: 15,
-                            color: loan.isFinished()
-                                ? colors.onSurfaceVariant
-                                : colors.primary,
+                          Text(
+                            loan.depositorName,
+                            key: Key('list_item_${loan.id}'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  decoration: loan.isFinished()
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
                           ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
-                              loan.isFinished()
-                                  ? LocaleKeys.completed.tr()
-                                  : DateFormat(
-                                      'd MMM yyyy',
-                                    ).format(loan.dateCreated),
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelMedium
-                                  ?.copyWith(color: colors.onSurfaceVariant),
-                            ),
+                          const SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  amount,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: colors.primary,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                ),
+                              ),
+                              const Spacer(),
+                              LoanRecordStatusIndicator(loan: loan),
+                            ],
                           ),
                         ],
                       ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Divider(color: colors.outlineVariant, height: 1),
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 18,
+                        color: colors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _LoanCardField(
+                          label: '',
+                          value:
+                              mortgageMaterial?.localizedName ??
+                              LocaleKeys.notRecorded.tr(),
+                        ),
+                      ),
+                      if (loan.formattedMortgageWeight.isNotEmpty) ...[
+                        SizedBox(
+                          height: 36,
+                          child: VerticalDivider(
+                            color: colors.outlineVariant,
+                            width: 24,
+                          ),
+                        ),
+                        Icon(
+                          Icons.scale_outlined,
+                          size: 18,
+                          color: colors.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: _LoanCardField(
+                            label: '',
+                            value: loan.formattedMortgageWeightWithUnit,
+                            alignEnd: true,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                const SizedBox(height: 10),
+                Row(
                   children: [
-                    Text(
-                      amount,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colors.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    Icon(
+                      loan.isFinished()
+                          ? Icons.check_circle_rounded
+                          : Icons.schedule_rounded,
+                      size: 16,
+                      color: loan.isFinished()
+                          ? colors.onSurfaceVariant
+                          : colors.primary,
                     ),
-                    const SizedBox(height: 8),
-                    LoanRecordStatusIndicator(loan: loan),
-                    const SizedBox(height: 4),
-                    IconButton(
-                      tooltip: LocaleKeys.saveContact.tr(),
-                      visualDensity: VisualDensity.compact,
-                      icon: const Icon(Icons.person_add_alt_1_outlined),
-                      color: colors.onSurfaceVariant,
-                      onPressed: loan.phoneNumber.trim().isEmpty
-                          ? null
-                          : () async {
-                              final opened = await ContactService.createContact(
-                                name: loan.depositorName,
-                                phoneNumber: loan.phoneNumber,
-                              );
-                              if (context.mounted && !opened) {
-                                showSnackBar(
-                                  context,
-                                  LocaleKeys.couldNotOpenTheContactEditor.tr(),
-                                );
-                              }
-                            },
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        loan.isFinished()
+                            ? '${LocaleKeys.completed.tr()} · ${DateFormat('d MMMM yyyy, h:mm a').format(loan.dateFinished!)}'
+                            : DateFormat(
+                                'd MMMM yyyy, h:mm a',
+                              ).format(loan.dateCreated),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(color: colors.onSurfaceVariant),
+                      ),
                     ),
                   ],
                 ),
@@ -326,6 +361,53 @@ class MortgageListView extends StatelessWidget {
           loading: () => Center(child: CircularProgressIndicator()),
         );
       },
+    );
+  }
+}
+
+class _LoanCardField extends StatelessWidget {
+  const _LoanCardField({
+    required this.label,
+    required this.value,
+    this.alignEnd = false,
+  });
+
+  final String label;
+  final String value;
+  final bool alignEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final alignment = alignEnd
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start;
+    return Column(
+      crossAxisAlignment: alignment,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (label.isNotEmpty) ...[
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 2),
+        ],
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+      ],
     );
   }
 }

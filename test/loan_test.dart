@@ -185,6 +185,18 @@ void main() {
       expect(Loan.fromJson(json).weight, 0);
     });
 
+    test('mortgage weight display preserves saved precision and unit', () {
+      final loan = _loan(
+        interestType: InterestType.simple,
+        interestRate: 10,
+        durationInDays: 30,
+      ).copy(id: 1, weight: 18.755, weightUnit: 'g');
+
+      expect(loan.formattedMortgageWeight, '18.755');
+      expect(loan.formattedMortgageWeightWithUnit, '18.755 g');
+      expect(Loan.formatMortgageWeightWithUnit(20, ' kg '), '20 kg');
+    });
+
     test('delivery and client confirmation markers survive round trip', () {
       final confirmedAt = DateTime.utc(2026, 2, 3, 4, 5, 6);
       final loan =

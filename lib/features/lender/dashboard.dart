@@ -333,7 +333,7 @@ Loan Amount: ${loan.loanAmount}
 Additional Details: ${loan.additionalDetails}
 Terms and Conditions: ${loan.termsAndConditions.isEmpty ? 'Not recorded' : loan.termsAndConditions}
 Mortgage Name: ${mortgageMaterials.firstWhere((mortgageMaterial) => mortgageMaterial.id == loan.mortgageMaterialId).name}
-Weight: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}' : 'Not recorded'}
+Weight: ${loan.formattedMortgageWeight.isNotEmpty ? loan.formattedMortgageWeightWithUnit : 'Not recorded'}
 
 """;
                                             }
@@ -393,7 +393,7 @@ Loan Amount: ${loan.loanAmount}
 Additional Details: ${loan.additionalDetails}
 Terms and Conditions: ${loan.termsAndConditions.isEmpty ? 'Not recorded' : loan.termsAndConditions}
 Mortgage Name: ${mortgageMaterials.firstWhere((mortgageMaterial) => mortgageMaterial.id == loan.mortgageMaterialId).name}
-Weight: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}' : 'Not recorded'}
+Weight: ${loan.formattedMortgageWeight.isNotEmpty ? loan.formattedMortgageWeightWithUnit : 'Not recorded'}
 
 Shared from LoanX
 """;

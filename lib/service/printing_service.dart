@@ -43,11 +43,8 @@ class LoanPrintingService {
       if (loan.address.isNotEmpty) ['Address', loan.address],
       ['Created', loan.dateCreatedFormat],
       ['Principal', currency.format(loan.loanAmount)],
-      if (loan.weight > 0) ...[
-        [
-          'Mortgage weight',
-          '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit}',
-        ],
+      if (loan.formattedMortgageWeight.isNotEmpty) ...[
+        ['Mortgage weight', loan.formattedMortgageWeightWithUnit],
         [
           'Loan value per ${loan.weightUnit}',
           currency.format(loan.loanAmount / loan.weight),

@@ -171,8 +171,8 @@ class LoanInput extends HookConsumerWidget {
     );
     useListenable(loanAmountController);
     final weightController = useTextEditingController(
-      text: loan != null && loan!.weight > 0
-          ? loan!.weight.toStringAsFixed(2)
+      text: loan != null && loan!.formattedMortgageWeight.isNotEmpty
+          ? loan!.formattedMortgageWeight
           : '',
     );
     final mortgageWeight = useState<double>(loan?.weight ?? 0);
@@ -1219,7 +1219,7 @@ class LoanInput extends HookConsumerWidget {
       if (mortgageWeight > 0)
         MapEntry(
           'Mortgage weight',
-          '${mortgageWeight.toStringAsFixed(2)} $weightUnit',
+          Loan.formatMortgageWeightWithUnit(mortgageWeight, weightUnit),
         ),
       if (mortgageWeight > 0)
         MapEntry(

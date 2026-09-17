@@ -120,6 +120,34 @@ class Loan {
 
   bool get isClientConfirmed => clientConfirmedAt != null;
 
+  /// A lossless, user-facing representation of the pledged weight.
+  ///
+  /// Mortgage weights can need more precision than two decimal places (for
+  /// example, jewellery recorded to the milligram).  Do not use
+  /// `toStringAsFixed(2)` here: it changes the value that was saved. Dart's
+  /// default conversion retains the significant decimal precision while the
+  /// suffix cleanup keeps whole-number weights readable.
+  String get formattedMortgageWeight {
+    return formatMortgageWeight(weight);
+  }
+
+  static String formatMortgageWeight(double weight) {
+    if (!weight.isFinite || weight <= 0) return '';
+    final value = weight.toString();
+    return value.endsWith('.0') ? value.substring(0, value.length - 2) : value;
+  }
+
+  String get formattedMortgageWeightWithUnit {
+    return formatMortgageWeightWithUnit(weight, weightUnit);
+  }
+
+  static String formatMortgageWeightWithUnit(double weight, String weightUnit) {
+    final value = formatMortgageWeight(weight);
+    if (value.isEmpty) return '';
+    final unit = weightUnit.trim();
+    return unit.isEmpty ? value : '$value $unit';
+  }
+
   void toggleFinished() {
     if (isFinished()) {
       dateFinished = null;

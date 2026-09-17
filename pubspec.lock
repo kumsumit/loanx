@@ -1091,10 +1091,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "35526c5aaf3ee749d99a85e23555a9ce862a2e60"
+      resolved-ref: "90abb26ab87d2ae5af4b64a5f79316078d3b5d0a"
       url: "https://github.com/kumsumit/intl_phone_number_input.git"
     source: git
-    version: "0.7.3+1"
+    version: "0.7.3+2"
   io:
     dependency: transitive
     description:
@@ -2302,5 +2302,5 @@ packages:
     source: hosted
     version: "0.0.4"
 sdks:
-  dart: ">=3.12.0 <4.0.0"
+  dart: ">=3.13.0 <4.0.0"
   flutter: ">=3.44.0"
