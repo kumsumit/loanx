@@ -269,10 +269,18 @@ class LoanInput extends HookConsumerWidget {
         showErrorSnackBar(context, _currencyPrecisionError(currency.value));
         return;
       }
-      final shouldVerifyBorrower =
+      final canOfferConnectedVerification =
           loan == null &&
           AuthClient.hasServerConfiguration &&
           phoneNumberController.text.trim().isNotEmpty;
+      // A configured server is not proof that this local lender workspace is
+      // signed in.  Do not send a borrower into the connected OTP flow until
+      // the lender session has been restored; local loans must keep working
+      // when the account is disconnected or its credentials were cleared.
+      final auth = activeAuthClient ?? AuthClient();
+      final shouldVerifyBorrower =
+          canOfferConnectedVerification && await auth.restoreSession();
+      if (!context.mounted) return;
       if (shouldVerifyBorrower) {
         if (!borrowerPhone.value.isValid()) {
           showErrorSnackBar(
@@ -284,6 +292,7 @@ class LoanInput extends HookConsumerWidget {
         final verified = await _verifyBorrowerPhone(
           context,
           borrowerPhone.value,
+          auth,
         );
         if (verified == null || !context.mounted) return;
         verifiedContactId = verified;
@@ -1140,9 +1149,9 @@ class LoanInput extends HookConsumerWidget {
   Future<String?> _verifyBorrowerPhone(
     BuildContext context,
     PhoneNumber phone,
+    AuthClient auth,
   ) async {
     if (phone.nsn.trim().isEmpty || !phone.isValid()) return null;
-    final auth = AuthClient();
     try {
       await RustBridge.ensureInitialized();
       await auth.requestOtp(phone);
