@@ -431,5 +431,10 @@
   "preferenceCanChangeLater": "ई सिरफ थारो अनुभव निजी बणावै है। पाछै बदल सको हो।",
   "Sign in as borrower": "उधार लेण आळो बणकै साइन इन करो",
   "Amount due": "देय रकम",
-  "Calculated interest": "गणना कियो ब्याज"
+  "Calculated interest": "गणना कियो ब्याज",
+  "Sync now": "अब सिंक करो",
+  "Syncing": "सिंक हो रयो है",
+  "Could not sync. Check your connection and try again.": "सिंक नी हो सक्यो। आपरो कनेक्शन जांचो अर फेर कोशिश करो।",
+  "Records synced.": "रिकॉर्ड सिंक हो गया।",
+  "Some records could not sync and will be retried.": "कई रिकॉर्ड सिंक नी हो सक्या अर फेर कोशिश करसी।"
 }

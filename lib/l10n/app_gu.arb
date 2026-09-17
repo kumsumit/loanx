@@ -431,5 +431,10 @@
   "preferenceCanChangeLater": "આ ફક્ત તમારા અનુભવને વ્યક્તિગત બનાવે છે. તમે તેને પછીથી બદલી શકો છો.",
   "Sign in as borrower": "લોન લેનાર તરીકે સાઇન ઇન કરો",
   "Amount due": "ચૂકવવાની રકમ",
-  "Calculated interest": "ગણતરી કરેલું વ્યાજ"
+  "Calculated interest": "ગણતરી કરેલું વ્યાજ",
+  "Sync now": "હમણાં સમન્વયિત કરો",
+  "Syncing": "સમન્વયિત થઈ રહ્યું છે",
+  "Could not sync. Check your connection and try again.": "સમન્વયિત થઈ શક્યું નથી. તમારું કનેક્શન તપાસો અને ફરી પ્રયાસ કરો.",
+  "Records synced.": "રેકોર્ડ સમન્વયિત થયા.",
+  "Some records could not sync and will be retried.": "કેટલાક રેકોર્ડ સમન્વયિત થઈ શક્યા નથી અને ફરી પ્રયાસ કરવામાં આવશે."
 }

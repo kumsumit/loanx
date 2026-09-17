@@ -431,5 +431,10 @@
   "preferenceCanChangeLater": "ಇದು ನಿಮ್ಮ ಅನುಭವವನ್ನು ಮಾತ್ರ ವೈಯಕ್ತೀಕರಿಸುತ್ತದೆ. ನಂತರ ಬದಲಾಯಿಸಬಹುದು.",
   "Sign in as borrower": "ಸಾಲಗಾರರಾಗಿ ಸೈನ್ ಇನ್ ಮಾಡಿ",
   "Amount due": "ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ",
-  "Calculated interest": "ಲೆಕ್ಕಹಾಕಿದ ಬಡ್ಡಿ"
+  "Calculated interest": "ಲೆಕ್ಕಹಾಕಿದ ಬಡ್ಡಿ",
+  "Sync now": "ಈಗ ಸಿಂಕ್ ಮಾಡಿ",
+  "Syncing": "ಸಿಂಕ್ ಆಗುತ್ತಿದೆ",
+  "Could not sync. Check your connection and try again.": "ಸಿಂಕ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "Records synced.": "ದಾಖಲೆಗಳನ್ನು ಸಿಂಕ್ ಮಾಡಲಾಗಿದೆ.",
+  "Some records could not sync and will be retried.": "ಕೆಲವು ದಾಖಲೆಗಳನ್ನು ಸಿಂಕ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ; ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಲಾಗುವುದು."
 }

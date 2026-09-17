@@ -29,6 +29,7 @@ class AuthClient {
   static const _sessionKey = 'loanx.auth-session.v1';
   String? _challenge;
   Future<void>? _pendingSync;
+  Future<bool>? _pendingSessionRestore;
 
   /// Whether this build has enough information to attempt a cloud request.
   ///
@@ -307,6 +308,8 @@ class AuthClient {
           where: 'eventId = ?',
           whereArgs: [eventId],
         );
+        await db.flush();
+        throw StateError('Financial event sync failed: $error');
       }
     }
     await db.flush();
@@ -497,7 +500,8 @@ class AuthClient {
         );
         // Preserve party-before-loan ordering. A loan mutation must not race
         // ahead of the party it references after a transient failure.
-        break;
+        await db.flush();
+        throw StateError('Cloud mutation sync failed: $error');
       }
     }
     await db.flush();
@@ -1333,7 +1337,18 @@ class AuthClient {
     return token;
   }
 
-  Future<bool> restoreSession() async {
+  /// Restores credentials and reconciles the complete local workspace.
+  ///
+  /// Startup, connectivity changes, and an explicit user sync can happen at
+  /// nearly the same time. Refresh tokens may rotate, so those callers must
+  /// share one restore instead of issuing competing refresh requests.
+  Future<bool> restoreSession() {
+    return _pendingSessionRestore ??= _restoreSession().whenComplete(() {
+      _pendingSessionRestore = null;
+    });
+  }
+
+  Future<bool> _restoreSession() async {
     final refreshToken = (await _readTokens())?.refreshToken;
     if (refreshToken == null || refreshToken.isEmpty) return false;
     try {

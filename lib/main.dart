@@ -13,6 +13,7 @@ import 'package:loanx/features/auth/account_type_screen.dart';
 import 'package:loanx/features/auth/otp_verification_screen.dart';
 import 'package:loanx/features/auth/phone_login_screen.dart';
 import 'package:loanx/features/auth/plan_selection_screen.dart';
+import 'package:loanx/features/borrower/home.dart';
 import 'package:loanx/features/lender/ask_backup_screen.dart';
 import 'package:loanx/features/lender/auth_screen.dart';
 import 'package:loanx/features/lender/dashboard.dart';
@@ -86,12 +87,6 @@ class _FallbackCupertinoLocalizationsDelegate
   @override
   bool shouldReload(_FallbackCupertinoLocalizationsDelegate old) => false;
 }
-
-/// ---------------------------------------------------------------------------
-/// Global authentication client
-/// ---------------------------------------------------------------------------
-
-AuthClient? activeAuthClient;
 
 /// ---------------------------------------------------------------------------
 /// Bootstrap state
@@ -370,7 +365,10 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       // the next full app launch. restoreSession also validates owner/workspace
       // binding before it flushes any private records.
       final restored = await client.restoreSession();
-      if (restored && mounted) ref.invalidate(loanListProvider);
+      if (restored && mounted) {
+        ref.invalidate(loanListProvider);
+        ref.invalidate(borrowerDashboardProvider);
+      }
     } finally {
       _cloudSyncInFlight = false;
     }
@@ -410,15 +408,18 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       // gate local authentication or loan access on a network bridge.
       await (widget.initializeBridge?.call() ?? RustBridge.ensureInitialized());
 
-      if (AppSettings.getPhoneAuthVerified()) {
-        // An expired or unavailable cloud session only disables connected
-        // actions. Existing local data remains accessible on this device.
-        final restored = await activeAuthClient?.restoreSession() ?? false;
-        if (restored && mounted) {
-          // The initial frame may have built the local provider before the
-          // background cloud pull finished.
-          ref.invalidate(loanListProvider);
-        }
+      // A stored cloud session is the authoritative indication that this
+      // device can sync. Do not gate it on onboarding settings: those can be
+      // reset or migrated while secure credentials and queued local work are
+      // still valid. No stored session is a cheap no-op.
+      // An expired or unavailable cloud session only disables connected
+      // actions; existing local data remains accessible on this device.
+      final restored = await activeAuthClient?.restoreSession() ?? false;
+      if (restored && mounted) {
+        // The initial frame may have built local providers before the
+        // background push/pull completed.
+        ref.invalidate(loanListProvider);
+        ref.invalidate(borrowerDashboardProvider);
       }
     } catch (error, stackTrace) {
       debugPrint('LoanX bootstrap initialization failed: $error');

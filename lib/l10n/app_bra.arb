@@ -431,5 +431,10 @@
   "preferenceCanChangeLater": "यह केवल तुम्हारे अनुभव को व्यक्तिगत बनावै है। बाद में बदल सकत हौ।",
   "Sign in as borrower": "करजदार के रूप में साइन इन करौ",
   "Amount due": "देय रकम",
-  "Calculated interest": "गणना कियो ब्याज"
+  "Calculated interest": "गणना कियो ब्याज",
+  "Sync now": "दा सिंक खालाम",
+  "Syncing": "सिंक जाबाय दं",
+  "Could not sync. Check your connection and try again.": "सिंक खालामनो हायाखै। नोंथांनि कनेक्शनखौ नायनो आरो फिन नाजा।",
+  "Records synced.": "रेकर्डफोर सिंक जाबाय।",
+  "Some records could not sync and will be retried.": "माखासे रेकर्ड सिंक जाबायाखै आरो फिन नाजागोन।"
 }

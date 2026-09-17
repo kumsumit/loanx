@@ -431,5 +431,10 @@
   "preferenceCanChangeLater": "ই কেৱল আপোনাৰ অভিজ্ঞতা ব্যক্তিগত কৰে। পিছত সলনি কৰিব পাৰিব।",
   "Sign in as borrower": "ঋণগ্ৰহীতা হিচাপে ছাইন ইন কৰক",
   "Amount due": "দিবলগীয়া ধন",
-  "Calculated interest": "গণনা কৰা সুত"
+  "Calculated interest": "গণনা কৰা সুত",
+  "Sync now": "এতিয়াই ছিংক কৰক",
+  "Syncing": "ছিংক হৈ আছে",
+  "Could not sync. Check your connection and try again.": "ছিংক কৰিব নোৱাৰিলে। আপোনাৰ সংযোগ পৰীক্ষা কৰি পুনৰ চেষ্টা কৰক।",
+  "Records synced.": "ৰেকৰ্ডসমূহ ছিংক কৰা হ'ল।",
+  "Some records could not sync and will be retried.": "কিছুমান ৰেকৰ্ড ছিংক কৰিব নোৱাৰিলে আৰু পুনৰ চেষ্টা কৰা হ'ব।"
 }

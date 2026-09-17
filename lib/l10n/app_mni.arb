@@ -431,5 +431,10 @@
   "preferenceCanChangeLater": "মসি নঙগী এক্সপেরিয়েন্সতমক পার্সোনালাইজ তৌই। মতুংদা হোংদোকপা য়াই।",
   "Sign in as borrower": "ঋণ লৌনবা ওইনা সাইন ইন তৌ",
   "Amount due": "পায়ফমগী মশিং",
-  "Calculated interest": "হিসাব তৌরবা সুদ"
+  "Calculated interest": "হিসাব তৌরবা সুদ",
+  "Sync now": "হৌজিক সিংক তৌবিয়ু",
+  "Syncing": "সিংক তৌরী",
+  "Could not sync. Check your connection and try again.": "সিংক তৌবা ঙমদ্রে। কানেকসন নায়বা অমসুং অমুক হন্না হোৎনবিয়ু।",
+  "Records synced.": "রেকর্দশিং সিংক তৌখ্রে।",
+  "Some records could not sync and will be retried.": "রেকর্দ খরদি সিংক তৌবা ঙমদ্রে অমসুং অমুক হন্না হোৎনগনি।"
 }

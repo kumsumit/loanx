@@ -435,5 +435,10 @@
   "preferenceCanChangeLater": "এটি শুধু আপনার অভিজ্ঞতাকে ব্যক্তিগত করে। পরে এটি বদলাতে পারবেন।",
   "Sign in as borrower": "ঋণগ্রহীতা হিসেবে সাইন ইন করুন",
   "Amount due": "প্রদেয় পরিমাণ",
-  "Calculated interest": "হিসাব করা সুদ"
+  "Calculated interest": "হিসাব করা সুদ",
+  "Sync now": "এখনই সিঙ্ক করুন",
+  "Syncing": "সিঙ্ক হচ্ছে",
+  "Could not sync. Check your connection and try again.": "সিঙ্ক করা যায়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।",
+  "Records synced.": "রেকর্ড সিঙ্ক হয়েছে।",
+  "Some records could not sync and will be retried.": "কিছু রেকর্ড সিঙ্ক করা যায়নি এবং আবার চেষ্টা করা হবে।"
 }

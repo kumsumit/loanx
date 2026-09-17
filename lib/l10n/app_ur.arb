@@ -431,5 +431,10 @@
   "preferenceCanChangeLater": "یہ صرف آپ کے تجربے کو ذاتی بناتا ہے۔ آپ اسے بعد میں تبدیل کر سکتے ہیں۔",
   "Sign in as borrower": "قرض لینے والے کے طور پر سائن اِن کریں",
   "Amount due": "واجب الادا رقم",
-  "Calculated interest": "حساب شدہ سود"
+  "Calculated interest": "حساب شدہ سود",
+  "Sync now": "ابھی ہم آہنگ کریں",
+  "Syncing": "ہم آہنگ کیا جا رہا ہے",
+  "Could not sync. Check your connection and try again.": "ہم آہنگ نہیں ہو سکا۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+  "Records synced.": "ریکارڈز ہم آہنگ ہو گئے۔",
+  "Some records could not sync and will be retried.": "کچھ ریکارڈز ہم آہنگ نہیں ہو سکے اور دوبارہ کوشش کی جائے گی۔"
 }

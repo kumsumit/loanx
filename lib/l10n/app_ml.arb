@@ -431,5 +431,10 @@
   "preferenceCanChangeLater": "ഇത് നിങ്ങളുടെ അനുഭവം വ്യക്തിഗതമാക്കാൻ മാത്രമാണ്. പിന്നീട് മാറ്റാം.",
   "Sign in as borrower": "വായ്പക്കാരനായി സൈൻ ഇൻ ചെയ്യുക",
   "Amount due": "അടയ്ക്കാനുള്ള തുക",
-  "Calculated interest": "കണക്കാക്കിയ പലിശ"
+  "Calculated interest": "കണക്കാക്കിയ പലിശ",
+  "Sync now": "ഇപ്പോൾ സമന്വയിപ്പിക്കുക",
+  "Syncing": "സമന്വയിപ്പിക്കുന്നു",
+  "Could not sync. Check your connection and try again.": "സമന്വയിപ്പിക്കാനായില്ല. കണക്ഷൻ പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.",
+  "Records synced.": "റെക്കോർഡുകൾ സമന്വയിപ്പിച്ചു.",
+  "Some records could not sync and will be retried.": "ചില റെക്കോർഡുകൾ സമന്വയിപ്പിക്കാനായില്ല; വീണ്ടും ശ്രമിക്കും."
 }

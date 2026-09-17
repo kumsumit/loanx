@@ -201,13 +201,17 @@ class LoanInput extends HookConsumerWidget {
       }
       final relation = currentFamilyRelation.value;
       final material = currentMortgageMaterial.value;
-      if (relation == null ||
-          relation.id == null ||
-          material == null ||
-          material.id == null) {
+      if (relation == null || relation.id == null) {
         showSnackBar(
           context,
-          'Select a family relation and pledged material'.tr(),
+          LocaleKeys.familyRelationCannotBeEmpty.tr(),
+        );
+        return;
+      }
+      if (material == null || material.id == null) {
+        showSnackBar(
+          context,
+          LocaleKeys.mortgageMaterialCannotBeEmpty.tr(),
         );
         return;
       }

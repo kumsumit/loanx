@@ -548,5 +548,10 @@
   "Enter a valid amount": "Enter a valid amount",
   "Load more lenders": "Load more lenders",
   "Loading…": "Loading…",
-  "More lenders could not be loaded. Please try again.": "More lenders could not be loaded. Please try again."
+  "More lenders could not be loaded. Please try again.": "More lenders could not be loaded. Please try again.",
+  "Sync now": "Sync now",
+  "Syncing": "Syncing",
+  "Could not sync. Check your connection and try again.": "Could not sync. Check your connection and try again.",
+  "Records synced.": "Records synced.",
+  "Some records could not sync and will be retried.": "Some records could not sync and will be retried."
 }

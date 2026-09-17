@@ -17,8 +17,10 @@ import 'package:loanx/features/lender/public_profile_screen.dart';
 import 'package:loanx/features/auth/connect_account_screen.dart';
 import 'package:loanx/features/borrower/home.dart';
 import 'package:loanx/service/printing_service.dart';
+import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/service/update_service.dart';
 import 'package:loanx/widget/k_icon.dart';
+import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_text.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -40,6 +42,7 @@ class DashBoard extends HookWidget {
             if (usesBothExperience) const BorrowerHome(),
           ];
     final currentIndex = useState<int>(0);
+    final syncing = useState(false);
     final title = useState<String>(
       usesBorrowerExperience ? 'My loans'.tr() : LocaleKeys.loanx.tr(),
     );
@@ -81,6 +84,55 @@ class DashBoard extends HookWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          if (AuthClient.hasServerConfiguration &&
+              AppSettings.getPhoneAuthVerified())
+            Consumer(
+              builder: (context, ref, child) => IconButton(
+                tooltip:
+                    (syncing.value ? LocaleKeys.syncing : LocaleKeys.syncNow)
+                        .tr(),
+                icon: syncing.value
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.sync_outlined),
+                onPressed: syncing.value
+                    ? null
+                    : () async {
+                        final client = activeAuthClient;
+                        if (client == null) return;
+                        syncing.value = true;
+                        try {
+                          final restored = await client.restoreSession();
+                          if (!context.mounted) return;
+                          if (!restored) {
+                            showErrorSnackBar(
+                              context,
+                              LocaleKeys
+                                  .couldNotSyncCheckYourConnectionAndTryAgain,
+                            );
+                            return;
+                          }
+                          ref.invalidate(loanListProvider);
+                          ref.invalidate(borrowerDashboardProvider);
+                          final error = client.lastSyncError;
+                          if (error == null) {
+                            showSnackBar(context, LocaleKeys.recordsSynced);
+                          } else {
+                            showErrorSnackBar(
+                              context,
+                              LocaleKeys
+                                  .someRecordsCouldNotSyncAndWillBeRetried,
+                            );
+                          }
+                        } finally {
+                          if (context.mounted) syncing.value = false;
+                        }
+                      },
+              ),
+            ),
           if (!usesBorrowerExperience && !AppSettings.getPhoneAuthVerified())
             IconButton(
               tooltip: 'Connect account'.tr(),

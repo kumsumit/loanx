@@ -431,5 +431,10 @@
   "preferenceCanChangeLater": "ఇది మీ అనుభవాన్ని మాత్రమే వ్యక్తిగతీకరిస్తుంది. తర్వాత మార్చవచ్చు.",
   "Sign in as borrower": "రుణగ్రహీతగా సైన్ ఇన్ చేయండి",
   "Amount due": "చెల్లించాల్సిన మొత్తం",
-  "Calculated interest": "లెక్కించిన వడ్డీ"
+  "Calculated interest": "లెక్కించిన వడ్డీ",
+  "Sync now": "ఇప్పుడే సమకాలీకరించండి",
+  "Syncing": "సమకాలీకరిస్తోంది",
+  "Could not sync. Check your connection and try again.": "సమకాలీకరించడం సాధ్యపడలేదు. మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.",
+  "Records synced.": "రికార్డులు సమకాలీకరించబడ్డాయి.",
+  "Some records could not sync and will be retried.": "కొన్ని రికార్డులు సమకాలీకరించబడలేదు; మళ్లీ ప్రయత్నిస్తాము."
 }

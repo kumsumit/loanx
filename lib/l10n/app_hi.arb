@@ -435,5 +435,10 @@
   "preferenceCanChangeLater": "यह केवल आपके अनुभव को व्यक्तिगत बनाता है। आप इसे बाद में बदल सकते हैं।",
   "Sign in as borrower": "उधारकर्ता के रूप में साइन इन करें",
   "Amount due": "देय राशि",
-  "Calculated interest": "गणना किया गया ब्याज"
+  "Calculated interest": "गणना किया गया ब्याज",
+  "Sync now": "अभी सिंक करें",
+  "Syncing": "सिंक हो रहा है",
+  "Could not sync. Check your connection and try again.": "सिंक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
+  "Records synced.": "रिकॉर्ड सिंक हो गए।",
+  "Some records could not sync and will be retried.": "कुछ रिकॉर्ड सिंक नहीं हो सके और फिर से कोशिश की जाएगी।"
 }
