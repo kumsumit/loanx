@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `simple_network_result`, `write_frame`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
 Future<PendingLoanInvitation> createPendingLoan({
   required String serverAddress,
@@ -158,6 +158,28 @@ Future<NetworkResult> pushMutation({
   operation: operation,
   expectedRevision: expectedRevision,
   payloadJson: payloadJson,
+);
+
+/// Reads the authenticated owner's incremental change stream. The caller
+/// persists the cursor only after applying the returned batch locally.
+Future<PullChangesResult> pullChanges({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String workspaceId,
+  required PlatformInt64 afterSequence,
+  required int limit,
+}) => RustLib.instance.api.crateApiNetworkPullChanges(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  workspaceId: workspaceId,
+  afterSequence: afterSequence,
+  limit: limit,
 );
 
 Future<SharedLoanListResult> listSharedLoans({
@@ -776,6 +798,41 @@ class PublicLender {
           publicDescription == other.publicDescription;
 }
 
+class PullChangesResult {
+  final bool success;
+  final List<SyncChange> changes;
+  final PlatformInt64 nextSequence;
+  final bool hasMore;
+  final String? errorMessage;
+
+  const PullChangesResult({
+    required this.success,
+    required this.changes,
+    required this.nextSequence,
+    required this.hasMore,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      changes.hashCode ^
+      nextSequence.hashCode ^
+      hasMore.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PullChangesResult &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          changes == other.changes &&
+          nextSequence == other.nextSequence &&
+          hasMore == other.hasMore &&
+          errorMessage == other.errorMessage;
+}
+
 class ServerHello {
   final bool success;
   final int protocolMajor;
@@ -943,6 +1000,49 @@ class SharedRepayment {
           recordedAt == other.recordedAt &&
           paymentMethod == other.paymentMethod &&
           reversesEventId == other.reversesEventId;
+}
+
+class SyncChange {
+  final PlatformInt64 sequence;
+  final String entityType;
+  final String entityId;
+  final String operation;
+  final PlatformInt64 entityRevision;
+  final Uint8List payloadJson;
+  final PlatformInt64 createdAtMs;
+
+  const SyncChange({
+    required this.sequence,
+    required this.entityType,
+    required this.entityId,
+    required this.operation,
+    required this.entityRevision,
+    required this.payloadJson,
+    required this.createdAtMs,
+  });
+
+  @override
+  int get hashCode =>
+      sequence.hashCode ^
+      entityType.hashCode ^
+      entityId.hashCode ^
+      operation.hashCode ^
+      entityRevision.hashCode ^
+      payloadJson.hashCode ^
+      createdAtMs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SyncChange &&
+          runtimeType == other.runtimeType &&
+          sequence == other.sequence &&
+          entityType == other.entityType &&
+          entityId == other.entityId &&
+          operation == other.operation &&
+          entityRevision == other.entityRevision &&
+          payloadJson == other.payloadJson &&
+          createdAtMs == other.createdAtMs;
 }
 
 class VerifiedLoanResult {

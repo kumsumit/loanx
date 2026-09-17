@@ -15,6 +15,7 @@ class OtpVerificationScreen extends StatefulWidget {
     required this.onVerify,
     required this.onResend,
     required this.onChangeNumber,
+    this.initialCode,
     super.key,
   });
 
@@ -22,6 +23,7 @@ class OtpVerificationScreen extends StatefulWidget {
   final Future<String?> Function(String code) onVerify;
   final Future<String?> Function() onResend;
   final VoidCallback onChangeNumber;
+  final String? initialCode;
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -38,6 +40,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialCode case final code?) {
+      _controller.text = code;
+    }
     _otpFocusNode.addListener(_scrollOtpFieldIntoView);
     _startTimer();
   }

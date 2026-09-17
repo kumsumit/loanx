@@ -119,9 +119,8 @@ class DashBoard extends HookWidget {
         ],
         title: Row(
           children: [
-            // The contextual actions can grow to six buttons when a loan is
-            // selected.  Let the title yield space to them on compact screens
-            // instead of forcing the app bar Row past its right edge.
+            // Keep contextual actions in one menu so the app bar remains
+            // usable on compact screens.
             Expanded(child: StyledHeading(title.value)),
             currentIndex.value == 0 && !usesBorrowerExperience
                 ? Consumer(
@@ -129,20 +128,28 @@ class DashBoard extends HookWidget {
                       final loanSelectionList = ref.watch(
                         loanSelectionListProvider,
                       );
-                      return Row(
-                        children: [
-                          IconButton(
-                            onPressed: () {
+                      return PopupMenuButton<VoidCallback>(
+                        tooltip: 'More actions'.tr(),
+                        icon: const Icon(Icons.more_vert),
+                        onSelected: (action) => action(),
+                        itemBuilder: (context) => [
+                          PopupMenuItem<VoidCallback>(
+                            value: () {
                               ref
                                   .read(searchBarStatusProvider.notifier)
                                   .toogle();
                             },
-                            icon: StyledIcon(Icons.search),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.search),
+                                const SizedBox(width: 12),
+                                Text('Search'.tr()),
+                              ],
+                            ),
                           ),
                           if (loanSelectionList.length == 1)
-                            IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
+                            PopupMenuItem<VoidCallback>(
+                              value: () {
                                 final selectedId = loanSelectionList.single;
                                 final selectedLoan = ref
                                     .read(loanListProvider)
@@ -159,11 +166,17 @@ class DashBoard extends HookWidget {
                                   ),
                                 );
                               },
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.edit),
+                                  const SizedBox(width: 12),
+                                  Text('Edit'.tr()),
+                                ],
+                              ),
                             ),
                           if (loanSelectionList.isNotEmpty)
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () {
+                            PopupMenuItem<VoidCallback>(
+                              value: () {
                                 final selectedLoans = List<int>.from(
                                   loanSelectionList,
                                 );
@@ -217,11 +230,17 @@ class DashBoard extends HookWidget {
                                   ),
                                 );
                               },
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.delete),
+                                  const SizedBox(width: 12),
+                                  Text('Delete'.tr()),
+                                ],
+                              ),
                             ),
                           if (loanSelectionList.isNotEmpty)
-                            IconButton(
-                              icon: Icon(Icons.share),
-                              onPressed: () {
+                            PopupMenuItem<VoidCallback>(
+                              value: () {
                                 String formattedText = "";
                                 final loanList = ref.read(loanListProvider);
                                 final familyRelationList = ref.read(
@@ -275,10 +294,17 @@ Weight: ${loan.weight > 0 ? '${loan.weight.toStringAsFixed(2)} ${loan.weightUnit
                                   loading: () {},
                                 );
                               },
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.share),
+                                  const SizedBox(width: 12),
+                                  Text('Share'.tr()),
+                                ],
+                              ),
                             ),
                           if (loanSelectionList.length == 1)
-                            IconButton(
-                              onPressed: () {
+                            PopupMenuItem<VoidCallback>(
+                              value: () {
                                 final selectedId = loanSelectionList.single;
                                 final loan = ref
                                     .read(loanListProvider)
@@ -381,13 +407,17 @@ Shared from LoanX
                                   loading: () {},
                                 );
                               },
-                              icon: Icon(Icons.forward_to_inbox),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.forward_to_inbox),
+                                  const SizedBox(width: 12),
+                                  Text(LocaleKeys.sentVia.tr()),
+                                ],
+                              ),
                             ),
                           if (loanSelectionList.length == 1)
-                            IconButton(
-                              icon: Icon(Icons.print),
-                              tooltip: LocaleKeys.printLoanReceipt.tr(),
-                              onPressed: () async {
+                            PopupMenuItem<VoidCallback>(
+                              value: () async {
                                 final selectedLoan = ref
                                     .read(loanListProvider)
                                     .value
@@ -463,6 +493,13 @@ Shared from LoanX
                                   );
                                 }
                               },
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.print),
+                                  const SizedBox(width: 12),
+                                  Text(LocaleKeys.printLoanReceipt.tr()),
+                                ],
+                              ),
                             ),
                         ],
                       );

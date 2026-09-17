@@ -388,7 +388,12 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       if (AppSettings.getPhoneAuthVerified()) {
         // An expired or unavailable cloud session only disables connected
         // actions. Existing local data remains accessible on this device.
-        await activeAuthClient?.restoreSession();
+        final restored = await activeAuthClient?.restoreSession() ?? false;
+        if (restored && mounted) {
+          // The initial frame may have built the local provider before the
+          // background cloud pull finished.
+          ref.invalidate(loanListProvider);
+        }
       }
     } catch (error, stackTrace) {
       debugPrint('LoanX bootstrap initialization failed: $error');
@@ -503,6 +508,11 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       if (!verified) {
         return LocaleKeys.invalidVerificationCode.tr();
       }
+
+      // OTP verification also restores the cloud workspace. Rebuild any
+      // provider that may have read the freshly-created local database before
+      // the pull completed (especially after an uninstall/reinstall).
+      ref.invalidate(loanListProvider);
 
       AppSettings.putPhoneAuthVerified(true);
 

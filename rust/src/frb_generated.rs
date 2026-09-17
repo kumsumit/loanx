@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 56050580;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -670401558;
 
 // Section: executor
 
@@ -597,6 +597,61 @@ fn wire__crate__api__network__publish_public_lender_impl(
                                 api_available,
                                 api_published,
                                 api_public_description,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__network__pull_changes_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "pull_changes",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_server_address = <String>::sse_decode(&mut deserializer);
+            let api_server_name = <String>::sse_decode(&mut deserializer);
+            let api_trusted_certificate_pem = <String>::sse_decode(&mut deserializer);
+            let api_device_id = <String>::sse_decode(&mut deserializer);
+            let api_access_token = <String>::sse_decode(&mut deserializer);
+            let api_workspace_id = <String>::sse_decode(&mut deserializer);
+            let api_after_sequence = <i64>::sse_decode(&mut deserializer);
+            let api_limit = <u32>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::network::pull_changes(
+                                api_server_address,
+                                api_server_name,
+                                api_trusted_certificate_pem,
+                                api_device_id,
+                                api_access_token,
+                                api_workspace_id,
+                                api_after_sequence,
+                                api_limit,
                             )
                             .await,
                         )?;
@@ -1351,6 +1406,18 @@ impl SseDecode for Vec<crate::api::network::SharedRepayment> {
     }
 }
 
+impl SseDecode for Vec<crate::api::network::SyncChange> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::network::SyncChange>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for crate::api::network::MyLenderProfile {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1471,6 +1538,24 @@ impl SseDecode for crate::api::network::PublicLender {
     }
 }
 
+impl SseDecode for crate::api::network::PullChangesResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_success = <bool>::sse_decode(deserializer);
+        let mut var_changes = <Vec<crate::api::network::SyncChange>>::sse_decode(deserializer);
+        let mut var_nextSequence = <i64>::sse_decode(deserializer);
+        let mut var_hasMore = <bool>::sse_decode(deserializer);
+        let mut var_errorMessage = <Option<String>>::sse_decode(deserializer);
+        return crate::api::network::PullChangesResult {
+            success: var_success,
+            changes: var_changes,
+            next_sequence: var_nextSequence,
+            has_more: var_hasMore,
+            error_message: var_errorMessage,
+        };
+    }
+}
+
 impl SseDecode for crate::api::network::ServerHello {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1560,6 +1645,28 @@ impl SseDecode for crate::api::network::SharedRepayment {
     }
 }
 
+impl SseDecode for crate::api::network::SyncChange {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_sequence = <i64>::sse_decode(deserializer);
+        let mut var_entityType = <String>::sse_decode(deserializer);
+        let mut var_entityId = <String>::sse_decode(deserializer);
+        let mut var_operation = <String>::sse_decode(deserializer);
+        let mut var_entityRevision = <i64>::sse_decode(deserializer);
+        let mut var_payloadJson = <Vec<u8>>::sse_decode(deserializer);
+        let mut var_createdAtMs = <i64>::sse_decode(deserializer);
+        return crate::api::network::SyncChange {
+            sequence: var_sequence,
+            entity_type: var_entityType,
+            entity_id: var_entityId,
+            operation: var_operation,
+            entity_revision: var_entityRevision,
+            payload_json: var_payloadJson,
+            created_at_ms: var_createdAtMs,
+        };
+    }
+}
+
 impl SseDecode for u32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1625,27 +1732,28 @@ fn pde_ffi_dispatcher_primary_impl(
         11 => {
             wire__crate__api__network__publish_public_lender_impl(port, ptr, rust_vec_len, data_len)
         }
-        12 => {
+        12 => wire__crate__api__network__pull_changes_impl(port, ptr, rust_vec_len, data_len),
+        13 => {
             wire__crate__api__network__push_financial_event_impl(port, ptr, rust_vec_len, data_len)
         }
-        13 => wire__crate__api__network__push_mutation_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
-        15 => {
+        14 => wire__crate__api__network__push_mutation_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__network__refresh_session_impl(port, ptr, rust_vec_len, data_len),
+        16 => {
             wire__crate__api__network__report_public_lender_impl(port, ptr, rust_vec_len, data_len)
         }
-        16 => wire__crate__api__network__request_chat_credentials_impl(
+        17 => wire__crate__api__network__request_chat_credentials_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        17 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
-        18 => {
+        18 => wire__crate__api__network__request_otp_impl(port, ptr, rust_vec_len, data_len),
+        19 => {
             wire__crate__api__network__search_public_lenders_impl(port, ptr, rust_vec_len, data_len)
         }
-        19 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__network__verify_contact_otp_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__network__update_language_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__network__verify_contact_otp_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__network__verify_otp_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1911,6 +2019,30 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::network::PublicLender>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::PullChangesResult {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.success.into_into_dart().into_dart(),
+            self.changes.into_into_dart().into_dart(),
+            self.next_sequence.into_into_dart().into_dart(),
+            self.has_more.into_into_dart().into_dart(),
+            self.error_message.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::PullChangesResult
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::PullChangesResult>
+    for crate::api::network::PullChangesResult
+{
+    fn into_into_dart(self) -> crate::api::network::PullChangesResult {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::network::ServerHello {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -2011,6 +2143,32 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::network::SharedRepayment>
     for crate::api::network::SharedRepayment
 {
     fn into_into_dart(self) -> crate::api::network::SharedRepayment {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::network::SyncChange {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.sequence.into_into_dart().into_dart(),
+            self.entity_type.into_into_dart().into_dart(),
+            self.entity_id.into_into_dart().into_dart(),
+            self.operation.into_into_dart().into_dart(),
+            self.entity_revision.into_into_dart().into_dart(),
+            self.payload_json.into_into_dart().into_dart(),
+            self.created_at_ms.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::network::SyncChange
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::network::SyncChange>
+    for crate::api::network::SyncChange
+{
+    fn into_into_dart(self) -> crate::api::network::SyncChange {
         self
     }
 }
@@ -2166,6 +2324,16 @@ impl SseEncode for Vec<crate::api::network::SharedRepayment> {
     }
 }
 
+impl SseEncode for Vec<crate::api::network::SyncChange> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::network::SyncChange>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for crate::api::network::MyLenderProfile {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2244,6 +2412,17 @@ impl SseEncode for crate::api::network::PublicLender {
     }
 }
 
+impl SseEncode for crate::api::network::PullChangesResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.success, serializer);
+        <Vec<crate::api::network::SyncChange>>::sse_encode(self.changes, serializer);
+        <i64>::sse_encode(self.next_sequence, serializer);
+        <bool>::sse_encode(self.has_more, serializer);
+        <Option<String>>::sse_encode(self.error_message, serializer);
+    }
+}
+
 impl SseEncode for crate::api::network::ServerHello {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2293,6 +2472,19 @@ impl SseEncode for crate::api::network::SharedRepayment {
         <String>::sse_encode(self.recorded_at, serializer);
         <String>::sse_encode(self.payment_method, serializer);
         <String>::sse_encode(self.reverses_event_id, serializer);
+    }
+}
+
+impl SseEncode for crate::api::network::SyncChange {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i64>::sse_encode(self.sequence, serializer);
+        <String>::sse_encode(self.entity_type, serializer);
+        <String>::sse_encode(self.entity_id, serializer);
+        <String>::sse_encode(self.operation, serializer);
+        <i64>::sse_encode(self.entity_revision, serializer);
+        <Vec<u8>>::sse_encode(self.payload_json, serializer);
+        <i64>::sse_encode(self.created_at_ms, serializer);
     }
 }
 

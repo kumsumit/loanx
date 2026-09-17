@@ -13,7 +13,10 @@ void main() {
     await EasyLocalization.ensureInitialized();
   });
 
-  Widget app({required Future<String?> Function(String) verify}) {
+  Widget app({
+    required Future<String?> Function(String) verify,
+    String? initialCode,
+  }) {
     return EasyLocalization(
       supportedLocales: const [Locale('en')],
       path: 'lib/l10n',
@@ -25,10 +28,30 @@ void main() {
           onVerify: verify,
           onResend: () async => null,
           onChangeNumber: () {},
+          initialCode: initialCode,
         ),
       ),
     );
   }
+
+  testWidgets('prefills and submits a supplied initial OTP', (tester) async {
+    String? submittedCode;
+    await tester.pumpWidget(
+      app(
+        initialCode: '123456',
+        verify: (code) async {
+          submittedCode = code;
+          return null;
+        },
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('verify-otp')));
+    await tester.pump();
+
+    expect(submittedCode, '123456');
+  });
 
   testWidgets(
     'submits a complete six-digit OTP without logging or storing it',

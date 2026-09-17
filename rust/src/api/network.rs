@@ -62,6 +62,28 @@ pub struct NetworkResult {
 
 #[derive(Debug)]
 #[flutter_rust_bridge::frb]
+pub struct SyncChange {
+    pub sequence: i64,
+    pub entity_type: String,
+    pub entity_id: String,
+    pub operation: String,
+    pub entity_revision: i64,
+    pub payload_json: Vec<u8>,
+    pub created_at_ms: i64,
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
+pub struct PullChangesResult {
+    pub success: bool,
+    pub changes: Vec<SyncChange>,
+    pub next_sequence: i64,
+    pub has_more: bool,
+    pub error_message: Option<String>,
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
 pub struct PendingLoanInvitation {
     pub success: bool,
     pub invitation_id: String,
@@ -436,6 +458,80 @@ pub async fn push_mutation(
         .await,
         |result| matches!(result, v1::response::Result::PushMutation(_)),
     )
+}
+
+/// Reads the authenticated owner's incremental change stream. The caller
+/// persists the cursor only after applying the returned batch locally.
+#[flutter_rust_bridge::frb]
+pub async fn pull_changes(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    workspace_id: String,
+    after_sequence: i64,
+    limit: u32,
+) -> PullChangesResult {
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::PullChanges(v1::PullChangesRequest {
+            workspace_id,
+            after_sequence,
+            limit,
+        }),
+    )
+    .await
+    {
+        Ok(v1::response::Result::PullChanges(value)) => {
+            let next_sequence = value.next_sequence;
+            let has_more = value.has_more;
+            PullChangesResult {
+                success: true,
+                changes: value
+                    .changes
+                    .into_iter()
+                    .map(|change| SyncChange {
+                        sequence: change.sequence,
+                        entity_type: change.entity_type,
+                        entity_id: change.entity_id,
+                        operation: change.operation,
+                        entity_revision: change.entity_revision,
+                        payload_json: change.payload_json,
+                        created_at_ms: change.created_at_ms,
+                    })
+                    .collect(),
+                next_sequence,
+                has_more,
+                error_message: None,
+            }
+        }
+        Ok(v1::response::Result::Error(value)) => PullChangesResult {
+            success: false,
+            changes: Vec::new(),
+            next_sequence: 0,
+            has_more: false,
+            error_message: Some(value.message),
+        },
+        Ok(_) => PullChangesResult {
+            success: false,
+            changes: Vec::new(),
+            next_sequence: 0,
+            has_more: false,
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(error) => PullChangesResult {
+            success: false,
+            changes: Vec::new(),
+            next_sequence: 0,
+            has_more: false,
+            error_message: Some(error.to_string()),
+        },
+    }
 }
 
 #[flutter_rust_bridge::frb]

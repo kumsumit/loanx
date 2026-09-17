@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
@@ -6,11 +7,18 @@ import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/db/tostore_database.dart';
 import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/domain/money.dart';
+import 'package:loanx/model/loan.dart';
+import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/service/database_helper.dart';
 import 'package:loanx/src/rust/api/network.dart' as network;
 
 class AuthClient {
   AuthClient([this._storage = const FlutterSecureStorage()]);
+
+  /// The last non-authentication sync error, retained for the UI to explain
+  /// why a cloud restore is unavailable instead of silently showing an empty
+  /// local workspace.
+  String? lastSyncError;
   static const _address = String.fromEnvironment('LOANX_SERVER_ADDRESS');
   static const _name = String.fromEnvironment('LOANX_SERVER_NAME');
   static const _certificate64 = String.fromEnvironment(
@@ -96,13 +104,23 @@ class AuthClient {
     );
     if (linkedToLocalOwner) {
       try {
+        lastSyncError = null;
+        await queueExistingLoansForSync();
         await flushPendingLoanShares();
         await flushPendingVerifiedLoans();
-        await flushPendingFinancialEvents();
         await flushPendingSyncMutations();
-      } catch (_) {
+        await flushPendingFinancialEvents();
+        await pullAndApplyChanges();
+      } catch (error, stackTrace) {
+        lastSyncError = '$error';
         // Authentication succeeded; a queued share can retry on the next
         // session refresh or explicit account connection.
+        developer.log(
+          'Cloud workspace sync after OTP login failed',
+          name: 'loanx.auth',
+          error: error,
+          stackTrace: stackTrace,
+        );
       }
     }
     _challenge = null;
@@ -114,7 +132,9 @@ class AuthClient {
   Future<String?> verifyOtpForContact(PhoneNumber phone, String otp) async {
     if (_challenge == null) throw StateError('OTP challenge is missing');
     final tokens = await _readTokens();
-    if (tokens == null) return null;
+    if (tokens == null) {
+      throw StateError('Lender account session is missing');
+    }
     final result = await network.verifyContactOtp(
       serverAddress: _address,
       serverName: _name,
@@ -125,7 +145,9 @@ class AuthClient {
       phoneE164: _e164(phone),
       otp: otp,
     );
-    if (!result.success) return null;
+    if (!result.success) {
+      throw StateError(result.errorMessage ?? 'OTP verification failed');
+    }
     _challenge = null;
     return result.verificationId;
   }
@@ -477,6 +499,550 @@ class AuthClient {
     await db.flush();
   }
 
+  /// Pulls the owner's durable server changes into the local workspace.
+  ///
+  /// This is required after reinstall: the local ToStore database is removed
+  /// by the operating system, while the server workspace survives. The
+  /// cursor is advanced in the same local transaction as the applied batch,
+  /// so a crash causes a safe replay instead of a skipped change.
+  Future<void> pullAndApplyChanges({LoanxDatabasePort? database}) async {
+    if (!hasServerConfiguration) return;
+    final tokens = await _readTokens();
+    final session = await _readSessionJson();
+    final workspaceId = session['workspace_id'] as String?;
+    if (tokens == null || workspaceId == null || workspaceId.isEmpty) return;
+
+    final db = database ?? await DatabaseHelper.instance.database;
+    final owners = await db.query('localOwners');
+    if (owners.length != 1 ||
+        owners.single['remoteWorkspaceId'] != workspaceId) {
+      return;
+    }
+    final ownerId = owners.single['id'] as String;
+    final cursorRows = await db.query(
+      'syncCursors',
+      where: 'ownerId = ? AND workspaceId = ?',
+      whereArgs: [ownerId, workspaceId],
+      limit: 1,
+    );
+    var cursor = cursorRows.isEmpty
+        ? 0
+        : (cursorRows.single['lastSequence'] as num?)?.toInt() ?? 0;
+
+    do {
+      final result = await network.pullChanges(
+        serverAddress: _address,
+        serverName: _name,
+        trustedCertificatePem: _certificate,
+        deviceId: _deviceId(),
+        accessToken: tokens.accessToken,
+        workspaceId: workspaceId,
+        afterSequence: cursor,
+        limit: 500,
+      );
+      if (!result.success) {
+        throw StateError(
+          result.errorMessage ?? 'Cloud records could not be loaded',
+        );
+      }
+
+      // Server sequence order is authoritative, but dependencies within a
+      // batch are applied in dependency order. This also makes recovery work
+      // if an older server emitted an event before its local loan snapshot.
+      final changes = [...result.changes]
+        ..sort((a, b) {
+          final priority = <String, int>{
+            'party': 0,
+            'relationship': 1,
+            'loan': 2,
+            'financial_event': 3,
+          };
+          final byType = (priority[a.entityType] ?? 99).compareTo(
+            priority[b.entityType] ?? 99,
+          );
+          return byType == 0 ? a.sequence.compareTo(b.sequence) : byType;
+        });
+      final previousCursor = cursor;
+      final nextCursor = result.nextSequence.toInt();
+      await db.transaction((tx) async {
+        for (final change in changes) {
+          await _applySyncChange(tx, ownerId, change);
+        }
+        final now = DateTime.now().toUtc().toIso8601String();
+        final existing = await tx.query(
+          'syncCursors',
+          where: 'ownerId = ?',
+          whereArgs: [ownerId],
+          limit: 1,
+        );
+        final row = {
+          'ownerId': ownerId,
+          'workspaceId': workspaceId,
+          'lastSequence': nextCursor,
+          'updatedAt': now,
+        };
+        if (existing.isEmpty) {
+          await tx.insert('syncCursors', row);
+        } else {
+          await tx.update(
+            'syncCursors',
+            row,
+            where: 'ownerId = ?',
+            whereArgs: [ownerId],
+          );
+        }
+      });
+      await db.flush();
+      cursor = nextCursor;
+      if (changes.isEmpty && !result.hasMore) break;
+      if (result.hasMore && nextCursor <= previousCursor) {
+        throw StateError('Cloud sync returned an unchanged cursor');
+      }
+      // The server returns has_more when another page is available. A
+      // defensive cursor check above prevents an accidental infinite loop.
+      if (!result.hasMore) break;
+    } while (true);
+  }
+
+  /// Converts records made in the local-only experience into durable cloud
+  /// mutations when the owner explicitly links an account. Without this
+  /// handoff, a local loan created before sign-in would remain on one device
+  /// forever and could not be recovered after an uninstall.
+  Future<void> queueExistingLoansForSync({LoanxDatabasePort? database}) async {
+    if (!hasServerConfiguration) return;
+    final tokens = await _readTokens();
+    final session = await _readSessionJson();
+    final workspaceId = session['workspace_id'] as String?;
+    if (tokens == null || workspaceId == null || workspaceId.isEmpty) return;
+    final db = database ?? await DatabaseHelper.instance.database;
+    final owners = await db.query('localOwners');
+    if (owners.length != 1 ||
+        owners.single['remoteWorkspaceId'] != workspaceId) {
+      return;
+    }
+    final owner = owners.single;
+    final ownerId = owner['id'] as String;
+    final remoteLender = owner['remotePartyId'] as String?;
+    if (remoteLender == null || remoteLender.isEmpty) return;
+    final loans = await db.query(
+      'loans',
+      where: 'ownerId = ?',
+      whereArgs: [ownerId],
+    );
+    await db.transaction((tx) async {
+      for (final loan in loans) {
+        if (loan['syncState'] == Loan.serverSaved) continue;
+        final loanUid = loan['uid'] as String?;
+        final borrowerId = loan['borrowerPartyId'] as String?;
+        if (loanUid == null ||
+            loanUid.isEmpty ||
+            borrowerId == null ||
+            borrowerId.isEmpty) {
+          continue;
+        }
+        final borrowerRows = await tx.query(
+          'parties',
+          where: 'id = ? AND ownerId = ?',
+          whereArgs: [borrowerId, ownerId],
+          limit: 1,
+        );
+        if (borrowerRows.length != 1) continue;
+        final borrower = borrowerRows.single;
+        final currency = loan['currency'] as String? ?? 'INR';
+        final scale = CurrencyPresentation.fractionDigits(currency);
+        final exact =
+            loan['loanAmountExact'] as String? ??
+            (loan['loanAmount'] as num).toString();
+        final principal = Money.parse(exact, currency: currency, scale: scale);
+        final now = DateTime.now().toUtc().toIso8601String();
+        await _queueMutationIfMissing(tx, {
+          'id': borrowerId,
+          'ownerId': ownerId,
+          'operationId': borrowerId,
+          'entityType': 'party',
+          'entityId': borrowerId,
+          'operation': 'create',
+          'expectedRevision': 0,
+          'payloadJson': jsonEncode({
+            'display_name': borrower['displayName'],
+            'phone_e164': null,
+            'email': borrower['email'],
+            'country_code': borrower['countryCode'],
+            'status': 'active',
+          }),
+          'status': 'PENDING',
+          'attemptCount': 0,
+          'createdAt': now,
+          'updatedAt': now,
+        });
+        await _queueMutationIfMissing(tx, {
+          'id': loanUid,
+          'ownerId': ownerId,
+          'operationId': loanUid,
+          'entityType': 'loan',
+          'entityId': loanUid,
+          'operation': 'create',
+          'expectedRevision': 0,
+          'payloadJson': jsonEncode({
+            'relationship_id': null,
+            'lender_party_id': remoteLender,
+            'borrower_party_id': borrowerId,
+            'borrower_name': borrower['displayName'],
+            'borrower_phone': borrower['phone'],
+            'relative_name': loan['relativeName'],
+            'address': loan['address'],
+            'principal_minor': int.parse(principal.minorUnits.toString()),
+            'currency': currency,
+            'currency_scale': scale,
+            'loan_date': (loan['dateCreated'] as String).substring(0, 10),
+            'maturity_date': null,
+            'lifecycle': 'active',
+            'calculation_contract': loan['calculationVersion'] ?? 'legacy-v1',
+            'status': 'active',
+            'interest_rate': loan['interestRate'],
+            'interest_type': loan['interestType'],
+            'interest_frequency': loan['interestFrequency'],
+            'mortgage_term_years': loan['mortgageTermYears'],
+            'lock_in_days': loan['lockInDays'],
+            'early_redemption_charge': loan['earlyRedemptionCharge'],
+            'weight': loan['weight'],
+            'weight_unit': loan['weightUnit'],
+            'additional_details': loan['additionalDetails'],
+            'terms_and_conditions': loan['termsAndConditions'],
+            'date_finished': loan['dateFinished'],
+            'completed_by': loan['completedBy'],
+            'settlement_amount': loan['settlementAmount'],
+            'completion_reference': loan['completionReference'],
+            'completion_notes': loan['completionNotes'],
+            'client_confirmed_at': loan['clientConfirmedAt'],
+          }),
+          'status': 'PENDING',
+          'attemptCount': 0,
+          'createdAt': now,
+          'updatedAt': now,
+        });
+      }
+    });
+    await db.flush();
+  }
+
+  Future<void> _queueMutationIfMissing(
+    DatabaseExecutor tx,
+    Map<String, Object?> row,
+  ) async {
+    final existing = await tx.query(
+      'pendingSyncMutations',
+      where: 'operationId = ?',
+      whereArgs: [row['operationId']],
+      limit: 1,
+    );
+    if (existing.isEmpty) await tx.insert('pendingSyncMutations', row);
+  }
+
+  Future<void> _applySyncChange(
+    DatabaseExecutor tx,
+    String ownerId,
+    network.SyncChange change,
+  ) async {
+    if (change.operation == 'delete') return;
+    final payload = jsonDecode(utf8.decode(change.payloadJson));
+    if (payload is! Map) {
+      throw const FormatException('Invalid cloud change payload');
+    }
+    final data = Map<String, dynamic>.from(payload);
+    switch (change.entityType) {
+      case 'party':
+        await _applyPartyChange(tx, ownerId, change.entityId, data);
+        break;
+      case 'relationship':
+        await _applyRelationshipChange(tx, ownerId, change.entityId, data);
+        break;
+      case 'loan':
+        await _applyLoanChange(tx, ownerId, change.entityId, data);
+        break;
+      case 'financial_event':
+        await _applyFinancialEventChange(
+          tx,
+          ownerId,
+          change.entityId,
+          data,
+          change,
+        );
+        break;
+    }
+  }
+
+  String _localPartyId(Map<String, Object?> owner, String remotePartyId) =>
+      remotePartyId == owner['remotePartyId']
+      ? owner['selfPartyId'] as String
+      : remotePartyId;
+
+  Future<void> _applyPartyChange(
+    DatabaseExecutor tx,
+    String ownerId,
+    String remoteId,
+    Map<String, dynamic> data,
+  ) async {
+    final owner = (await tx.query(
+      'localOwners',
+      where: 'id = ?',
+      whereArgs: [ownerId],
+      limit: 1,
+    )).single;
+    final id = _localPartyId(owner, remoteId);
+    final existing = await tx.query(
+      'parties',
+      where: 'id = ? AND ownerId = ?',
+      whereArgs: [id, ownerId],
+      limit: 1,
+    );
+    final now = DateTime.now().toUtc().toIso8601String();
+    final row = <String, Object?>{
+      'id': id,
+      'ownerId': ownerId,
+      'displayName':
+          (data['display_name'] as String?)?.trim().isNotEmpty == true
+          ? (data['display_name'] as String).trim()
+          : 'LoanX contact',
+      'phone': data['phone_e164'],
+      'email': data['email'],
+      'countryCode': data['country_code'],
+      'userId': data['linked_user_id'],
+      'status': ((data['status'] as String?) ?? 'active').toUpperCase(),
+      'createdAt': now,
+      'updatedAt': now,
+    };
+    if (existing.isEmpty) {
+      await tx.insert('parties', row);
+    } else {
+      await tx.update(
+        'parties',
+        row
+          ..remove('id')
+          ..remove('ownerId')
+          ..remove('createdAt'),
+        where: 'id = ? AND ownerId = ?',
+        whereArgs: [id, ownerId],
+      );
+    }
+  }
+
+  Future<void> _applyRelationshipChange(
+    DatabaseExecutor tx,
+    String ownerId,
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    final owner = (await tx.query(
+      'localOwners',
+      where: 'id = ?',
+      whereArgs: [ownerId],
+      limit: 1,
+    )).single;
+    final partyA = _localPartyId(owner, data['party_a_id'] as String);
+    final partyB = _localPartyId(owner, data['party_b_id'] as String);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final row = <String, Object?>{
+      'id': id,
+      'ownerId': ownerId,
+      'partyAId': partyA,
+      'partyBId': partyB,
+      'status': ((data['status'] as String?) ?? 'active').toUpperCase(),
+      'createdAt': now,
+      'updatedAt': now,
+    };
+    final existing = await tx.query(
+      'relationships',
+      where: 'id = ? AND ownerId = ?',
+      whereArgs: [id, ownerId],
+      limit: 1,
+    );
+    if (existing.isEmpty) {
+      await tx.insert('relationships', row);
+    } else {
+      await tx.update(
+        'relationships',
+        row
+          ..remove('id')
+          ..remove('ownerId')
+          ..remove('createdAt'),
+        where: 'id = ? AND ownerId = ?',
+        whereArgs: [id, ownerId],
+      );
+    }
+  }
+
+  Future<void> _applyLoanChange(
+    DatabaseExecutor tx,
+    String ownerId,
+    String remoteId,
+    Map<String, dynamic> data,
+  ) async {
+    final owner = (await tx.query(
+      'localOwners',
+      where: 'id = ?',
+      whereArgs: [ownerId],
+      limit: 1,
+    )).single;
+    final uid = (data['loan_id'] as String?) ?? remoteId;
+    final lender = _localPartyId(owner, data['lender_party_id'] as String);
+    final borrower = _localPartyId(owner, data['borrower_party_id'] as String);
+    final principalExact = _minorToDecimal(
+      data['principal_minor'],
+      ((data['currency_scale'] as num?)?.toInt() ?? 2).clamp(0, 6),
+    );
+    final principal = double.parse(principalExact);
+    final existing = await tx.query(
+      'loans',
+      where: 'uid = ? AND ownerId = ?',
+      whereArgs: [uid, ownerId],
+      limit: 1,
+    );
+    var borrowerRows = await tx.query(
+      'parties',
+      where: 'id = ? AND ownerId = ?',
+      whereArgs: [borrower, ownerId],
+      limit: 1,
+    );
+    if (borrowerRows.isEmpty) {
+      final now = DateTime.now().toUtc().toIso8601String();
+      await tx.insert('parties', {
+        'id': borrower,
+        'ownerId': ownerId,
+        'displayName':
+            (data['borrower_name'] as String?)?.trim().isNotEmpty == true
+            ? (data['borrower_name'] as String).trim()
+            : 'LoanX borrower',
+        'phone': data['borrower_phone'],
+        'status': 'ACTIVE',
+        'createdAt': now,
+        'updatedAt': now,
+      });
+      borrowerRows = await tx.query(
+        'parties',
+        where: 'id = ? AND ownerId = ?',
+        whereArgs: [borrower, ownerId],
+        limit: 1,
+      );
+    }
+    final borrowerName =
+        (data['borrower_name'] as String?)?.trim().isNotEmpty == true
+        ? (data['borrower_name'] as String).trim()
+        : borrowerRows.isEmpty
+        ? 'LoanX borrower'
+        : borrowerRows.single['displayName'] as String;
+    final relations = await tx.query('familyRelations', limit: 1);
+    final materials = await tx.query('mortgageMaterials', limit: 1);
+    final date = _dateTimeString(data['loan_date'] as String?);
+    final row = <String, Object?>{
+      'uid': uid,
+      'ownerId': ownerId,
+      'lenderPartyId': lender,
+      'borrowerPartyId': borrower,
+      'relationshipId': data['relationship_id'],
+      'depositorName': borrowerName,
+      'phoneNumber':
+          (data['borrower_phone'] as String?)?.trim() ??
+          (borrowerRows.isEmpty
+              ? ''
+              : borrowerRows.single['phone'] as String? ?? ''),
+      'relativeName': data['relative_name'] as String? ?? '',
+      'address': data['address'] as String? ?? '',
+      'loanAmount': principal,
+      'loanAmountExact': principalExact,
+      'weight': (data['weight'] as num?)?.toDouble() ?? 0,
+      'weightUnit': data['weight_unit'] as String? ?? 'g',
+      'interestRate': (data['interest_rate'] as num?)?.toDouble() ?? 0,
+      'interestType': (data['interest_type'] as num?)?.toInt() ?? 0,
+      'interestFrequency': (data['interest_frequency'] as num?)?.toInt() ?? 0,
+      'mortgageTermYears': (data['mortgage_term_years'] as num?)?.toInt() ?? 5,
+      'lockInDays': (data['lock_in_days'] as num?)?.toInt() ?? 0,
+      'earlyRedemptionCharge':
+          (data['early_redemption_charge'] as num?)?.toDouble() ?? 0,
+      'additionalDetails': data['additional_details'] as String? ?? '',
+      'termsAndConditions': data['terms_and_conditions'] as String? ?? '',
+      'dateCreated': date,
+      'dateFinished': data['date_finished'],
+      'completedBy': data['completed_by'] as String? ?? '',
+      'settlementAmount': (data['settlement_amount'] as num?)?.toDouble(),
+      'completionReference': data['completion_reference'] as String? ?? '',
+      'completionNotes': data['completion_notes'] as String? ?? '',
+      'familyRelationId': relations.isEmpty ? 1 : relations.first['id'],
+      'mortgageMaterialId': materials.isEmpty ? 1 : materials.first['id'],
+      'currency': data['currency'] as String? ?? 'INR',
+      'calculationVersion':
+          data['calculation_contract'] as String? ?? 'legacy-v1',
+      'syncState': Loan.serverSaved,
+      'clientConfirmedAt': data['client_confirmed_at'],
+    };
+    if (existing.isEmpty) {
+      await tx.insert('loans', row);
+    } else {
+      row.remove('uid');
+      row.remove('ownerId');
+      await tx.update(
+        'loans',
+        row,
+        where: 'uid = ? AND ownerId = ?',
+        whereArgs: [uid, ownerId],
+      );
+    }
+  }
+
+  Future<void> _applyFinancialEventChange(
+    DatabaseExecutor tx,
+    String ownerId,
+    String remoteId,
+    Map<String, dynamic> data,
+    network.SyncChange change,
+  ) async {
+    final loanUid = data['loan_id'] as String?;
+    if (loanUid == null || loanUid.isEmpty) return;
+    final existing = await tx.query(
+      'financialEvents',
+      where: 'id = ? AND ownerId = ?',
+      whereArgs: [remoteId, ownerId],
+      limit: 1,
+    );
+    if (existing.isNotEmpty) return;
+    final recordedAt = DateTime.fromMillisecondsSinceEpoch(
+      change.createdAtMs,
+      isUtc: true,
+    ).toIso8601String();
+    await tx.insert('financialEvents', {
+      'id': remoteId,
+      'ownerId': ownerId,
+      'loanUid': loanUid,
+      'type': data['type'] as String? ?? 'repayment',
+      'amountMinor': (data['amount_minor'] ?? '0').toString(),
+      'currency': data['currency'] as String? ?? 'INR',
+      'currencyScale': (data['currency_scale'] as num?)?.toInt() ?? 2,
+      'effectiveDate': _dateTimeString(data['effective_date'] as String?),
+      'recordedAt': recordedAt,
+      'paymentMethod': data['payment_method'],
+      'referenceNumber': data['reference_number'],
+      'notes': data['reason'],
+      'createdBy': ownerId,
+      'reversesEventId': data['reverses_event_id'],
+      'payloadHash': 'remote-${change.sequence}',
+    });
+  }
+
+  String _dateTimeString(String? value) {
+    final date = (value ?? '1970-01-01').trim();
+    return date.contains('T') ? date : '${date}T00:00:00.000Z';
+  }
+
+  String _minorToDecimal(Object? value, int scale) {
+    final minor = BigInt.parse(value.toString());
+    final negative = minor.isNegative;
+    final digits = minor.abs().toString().padLeft(scale + 1, '0');
+    final result = scale == 0
+        ? digits
+        : '${digits.substring(0, digits.length - scale)}.${digits.substring(digits.length - scale)}';
+    return negative ? '-$result' : result;
+  }
+
   /// Queues a lender share when the local lender workspace has not yet been
   /// connected to a LoanX account. Verifying the borrower's phone proves the
   /// contact number, but must never authorize a lender write as that borrower.
@@ -768,13 +1334,23 @@ class AuthClient {
       );
       if (linkedToLocalOwner) {
         try {
+          lastSyncError = null;
+          await queueExistingLoansForSync();
           await flushPendingLoanShares();
           await flushPendingVerifiedLoans();
-          await flushPendingFinancialEvents();
           await flushPendingSyncMutations();
-        } catch (_) {
+          await flushPendingFinancialEvents();
+          await pullAndApplyChanges();
+        } catch (error, stackTrace) {
+          lastSyncError = '$error';
           // Keep the refreshed session even if the share queue is temporarily
           // unavailable.
+          developer.log(
+            'Cloud workspace sync after session restore failed',
+            name: 'loanx.auth',
+            error: error,
+            stackTrace: stackTrace,
+          );
         }
       }
       final pendingLanguage = AppSettings.getPendingPreferredLanguage();

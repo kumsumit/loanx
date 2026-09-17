@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/domain/country_catalog.dart';
@@ -7,6 +8,7 @@ import 'package:loanx/features/auth/otp_verification_screen.dart';
 import 'package:loanx/features/auth/phone_login_screen.dart';
 import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/service/rust_bridge.dart';
+import 'package:loanx/provider/provider.dart';
 
 /// Connects an existing offline lender workspace to a verified
 /// cloud authentication account.
@@ -20,7 +22,7 @@ import 'package:loanx/service/rust_bridge.dart';
 ///
 /// The AuthClient is intentionally owned by this screen rather than relying
 /// on a global `activeAuthClient`, which keeps this flow self-contained.
-class ConnectAccountScreen extends StatefulWidget {
+class ConnectAccountScreen extends ConsumerStatefulWidget {
   const ConnectAccountScreen({this.switchToBorrower = false, super.key});
 
   /// When true, this flow changes the active app experience after OTP
@@ -28,10 +30,11 @@ class ConnectAccountScreen extends StatefulWidget {
   final bool switchToBorrower;
 
   @override
-  State<ConnectAccountScreen> createState() => _ConnectAccountScreenState();
+  ConsumerState<ConnectAccountScreen> createState() =>
+      _ConnectAccountScreenState();
 }
 
-class _ConnectAccountScreenState extends State<ConnectAccountScreen> {
+class _ConnectAccountScreenState extends ConsumerState<ConnectAccountScreen> {
   late final AuthClient _authClient;
 
   PhoneNumber? _pendingPhone;
@@ -142,6 +145,8 @@ class _ConnectAccountScreenState extends State<ConnectAccountScreen> {
       if (!verified) {
         return 'Invalid verification code'.tr();
       }
+
+      ref.invalidate(loanListProvider);
 
       final e164Phone = CountryCatalog.e164(phone.isoCode, phone.nsn);
 

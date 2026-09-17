@@ -65,6 +65,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<SharedRepayment> dco_decode_list_shared_repayment(dynamic raw);
 
   @protected
+  List<SyncChange> dco_decode_list_sync_change(dynamic raw);
+
+  @protected
   MyLenderProfile dco_decode_my_lender_profile(dynamic raw);
 
   @protected
@@ -86,6 +89,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PublicLender dco_decode_public_lender(dynamic raw);
 
   @protected
+  PullChangesResult dco_decode_pull_changes_result(dynamic raw);
+
+  @protected
   ServerHello dco_decode_server_hello(dynamic raw);
 
   @protected
@@ -96,6 +102,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SharedRepayment dco_decode_shared_repayment(dynamic raw);
+
+  @protected
+  SyncChange dco_decode_sync_change(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -167,6 +176,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<SyncChange> sse_decode_list_sync_change(SseDeserializer deserializer);
+
+  @protected
   MyLenderProfile sse_decode_my_lender_profile(SseDeserializer deserializer);
 
   @protected
@@ -192,6 +204,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PublicLender sse_decode_public_lender(SseDeserializer deserializer);
 
   @protected
+  PullChangesResult sse_decode_pull_changes_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ServerHello sse_decode_server_hello(SseDeserializer deserializer);
 
   @protected
@@ -206,6 +223,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SharedRepayment sse_decode_shared_repayment(SseDeserializer deserializer);
+
+  @protected
+  SyncChange sse_decode_sync_change(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -297,6 +317,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_sync_change(
+    List<SyncChange> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_my_lender_profile(
     MyLenderProfile self,
     SseSerializer serializer,
@@ -327,6 +353,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_public_lender(PublicLender self, SseSerializer serializer);
 
   @protected
+  void sse_encode_pull_changes_result(
+    PullChangesResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_server_hello(ServerHello self, SseSerializer serializer);
 
   @protected
@@ -346,6 +378,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     SharedRepayment self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_sync_change(SyncChange self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

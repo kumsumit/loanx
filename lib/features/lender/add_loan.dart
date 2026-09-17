@@ -349,6 +349,10 @@ class LoanInput extends HookConsumerWidget {
             'loan_id': loanUid,
             'lender_party_id': remoteLenderPartyId,
             'borrower_party_id': borrowerPartyId,
+            'borrower_name': depositorController.text.trim(),
+            'borrower_phone': phoneNumberController.text.trim(),
+            'relative_name': relativeNameController.text.trim(),
+            'address': addressController.text.trim(),
             'principal_minor': int.parse(principalMinor),
             'currency': currency.value,
             'currency_scale': scale,
@@ -357,6 +361,17 @@ class LoanInput extends HookConsumerWidget {
             'lifecycle': 'active',
             'calculation_contract': 'legacy-v1',
             'status': 'active',
+            'interest_rate': currentInterestRate,
+            'interest_type': interestType.value.index,
+            'interest_frequency': interestFrequency.value.index,
+            'mortgage_term_years': mortgageTermYears.value,
+            'lock_in_days': lockInDays.value,
+            'early_redemption_charge': earlyCharge,
+            'weight': weight,
+            'weight_unit': weightUnit.value,
+            'additional_details': additionalDetailsController.text.trim(),
+            'terms_and_conditions': termsAndConditionsController.text.trim(),
+            'client_confirmed_at': DateTime.now().toUtc().toIso8601String(),
           };
           try {
             if (loanUid is! String ||
@@ -1104,6 +1119,8 @@ class LoanInput extends HookConsumerWidget {
       MaterialPageRoute(
         builder: (_) => OtpVerificationScreen(
           phoneNumber: phone,
+          // Temporary development OTP until the SMS provider is wired up.
+          initialCode: '123456',
           onVerify: (code) async {
             try {
               final verificationId = await auth.verifyOtpForContact(
