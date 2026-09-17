@@ -7,6 +7,7 @@ import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/db/tostore_database.dart';
 import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/domain/money.dart';
+import 'package:loanx/domain/calculation_contract.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/service/currency_presentation.dart';
 import 'package:loanx/service/database_helper.dart';
@@ -27,6 +28,7 @@ class AuthClient {
   final FlutterSecureStorage _storage;
   static const _sessionKey = 'loanx.auth-session.v1';
   String? _challenge;
+  Future<void>? _pendingSync;
 
   /// Whether this build has enough information to attempt a cloud request.
   ///
@@ -105,12 +107,7 @@ class AuthClient {
     if (linkedToLocalOwner) {
       try {
         lastSyncError = null;
-        await queueExistingLoansForSync();
-        await flushPendingLoanShares();
-        await flushPendingVerifiedLoans();
-        await flushPendingSyncMutations();
-        await flushPendingFinancialEvents();
-        await pullAndApplyChanges();
+        await syncPendingWork();
       } catch (error, stackTrace) {
         lastSyncError = '$error';
         // Authentication succeeded; a queued share can retry on the next
@@ -477,7 +474,14 @@ class AuthClient {
           if (row['entityType'] == 'loan' && row['entityId'] is String) {
             await tx.update(
               'loans',
-              {'syncState': 'SERVER_SAVED'},
+              {
+                'syncState': 'SERVER_SAVED',
+                // A create starts at revision 1; a successful update advances
+                // exactly the revision supplied with that mutation.
+                'serverRevision': row['operation'] == 'update'
+                    ? ((row['expectedRevision'] as num?)?.toInt() ?? 1) + 1
+                    : 1,
+              },
               where: 'uid = ? AND ownerId = ?',
               whereArgs: [row['entityId'], ownerId],
             );
@@ -497,6 +501,26 @@ class AuthClient {
       }
     }
     await db.flush();
+  }
+
+  /// Flushes every durable local queue once a connected session is available.
+  /// Calls are coalesced because app-resume and connectivity events can arrive
+  /// together.  A failure remains inspectable in the queue's `lastError` and
+  /// is retried by the next connectivity or lifecycle event.
+  Future<void> syncPendingWork() {
+    if (!hasServerConfiguration) return Future.value();
+    return _pendingSync ??= _syncPendingWork().whenComplete(() {
+      _pendingSync = null;
+    });
+  }
+
+  Future<void> _syncPendingWork() async {
+    await queueExistingLoansForSync();
+    await flushPendingLoanShares();
+    await flushPendingVerifiedLoans();
+    await flushPendingSyncMutations();
+    await flushPendingFinancialEvents();
+    await pullAndApplyChanges();
   }
 
   /// Pulls the owner's durable server changes into the local workspace.
@@ -697,7 +721,8 @@ class AuthClient {
             'loan_date': (loan['dateCreated'] as String).substring(0, 10),
             'maturity_date': null,
             'lifecycle': 'active',
-            'calculation_contract': loan['calculationVersion'] ?? 'legacy-v1',
+            'calculation_contract':
+                loan['calculationVersion'] ?? CalculationContract.legacyV1,
             'status': 'active',
             'interest_rate': loan['interestRate'],
             'interest_type': loan['interestType'],
@@ -744,7 +769,16 @@ class AuthClient {
     String ownerId,
     network.SyncChange change,
   ) async {
-    if (change.operation == 'delete') return;
+    if (change.operation == 'delete') {
+      if (change.entityType == 'loan') {
+        await tx.delete(
+          'loans',
+          where: 'uid = ? AND ownerId = ?',
+          whereArgs: [change.entityId, ownerId],
+        );
+      }
+      return;
+    }
     final payload = jsonDecode(utf8.decode(change.payloadJson));
     if (payload is! Map) {
       throw const FormatException('Invalid cloud change payload');
@@ -758,7 +792,13 @@ class AuthClient {
         await _applyRelationshipChange(tx, ownerId, change.entityId, data);
         break;
       case 'loan':
-        await _applyLoanChange(tx, ownerId, change.entityId, data);
+        await _applyLoanChange(
+          tx,
+          ownerId,
+          change.entityId,
+          data,
+          change.entityRevision.toInt(),
+        );
         break;
       case 'financial_event':
         await _applyFinancialEventChange(
@@ -877,6 +917,7 @@ class AuthClient {
     String ownerId,
     String remoteId,
     Map<String, dynamic> data,
+    int serverRevision,
   ) async {
     final owner = (await tx.query(
       'localOwners',
@@ -971,8 +1012,10 @@ class AuthClient {
       'mortgageMaterialId': materials.isEmpty ? 1 : materials.first['id'],
       'currency': data['currency'] as String? ?? 'INR',
       'calculationVersion':
-          data['calculation_contract'] as String? ?? 'legacy-v1',
+          data['calculation_contract'] as String? ??
+          CalculationContract.legacyV1,
       'syncState': Loan.serverSaved,
+      'serverRevision': serverRevision,
       'clientConfirmedAt': data['client_confirmed_at'],
     };
     if (existing.isEmpty) {
@@ -1335,12 +1378,7 @@ class AuthClient {
       if (linkedToLocalOwner) {
         try {
           lastSyncError = null;
-          await queueExistingLoansForSync();
-          await flushPendingLoanShares();
-          await flushPendingVerifiedLoans();
-          await flushPendingSyncMutations();
-          await flushPendingFinancialEvents();
-          await pullAndApplyChanges();
+          await syncPendingWork();
         } catch (error, stackTrace) {
           lastSyncError = '$error';
           // Keep the refreshed session even if the share queue is temporarily

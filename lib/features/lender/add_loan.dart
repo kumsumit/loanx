@@ -9,6 +9,7 @@ import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:loanx/db/app_settings.dart';
 import 'package:loanx/domain/country_catalog.dart';
 import 'package:loanx/domain/money.dart';
+import 'package:loanx/domain/calculation_contract.dart';
 import 'package:loanx/extension/loan_enum_localization.dart';
 import 'package:loanx/extension/system_value_localization.dart';
 import 'package:loanx/model/family_relation.dart';
@@ -80,11 +81,6 @@ class LoanInput extends HookConsumerWidget {
         : LocaleKeys.editLoanRecord.tr();
     final isDialogOpen = useState<bool>(false);
     final isSaving = useState<bool>(false);
-    // A phone number is private contact information, not evidence that its
-    // owner has a LoanX account or wants this loan shared. Keep external loans
-    // local unless the lender explicitly asks to start the verified connection
-    // flow for this new record.
-    final requestBorrowerConnection = useState<bool>(false);
     final familyRelations = ref.watch(familyRelationListProvider);
     final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
     final weightUnits = ref.watch(weightUnitListProvider);
@@ -223,9 +219,13 @@ class LoanInput extends HookConsumerWidget {
         );
         return;
       }
-      if (requestBorrowerConnection.value) {
-        if (phoneNumberController.text.trim().isEmpty ||
-            !borrowerPhone.value.isValid()) {
+      final shouldVerifyBorrower =
+          !borrowing &&
+          loan == null &&
+          AuthClient.hasServerConfiguration &&
+          phoneNumberController.text.trim().isNotEmpty;
+      if (shouldVerifyBorrower) {
+        if (!borrowerPhone.value.isValid()) {
           showErrorSnackBar(
             context,
             'Enter a valid borrower phone number'.tr(),
@@ -293,6 +293,7 @@ class LoanInput extends HookConsumerWidget {
               currency.value,
               borrowing,
             );
+        debugPrint('Loan saved locally with status: $status');
       } catch (error, stackTrace) {
         debugPrint('Unable to save loan: $error');
         debugPrintStack(stackTrace: stackTrace);
@@ -308,9 +309,6 @@ class LoanInput extends HookConsumerWidget {
       }
       if (status > 0) {
         if (verifiedContactId != null && loan == null) {
-          // OTP verification is the borrower's confirmation signal. Keep it
-          // separate from the server acknowledgement so the UI can show the
-          // correct state while an offline server write is still pending.
           await ref.read(loanListProvider.notifier).markClientConfirmed(status);
           final operationId = CanonicalMigration.newId();
           final database = await ref.read(dBProvider.future);
@@ -324,7 +322,6 @@ class LoanInput extends HookConsumerWidget {
               'borrowerPartyId',
               'dateCreated',
               'loanAmountExact',
-              'currency',
             ],
             where: 'id = ? AND ownerId = ?',
             whereArgs: [status, ownerId],
@@ -372,7 +369,7 @@ class LoanInput extends HookConsumerWidget {
             'loan_date': loanDate,
             'maturity_date': null,
             'lifecycle': 'active',
-            'calculation_contract': 'legacy-v1',
+            'calculation_contract': CalculationContract.current,
             'status': 'active',
             'interest_rate': currentInterestRate,
             'interest_type': interestType.value.index,
@@ -408,9 +405,7 @@ class LoanInput extends HookConsumerWidget {
                   : borrower.single['countryCode'] as String? ?? '',
               loanPayload: payload,
             );
-            if (!sent) {
-              throw StateError('Unable to save loan to server');
-            }
+            if (!sent) throw StateError('Unable to save loan to server');
             if (loanUid.isNotEmpty) {
               await ref
                   .read(loanListProvider.notifier)
@@ -812,22 +807,6 @@ class LoanInput extends HookConsumerWidget {
                 ),
                 onChanged: (value) => borrowerPhone.value = value,
               ),
-              if (!borrowing &&
-                  loan == null &&
-                  AuthClient.hasServerConfiguration)
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: requestBorrowerConnection.value,
-                  onChanged: (value) =>
-                      requestBorrowerConnection.value = value ?? false,
-                  title: Text(
-                    'Invite borrower to view this loan in LoanX'.tr(),
-                  ),
-                  subtitle: Text(
-                    'They must verify their phone number before this loan is shared.'
-                        .tr(),
-                  ),
-                ),
               StyledTextField(
                 failedValidationMessage:
                     (borrowing
@@ -851,6 +830,7 @@ class LoanInput extends HookConsumerWidget {
                 labelText: borrowing
                     ? 'Lender address'.tr()
                     : LocaleKeys.borrowerAddress.tr(),
+                maxLines: 3,
               ),
               StyledTextField(
                 failedValidationMessage: LocaleKeys.referenceNameCanTBeEmpty
@@ -1144,7 +1124,7 @@ class LoanInput extends HookConsumerWidget {
       return null;
     }
     if (!context.mounted) return null;
-    final result = await Navigator.of(context).push<String?>(
+    return Navigator.of(context).push<String?>(
       MaterialPageRoute(
         builder: (_) => OtpVerificationScreen(
           phoneNumber: phone,
@@ -1175,7 +1155,6 @@ class LoanInput extends HookConsumerWidget {
         ),
       ),
     );
-    return result;
   }
 
   Future<bool> _confirmSave(

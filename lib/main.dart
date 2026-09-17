@@ -343,12 +343,37 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   PhoneNumber? _pendingPhoneNumber;
 
   bool _backgroundBootstrapStarted = false;
+  bool _cloudSyncInFlight = false;
 
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addObserver(this);
+    ref.listenManual<AsyncValue<bool>>(networkCheckerProvider, (
+      previous,
+      next,
+    ) {
+      if (next.asData?.value == true && previous?.asData?.value != true) {
+        unawaited(_syncWhenOnline());
+      }
+    });
+  }
+
+  Future<void> _syncWhenOnline() async {
+    if (_cloudSyncInFlight || !AuthClient.hasServerConfiguration) return;
+    final client = activeAuthClient;
+    if (client == null) return;
+    _cloudSyncInFlight = true;
+    try {
+      // Refresh first: an expired access token must not strand mutations until
+      // the next full app launch. restoreSession also validates owner/workspace
+      // binding before it flushes any private records.
+      final restored = await client.restoreSession();
+      if (restored && mounted) ref.invalidate(loanListProvider);
+    } finally {
+      _cloudSyncInFlight = false;
+    }
   }
 
   @override
@@ -567,6 +592,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_syncWhenOnline());
     if (!widget.storageReady) {
       return;
     }

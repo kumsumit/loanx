@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:loanx/db/tostore_database.dart';
 import 'package:loanx/db/app_settings.dart';
+import 'package:loanx/domain/calculation_contract.dart';
 import 'package:loanx/model/loan.dart';
 import 'package:loanx/model/loan_change.dart';
 import 'package:loanx/provider/provider.dart';
@@ -80,6 +82,7 @@ void main() {
     expect(stored['lenderPartyId'], isNotEmpty);
     expect(stored['borrowerPartyId'], isNotEmpty);
     expect(stored['lenderPartyId'], isNot(stored['borrowerPartyId']));
+    expect(stored['calculationVersion'], CalculationContract.exactV1);
     expect(await database.query('parties'), hasLength(2));
   });
 
@@ -112,6 +115,62 @@ void main() {
       expect(queued[0]['operation'], 'create');
       expect(queued[1]['entityType'], 'loan');
       expect(queued[1]['operation'], 'create');
+      final payload =
+          jsonDecode(queued[1]['payloadJson'] as String)
+              as Map<String, dynamic>;
+      expect(payload['calculation_contract'], CalculationContract.exactV1);
+    },
+  );
+
+  test(
+    'editing a server-saved loan queues a revisioned cloud update',
+    () async {
+      final ownerId = 'owner-edit';
+      final now = DateTime.now().toUtc().toIso8601String();
+      await database.insert('localOwners', {
+        'id': ownerId,
+        'selfPartyId': 'self-edit',
+        'remoteWorkspaceId': 'workspace-edit',
+        'remotePartyId': 'remote-self-edit',
+        'createdAt': now,
+      });
+      await database.insert('parties', {
+        'id': 'self-edit',
+        'ownerId': ownerId,
+        'displayName': 'Owner',
+        'status': 'ACTIVE',
+        'createdAt': now,
+        'updatedAt': now,
+      });
+      final id = await createLoan();
+      final saved = (await database.query(
+        Loan.tableName,
+        where: 'id = ?',
+        whereArgs: [id],
+      )).single;
+      await database.update(
+        Loan.tableName,
+        {'syncState': Loan.serverSaved, 'serverRevision': 1},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      await database.update(
+        'pendingSyncMutations',
+        {'status': 'SENT'},
+        where: 'entityId = ?',
+        whereArgs: [saved['uid']],
+      );
+      final loan = container.read(loanListProvider).requireValue.single;
+      loan.additionalDetails = 'Updated locally';
+      await container.read(loanListProvider.notifier).updateLoan(loan);
+      final updates = await database.query(
+        'pendingSyncMutations',
+        where: 'entityId = ? AND operation = ?',
+        whereArgs: [saved['uid'], 'update'],
+      );
+      expect(updates, hasLength(1));
+      expect(updates.single['expectedRevision'], 1);
+      expect(updates.single['status'], 'PENDING');
     },
   );
 

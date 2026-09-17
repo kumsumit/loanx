@@ -66,7 +66,6 @@ void main() {
         'Find lenders',
         'Search within',
         'Pincode',
-        'Invite borrower to view this loan in LoanX',
       ]) {
         expect(translations![key], isA<String>(), reason: 'Missing $key');
       }

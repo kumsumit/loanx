@@ -433,8 +433,6 @@
   "continueAction": "Continue",
   "validMobileNumberHelper": "Use a valid mobile number to continue.",
   "verifyYourNumber": "Verify your number",
-  "Invite borrower to view this loan in LoanX": "Invite borrower to view this loan in LoanX",
-  "They must verify their phone number before this loan is shared.": "They must verify their phone number before this loan is shared.",
   "Enter a valid borrower phone number": "Enter a valid borrower phone number",
   "otpSentTo": "We sent a 6-digit verification code to {phone}",
   "sixDigitVerificationCode": "6-digit verification code",

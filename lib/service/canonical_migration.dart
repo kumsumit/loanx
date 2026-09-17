@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../db/tostore_database.dart';
+import '../domain/calculation_contract.dart';
 
 /// Canonical identity helpers retained by repositories after the clean ToStore
 /// cutover. There is intentionally no SQLite schema migration path.
@@ -74,7 +75,7 @@ abstract final class CanonicalMigration {
       'borrowerPartyId': borrowing ? owner['selfPartyId'] : other,
       'relationshipId': null,
       'currency': currency,
-      'calculationVersion': 'legacy-v1',
+      'calculationVersion': CalculationContract.current,
     };
   }
 

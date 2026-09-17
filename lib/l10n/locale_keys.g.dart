@@ -432,8 +432,6 @@ abstract final class LocaleKeys {
   static const continueAction = "continueAction";
   static const validMobileNumberHelper = "validMobileNumberHelper";
   static const verifyYourNumber = "verifyYourNumber";
-  static const inviteBorrowerToViewThisLoanInLoanx = "Invite borrower to view this loan in LoanX";
-  static const theyMustVerifyTheirPhoneNumberBeforeThisLoanIsShared = "They must verify their phone number before this loan is shared.";
   static const enterAValidBorrowerPhoneNumber = "Enter a valid borrower phone number";
   static const otpSentTo = "otpSentTo";
   static const sixDigitVerificationCode = "sixDigitVerificationCode";

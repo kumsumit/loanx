@@ -7,6 +7,7 @@ import 'package:tostore/tostore.dart';
 
 import '../db/tostore_database.dart';
 import '../db/settings_store.dart';
+import '../domain/calculation_contract.dart';
 import '../model/family_relation.dart';
 import '../model/mortgage_material.dart';
 import '../model/weight_unit.dart';
@@ -15,7 +16,7 @@ import 'canonical_migration.dart';
 final class DatabaseHelper {
   DatabaseHelper._();
   static final instance = DatabaseHelper._();
-  static const schemaVersion = 18;
+  static const schemaVersion = 19;
   static const _encodingKeyName = 'loanx.tostore.encoding_key';
   static const _masterKeyName = 'loanx.tostore.master_key';
   LoanxDatabasePort? _database;
@@ -183,8 +184,15 @@ final class DatabaseHelper {
       _text('borrowerPartyId', indexed: true),
       _text('relationshipId', indexed: true),
       _text('currency', nullable: false, defaultValue: 'INR'),
-      _text('calculationVersion', nullable: false, defaultValue: 'legacy-v1'),
+      _text(
+        'calculationVersion',
+        nullable: false,
+        defaultValue: CalculationContract.current,
+      ),
       _text('syncState', nullable: false, defaultValue: 'LOCAL_ONLY'),
+      // Optimistic-concurrency revision returned by the server.  It is kept
+      // with the local record so edits can be safely queued after creation.
+      _int('serverRevision', nullable: false, defaultValue: 0),
       _text('clientConfirmedAt'),
     ]),
     _table('loanChanges', [

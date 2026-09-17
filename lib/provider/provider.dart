@@ -22,6 +22,7 @@ import 'package:loanx/service/database_helper.dart';
 import 'package:loanx/service/canonical_migration.dart';
 import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/domain/money.dart';
+import 'package:loanx/domain/calculation_contract.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 part 'provider.g.dart';
@@ -1079,7 +1080,8 @@ class LoanList extends _$LoanList {
           ),
           'maturity_date': null,
           'lifecycle': 'active',
-          'calculation_contract': 'legacy-v1',
+          'calculation_contract':
+              identity['calculationVersion'] ?? CalculationContract.current,
           'status': 'active',
           'interest_rate': loan.interestRate,
           'interest_type': loan.interestType,
@@ -1155,6 +1157,16 @@ class LoanList extends _$LoanList {
         // The UI may have mutated its Loan instance. Read the committed record
         // inside the write transaction so the audit retains the actual before state.
         final previous = await _readLoan(transaction, loan.id);
+        final previousRows = await transaction.query(
+          Loan.tableName,
+          where: '${LoanFields.id} = ? AND ownerId = ?',
+          whereArgs: [loan.id, await _requiredOwnerId(transaction)],
+          limit: 1,
+        );
+        if (previousRows.length != 1) {
+          throw StateError('Loan no longer exists.');
+        }
+        final previousRow = previousRows.single;
         // Sync acknowledgements can arrive while an older Loan object is still
         // on screen. Never let that stale object downgrade the durable marker.
         loan = loan.copy(
@@ -1175,6 +1187,7 @@ class LoanList extends _$LoanList {
           loan.id!,
           _describeChanges(previous, loan),
         );
+        await _queueLoanUpdateIfConnected(transaction, previousRow, loan);
       });
     } catch (_) {
       // A caller can mutate an object in provider state before submitting it.
@@ -1185,6 +1198,87 @@ class LoanList extends _$LoanList {
     ref.invalidate(loanChangesProvider(loan.id!));
     state = AsyncData(await readAllLoans());
     await updateDBTime();
+    try {
+      await AuthClient().flushPendingSyncMutations(database: db);
+    } catch (_) {
+      // The queued update remains durable and is retried on reconnection.
+    }
+  }
+
+  Future<void> _queueLoanUpdateIfConnected(
+    DatabaseExecutor tx,
+    Map<String, Object?> previous,
+    Loan loan,
+  ) async {
+    if (previous['syncState'] != Loan.serverSaved) return;
+    final owners = await tx.query('localOwners');
+    if (owners.length != 1) return;
+    final owner = owners.single;
+    final remoteLender = owner['remotePartyId'] as String?;
+    final uid = previous['uid'] as String?;
+    if (remoteLender == null ||
+        remoteLender.isEmpty ||
+        uid == null ||
+        uid.isEmpty) {
+      return;
+    }
+    final ownerId = owner['id'] as String;
+    final borrowerId = previous['borrowerPartyId'] as String?;
+    if (borrowerId == null || borrowerId.isEmpty) return;
+    final currency = loan.currency;
+    final scale = CurrencyPresentation.fractionDigits(currency);
+    final exact =
+        previous['loanAmountExact'] as String? ?? loan.loanAmount.toString();
+    final principal = Money.parse(exact, currency: currency, scale: scale);
+    final payload = <String, Object?>{
+      'relationship_id': previous['relationshipId'],
+      'lender_party_id': remoteLender,
+      'borrower_party_id': borrowerId,
+      'principal_minor': int.parse(principal.minorUnits.toString()),
+      'currency': currency,
+      'currency_scale': scale,
+      'loan_date': loan.dateCreated.toUtc().toIso8601String().substring(0, 10),
+      'maturity_date': null,
+      'lifecycle': loan.isFinished() ? 'closed' : 'active',
+      'calculation_contract':
+          previous['calculationVersion'] ?? CalculationContract.current,
+      'status': loan.isFinished() ? 'closed' : 'active',
+    };
+    final existing = await tx.query(
+      'pendingSyncMutations',
+      where:
+          'ownerId = ? AND entityType = ? AND entityId = ? AND operation = ? AND status = ?',
+      whereArgs: [ownerId, 'loan', uid, 'update', 'PENDING'],
+      limit: 1,
+    );
+    final now = DateTime.now().toUtc().toIso8601String();
+    if (existing.isNotEmpty) {
+      await tx.update(
+        'pendingSyncMutations',
+        {
+          'payloadJson': jsonEncode(payload),
+          'updatedAt': now,
+          'lastError': null,
+        },
+        where: 'operationId = ? AND ownerId = ?',
+        whereArgs: [existing.single['operationId'], ownerId],
+      );
+      return;
+    }
+    await tx.insert('pendingSyncMutations', {
+      'id': CanonicalMigration.newId(),
+      'ownerId': ownerId,
+      'operationId': CanonicalMigration.newId(),
+      'entityType': 'loan',
+      'entityId': uid,
+      'operation': 'update',
+      'expectedRevision': (previous['serverRevision'] as num?)?.toInt() ?? 1,
+      'payloadJson': jsonEncode(payload),
+      'status': 'PENDING',
+      'attemptCount': 0,
+      'createdAt': now,
+      'updatedAt': now,
+    });
   }
 
   /// Records that the borrower contact was verified with the OTP sent to the
@@ -1243,7 +1337,14 @@ class LoanList extends _$LoanList {
     _requireLenderWrite();
     db = await ref.read(dBProvider.future);
     final rid = await db.transaction((tx) async {
-      await _readLoan(tx, id);
+      final loan = await _readLoan(tx, id);
+      final row = (await tx.query(
+        Loan.tableName,
+        where: '${LoanFields.id} = ? AND ownerId = ?',
+        whereArgs: [id, await _requiredOwnerId(tx)],
+        limit: 1,
+      )).single;
+      await _queueLoanDeleteIfConnected(tx, row, loan);
       await tx.delete(
         LoanChange.tableName,
         where: '${LoanChangeFields.loanId} = ?',
@@ -1258,7 +1359,50 @@ class LoanList extends _$LoanList {
     if (rid > 0) {
       await updateDBTime();
       state = AsyncData(state.value!.where((loan) => loan.id != id).toList());
+      try {
+        await AuthClient().flushPendingSyncMutations(database: db);
+      } catch (_) {}
     }
+  }
+
+  Future<void> _queueLoanDeleteIfConnected(
+    DatabaseExecutor tx,
+    Map<String, Object?> row,
+    Loan loan,
+  ) async {
+    final owners = await tx.query('localOwners');
+    if (owners.length != 1) return;
+    final ownerId = owners.single['id'] as String;
+    final uid = row['uid'] as String?;
+    if (owners.single['remotePartyId'] is! String ||
+        uid == null ||
+        uid.isEmpty) {
+      return;
+    }
+    // A record created and then deleted while offline must not reappear on the
+    // server later. Discard its unsent create/update operations instead of
+    // adding a delete that could race after them.
+    await tx.delete(
+      'pendingSyncMutations',
+      where: 'ownerId = ? AND entityType = ? AND entityId = ? AND status = ?',
+      whereArgs: [ownerId, 'loan', uid, 'PENDING'],
+    );
+    if (loan.syncState != Loan.serverSaved) return;
+    final now = DateTime.now().toUtc().toIso8601String();
+    await tx.insert('pendingSyncMutations', {
+      'id': CanonicalMigration.newId(),
+      'ownerId': ownerId,
+      'operationId': CanonicalMigration.newId(),
+      'entityType': 'loan',
+      'entityId': uid,
+      'operation': 'delete',
+      'expectedRevision': (row['serverRevision'] as num?)?.toInt() ?? 1,
+      'payloadJson': '{}',
+      'status': 'PENDING',
+      'attemptCount': 0,
+      'createdAt': now,
+      'updatedAt': now,
+    });
   }
 
   Future<void> bulkDelete(List<int> ids) async {
@@ -1271,7 +1415,14 @@ class LoanList extends _$LoanList {
     await db.transaction((tx) async {
       final owner = await _requiredOwnerId(tx);
       for (final id in ids) {
-        await _readLoan(tx, id);
+        final loan = await _readLoan(tx, id);
+        final row = (await tx.query(
+          Loan.tableName,
+          where: '${LoanFields.id} = ? AND ownerId = ?',
+          whereArgs: [id, owner],
+          limit: 1,
+        )).single;
+        await _queueLoanDeleteIfConnected(tx, row, loan);
         await tx.delete(
           LoanChange.tableName,
           where: '${LoanChangeFields.loanId} = ?',
@@ -1289,6 +1440,9 @@ class LoanList extends _$LoanList {
     state = AsyncData(
       state.value!.where((loan) => !ids.contains(loan.id)).toList(),
     );
+    try {
+      await AuthClient().flushPendingSyncMutations(database: db);
+    } catch (_) {}
   }
 
   Future<void> _recordChange(
