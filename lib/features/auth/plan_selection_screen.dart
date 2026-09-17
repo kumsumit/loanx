@@ -15,7 +15,10 @@ class PlanSelectionScreen extends StatefulWidget {
 }
 
 class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
-  String _selectedPlan = 'pro';
+  // Local loan management is the safe default for lender-only onboarding.
+  // Pro remains an explicit opt-in because this screen records a preference,
+  // not a paid entitlement.
+  String _selectedPlan = 'free';
   late final bool _requiresPro;
   late final CountryConfig _country;
   late final Future<PlanPrice> _proPrice;
@@ -24,6 +27,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   void initState() {
     super.initState();
     _requiresPro = AppSettings.getUsesBothExperience();
+    if (_requiresPro) _selectedPlan = 'pro';
     _country = CountryCatalog.byCode(AppSettings.getVerifiedPhoneCountryCode());
     _proPrice = PlanPricingService().proPriceFor(_country);
   }
@@ -66,12 +70,27 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  if (!_requiresPro)
+                    _PlanOption(
+                      key: const Key('free-plan-option'),
+                      selected: _selectedPlan == 'free',
+                      title: 'Free lender workspace',
+                      price: '${_country.symbol}0 (${_country.currency})',
+                      subtitle: 'Local loan management',
+                      features: const [
+                        'Loans, repayments, receipts and reports',
+                        'External people and Google Drive backup',
+                      ],
+                      onTap: () => setState(() => _selectedPlan = 'free'),
+                    ),
+                  if (!_requiresPro) const SizedBox(height: 14),
                   FutureBuilder<PlanPrice>(
                     future: _proPrice,
                     builder: (context, snapshot) {
                       final price = snapshot.data;
                       final priceUnavailable = snapshot.hasError;
                       return _PlanOption(
+                        key: const Key('pro-plan-option'),
                         selected: _selectedPlan == 'pro',
                         title: 'LoanX Pro',
                         price: price == null
@@ -98,19 +117,6 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 14),
-                  if (!_requiresPro)
-                    _PlanOption(
-                      selected: _selectedPlan == 'free',
-                      title: 'Free',
-                      price: '${_country.symbol}0 (${_country.currency})',
-                      subtitle: 'Local loan management',
-                      features: const [
-                        'Loans, repayments, receipts and reports',
-                        'External people and Google Drive backup',
-                      ],
-                      onTap: () => setState(() => _selectedPlan = 'free'),
-                    ),
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: _continue,
@@ -139,6 +145,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
 
 class _PlanOption extends StatelessWidget {
   const _PlanOption({
+    super.key,
     required this.selected,
     required this.title,
     required this.price,
