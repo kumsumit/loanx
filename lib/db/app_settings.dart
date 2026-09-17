@@ -132,6 +132,21 @@ class AppSettings {
   static String getDisplayName() => _get('displayName', '');
   static String getEmail() => _get('email', '');
   static String getPhotourl() => _get('photourl', '');
+  // This profile is private, device-local workspace information. It is kept
+  // separate from a connected Google/account identity and from the explicitly
+  // public lender-directory profile.
+  static String getProfileFullName() => _get('profileFullName', '');
+  static String getProfileEmail() => _get('profileEmail', '');
+  static String getProfileAlternatePhone() => _get('profileAlternatePhone', '');
+  static String getProfileBusinessName() => _get('profileBusinessName', '');
+  static String getProfileOccupation() => _get('profileOccupation', '');
+  static String getProfileAddress() => _get('profileAddress', '');
+  static String getProfileLocality() => _get('profileLocality', '');
+  static String getProfileCity() => _get('profileCity', '');
+  static String getProfileState() => _get('profileState', '');
+  static String getProfilePostalCode() => _get('profilePostalCode', '');
+  static String getProfileCountry() => _get('profileCountry', '');
+  static String getProfileAbout() => _get('profileAbout', '');
   static String getBackupTaskId() => _get('backupTaskId', '');
   static bool getSecure() => _get('secure', false);
   static List<int> getPhoto() => List<int>.from(_get('photo', const <int>[]));
@@ -178,6 +193,20 @@ class AppSettings {
   static void putDisplayName(String v) => _put('displayName', v);
   static void putEmail(String v) => _put('email', v);
   static void putPhotourl(String v) => _put('photourl', v);
+  static void putProfileFullName(String v) => _put('profileFullName', v);
+  static void putProfileEmail(String v) => _put('profileEmail', v);
+  static void putProfileAlternatePhone(String v) =>
+      _put('profileAlternatePhone', v);
+  static void putProfileBusinessName(String v) =>
+      _put('profileBusinessName', v);
+  static void putProfileOccupation(String v) => _put('profileOccupation', v);
+  static void putProfileAddress(String v) => _put('profileAddress', v);
+  static void putProfileLocality(String v) => _put('profileLocality', v);
+  static void putProfileCity(String v) => _put('profileCity', v);
+  static void putProfileState(String v) => _put('profileState', v);
+  static void putProfilePostalCode(String v) => _put('profilePostalCode', v);
+  static void putProfileCountry(String v) => _put('profileCountry', v);
+  static void putProfileAbout(String v) => _put('profileAbout', v);
   static void putBackupTaskId(String v) => _put('backupTaskId', v);
   static Future<void> putSecure(bool v) async => _put('secure', v);
   static Future<void> putPhoto(List<int> v) async => _put('photo', v);

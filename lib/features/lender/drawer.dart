@@ -25,6 +25,7 @@ import 'package:loanx/widget/loading_overlay.dart';
 import 'package:loanx/widget/language_picker.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_text.dart';
+import 'package:loanx/features/profile/profile_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
@@ -255,6 +256,24 @@ class MyDrawer extends HookConsumerWidget {
                       ),
                     ),
                   ),
+                ListTile(
+                  leading: StyledIcon(Icons.person_outline_rounded),
+                  title: StyledText('My profile'.tr()),
+                  subtitle: layout.isDense
+                      ? null
+                      : StyledSubtitle(
+                          'Optional private details for this device'.tr(),
+                        ),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ProfileScreen(
+                        experience: usesBorrowerExperience
+                            ? ProfileExperience.borrower
+                            : ProfileExperience.lender,
+                      ),
+                    ),
+                  ),
+                ),
                 ExpansionTile(
                   leading: StyledIcon(Icons.info_outline),
                   title: StyledText(LocaleKeys.aboutLoanx.tr()),

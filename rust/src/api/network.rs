@@ -335,6 +335,7 @@ pub async fn create_verified_loan(
 pub struct SharedLoanSummary {
     pub loan_id: String,
     pub lender_party_id: String,
+    pub lender_display_name: String,
     pub borrower_party_id: String,
     pub principal_minor: i64,
     pub currency: String,
@@ -561,6 +562,7 @@ pub async fn list_shared_loans(
                 .map(|loan| SharedLoanSummary {
                     loan_id: loan.loan_id,
                     lender_party_id: loan.lender_party_id,
+                    lender_display_name: loan.lender_display_name,
                     borrower_party_id: loan.borrower_party_id,
                     principal_minor: loan.principal_minor,
                     currency: loan.currency,

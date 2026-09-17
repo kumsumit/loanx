@@ -899,6 +899,7 @@ class SharedLoanListResult {
 class SharedLoanSummary {
   final String loanId;
   final String lenderPartyId;
+  final String lenderDisplayName;
   final String borrowerPartyId;
   final PlatformInt64 principalMinor;
   final String currency;
@@ -911,6 +912,7 @@ class SharedLoanSummary {
   const SharedLoanSummary({
     required this.loanId,
     required this.lenderPartyId,
+    required this.lenderDisplayName,
     required this.borrowerPartyId,
     required this.principalMinor,
     required this.currency,
@@ -925,6 +927,7 @@ class SharedLoanSummary {
   int get hashCode =>
       loanId.hashCode ^
       lenderPartyId.hashCode ^
+      lenderDisplayName.hashCode ^
       borrowerPartyId.hashCode ^
       principalMinor.hashCode ^
       currency.hashCode ^
@@ -941,6 +944,7 @@ class SharedLoanSummary {
           runtimeType == other.runtimeType &&
           loanId == other.loanId &&
           lenderPartyId == other.lenderPartyId &&
+          lenderDisplayName == other.lenderDisplayName &&
           borrowerPartyId == other.borrowerPartyId &&
           principalMinor == other.principalMinor &&
           currency == other.currency &&

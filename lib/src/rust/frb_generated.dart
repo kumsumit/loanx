@@ -1939,19 +1939,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   SharedLoanSummary dco_decode_shared_loan_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 10)
-      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
     return SharedLoanSummary(
       loanId: dco_decode_String(arr[0]),
       lenderPartyId: dco_decode_String(arr[1]),
-      borrowerPartyId: dco_decode_String(arr[2]),
-      principalMinor: dco_decode_i_64(arr[3]),
-      currency: dco_decode_String(arr[4]),
-      currencyScale: dco_decode_u_32(arr[5]),
-      lifecycle: dco_decode_String(arr[6]),
-      loanDate: dco_decode_String(arr[7]),
-      maturityDate: dco_decode_String(arr[8]),
-      repayments: dco_decode_list_shared_repayment(arr[9]),
+      lenderDisplayName: dco_decode_String(arr[2]),
+      borrowerPartyId: dco_decode_String(arr[3]),
+      principalMinor: dco_decode_i_64(arr[4]),
+      currency: dco_decode_String(arr[5]),
+      currencyScale: dco_decode_u_32(arr[6]),
+      lifecycle: dco_decode_String(arr[7]),
+      loanDate: dco_decode_String(arr[8]),
+      maturityDate: dco_decode_String(arr[9]),
+      repayments: dco_decode_list_shared_repayment(arr[10]),
     );
   }
 
@@ -2397,6 +2398,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_loanId = sse_decode_String(deserializer);
     var var_lenderPartyId = sse_decode_String(deserializer);
+    var var_lenderDisplayName = sse_decode_String(deserializer);
     var var_borrowerPartyId = sse_decode_String(deserializer);
     var var_principalMinor = sse_decode_i_64(deserializer);
     var var_currency = sse_decode_String(deserializer);
@@ -2408,6 +2410,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return SharedLoanSummary(
       loanId: var_loanId,
       lenderPartyId: var_lenderPartyId,
+      lenderDisplayName: var_lenderDisplayName,
       borrowerPartyId: var_borrowerPartyId,
       principalMinor: var_principalMinor,
       currency: var_currency,
@@ -2800,6 +2803,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.loanId, serializer);
     sse_encode_String(self.lenderPartyId, serializer);
+    sse_encode_String(self.lenderDisplayName, serializer);
     sse_encode_String(self.borrowerPartyId, serializer);
     sse_encode_i_64(self.principalMinor, serializer);
     sse_encode_String(self.currency, serializer);

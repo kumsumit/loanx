@@ -14,6 +14,7 @@ import 'package:loanx/features/lender/home.dart';
 import 'package:loanx/features/lender/manage.dart';
 import 'package:loanx/features/lender/add_loan.dart';
 import 'package:loanx/features/lender/public_profile_screen.dart';
+import 'package:loanx/features/profile/profile_screen.dart';
 import 'package:loanx/features/auth/connect_account_screen.dart';
 import 'package:loanx/features/borrower/home.dart';
 import 'package:loanx/service/printing_service.dart';
@@ -84,6 +85,19 @@ class DashBoard extends HookWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          IconButton(
+            tooltip: 'My profile'.tr(),
+            icon: const Icon(Icons.person_outline_rounded),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ProfileScreen(
+                  experience: usesBorrowerExperience
+                      ? ProfileExperience.borrower
+                      : ProfileExperience.lender,
+                ),
+              ),
+            ),
+          ),
           if (AuthClient.hasServerConfiguration &&
               AppSettings.getPhoneAuthVerified())
             Consumer(

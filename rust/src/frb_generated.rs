@@ -1565,6 +1565,7 @@ impl SseDecode for crate::api::network::SharedLoanSummary {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_loanId = <String>::sse_decode(deserializer);
         let mut var_lenderPartyId = <String>::sse_decode(deserializer);
+        let mut var_lenderDisplayName = <String>::sse_decode(deserializer);
         let mut var_borrowerPartyId = <String>::sse_decode(deserializer);
         let mut var_principalMinor = <i64>::sse_decode(deserializer);
         let mut var_currency = <String>::sse_decode(deserializer);
@@ -1577,6 +1578,7 @@ impl SseDecode for crate::api::network::SharedLoanSummary {
         return crate::api::network::SharedLoanSummary {
             loan_id: var_loanId,
             lender_party_id: var_lenderPartyId,
+            lender_display_name: var_lenderDisplayName,
             borrower_party_id: var_borrowerPartyId,
             principal_minor: var_principalMinor,
             currency: var_currency,
@@ -2064,6 +2066,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::network::SharedLoanSummary {
         [
             self.loan_id.into_into_dart().into_dart(),
             self.lender_party_id.into_into_dart().into_dart(),
+            self.lender_display_name.into_into_dart().into_dart(),
             self.borrower_party_id.into_into_dart().into_dart(),
             self.principal_minor.into_into_dart().into_dart(),
             self.currency.into_into_dart().into_dart(),
@@ -2418,6 +2421,7 @@ impl SseEncode for crate::api::network::SharedLoanSummary {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.loan_id, serializer);
         <String>::sse_encode(self.lender_party_id, serializer);
+        <String>::sse_encode(self.lender_display_name, serializer);
         <String>::sse_encode(self.borrower_party_id, serializer);
         <i64>::sse_encode(self.principal_minor, serializer);
         <String>::sse_encode(self.currency, serializer);

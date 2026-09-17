@@ -77,7 +77,9 @@ final borrowerDashboardProvider = FutureProvider<BorrowerDashboardData>((
         ),
         loanUid: item.loanId,
         lenderPartyId: item.lenderPartyId,
-        lenderName: 'LoanX lender',
+        lenderName: item.lenderDisplayName.trim().isNotEmpty
+            ? item.lenderDisplayName.trim()
+            : 'LoanX lender'.tr(),
         repayments: item.repayments,
       );
     }).toList();
