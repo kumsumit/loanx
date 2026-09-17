@@ -45,7 +45,7 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
     final ownerId = owners.single['id'] as String;
     final rows = await widget.database.query(
       Loan.tableName,
-      columns: ['uid', 'currency'],
+      columns: ['uid', 'currency', 'lenderPartyId'],
       where: 'id = ? AND ownerId = ?',
       whereArgs: [widget.loan.id, ownerId],
       limit: 1,
@@ -64,6 +64,7 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
       loanUid: uid,
       currency: rows.single['currency'] as String? ?? widget.loan.currency,
       events: await repository.listForLoan(uid),
+      canManage: rows.single['lenderPartyId'] == owners.single['selfPartyId'],
     );
   }
 
@@ -77,7 +78,8 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
     appBar: AppBar(title: Text('Repayment history'.tr())),
     floatingActionButton: FutureBuilder<_LedgerContext>(
       future: _context,
-      builder: (context, snapshot) => snapshot.hasData
+      builder: (context, snapshot) =>
+          snapshot.hasData && snapshot.requireData.canManage
           ? FloatingActionButton.extended(
               heroTag: 'repayment-history-record',
               onPressed: _isMutating
@@ -131,7 +133,9 @@ class _RepaymentHistoryScreenState extends State<RepaymentHistoryScreen> {
                 (event) => _EventTile(
                   event: event,
                   currency: ledger.currency,
-                  onReverse: event.type == FinancialEventType.repayment
+                  onReverse:
+                      ledger.canManage &&
+                          event.type == FinancialEventType.repayment
                       ? () => _reverse(ledger, event)
                       : null,
                 ),
@@ -294,11 +298,13 @@ class _LedgerContext {
     required this.loanUid,
     required this.currency,
     required this.events,
+    required this.canManage,
   });
   final RepaymentRepository repository;
   final String loanUid;
   final String currency;
   final List<FinancialEvent> events;
+  final bool canManage;
 }
 
 class _PaymentDraft {

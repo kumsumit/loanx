@@ -53,6 +53,13 @@ final class RepaymentRepository {
     if (original.type != FinancialEventType.repayment) {
       throw StateError('Only repayments can be reversed');
     }
+    if (effectiveDate.isBefore(original.effectiveDate)) {
+      throw ArgumentError.value(
+        effectiveDate,
+        'effectiveDate',
+        'A reversal cannot predate the original repayment.',
+      );
+    }
     return _append(
       loanUid: await _loanUid(eventId),
       amount: original.amount,

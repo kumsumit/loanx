@@ -55,6 +55,24 @@ void main() {
     }
   });
 
+  test(
+    'onboarding and lender discovery copy is present in the generated app catalog',
+    () async {
+      final translations = await loader.load('', const Locale('en'));
+      expect(translations, isNotNull);
+      for (final key in [
+        'verifyYourNumber',
+        'lenderAccount',
+        'Find lenders',
+        'Search within',
+        'Pincode',
+        'Invite borrower to view this loan in LoanX',
+      ]) {
+        expect(translations![key], isA<String>(), reason: 'Missing $key');
+      }
+    },
+  );
+
   test('borrower sign-in copy is translated in every locale', () async {
     for (final code in CodegenLoader.mapLocales.keys) {
       final translations = await loader.load('', Locale(code));

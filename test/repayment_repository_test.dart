@@ -137,6 +137,25 @@ void main() {
     },
   );
 
+  test('a reversal cannot predate its original repayment', () async {
+    final original = await repository.recordRepayment(
+      loanUid: 'loan-1',
+      amount: Money.parse('10.00', currency: 'INR'),
+      paymentDate: date,
+      paymentMethod: PaymentMethod.cash,
+    );
+
+    await expectLater(
+      repository.reverseRepayment(
+        eventId: original.id,
+        effectiveDate: date.subtract(const Duration(days: 1)),
+        reason: 'Incorrect payment date',
+      ),
+      throwsArgumentError,
+    );
+    expect(await db.query('financialEvents'), hasLength(1));
+  });
+
   test('repayment currency must match its loan', () async {
     await expectLater(
       repository.recordRepayment(

@@ -127,14 +127,6 @@ class _StartupLanguageScreenState extends State<StartupLanguageScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (layout.showHero) ...[
-                      _LanguageHero(
-                        colors: colors,
-                        basicEffects: basicEffects,
-                        compact: layout.isDense,
-                      ),
-                      SizedBox(height: layout.sectionGap),
-                    ],
                     Text(
                       LocaleKeys.chooseAppLanguage.tr(),
                       style: layout.isDense
@@ -248,47 +240,6 @@ class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
       ),
     );
   }
-}
-
-class _LanguageHero extends StatelessWidget {
-  const _LanguageHero({
-    required this.colors,
-    required this.basicEffects,
-    required this.compact,
-  });
-  final ColorScheme colors;
-  final bool basicEffects;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) => Align(
-    alignment: AlignmentDirectional.centerStart,
-    child: Container(
-      width: compact ? 72 : 96,
-      height: compact ? 64 : 82,
-      decoration: BoxDecoration(
-        color: basicEffects ? colors.primary : null,
-        gradient: basicEffects
-            ? null
-            : LinearGradient(colors: [colors.primary, colors.tertiary]),
-        borderRadius: BorderRadius.circular(compact ? 20 : 26),
-        boxShadow: basicEffects
-            ? null
-            : [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: .24),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-      ),
-      child: Icon(
-        Icons.translate_rounded,
-        size: compact ? 34 : 42,
-        color: colors.onPrimary,
-      ),
-    ),
-  );
 }
 
 class _LanguageSearch extends StatelessWidget {

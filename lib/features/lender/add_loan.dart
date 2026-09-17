@@ -80,6 +80,11 @@ class LoanInput extends HookConsumerWidget {
         : LocaleKeys.editLoanRecord.tr();
     final isDialogOpen = useState<bool>(false);
     final isSaving = useState<bool>(false);
+    // A phone number is private contact information, not evidence that its
+    // owner has a LoanX account or wants this loan shared. Keep external loans
+    // local unless the lender explicitly asks to start the verified connection
+    // flow for this new record.
+    final requestBorrowerConnection = useState<bool>(false);
     final familyRelations = ref.watch(familyRelationListProvider);
     final mortgageMaterials = ref.watch(mortgageMaterialListProvider);
     final weightUnits = ref.watch(weightUnitListProvider);
@@ -218,7 +223,15 @@ class LoanInput extends HookConsumerWidget {
         );
         return;
       }
-      if (!borrowing && phoneNumberController.text.trim().isNotEmpty) {
+      if (requestBorrowerConnection.value) {
+        if (phoneNumberController.text.trim().isEmpty ||
+            !borrowerPhone.value.isValid()) {
+          showErrorSnackBar(
+            context,
+            'Enter a valid borrower phone number'.tr(),
+          );
+          return;
+        }
         final verified = await _verifyBorrowerPhone(
           context,
           borrowerPhone.value,
@@ -799,6 +812,22 @@ class LoanInput extends HookConsumerWidget {
                 ),
                 onChanged: (value) => borrowerPhone.value = value,
               ),
+              if (!borrowing &&
+                  loan == null &&
+                  AuthClient.hasServerConfiguration)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: requestBorrowerConnection.value,
+                  onChanged: (value) =>
+                      requestBorrowerConnection.value = value ?? false,
+                  title: Text(
+                    'Invite borrower to view this loan in LoanX'.tr(),
+                  ),
+                  subtitle: Text(
+                    'They must verify their phone number before this loan is shared.'
+                        .tr(),
+                  ),
+                ),
               StyledTextField(
                 failedValidationMessage:
                     (borrowing
@@ -1119,8 +1148,6 @@ class LoanInput extends HookConsumerWidget {
       MaterialPageRoute(
         builder: (_) => OtpVerificationScreen(
           phoneNumber: phone,
-          // Temporary development OTP until the SMS provider is wired up.
-          initialCode: '123456',
           onVerify: (code) async {
             try {
               final verificationId = await auth.verifyOtpForContact(
