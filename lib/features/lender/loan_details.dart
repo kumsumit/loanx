@@ -577,6 +577,11 @@ class _DetailsContent extends ConsumerWidget {
           child: Column(
             children: [
               _DetailRow(
+                icon: Icons.person_outline_rounded,
+                label: 'Borrower name',
+                value: loan.depositorName,
+              ),
+              _DetailRow(
                 icon: Icons.phone_outlined,
                 label: 'Phone',
                 value: loan.phoneNumber,
@@ -618,8 +623,8 @@ class _DetailsContent extends ConsumerWidget {
                 ),
               _DetailRow(
                 icon: Icons.people_outline_rounded,
-                label: relation,
-                value: loan.relativeName,
+                label: 'Reference name',
+                value: _referenceContactValue(loan.relativeName, relation),
               ),
               _DetailRow(
                 icon: Icons.location_on_outlined,
@@ -722,6 +727,15 @@ class _DetailsContent extends ConsumerWidget {
         const SizedBox(height: 32),
       ],
     );
+  }
+
+  /// The contact person's name is the primary information.  The selected
+  /// relationship adds useful context but must not replace or obscure it.
+  String _referenceContactValue(String name, String relation) {
+    final contactName = name.trim();
+    if (contactName.isEmpty) return LocaleKeys.notRecorded.tr();
+    if (relation == LocaleKeys.notRecorded.tr()) return contactName;
+    return '$contactName ($relation)';
   }
 
   Future<void> _showUpiPaymentQr(
