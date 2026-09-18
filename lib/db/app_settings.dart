@@ -147,6 +147,8 @@ class AppSettings {
   static String getProfilePostalCode() => _get('profilePostalCode', '');
   static String getProfileCountry() => _get('profileCountry', '');
   static String getProfileAbout() => _get('profileAbout', '');
+  static bool getBorrowerProfileLookupEnabled() =>
+      _get('borrowerProfileLookupEnabled', false);
   static String getBackupTaskId() => _get('backupTaskId', '');
   static bool getSecure() => _get('secure', false);
   static List<int> getPhoto() => List<int>.from(_get('photo', const <int>[]));
@@ -207,6 +209,8 @@ class AppSettings {
   static void putProfilePostalCode(String v) => _put('profilePostalCode', v);
   static void putProfileCountry(String v) => _put('profileCountry', v);
   static void putProfileAbout(String v) => _put('profileAbout', v);
+  static void putBorrowerProfileLookupEnabled(bool v) =>
+      _put('borrowerProfileLookupEnabled', v);
   static void putBackupTaskId(String v) => _put('backupTaskId', v);
   static Future<void> putSecure(bool v) async => _put('secure', v);
   static Future<void> putPhoto(List<int> v) async => _put('photo', v);

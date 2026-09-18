@@ -110,6 +110,46 @@ void main() {
     }
   });
 
+  test('profile copy is localized in every supported language', () async {
+    const keys = [
+      'My profile',
+      'Optional private details for this device',
+      'Log out',
+      'Borrower profile',
+      'Your profile is optional. Loan management works even if you leave every field blank.',
+      'profileDetailsAdded',
+      'Full name',
+      'Email',
+      'Alternate phone',
+      'Work details (optional)',
+      'Business or lending name',
+      'Occupation',
+      'Address details (optional)',
+      'State / region',
+      'Postal code',
+      'Country',
+      'About me',
+      'Save profile',
+    ];
+    for (final code in CodegenLoader.mapLocales.keys) {
+      final translations = await loader.load('', Locale(code));
+      for (final key in keys) {
+        expect(
+          translations![key],
+          isA<String>(),
+          reason: 'Missing profile localization value for $key in $code',
+        );
+        if (code != 'en') {
+          expect(
+            translations[key],
+            isNot(key),
+            reason: 'Raw localization key rendered for $key in $code',
+          );
+        }
+      }
+    }
+  });
+
   test('lock-in form copy is available in every locale', () async {
     for (final code in CodegenLoader.mapLocales.keys) {
       final translations = await loader.load('', Locale(code));

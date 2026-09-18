@@ -20,11 +20,9 @@ import 'package:loanx/features/borrower/home.dart';
 import 'package:loanx/service/printing_service.dart';
 import 'package:loanx/service/auth_client.dart';
 import 'package:loanx/service/update_service.dart';
-import 'package:loanx/widget/k_icon.dart';
 import 'package:loanx/widget/snackbar.dart';
 import 'package:loanx/widget/styled_text.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'drawer.dart';
 
@@ -374,119 +372,6 @@ Weight: ${loan.formattedMortgageWeight.isNotEmpty ? loan.formattedMortgageWeight
                                   const Icon(Icons.share),
                                   const SizedBox(width: 12),
                                   Text('Share'.tr()),
-                                ],
-                              ),
-                            ),
-                          if (loanSelectionList.length == 1)
-                            PopupMenuItem<VoidCallback>(
-                              value: () {
-                                final selectedId = loanSelectionList.single;
-                                final loan = ref
-                                    .read(loanListProvider)
-                                    .value
-                                    ?.where((item) => item.id == selectedId)
-                                    .firstOrNull;
-                                if (loan == null) return;
-                                final familyRelationList = ref.read(
-                                  familyRelationListProvider,
-                                );
-                                final mortgageMaterialList = ref.read(
-                                  mortgageMaterialListProvider,
-                                );
-                                familyRelationList.when(
-                                  data: (familyRelations) {
-                                    mortgageMaterialList.when(
-                                      data: (mortgageMaterials) {
-                                        final formattedText =
-                                            """
-Name: ${loan.depositorName}
-Phone Number: ${loan.phoneNumber}
-Address: ${loan.address}
-Relative Name: ${loan.relativeName} (${familyRelations.firstWhere((familyRelation) => familyRelation.id == loan.familyRelationId).name})
-Loan Amount: ${loan.loanAmount}
-Additional Details: ${loan.additionalDetails}
-Terms and Conditions: ${loan.termsAndConditions.isEmpty ? 'Not recorded' : loan.termsAndConditions}
-Mortgage Name: ${mortgageMaterials.firstWhere((mortgageMaterial) => mortgageMaterial.id == loan.mortgageMaterialId).name}
-Weight: ${loan.formattedMortgageWeight.isNotEmpty ? loan.formattedMortgageWeightWithUnit : 'Not recorded'}
-
-Shared from LoanX
-""";
-                                        showDialog(
-                                          context: context,
-                                          barrierDismissible: false,
-                                          builder: (context) => Dialog(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                StyledHeading(
-                                                  LocaleKeys.sentVia.tr(),
-                                                ),
-                                                OutlinedButton.icon(
-                                                  label: Text(
-                                                    LocaleKeys.sms.tr(),
-                                                  ),
-                                                  icon: Icon(Icons.sms),
-                                                  onPressed: () async {
-                                                    final whatsappUrl =
-                                                        "sms:${loan.phoneNumber}?body=${Uri.encodeFull(formattedText)}";
-                                                    await launchUrl(
-                                                      Uri.parse(whatsappUrl),
-                                                    );
-                                                    if (context.mounted) {
-                                                      Navigator.of(
-                                                        context,
-                                                      ).pop();
-                                                    }
-                                                  },
-                                                ),
-                                                OutlinedButton.icon(
-                                                  label: Text(
-                                                    LocaleKeys.whatsapp2.tr(),
-                                                  ),
-                                                  icon: Icon(K.whatsapp),
-                                                  onPressed: () async {
-                                                    String whatsappUrl =
-                                                        "https://wa.me/${loan.phoneNumber}?text=${Uri.encodeComponent(formattedText)}";
-                                                    await launchUrl(
-                                                      Uri.parse(whatsappUrl),
-                                                    );
-                                                    if (context.mounted) {
-                                                      Navigator.of(
-                                                        context,
-                                                      ).pop();
-                                                    }
-                                                  },
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: Text(
-                                                    LocaleKeys.cancel.tr(),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      error: (_, q) {},
-                                      loading: () {},
-                                    );
-                                  },
-                                  error: (_, q) {},
-                                  loading: () {},
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.forward_to_inbox),
-                                  const SizedBox(width: 12),
-                                  Text(LocaleKeys.sentVia.tr()),
                                 ],
                               ),
                             ),

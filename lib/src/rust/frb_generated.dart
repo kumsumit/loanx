@@ -12,15 +12,16 @@ import 'frb_generated.io.dart'
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 /// Main entrypoint of the Rust API
-class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
+class RustLibApi
+    extends BaseEntrypoint<RustLibApiApi, RustLibApiApiImpl, RustLibApiWire> {
   @internal
-  static final instance = RustLib._();
+  static final instance = RustLibApi._();
 
-  RustLib._();
+  RustLibApi._();
 
   /// Initialize flutter_rust_bridge
   static Future<void> init({
-    RustLibApi? api,
+    RustLibApiApi? api,
     BaseHandler? handler,
     ExternalLibrary? externalLibrary,
     bool forceSameCodegenVersion = true,
@@ -35,7 +36,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
   /// Initialize flutter_rust_bridge in mock mode.
   /// No libraries for FFI are loaded.
-  static void initMock({required RustLibApi api}) {
+  static void initMock({required RustLibApiApi api}) {
     instance.initMockImpl(api: api);
   }
 
@@ -46,17 +47,15 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   static void dispose() => instance.disposeImpl();
 
   @override
-  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor =>
-      RustLibApiImpl.new;
+  ApiImplConstructor<RustLibApiApiImpl, RustLibApiWire>
+  get apiImplConstructor => RustLibApiApiImpl.new;
 
   @override
-  WireConstructor<RustLibWire> get wireConstructor =>
-      RustLibWire.fromExternalLibrary;
+  WireConstructor<RustLibApiWire> get wireConstructor =>
+      RustLibApiWire.fromExternalLibrary;
 
   @override
-  Future<void> executeRustInitializers() async {
-    await api.crateApiSimpleInitApp();
-  }
+  Future<void> executeRustInitializers() async {}
 
   @override
   ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig =>
@@ -66,7 +65,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -1565883145;
+  int get rustContentHash => 726828554;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -77,7 +76,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
       );
 }
 
-abstract class RustLibApi extends BaseApi {
+abstract class RustLibApiApi extends BaseApi {
   Future<AccountBootstrap> crateApiNetworkAccountBootstrap({
     required String serverAddress,
     required String serverName,
@@ -132,8 +131,6 @@ abstract class RustLibApi extends BaseApi {
     required List<int> loanPayloadJson,
   });
 
-  Future<void> crateApiSimpleInitApp();
-
   Future<SharedLoanListResult> crateApiNetworkListSharedLoans({
     required String serverAddress,
     required String serverName,
@@ -149,6 +146,15 @@ abstract class RustLibApi extends BaseApi {
     required String trustedCertificatePem,
     required String deviceId,
     required String accessToken,
+  });
+
+  Future<BorrowerProfileLookup> crateApiNetworkLookupBorrowerProfile({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String phoneE164,
   });
 
   Future<MyLenderProfile> crateApiNetworkMyLenderProfile({
@@ -262,6 +268,17 @@ abstract class RustLibApi extends BaseApi {
     required String phoneE164,
   });
 
+  Future<NetworkResult> crateApiNetworkSaveBorrowerLookupProfile({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required bool searchableByPhone,
+    required String displayName,
+    required String address,
+  });
+
   Future<LenderSearchResult> crateApiNetworkSearchPublicLenders({
     required String serverAddress,
     required String serverName,
@@ -306,8 +323,9 @@ abstract class RustLibApi extends BaseApi {
   });
 }
 
-class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
-  RustLibApiImpl({
+class RustLibApiApiImpl extends RustLibApiApiImplPlatform
+    implements RustLibApiApi {
+  RustLibApiApiImpl({
     required super.handler,
     required super.wire,
     required super.generalizedFrbRustBinding,
@@ -636,33 +654,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiSimpleInitApp() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 6,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleInitAppConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleInitAppConstMeta =>
-      const TaskConstMeta(debugName: "init_app", argNames: []);
-
-  @override
   Future<SharedLoanListResult> crateApiNetworkListSharedLoans({
     required String serverAddress,
     required String serverName,
@@ -684,7 +675,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 6,
             port: port_,
           );
         },
@@ -739,7 +730,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 7,
             port: port_,
           );
         },
@@ -769,6 +760,63 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "trustedCertificatePem",
           "deviceId",
           "accessToken",
+        ],
+      );
+
+  @override
+  Future<BorrowerProfileLookup> crateApiNetworkLookupBorrowerProfile({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required String phoneE164,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_String(phoneE164, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_borrower_profile_lookup,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkLookupBorrowerProfileConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+          phoneE164,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkLookupBorrowerProfileConstMeta =>
+      const TaskConstMeta(
+        debugName: "lookup_borrower_profile",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+          "phoneE164",
         ],
       );
 
@@ -1404,6 +1452,71 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<NetworkResult> crateApiNetworkSaveBorrowerLookupProfile({
+    required String serverAddress,
+    required String serverName,
+    required String trustedCertificatePem,
+    required String deviceId,
+    required String accessToken,
+    required bool searchableByPhone,
+    required String displayName,
+    required String address,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(serverAddress, serializer);
+          sse_encode_String(serverName, serializer);
+          sse_encode_String(trustedCertificatePem, serializer);
+          sse_encode_String(deviceId, serializer);
+          sse_encode_String(accessToken, serializer);
+          sse_encode_bool(searchableByPhone, serializer);
+          sse_encode_String(displayName, serializer);
+          sse_encode_String(address, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 18,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_network_result,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiNetworkSaveBorrowerLookupProfileConstMeta,
+        argValues: [
+          serverAddress,
+          serverName,
+          trustedCertificatePem,
+          deviceId,
+          accessToken,
+          searchableByPhone,
+          displayName,
+          address,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiNetworkSaveBorrowerLookupProfileConstMeta =>
+      const TaskConstMeta(
+        debugName: "save_borrower_lookup_profile",
+        argNames: [
+          "serverAddress",
+          "serverName",
+          "trustedCertificatePem",
+          "deviceId",
+          "accessToken",
+          "searchableByPhone",
+          "displayName",
+          "address",
+        ],
+      );
+
+  @override
   Future<LenderSearchResult> crateApiNetworkSearchPublicLenders({
     required String serverAddress,
     required String serverName,
@@ -1431,7 +1544,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 19,
             port: port_,
           );
         },
@@ -1494,7 +1607,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 20,
             port: port_,
           );
         },
@@ -1555,7 +1668,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 21,
             port: port_,
           );
         },
@@ -1620,7 +1733,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 22,
             port: port_,
           );
         },
@@ -1701,6 +1814,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   bool dco_decode_bool(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as bool;
+  }
+
+  @protected
+  BorrowerProfileLookup dco_decode_borrower_profile_lookup(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return BorrowerProfileLookup(
+      success: dco_decode_bool(arr[0]),
+      found: dco_decode_bool(arr[1]),
+      displayName: dco_decode_String(arr[2]),
+      address: dco_decode_String(arr[3]),
+      errorMessage: dco_decode_opt_String(arr[4]),
+    );
   }
 
   @protected
@@ -2075,6 +2203,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   bool sse_decode_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
+  BorrowerProfileLookup sse_decode_borrower_profile_lookup(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_found = sse_decode_bool(deserializer);
+    var var_displayName = sse_decode_String(deserializer);
+    var var_address = sse_decode_String(deserializer);
+    var var_errorMessage = sse_decode_opt_String(deserializer);
+    return BorrowerProfileLookup(
+      success: var_success,
+      found: var_found,
+      displayName: var_displayName,
+      address: var_address,
+      errorMessage: var_errorMessage,
+    );
   }
 
   @protected
@@ -2544,6 +2691,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_bool(bool self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
+  void sse_encode_borrower_profile_lookup(
+    BorrowerProfileLookup self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_bool(self.found, serializer);
+    sse_encode_String(self.displayName, serializer);
+    sse_encode_String(self.address, serializer);
+    sse_encode_opt_String(self.errorMessage, serializer);
   }
 
   @protected

@@ -10,6 +10,18 @@ final class RustBridge {
   static Future<void>? _initialization;
 
   static Future<void> ensureInitialized() {
-    return _initialization ??= RustLib.init();
+    final initialization = _initialization;
+    if (initialization != null) return initialization;
+
+    final attempt = RustLibApi.init();
+    _initialization = attempt;
+    attempt.onError((Object _, StackTrace _) {
+      // Do not permanently cache a transient library-load failure. A later
+      // connected action can safely retry initialization.
+      if (identical(_initialization, attempt)) {
+        _initialization = null;
+      }
+    });
+    return attempt;
   }
 }

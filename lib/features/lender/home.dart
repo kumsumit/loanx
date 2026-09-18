@@ -104,6 +104,10 @@ class _PortfolioSummary extends ConsumerWidget {
                 .join(' · ');
             final principal = totals((loan) => loan.loanAmount);
             final receivable = totals((loan) => loan.calculateCollectable());
+            // Interest is shown independently from the amount receivable so
+            // that principal and any applicable early-redemption fee do not
+            // inflate the lender's earnings figure.
+            final interestEarned = totals((loan) => loan.calculateInterest());
             return Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Container(
@@ -166,6 +170,14 @@ class _PortfolioSummary extends ConsumerWidget {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 14),
+                    _SummaryMetric(
+                      icon: Icons.trending_up_rounded,
+                      value: interestEarned.isEmpty ? '—' : interestEarned,
+                      // This is the accrued interest under each active loan's
+                      // saved terms, not principal or early-redemption fees.
+                      label: 'Calculated interest',
                     ),
                   ],
                 ),

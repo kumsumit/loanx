@@ -12,8 +12,8 @@ import 'dart:convert';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
 
-abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-  RustLibApiImplPlatform({
+abstract class RustLibApiApiImplPlatform extends BaseApiImpl<RustLibApiWire> {
+  RustLibApiApiImplPlatform({
     required super.handler,
     required super.wire,
     required super.generalizedFrbRustBinding,
@@ -31,6 +31,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   bool dco_decode_bool(dynamic raw);
+
+  @protected
+  BorrowerProfileLookup dco_decode_borrower_profile_lookup(dynamic raw);
 
   @protected
   PublicLender dco_decode_box_autoadd_public_lender(dynamic raw);
@@ -130,6 +133,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  BorrowerProfileLookup sse_decode_borrower_profile_lookup(
+    SseDeserializer deserializer,
+  );
 
   @protected
   PublicLender sse_decode_box_autoadd_public_lender(
@@ -259,6 +267,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_borrower_profile_lookup(
+    BorrowerProfileLookup self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_public_lender(
@@ -404,13 +418,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
 // Section: wire_class
 
-class RustLibWire implements BaseWire {
-  RustLibWire.fromExternalLibrary(ExternalLibrary lib);
+class RustLibApiWire implements BaseWire {
+  RustLibApiWire.fromExternalLibrary(ExternalLibrary lib);
 }
 
 @JS('wasm_bindgen')
-external RustLibWasmModule get wasmModule;
+external RustLibApiWasmModule get wasmModule;
 
 @JS()
 @anonymous
-extension type RustLibWasmModule._(JSObject _) implements JSObject {}
+extension type RustLibApiWasmModule._(JSObject _) implements JSObject {}

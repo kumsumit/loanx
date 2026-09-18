@@ -62,6 +62,16 @@ pub struct NetworkResult {
 
 #[derive(Debug)]
 #[flutter_rust_bridge::frb]
+pub struct BorrowerProfileLookup {
+    pub success: bool,
+    pub found: bool,
+    pub display_name: String,
+    pub address: String,
+    pub error_message: Option<String>,
+}
+
+#[derive(Debug)]
+#[flutter_rust_bridge::frb]
 pub struct SyncChange {
     pub sequence: i64,
     pub entity_type: String,
@@ -657,6 +667,87 @@ pub async fn my_lender_profile(
             profile: None,
             published: false,
             error_message: Some(cause.to_string()),
+        },
+    }
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn save_borrower_lookup_profile(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    searchable_by_phone: bool,
+    display_name: String,
+    address: String,
+) -> NetworkResult {
+    simple_network_result(
+        send_request(
+            &server_address,
+            &server_name,
+            &trusted_certificate_pem,
+            &device_id,
+            access_token,
+            v1::request::Payload::SaveBorrowerLookupProfile(v1::SaveBorrowerLookupProfileRequest {
+                searchable_by_phone,
+                display_name,
+                address,
+            }),
+        )
+        .await,
+        |result| matches!(result, v1::response::Result::SaveBorrowerLookupProfile(_)),
+    )
+}
+
+#[flutter_rust_bridge::frb]
+pub async fn lookup_borrower_profile(
+    server_address: String,
+    server_name: String,
+    trusted_certificate_pem: String,
+    device_id: String,
+    access_token: String,
+    phone_e164: String,
+) -> BorrowerProfileLookup {
+    match send_request(
+        &server_address,
+        &server_name,
+        &trusted_certificate_pem,
+        &device_id,
+        access_token,
+        v1::request::Payload::LookupBorrowerProfile(v1::LookupBorrowerProfileRequest {
+            phone_e164,
+        }),
+    )
+    .await
+    {
+        Ok(v1::response::Result::LookupBorrowerProfile(value)) => BorrowerProfileLookup {
+            success: true,
+            found: value.found,
+            display_name: value.display_name,
+            address: value.address,
+            error_message: None,
+        },
+        Ok(v1::response::Result::Error(value)) => BorrowerProfileLookup {
+            success: false,
+            found: false,
+            display_name: String::new(),
+            address: String::new(),
+            error_message: Some(value.message),
+        },
+        Ok(_) => BorrowerProfileLookup {
+            success: false,
+            found: false,
+            display_name: String::new(),
+            address: String::new(),
+            error_message: Some("unexpected server response".into()),
+        },
+        Err(error) => BorrowerProfileLookup {
+            success: false,
+            found: false,
+            display_name: String::new(),
+            address: String::new(),
+            error_message: Some(error.to_string()),
         },
     }
 }

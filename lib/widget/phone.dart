@@ -14,6 +14,7 @@ class PhoneWidget extends StatefulWidget {
   final FocusNode? focusNode;
   final void Function()? onTap;
   final void Function()? onSubmit;
+  final bool allowEmpty;
 
   const PhoneWidget({
     super.key,
@@ -25,6 +26,7 @@ class PhoneWidget extends StatefulWidget {
     this.textEditingController,
     this.onTap,
     this.onSubmit,
+    this.allowEmpty = false,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
   });
 
@@ -47,6 +49,14 @@ class _PhoneWidgetState extends State<PhoneWidget> {
       text: value,
       selection: TextSelection.collapsed(offset: value.length),
     );
+  }
+
+  void _notifyInputChanged(PhoneNumber phoneNumber) {
+    // The package can emit its initial value while it is mounting. Defer the
+    // app callback so consumers may safely call setState in response.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onChanged?.call(phoneNumber);
+    });
   }
 
   @override
@@ -157,7 +167,7 @@ class _PhoneWidgetState extends State<PhoneWidget> {
       ),
       errorMessage: LocaleKeys.provideAValidNumber.tr(),
       onInputChanged: (phoneNumber) {
-        widget.onChanged?.call(phoneNumber);
+        _notifyInputChanged(phoneNumber);
       },
       // locale: Get.locale!.languageCode,
       selectorConfig: SelectorConfig(
@@ -170,7 +180,7 @@ class _PhoneWidgetState extends State<PhoneWidget> {
           color: Theme.of(context).colorScheme.secondary,
         ),
       ),
-      ignoreBlank: false,
+      ignoreBlank: widget.allowEmpty,
       autoValidateMode: widget.autovalidateMode,
       flagStyle: TextStyle(fontSize: 20),
       textStyle: TextStyle(

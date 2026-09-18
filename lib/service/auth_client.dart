@@ -1333,6 +1333,43 @@ class AuthClient {
     return result;
   }
 
+  Future<void> saveBorrowerLookupProfile({
+    required bool searchableByPhone,
+    required String displayName,
+    required String address,
+  }) async {
+    final result = await network.saveBorrowerLookupProfile(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: await _requiredAccessToken(),
+      searchableByPhone: searchableByPhone,
+      displayName: displayName,
+      address: address,
+    );
+    if (!result.success) {
+      throw StateError(
+        result.errorMessage ?? 'Unable to update borrower profile',
+      );
+    }
+  }
+
+  Future<network.BorrowerProfileLookup?> lookupBorrowerProfile(
+    String phoneE164,
+  ) async {
+    final result = await network.lookupBorrowerProfile(
+      serverAddress: _address,
+      serverName: _name,
+      trustedCertificatePem: _certificate,
+      deviceId: _deviceId(),
+      accessToken: await _requiredAccessToken(),
+      phoneE164: phoneE164,
+    );
+    if (!result.success) return null;
+    return result.found ? result : null;
+  }
+
   Future<String> _requiredAccessToken() async {
     final token = (await _readTokens())?.accessToken;
     if (token == null || token.isEmpty) {

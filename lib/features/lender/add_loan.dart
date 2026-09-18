@@ -26,6 +26,7 @@ import 'package:loanx/widget/styled_text.dart';
 import 'package:loanx/widget/styled_textfield.dart';
 import 'package:loanx/features/auth/otp_verification_screen.dart';
 import 'package:loanx/service/auth_client.dart';
+import 'package:loanx/service/borrower_prefill_service.dart';
 import 'package:loanx/service/canonical_migration.dart';
 import 'package:loanx/service/rust_bridge.dart';
 
@@ -157,6 +158,8 @@ class LoanInput extends HookConsumerWidget {
         nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
       ),
     );
+    final prefillRequest = useRef(0);
+    final prefilledPhone = useState<String?>(null);
     final addressController = useTextEditingController(
       text: loan?.address ?? '',
     );
@@ -197,6 +200,55 @@ class LoanInput extends HookConsumerWidget {
           loan?.termsAndConditions ??
           AppSettings.getDefaultTermsAndConditions(),
     );
+
+    Future<void> prefillBorrowerDetails(PhoneNumber phone) async {
+      // `isValid` means the selected country and national number form a valid
+      // international number according to intl_phone_number_input. It is not
+      // proof that the lender owns the number or that it belongs to a profile.
+      if (!phone.isValid()) return;
+      final request = ++prefillRequest.value;
+      final normalizedPhone = CountryCatalog.e164(phone.isoCode, phone.nsn);
+      if (prefilledPhone.value == normalizedPhone) return;
+      try {
+        final database = await ref.read(dBProvider.future);
+        final owners = await database.query('localOwners');
+        if (owners.length != 1) return;
+        final suggestion = await BorrowerPrefillService.findForPhone(
+          database,
+          ownerId: owners.single['id'] as String,
+          phone: phone,
+        );
+        final remoteSuggestion =
+            suggestion == null &&
+                AuthClient.hasServerConfiguration &&
+                await (activeAuthClient ?? AuthClient()).restoreSession()
+            ? await (activeAuthClient ?? AuthClient()).lookupBorrowerProfile(
+                normalizedPhone,
+              )
+            : null;
+        // Do not apply an out-of-date result after the lender changes the
+        // number, and never overwrite information they have already typed.
+        if (!context.mounted || request != prefillRequest.value) return;
+        prefilledPhone.value = normalizedPhone;
+        if (suggestion == null && remoteSuggestion == null) return;
+        final name = suggestion?.displayName ?? remoteSuggestion!.displayName;
+        final address = suggestion?.address ?? remoteSuggestion!.address;
+        final relation = suggestion?.relativeName ?? '';
+        if (depositorController.text.trim().isEmpty) {
+          depositorController.text = name;
+        }
+        if (addressController.text.trim().isEmpty) {
+          addressController.text = address;
+        }
+        if (relativeNameController.text.trim().isEmpty) {
+          relativeNameController.text = relation;
+        }
+      } catch (_) {
+        // Prefill is a local convenience. The add-loan flow remains usable if
+        // a local lookup is unavailable during startup or restore.
+      }
+    }
+
     // This form is reused each time the add/edit route is opened. Persisting
     // its offset in PageStorage can make a new loan form reopen halfway down
     // the page, with the first fields hidden above the app bar.
@@ -853,7 +905,10 @@ class LoanInput extends HookConsumerWidget {
                     isoCode: "IN",
                     nsn: _nationalPhoneNumber(loan?.phoneNumber ?? ''),
                   ),
-                  onChanged: (value) => borrowerPhone.value = value,
+                  onChanged: (value) {
+                    borrowerPhone.value = value;
+                    prefillBorrowerDetails(value);
+                  },
                 ),
                 StyledTextField(
                   failedValidationMessage: LocaleKeys.borrowerNameCanTBeEmpty

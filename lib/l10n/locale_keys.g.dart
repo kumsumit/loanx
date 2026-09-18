@@ -268,6 +268,7 @@ abstract final class LocaleKeys {
   static const saveOrOpenTheReceiptAsAPdfFile =
       "Save or open the receipt as a PDF file";
   static const searchCountry = "Search Country";
+  static const search = "Search";
   static const searchCountryByNameOrCode = "Search Country by name or code";
   static const searchFilters = "Search filters";
   static const searchLoans = "Search loans";
@@ -281,6 +282,7 @@ abstract final class LocaleKeys {
   static const settlementNotes = "Settlement notes";
   static const settlementNotesOptional = "Settlement notes (optional)";
   static const shareApp = "Share App";
+  static const share = "Share";
   static const sharePdf = "Share PDF";
   static const shareLoanDetails = "Share loan details";
   static const simple = "Simple";
@@ -646,4 +648,24 @@ abstract final class LocaleKeys {
   static const recordsSynced = "Records synced.";
   static const someRecordsCouldNotSyncAndWillBeRetried =
       "Some records could not sync and will be retried.";
+  static const myProfile = "My profile";
+  static const optionalPrivateDetailsForThisDevice =
+      "Optional private details for this device";
+  static const logOut = "Log out";
+  static const borrowerProfile = "Borrower profile";
+  static const yourProfileIsOptionalLoanManagementWorksEvenIfYouLeaveEveryFieldBlank =
+      "Your profile is optional. Loan management works even if you leave every field blank.";
+  static const profileDetailsAdded = "profileDetailsAdded";
+  static const fullName = "Full name";
+  static const email = "Email";
+  static const alternatePhone = "Alternate phone";
+  static const workDetailsOptional = "Work details (optional)";
+  static const businessOrLendingName = "Business or lending name";
+  static const occupation = "Occupation";
+  static const addressDetailsOptional = "Address details (optional)";
+  static const stateRegion = "State / region";
+  static const postalCode = "Postal code";
+  static const country = "Country";
+  static const aboutMe = "About me";
+  static const saveProfile = "Save profile";
 }

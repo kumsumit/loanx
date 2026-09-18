@@ -10,8 +10,8 @@ import 'dart:ffi' as ffi;
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 
-abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-  RustLibApiImplPlatform({
+abstract class RustLibApiApiImplPlatform extends BaseApiImpl<RustLibApiWire> {
+  RustLibApiApiImplPlatform({
     required super.handler,
     required super.wire,
     required super.generalizedFrbRustBinding,
@@ -29,6 +29,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   bool dco_decode_bool(dynamic raw);
+
+  @protected
+  BorrowerProfileLookup dco_decode_borrower_profile_lookup(dynamic raw);
 
   @protected
   PublicLender dco_decode_box_autoadd_public_lender(dynamic raw);
@@ -128,6 +131,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  BorrowerProfileLookup sse_decode_borrower_profile_lookup(
+    SseDeserializer deserializer,
+  );
 
   @protected
   PublicLender sse_decode_box_autoadd_public_lender(
@@ -257,6 +265,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_borrower_profile_lookup(
+    BorrowerProfileLookup self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_public_lender(
@@ -402,15 +416,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
 // Section: wire_class
 
-class RustLibWire implements BaseWire {
-  factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
-      RustLibWire(lib.ffiDynamicLibrary);
+class RustLibApiWire implements BaseWire {
+  factory RustLibApiWire.fromExternalLibrary(ExternalLibrary lib) =>
+      RustLibApiWire(lib.ffiDynamicLibrary);
 
   /// Holds the symbol lookup function.
   final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
   _lookup;
 
   /// The symbols are looked up in [dynamicLibrary].
-  RustLibWire(ffi.DynamicLibrary dynamicLibrary)
+  RustLibApiWire(ffi.DynamicLibrary dynamicLibrary)
     : _lookup = dynamicLibrary.lookup;
 }

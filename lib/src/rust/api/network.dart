@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `connect_and_hello_inner`, `read_frame`, `resolve_address`, `send_request`, `simple_network_result`, `write_frame`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
 Future<PendingLoanInvitation> createPendingLoan({
   required String serverAddress,
@@ -20,7 +20,7 @@ Future<PendingLoanInvitation> createPendingLoan({
   required String borrowerPhoneE164,
   required String borrowerName,
   required List<int> loanPayloadJson,
-}) => RustLib.instance.api.crateApiNetworkCreatePendingLoan(
+}) => RustLibApi.instance.api.crateApiNetworkCreatePendingLoan(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -44,7 +44,7 @@ Future<ContactOtpVerification> verifyContactOtp({
   required String challengeId,
   required String phoneE164,
   required String otp,
-}) => RustLib.instance.api.crateApiNetworkVerifyContactOtp(
+}) => RustLibApi.instance.api.crateApiNetworkVerifyContactOtp(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -71,7 +71,7 @@ Future<VerifiedLoanResult> createVerifiedLoan({
   required String borrowerEmail,
   required String borrowerCountryCode,
   required List<int> loanPayloadJson,
-}) => RustLib.instance.api.crateApiNetworkCreateVerifiedLoan(
+}) => RustLibApi.instance.api.crateApiNetworkCreateVerifiedLoan(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -107,7 +107,7 @@ Future<NetworkResult> pushFinancialEvent({
   String? reason,
   String? principalMinor,
   String? loanDate,
-}) => RustLib.instance.api.crateApiNetworkPushFinancialEvent(
+}) => RustLibApi.instance.api.crateApiNetworkPushFinancialEvent(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -145,7 +145,7 @@ Future<NetworkResult> pushMutation({
   required String operation,
   required PlatformInt64 expectedRevision,
   required List<int> payloadJson,
-}) => RustLib.instance.api.crateApiNetworkPushMutation(
+}) => RustLibApi.instance.api.crateApiNetworkPushMutation(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -171,7 +171,7 @@ Future<PullChangesResult> pullChanges({
   required String workspaceId,
   required PlatformInt64 afterSequence,
   required int limit,
-}) => RustLib.instance.api.crateApiNetworkPullChanges(
+}) => RustLibApi.instance.api.crateApiNetworkPullChanges(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -189,7 +189,7 @@ Future<SharedLoanListResult> listSharedLoans({
   required String deviceId,
   required String accessToken,
   required int limit,
-}) => RustLib.instance.api.crateApiNetworkListSharedLoans(
+}) => RustLibApi.instance.api.crateApiNetworkListSharedLoans(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -204,12 +204,48 @@ Future<MyLenderProfile> myLenderProfile({
   required String trustedCertificatePem,
   required String deviceId,
   required String accessToken,
-}) => RustLib.instance.api.crateApiNetworkMyLenderProfile(
+}) => RustLibApi.instance.api.crateApiNetworkMyLenderProfile(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
   deviceId: deviceId,
   accessToken: accessToken,
+);
+
+Future<NetworkResult> saveBorrowerLookupProfile({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required bool searchableByPhone,
+  required String displayName,
+  required String address,
+}) => RustLibApi.instance.api.crateApiNetworkSaveBorrowerLookupProfile(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  searchableByPhone: searchableByPhone,
+  displayName: displayName,
+  address: address,
+);
+
+Future<BorrowerProfileLookup> lookupBorrowerProfile({
+  required String serverAddress,
+  required String serverName,
+  required String trustedCertificatePem,
+  required String deviceId,
+  required String accessToken,
+  required String phoneE164,
+}) => RustLibApi.instance.api.crateApiNetworkLookupBorrowerProfile(
+  serverAddress: serverAddress,
+  serverName: serverName,
+  trustedCertificatePem: trustedCertificatePem,
+  deviceId: deviceId,
+  accessToken: accessToken,
+  phoneE164: phoneE164,
 );
 
 Future<AccountBootstrap> accountBootstrap({
@@ -218,7 +254,7 @@ Future<AccountBootstrap> accountBootstrap({
   required String trustedCertificatePem,
   required String deviceId,
   required String accessToken,
-}) => RustLib.instance.api.crateApiNetworkAccountBootstrap(
+}) => RustLibApi.instance.api.crateApiNetworkAccountBootstrap(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -245,7 +281,7 @@ Future<NetworkResult> publishPublicLender({
   required bool available,
   required bool published,
   required String publicDescription,
-}) => RustLib.instance.api.crateApiNetworkPublishPublicLender(
+}) => RustLibApi.instance.api.crateApiNetworkPublishPublicLender(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -276,7 +312,7 @@ Future<LenderSearchResult> searchPublicLenders({
   required String query,
   required int limit,
   required String afterId,
-}) => RustLib.instance.api.crateApiNetworkSearchPublicLenders(
+}) => RustLibApi.instance.api.crateApiNetworkSearchPublicLenders(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -296,7 +332,7 @@ Future<NetworkResult> reportPublicLender({
   required String accessToken,
   required String profileId,
   required String reason,
-}) => RustLib.instance.api.crateApiNetworkReportPublicLender(
+}) => RustLibApi.instance.api.crateApiNetworkReportPublicLender(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -313,7 +349,7 @@ Future<NetworkResult> blockPublicLender({
   required String deviceId,
   required String accessToken,
   required String profileId,
-}) => RustLib.instance.api.crateApiNetworkBlockPublicLender(
+}) => RustLibApi.instance.api.crateApiNetworkBlockPublicLender(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -328,7 +364,7 @@ Future<ChatCredentials> requestChatCredentials({
   required String trustedCertificatePem,
   required String deviceId,
   required String accessToken,
-}) => RustLib.instance.api.crateApiNetworkRequestChatCredentials(
+}) => RustLibApi.instance.api.crateApiNetworkRequestChatCredentials(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -342,7 +378,7 @@ Future<OtpChallenge> requestOtp({
   required String trustedCertificatePem,
   required String deviceId,
   required String phoneE164,
-}) => RustLib.instance.api.crateApiNetworkRequestOtp(
+}) => RustLibApi.instance.api.crateApiNetworkRequestOtp(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -359,7 +395,7 @@ Future<AuthTokens> verifyOtp({
   required String phoneE164,
   required String otp,
   required String preferredLanguage,
-}) => RustLib.instance.api.crateApiNetworkVerifyOtp(
+}) => RustLibApi.instance.api.crateApiNetworkVerifyOtp(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -377,7 +413,7 @@ Future<NetworkResult> updateLanguage({
   required String deviceId,
   required String accessToken,
   required String preferredLanguage,
-}) => RustLib.instance.api.crateApiNetworkUpdateLanguage(
+}) => RustLibApi.instance.api.crateApiNetworkUpdateLanguage(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -392,7 +428,7 @@ Future<AuthTokens> refreshSession({
   required String trustedCertificatePem,
   required String deviceId,
   required String refreshToken,
-}) => RustLib.instance.api.crateApiNetworkRefreshSession(
+}) => RustLibApi.instance.api.crateApiNetworkRefreshSession(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -408,7 +444,7 @@ Future<NetworkResult> logoutSession({
   required String trustedCertificatePem,
   required String deviceId,
   required String accessToken,
-}) => RustLib.instance.api.crateApiNetworkLogoutSession(
+}) => RustLibApi.instance.api.crateApiNetworkLogoutSession(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -425,7 +461,7 @@ Future<ServerHello> connectAndHello({
   required String trustedCertificatePem,
   required String deviceId,
   required String clientBuild,
-}) => RustLib.instance.api.crateApiNetworkConnectAndHello(
+}) => RustLibApi.instance.api.crateApiNetworkConnectAndHello(
   serverAddress: serverAddress,
   serverName: serverName,
   trustedCertificatePem: trustedCertificatePem,
@@ -512,6 +548,41 @@ class AuthTokens {
           accessToken == other.accessToken &&
           refreshToken == other.refreshToken &&
           userId == other.userId &&
+          errorMessage == other.errorMessage;
+}
+
+class BorrowerProfileLookup {
+  final bool success;
+  final bool found;
+  final String displayName;
+  final String address;
+  final String? errorMessage;
+
+  const BorrowerProfileLookup({
+    required this.success,
+    required this.found,
+    required this.displayName,
+    required this.address,
+    this.errorMessage,
+  });
+
+  @override
+  int get hashCode =>
+      success.hashCode ^
+      found.hashCode ^
+      displayName.hashCode ^
+      address.hashCode ^
+      errorMessage.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BorrowerProfileLookup &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          found == other.found &&
+          displayName == other.displayName &&
+          address == other.address &&
           errorMessage == other.errorMessage;
 }
 
