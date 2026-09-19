@@ -1155,7 +1155,14 @@ class LoanList extends _$LoanList {
     state = AsyncData(await readAllLoans());
     await updateDBTime();
     try {
-      await AuthClient().flushPendingSyncMutations(database: db);
+      // A just-created loan must not depend on an old access token still
+      // being valid. Refreshing through the application-owned client also
+      // flushes party-before-loan dependencies and marks the loan as server
+      // saved only after the server durably acknowledges it.
+      final auth = activeAuthClient;
+      if (auth != null && await auth.restoreSession()) {
+        await auth.syncPendingWork();
+      }
     } catch (_) {
       // The local transaction is authoritative while offline. The durable
       // mutation queue retries when the session/network becomes available.

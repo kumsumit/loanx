@@ -31,6 +31,11 @@ class AuthClient {
   Future<void>? _pendingSync;
   Future<bool>? _pendingSessionRestore;
 
+  /// Set only when the device must perform the OTP connection flow again.
+  /// A transient transport failure deliberately does not set this: local work
+  /// remains queued and can retry when the server is reachable.
+  bool requiresReconnect = false;
+
   /// Whether this build has enough information to attempt a cloud request.
   ///
   /// The cloud service is optional for local-first workspaces. In particular,
@@ -1391,7 +1396,11 @@ class AuthClient {
 
   Future<bool> _restoreSession() async {
     final refreshToken = (await _readTokens())?.refreshToken;
-    if (refreshToken == null || refreshToken.isEmpty) return false;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      requiresReconnect = true;
+      lastSyncError = 'Cloud session is missing. Connect your account again.';
+      return false;
+    }
     try {
       final result = await network
           .refreshSession(
@@ -1403,7 +1412,11 @@ class AuthClient {
           )
           .timeout(const Duration(seconds: 10));
       if (!result.success) {
-        if (!result.transportUnavailable) await clearLocalSession();
+        lastSyncError = result.errorMessage ?? 'Cloud session refresh failed';
+        if (!result.transportUnavailable) {
+          requiresReconnect = true;
+          await clearLocalSession();
+        }
         return false;
       }
       final bootstrap = await network.accountBootstrap(
@@ -1417,6 +1430,8 @@ class AuthClient {
         // The refresh succeeded, but bootstrap may be temporarily offline.
         // Keep the rotated credentials so they can be retried later.
         await _storeTokens(result.accessToken, result.refreshToken);
+        lastSyncError =
+            bootstrap.errorMessage ?? 'Cloud workspace could not be loaded';
         return false;
       }
       final identity = CloudIdentity(
@@ -1431,6 +1446,7 @@ class AuthClient {
         result.refreshToken,
         identity: identity,
       );
+      requiresReconnect = false;
       if (linkedToLocalOwner) {
         try {
           lastSyncError = null;
@@ -1459,9 +1475,16 @@ class AuthClient {
         }
       }
       return true;
-    } catch (_) {
+    } catch (error, stackTrace) {
       // A network/configuration error must not erase the local identity or
       // credentials. The caller controls local access independently.
+      lastSyncError = '$error';
+      developer.log(
+        'Cloud session restore failed',
+        name: 'loanx.auth',
+        error: error,
+        stackTrace: stackTrace,
+      );
       return false;
     }
   }
@@ -1502,6 +1525,13 @@ class AuthClient {
     // Remove pre-upgrade token records after migration or logout.
     await _storage.delete(key: 'loanx.access-token');
     await _storage.delete(key: 'loanx.refresh-token');
+    // The onboarding marker is only presentation state. Keeping it true after
+    // credentials have been removed leaves a dead Sync button that can never
+    // restore a session. Local loan data is intentionally not touched.
+    AppSettings.putPhoneAuthVerified(false);
+    AppSettings.putVerifiedPhoneNumber('');
+    AppSettings.putVerifiedPhoneCountryCode('');
+    await AppSettings.flush();
   }
 
   Future<void> _storeTokens(

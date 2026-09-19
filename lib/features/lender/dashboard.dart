@@ -122,8 +122,11 @@ class DashBoard extends HookWidget {
                           if (!restored) {
                             showErrorSnackBar(
                               context,
-                              LocaleKeys
-                                  .couldNotSyncCheckYourConnectionAndTryAgain,
+                              client.requiresReconnect
+                                  ? 'Your cloud session has expired. Connect your account again to sync queued loans.'
+                                  : LocaleKeys
+                                        .couldNotSyncCheckYourConnectionAndTryAgain,
+                              userFacing: client.requiresReconnect,
                             );
                             return;
                           }
