@@ -35,7 +35,7 @@ configure<LibraryExtension> {
 
     // Use the NDK version declared in /android/app/build.gradle.kts
     // of the Flutter project. Replace it with a version number if needed.
-    ndkVersion = "30.0.16138531"
+    ndkVersion = "30.0.16248370"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21

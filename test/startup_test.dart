@@ -15,6 +15,7 @@ import 'package:loanx/features/borrower/home.dart';
 import 'package:loanx/features/lender/home.dart';
 import 'package:loanx/features/lender/error.dart';
 import 'package:loanx/features/auth/unauthorized.dart';
+import 'package:loanx/features/auth/phone_login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -58,6 +59,7 @@ void main() {
         ],
         child: MyApp(
           storageReady: storageReady,
+          phoneMetadataFuture: Future.value(true),
           initializeBridge: initializeBridge ?? () async {},
           startOptionalServices: () async {},
         ),
@@ -155,29 +157,34 @@ void main() {
     expect(find.byType(AskBackupScreen), findsNothing);
   });
 
-  testWidgets('phone metadata failure never builds the login screen', (
-    tester,
-  ) async {
-    AppSettings.putOnboardingInterest(1); // Borrower access needs account link.
-    AppSettings.putPhoneAuthVerified(false);
-    await tester.pumpWidget(
-      EasyLocalization(
-        supportedLocales: const [Locale('en')],
-        path: 'lib/l10n',
-        assetLoader: const CodegenLoader(),
-        fallbackLocale: const Locale('en'),
-        child: ProviderScope(
-          child: MyApp(
-            phoneMetadataReady: false,
-            initializeBridge: () async {},
-            startOptionalServices: () async {},
+  testWidgets(
+    'phone metadata failure offers a retry instead of blocking app startup',
+    (tester) async {
+      AppSettings.putOnboardingInterest(
+        1,
+      ); // Borrower access needs account link.
+      AppSettings.putPhoneAuthVerified(false);
+      await tester.pumpWidget(
+        EasyLocalization(
+          supportedLocales: const [Locale('en')],
+          path: 'lib/l10n',
+          assetLoader: const CodegenLoader(),
+          fallbackLocale: const Locale('en'),
+          child: ProviderScope(
+            child: MyApp(
+              phoneMetadataFuture: Future.value(false),
+              phoneMetadataLoader: () async => false,
+              initializeBridge: () async {},
+              startOptionalServices: () async {},
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.byType(ErrorPage), findsOneWidget);
-  });
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(PhoneLoginScreen), findsNothing);
+      expect(find.byType(FilledButton), findsOneWidget);
+    },
+  );
 
   testWidgets('a local lender workspace does not require phone metadata', (
     tester,
@@ -193,7 +200,7 @@ void main() {
         child: ProviderScope(
           overrides: [authenticateProvider.overrideWith((ref) async => true)],
           child: MyApp(
-            phoneMetadataReady: false,
+            phoneMetadataFuture: Future.value(false),
             initializeBridge: () async {},
             startOptionalServices: () async {},
           ),

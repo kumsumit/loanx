@@ -140,15 +140,12 @@ Future<void> main() async {
   // These operations are independent, so don't execute them serially.
   // -------------------------------------------------------------------------
 
-  final startupResults = await Future.wait<dynamic>([
-    EasyLocalization.ensureInitialized(),
-    initializePhoneMetadata(),
-    DevicePerformance.initialize(),
-    _initializeLocalStorage(),
-  ]);
-
-  final phoneMetadataReady = startupResults[1] as bool;
-  final storageReady = startupResults[3] as bool;
+  // Keep the futures strongly typed without coupling results to positional
+  // indices in a `Future.wait` list.
+  final localization = EasyLocalization.ensureInitialized();
+  final devicePerformance = DevicePerformance.initialize();
+  final storageReady = _initializeLocalStorage();
+  await Future.wait<void>([localization, devicePerformance]);
 
   // -------------------------------------------------------------------------
   // Authentication client itself is cheap to construct.
@@ -172,8 +169,7 @@ Future<void> main() async {
       useOnlyLangCode: true,
       child: ProviderScope(
         child: MyApp(
-          storageReady: storageReady,
-          phoneMetadataReady: phoneMetadataReady,
+          storageReady: await storageReady,
           sendOtp: activeAuthClient!.requestOtp,
           verifyOtp: activeAuthClient!.verifyOtp,
         ),
@@ -307,7 +303,8 @@ class MyApp extends ConsumerStatefulWidget {
   const MyApp({
     super.key,
     this.storageReady = true,
-    this.phoneMetadataReady = true,
+    this.phoneMetadataFuture,
+    this.phoneMetadataLoader = initializePhoneMetadata,
     this.sendOtp,
     this.verifyOtp,
     this.initializeBridge,
@@ -315,7 +312,11 @@ class MyApp extends ConsumerStatefulWidget {
   });
 
   final bool storageReady;
-  final bool phoneMetadataReady;
+
+  /// Phone metadata is deliberately deferred so it cannot delay local-first
+  /// startup. The phone-auth gate waits for it only when it is actually used.
+  final Future<bool>? phoneMetadataFuture;
+  final Future<bool> Function() phoneMetadataLoader;
 
   final OtpSender? sendOtp;
   final OtpVerifier? verifyOtp;
@@ -339,10 +340,13 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
   bool _backgroundBootstrapStarted = false;
   bool _cloudSyncInFlight = false;
+  Future<bool>? _phoneMetadataFuture;
 
   @override
   void initState() {
     super.initState();
+
+    _phoneMetadataFuture = widget.phoneMetadataFuture;
 
     WidgetsBinding.instance.addObserver(this);
     ref.listenManual<AsyncValue<bool>>(networkCheckerProvider, (
@@ -690,21 +694,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     // Connected borrower records require an authenticated account. Lenders
     // can link an account later from the dashboard when using cloud features.
     if (AppSettings.getUsesBorrowerExperience() && _hasVerifiedPhone != true) {
-      if (!widget.phoneMetadataReady) return ErrorPage();
-      if (_pendingPhoneNumber == null) {
-        return PhoneLoginScreen(onContinue: _sendOtp);
-      }
-
-      return OtpVerificationScreen(
-        phoneNumber: _pendingPhoneNumber!,
-        onVerify: _verifyOtp,
-        onResend: _resendOtp,
-        onChangeNumber: () {
-          setState(() {
-            _pendingPhoneNumber = null;
-          });
-        },
-      );
+      return _buildPhoneAuthentication();
     }
 
     // -----------------------------------------------------------------------
@@ -743,21 +733,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
             if (!usesBorrower &&
                 AppSettings.getIsProPlanSelected() &&
                 _hasVerifiedPhone != true) {
-              if (!widget.phoneMetadataReady) return ErrorPage();
-              if (_pendingPhoneNumber == null) {
-                return PhoneLoginScreen(onContinue: _sendOtp);
-              }
-
-              return OtpVerificationScreen(
-                phoneNumber: _pendingPhoneNumber!,
-                onVerify: _verifyOtp,
-                onResend: _resendOtp,
-                onChangeNumber: () {
-                  setState(() {
-                    _pendingPhoneNumber = null;
-                  });
-                },
-              );
+              return _buildPhoneAuthentication();
             }
 
             // -------------------------------------------------------------------
@@ -783,5 +759,97 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
             return const AuthScreen();
           },
         );
+  }
+
+  Widget _buildPhoneAuthentication() {
+    // The dependency downloads and parses a large global phone metadata set.
+    // Schedule it after this loading route has had a chance to render rather
+    // than making cold-start rendering contend with that CPU work.
+    _phoneMetadataFuture ??= _startPhoneMetadataAfterCurrentFrame();
+
+    return FutureBuilder<bool>(
+      future: _phoneMetadataFuture!,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _PhoneMetadataLoadingPage();
+        }
+
+        if (snapshot.data != true) {
+          return _PhoneMetadataUnavailablePage(
+            onRetry: () {
+              setState(() {
+                _phoneMetadataFuture = widget.phoneMetadataLoader();
+              });
+            },
+          );
+        }
+
+        if (_pendingPhoneNumber == null) {
+          return PhoneLoginScreen(onContinue: _sendOtp);
+        }
+
+        return OtpVerificationScreen(
+          phoneNumber: _pendingPhoneNumber!,
+          onVerify: _verifyOtp,
+          onResend: _resendOtp,
+          onChangeNumber: () {
+            setState(() {
+              _pendingPhoneNumber = null;
+            });
+          },
+        );
+      },
+    );
+  }
+
+  Future<bool> _startPhoneMetadataAfterCurrentFrame() {
+    final result = Completer<bool>();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        result.complete(await widget.phoneMetadataLoader());
+      } catch (error, stackTrace) {
+        result.completeError(error, stackTrace);
+      }
+    });
+    return result.future;
+  }
+}
+
+class _PhoneMetadataLoadingPage extends StatelessWidget {
+  const _PhoneMetadataLoadingPage();
+
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: CircularProgressIndicator()));
+}
+
+class _PhoneMetadataUnavailablePage extends StatelessWidget {
+  const _PhoneMetadataUnavailablePage({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                LocaleKeys.somethingWentWrongPleaseTryAgain.tr(),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: onRetry,
+                child: Text(LocaleKeys.tryAgain.tr()),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

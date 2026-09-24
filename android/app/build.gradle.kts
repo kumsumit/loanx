@@ -23,7 +23,7 @@ val hasReleaseSigning = listOf(
 android {
     namespace = "com.kumpali.loanx"
     compileSdk = 37
-    ndkVersion = "30.0.16138531"
+    ndkVersion = "30.0.16248370"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
